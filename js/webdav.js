@@ -77,6 +77,25 @@ export class ClienteWebDav {
     return datos;
   }
 
+  async existe(nombre) {
+    const respuesta = await fetch(this.urlDe(nombre), {
+      method: 'PROPFIND',
+      headers: { ...this.cabeceras, Depth: '0' },
+    });
+    if (respuesta.status === 404) return false;
+    if (respuesta.ok || respuesta.status === 207) return true;
+    throw await this.errorDe(respuesta, `comprobar si existe «${nombre}»`);
+  }
+
+  async subir(nombre, datos) {
+    const respuesta = await fetch(this.urlDe(nombre), {
+      method: 'PUT',
+      headers: { ...this.cabeceras, 'Content-Type': 'application/pdf' },
+      body: datos,
+    });
+    if (!respuesta.ok) throw await this.errorDe(respuesta, `subir «${nombre}»`);
+  }
+
   async leerProgreso() {
     const respuesta = await fetch(this.urlDe(ARCHIVO_PROGRESO), {
       headers: { ...this.cabeceras, 'Cache-Control': 'no-cache' },

@@ -18,6 +18,9 @@ libros y sincronizar el progreso de lectura.
   guarda en local y se sube al recuperar la red).
 - 📂 **Modo local**: también puedes abrir un PDF del propio dispositivo sin
   configurar nada (en ese caso la posición solo se recuerda en ese navegador).
+- ☁️ **Subir a la nube**: si abres un PDF local teniendo una nube configurada,
+  un botón te permite copiarlo a tu carpeta remota con un toque, para que pase
+  a formar parte de la biblioteca sincronizada (conservando la página actual).
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.

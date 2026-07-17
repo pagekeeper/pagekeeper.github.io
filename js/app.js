@@ -230,6 +230,7 @@ $('selector-archivo').addEventListener('change', async (evento) => {
       id: `local:${archivo.name}:${archivo.size}`,
       titulo: archivo.name.replace(/\.pdf$/i, ''),
       tipo: 'local',
+      archivo,
     });
   } catch (error) {
     avisar(`No se pudo abrir el PDF: ${error.message}`, 6000);
@@ -241,6 +242,8 @@ $('selector-archivo').addEventListener('change', async (evento) => {
 async function abrirEnLector(datos, libro) {
   libroActual = libro;
   $('titulo-libro').textContent = libro.titulo;
+  // El botón de subir solo tiene sentido con un PDF local y una nube configurada.
+  $('btn-subir').classList.toggle('oculto', !(libro.tipo === 'local' && cliente));
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
   await lector.abrir(datos, avance?.pagina ?? 1, modoActual());
@@ -248,6 +251,47 @@ async function abrirEnLector(datos, libro) {
     avisar(`Continuando en la página ${avance.pagina}`);
   }
 }
+
+// Sube el PDF local abierto a la carpeta de la nube y lo convierte en un
+// libro sincronizado, conservando la página actual.
+async function subirLibroActual() {
+  if (!libroActual || libroActual.tipo !== 'local' || !cliente || !libroActual.archivo) return;
+
+  let nombre = libroActual.archivo.name;
+  if (!/\.pdf$/i.test(nombre)) nombre += '.pdf';
+
+  try {
+    if (await cliente.existe(nombre) &&
+        !confirm(`Ya existe «${nombre}» en tu nube. ¿Quieres sobrescribirlo?`)) {
+      return;
+    }
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+    return;
+  }
+
+  mostrarCarga(`Subiendo «${nombre}» a tu nube…`);
+  try {
+    const datos = new Uint8Array(await libroActual.archivo.arrayBuffer());
+    await cliente.subir(nombre, datos);
+
+    // Traspasa la posición de lectura del identificador local al de la nube
+    // (el nombre del archivo) para no empezar de cero al reabrirlo.
+    progreso.anotarPagina(nombre, lector.pagina, lector.totalPaginas);
+
+    libroActual = { id: nombre, titulo: nombre.replace(/\.pdf$/i, ''), tipo: 'webdav' };
+    $('titulo-libro').textContent = libroActual.titulo;
+    $('btn-subir').classList.add('oculto');
+    await progreso.sincronizar(cliente).catch(() => null);
+    avisar('Guardado en tu nube. Ya se sincroniza entre dispositivos.');
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+  }
+}
+
+$('btn-subir').addEventListener('click', subirLibroActual);
 
 // ───────────────────────── Modo de lectura ─────────────────────────
 
