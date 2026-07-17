@@ -15,6 +15,7 @@
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
       <h1>📖 Lector PDF</h1>
+      <button id="btn-ayuda" class="btn-icono" title="Ayuda">❓</button>
       <button id="btn-ajustes" class="btn-icono" title="Ajustes">⚙️</button>
     </header>
     <main class="contenido">
@@ -23,6 +24,8 @@
         dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube
         (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura
         entre dispositivos.</p>
+        <p class="ayuda">¿No sabes qué es esto o qué necesitas?
+        <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
       </div>
 
       <div id="zona-remota" class="oculto">
@@ -73,7 +76,9 @@
         <h2>Nube (WebDAV)</h2>
         <p class="ayuda">Compatible con Nextcloud, ownCloud y cualquier servidor
         WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la
-        posición de lectura se sincronizará entre todos tus dispositivos.</p>
+        posición de lectura se sincronizará entre todos tus dispositivos.
+        ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la
+        ayuda</a>.</p>
 
         <label>URL de la carpeta WebDAV
           <input type="url" id="campo-url" placeholder="https://tu-nube.com/remote.php/dav/files/USUARIO/Libros" autocomplete="url">
@@ -98,6 +103,111 @@
         </div>
         <div id="resultado-prueba" class="estado"></div>
       </form>
+    </main>
+  </section>
+
+  <!-- ═══════════ AYUDA ═══════════ -->
+  <section id="vista-ayuda" class="vista oculto">
+    <header class="cabecera">
+      <button id="btn-cerrar-ayuda" class="btn-icono" title="Volver">←</button>
+      <h1>Ayuda</h1>
+    </header>
+    <main class="contenido">
+
+      <div class="tarjeta">
+        <h2>¿Qué hace este lector?</h2>
+        <p>Lee tus libros en PDF desde el móvil, la tablet o el ordenador y
+        recuerda por dónde vas. Hay dos formas de usarlo:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Abrir un PDF de tu dispositivo:</strong> funciona al
+          instante, sin cuentas ni ajustes. Única pega: la posición de lectura
+          se guarda solo en ese dispositivo.</li>
+          <li><strong>Conectar una nube (WebDAV):</strong> tus libros y tu
+          posición de lectura se sincronizan entre todos tus dispositivos.
+          Necesita una configuración previa que se explica más abajo.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>¿Qué es WebDAV?</h2>
+        <p>Es una forma estándar de acceder por internet a los archivos
+        guardados en un servidor, como si fuese una carpeta remota. Este lector
+        lo usa para leer tus PDF y para guardar tu posición de lectura en tu
+        propia nube, de modo que puedas continuar desde otro dispositivo.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Importante: no vale cualquier nube</h2>
+        <p>El lector funciona dentro del navegador y, por seguridad, el
+        navegador solo permite conectar con un servidor si ese servidor lo
+        autoriza de forma expresa (una regla técnica llamada <em>CORS</em>).
+        Esto deja fuera a casi todos los servicios comerciales:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> no sirven; no
+          ofrecen un WebDAV utilizable de esta forma.</li>
+          <li><strong>Koofr, pCloud, Yandex y similares:</strong> tienen
+          WebDAV, pero bloquean el acceso desde páginas web, y no puedes
+          cambiarlo porque el servidor no es tuyo.</li>
+          <li><strong>Nextcloud u ownCloud con el permiso activado:</strong>
+          esta es, en la práctica, la única opción que funciona para
+          sincronizar.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>No tengo servidor propio (lo más habitual)</h2>
+        <p>Casi nadie tiene su propio servidor, y no pasa nada. Tienes dos
+        caminos:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Que alguien te dé acceso a su Nextcloud</strong> (un
+          familiar, tu centro de estudios, tu equipo de trabajo…). Pídele tres
+          datos: la <em>URL de tu carpeta WebDAV</em>, tu <em>usuario</em> y
+          una <em>contraseña de aplicación</em>. Con eso ya sincronizas entre
+          dispositivos, sin montar nada tú.</li>
+          <li><strong>Que nadie te dé acceso:</strong> usa «Abrir PDF de este
+          dispositivo». Se lee igual de bien; solo pierdes la sincronización
+          automática entre aparatos.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Tengo o administro un Nextcloud / ownCloud</h2>
+        <p>Para permitir que este lector se conecte:</p>
+        <ul class="lista-ayuda">
+          <li>Instala la app <strong>WebAppPassword</strong> y añade el dominio
+          de este lector (<code id="ayuda-dominio">este sitio</code>) a los
+          orígenes permitidos.</li>
+          <li>Crea una <strong>contraseña de aplicación</strong> (Ajustes →
+          Seguridad). No uses tu contraseña principal.</li>
+          <li>En <strong>⚙️ Ajustes</strong> de este lector, pon la URL de tu
+          carpeta (por ejemplo
+          <code>https://tu-nube.com/remote.php/dav/files/USUARIO/Libros</code>),
+          tu usuario y esa contraseña.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta destacado">
+        <h2>🤖 ¿Dudas al configurar? Pregunta a una IA</h2>
+        <p>Configurar un servidor tiene su miga, pero una inteligencia
+        artificial (ChatGPT, Claude, Gemini…) te guía paso a paso. Copia y
+        pega preguntas como estas:</p>
+        <ul class="lista-ayuda">
+          <li>«Tengo un servidor Nextcloud. ¿Cómo instalo la app
+          <em>WebAppPassword</em> y permito el acceso WebDAV desde una web
+          alojada en <code id="ayuda-dominio-ia">este sitio</code>?»</li>
+          <li>«¿Cómo creo una contraseña de aplicación en Nextcloud?»</li>
+          <li>«¿El servicio de nube <em>[nombre]</em> permite acceso WebDAV
+          desde el navegador (CORS) para una web externa?»</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Privacidad</h2>
+        <p>No hay ningún servidor intermedio. Tu navegador se conecta
+        directamente con tu nube, y la URL, el usuario y la contraseña se
+        guardan únicamente en este navegador.</p>
+      </div>
+
     </main>
   </section>
 

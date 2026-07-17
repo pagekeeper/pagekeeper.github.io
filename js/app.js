@@ -120,6 +120,26 @@ $('enlace-configurar').addEventListener('click', (evento) => {
   evento.preventDefault();
   abrirAjustes();
 });
+
+// ───────────────────────── Ayuda ─────────────────────────
+
+function abrirAyuda() {
+  const dominio = location.origin;
+  for (const id of ['ayuda-dominio', 'ayuda-dominio-ia']) $(id).textContent = dominio;
+  mostrarVista('ayuda');
+}
+
+$('btn-ayuda').addEventListener('click', abrirAyuda);
+$('btn-cerrar-ayuda').addEventListener('click', () => {
+  mostrarVista('biblioteca');
+  cargarBiblioteca();
+});
+for (const id of ['enlace-ayuda-aviso', 'enlace-ayuda-ajustes']) {
+  $(id).addEventListener('click', (evento) => {
+    evento.preventDefault();
+    abrirAyuda();
+  });
+}
 $('btn-cerrar-ajustes').addEventListener('click', () => {
   mostrarVista('biblioteca');
   cargarBiblioteca();

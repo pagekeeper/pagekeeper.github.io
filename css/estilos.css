@@ -73,6 +73,22 @@ body {
 .ayuda { font-size: 0.85rem; color: var(--texto-suave); }
 .ayuda a, .tarjeta a { color: var(--acento); }
 
+/* ── Sección de ayuda ── */
+.tarjeta p { font-size: 0.92rem; }
+.lista-ayuda {
+  padding-left: 1.2rem; display: flex; flex-direction: column; gap: 0.45rem;
+  font-size: 0.92rem;
+}
+.lista-ayuda li { padding-left: 0.2rem; }
+.tarjeta code {
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.35rem;
+  padding: 0.05rem 0.35rem; font-size: 0.85em; word-break: break-all;
+}
+.tarjeta.importante { border-color: #d9a441; }
+.tarjeta.importante h2 { color: #f0b95a; }
+.tarjeta.destacado { border-color: var(--acento); }
+.tarjeta.destacado h2 { color: var(--acento); }
+
 .estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
 .estado.error { color: var(--peligro); white-space: pre-wrap; }
 .estado.exito { color: #4ade80; }
