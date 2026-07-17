@@ -18,6 +18,9 @@ libros y sincronizar el progreso de lectura.
   guarda en local y se sube al recuperar la red).
 - 📂 **Modo local**: también puedes abrir un PDF del propio dispositivo sin
   configurar nada (en ese caso la posición solo se recuerda en ese navegador).
+- 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
+  como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
+  vertical (mejor en ordenador). La elección se recuerda entre sesiones.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 🔒 **Privacidad**: no hay ningún servidor intermedio. El navegador habla

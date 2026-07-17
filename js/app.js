@@ -4,6 +4,7 @@ import * as progreso from './progreso.js';
 
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
+const CLAVE_MODO = 'lector.modo';
 
 const $ = (id) => document.getElementById(id);
 
@@ -14,8 +15,8 @@ let libroActual = null;    // { id, titulo, tipo: 'webdav' | 'local' }
 let temporizadorSync = null;
 
 const lector = new Lector({
-  lienzo: $('lienzo'),
-  contenedor: $('area-lectura'),
+  area: $('area-lectura'),
+  contenedor: $('contenedor-pagina'),
   alCambiarPagina: cuandoCambiaPagina,
 });
 
@@ -222,11 +223,32 @@ async function abrirEnLector(datos, libro) {
   $('titulo-libro').textContent = libro.titulo;
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
-  await lector.abrir(datos, avance?.pagina ?? 1);
+  await lector.abrir(datos, avance?.pagina ?? 1, modoActual());
   if (avance && avance.pagina > 1) {
     avisar(`Continuando en la página ${avance.pagina}`);
   }
 }
+
+// ───────────────────────── Modo de lectura ─────────────────────────
+
+function modoActual() {
+  return localStorage.getItem(CLAVE_MODO) === 'continuo' ? 'continuo' : 'pagina';
+}
+
+function aplicarAparienciaModo(modo) {
+  $('vista-lector').classList.toggle('modo-continuo', modo === 'continuo');
+  $('btn-modo').textContent = modo === 'continuo' ? '📄' : '📜';
+  $('btn-modo').title = modo === 'continuo'
+    ? 'Ver página a página (como un libro)'
+    : 'Ver páginas continuas (scroll)';
+}
+
+$('btn-modo').addEventListener('click', async () => {
+  const nuevo = modoActual() === 'continuo' ? 'pagina' : 'continuo';
+  localStorage.setItem(CLAVE_MODO, nuevo);
+  aplicarAparienciaModo(nuevo);
+  await lector.cambiarModo(nuevo);
+});
 
 // ───────────────────────── Progreso y sincronización ─────────────────────────
 
@@ -295,6 +317,7 @@ $('area-lectura').addEventListener('touchend', (evento) => {
   const dx = evento.changedTouches[0].clientX - toqueX;
   const dy = evento.changedTouches[0].clientY - toqueY;
   toqueX = toqueY = null;
+  if (lector.modo === 'continuo') return; // en continuo manda el scroll vertical
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
     if (dx < 0) lector.siguiente(); else lector.anterior();
   }
@@ -305,6 +328,7 @@ $('area-lectura').addEventListener('touchend', (evento) => {
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
   document.body.classList.add('modo-noche');
 }
+aplicarAparienciaModo(modoActual());
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => null);

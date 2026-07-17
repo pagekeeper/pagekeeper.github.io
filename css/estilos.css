@@ -110,7 +110,7 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 .libro .barra-progreso > div { height: 100%; background: var(--acento); }
 
 /* ── Lector ── */
-#vista-lector { background: var(--fondo-lector); }
+#vista-lector { background: var(--fondo-lector); height: 100dvh; }
 
 .barra-lector {
   display: flex; align-items: center; gap: 0.25rem;
@@ -130,14 +130,27 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 }
 .btn-pagina:hover { border-color: var(--acento); }
 
-#area-lectura { flex: 1; position: relative; overflow: auto; }
+#area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
 #contenedor-pagina {
   min-height: 100%; display: flex;
   justify-content: center; align-items: flex-start; padding: 0.5rem;
 }
-#lienzo { box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px; background: white; }
+#contenedor-pagina.continuo {
+  flex-direction: column; align-items: center; gap: 0.6rem; padding: 0.6rem 0.5rem;
+}
+#contenedor-pagina > canvas {
+  box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px; background: white; display: block;
+}
+.pagina-continua {
+  background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
+  border-radius: 2px; max-width: 100%; overflow: hidden;
+}
+.pagina-continua > canvas { display: block; max-width: 100%; }
 
-.modo-noche #lienzo { filter: invert(0.93) hue-rotate(180deg); }
+.modo-noche #area-lectura canvas { filter: invert(0.93) hue-rotate(180deg); }
+
+/* En modo continuo las zonas de toque laterales estorbarían al scroll. */
+#vista-lector.modo-continuo .zona-toque { display: none; }
 
 .zona-toque {
   position: fixed; top: 20%; bottom: 10%; width: 18%;
