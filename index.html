@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <title>Lector PDF</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+</head>
+<body>
+
+  <!-- ═══════════ BIBLIOTECA ═══════════ -->
+  <section id="vista-biblioteca" class="vista">
+    <header class="cabecera">
+      <h1>📖 Lector PDF</h1>
+      <button id="btn-ajustes" class="btn-icono" title="Ajustes">⚙️</button>
+    </header>
+    <main class="contenido">
+      <div id="aviso-sin-config" class="tarjeta oculto">
+        <p>No hay ningún servidor configurado. Puedes abrir un PDF de este
+        dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube
+        (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura
+        entre dispositivos.</p>
+      </div>
+
+      <div id="zona-remota" class="oculto">
+        <div class="fila-seccion">
+          <h2 id="titulo-carpeta">Mi biblioteca</h2>
+          <button id="btn-recargar" class="btn-icono" title="Recargar">🔄</button>
+        </div>
+        <div id="estado-remoto" class="estado"></div>
+        <ul id="lista-libros" class="lista-libros"></ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Abrir PDF de este dispositivo</h2>
+        <p class="ayuda">La posición se recuerda solo en este dispositivo.</p>
+        <label class="btn-primario" for="selector-archivo">Elegir archivo…</label>
+        <input type="file" id="selector-archivo" accept="application/pdf,.pdf" hidden>
+      </div>
+    </main>
+  </section>
+
+  <!-- ═══════════ LECTOR ═══════════ -->
+  <section id="vista-lector" class="vista oculto">
+    <header class="barra-lector">
+      <button id="btn-volver" class="btn-icono" title="Volver a la biblioteca">←</button>
+      <span id="titulo-libro" class="titulo-libro"></span>
+      <button id="btn-indicador" class="btn-pagina" title="Ir a una página">– / –</button>
+      <span class="separador"></span>
+      <button id="btn-zoom-menos" class="btn-icono" title="Reducir">−</button>
+      <button id="btn-zoom-mas" class="btn-icono" title="Ampliar">+</button>
+      <button id="btn-noche" class="btn-icono" title="Modo noche">🌙</button>
+    </header>
+    <div id="area-lectura">
+      <div id="contenedor-pagina"><canvas id="lienzo"></canvas></div>
+      <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior"></button>
+      <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente"></button>
+    </div>
+  </section>
+
+  <!-- ═══════════ AJUSTES ═══════════ -->
+  <section id="vista-ajustes" class="vista oculto">
+    <header class="cabecera">
+      <button id="btn-cerrar-ajustes" class="btn-icono" title="Volver">←</button>
+      <h1>Ajustes</h1>
+    </header>
+    <main class="contenido">
+      <form id="formulario-webdav" class="tarjeta">
+        <h2>Nube (WebDAV)</h2>
+        <p class="ayuda">Compatible con Nextcloud, ownCloud y cualquier servidor
+        WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la
+        posición de lectura se sincronizará entre todos tus dispositivos.</p>
+
+        <label>URL de la carpeta WebDAV
+          <input type="url" id="campo-url" placeholder="https://tu-nube.com/remote.php/dav/files/USUARIO/Libros" autocomplete="url">
+        </label>
+        <label>Usuario
+          <input type="text" id="campo-usuario" autocomplete="username">
+        </label>
+        <label>Contraseña de aplicación
+          <input type="password" id="campo-clave" autocomplete="current-password">
+        </label>
+        <p class="ayuda">⚠️ En Nextcloud crea una <strong>contraseña de
+        aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña
+        principal. Además, para que el navegador pueda conectar, el servidor
+        debe permitir CORS: en Nextcloud instala la app
+        <strong>WebAppPassword</strong> y añade el dominio de este lector.
+        Los datos se guardan únicamente en este navegador.</p>
+
+        <div class="fila-botones">
+          <button type="button" id="btn-probar" class="btn-secundario">Probar conexión</button>
+          <button type="submit" class="btn-primario">Guardar</button>
+          <button type="button" id="btn-borrar-config" class="btn-peligro">Borrar configuración</button>
+        </div>
+        <div id="resultado-prueba" class="estado"></div>
+      </form>
+    </main>
+  </section>
+
+  <div id="toast" class="toast oculto"></div>
+  <div id="cargando" class="cargando oculto"><div class="ruedecilla"></div><span id="texto-cargando">Cargando…</span></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

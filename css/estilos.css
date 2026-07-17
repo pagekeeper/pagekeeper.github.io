@@ -1,0 +1,170 @@
+:root {
+  --fondo: #0f172a;
+  --fondo-tarjeta: #1e293b;
+  --fondo-lector: #171f2e;
+  --texto: #e2e8f0;
+  --texto-suave: #94a3b8;
+  --acento: #38bdf8;
+  --acento-oscuro: #0284c7;
+  --peligro: #f87171;
+  --borde: #334155;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body { height: 100%; }
+
+body {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+  line-height: 1.5;
+}
+
+.oculto { display: none !important; }
+
+.vista { min-height: 100dvh; display: flex; flex-direction: column; }
+
+/* ── Cabeceras ── */
+.cabecera {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
+  border-bottom: 1px solid var(--borde);
+}
+.cabecera h1 { font-size: 1.2rem; flex: 1; }
+
+.contenido {
+  width: 100%; max-width: 42rem; margin: 0 auto;
+  padding: 1rem; display: flex; flex-direction: column; gap: 1rem; flex: 1;
+}
+
+.fila-seccion { display: flex; align-items: center; gap: 0.5rem; }
+.fila-seccion h2 { flex: 1; font-size: 1rem; color: var(--texto-suave); font-weight: 600; }
+
+/* ── Tarjetas y botones ── */
+.tarjeta {
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.75rem; padding: 1rem;
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.tarjeta h2 { font-size: 1rem; }
+
+.btn-icono {
+  background: none; border: none; color: var(--texto);
+  font-size: 1.25rem; cursor: pointer; padding: 0.4rem 0.6rem;
+  border-radius: 0.5rem; line-height: 1;
+}
+.btn-icono:hover { background: var(--fondo-tarjeta); }
+
+.btn-primario, .btn-secundario, .btn-peligro {
+  display: inline-block; text-align: center; cursor: pointer;
+  border-radius: 0.5rem; padding: 0.6rem 1.1rem;
+  font-size: 0.95rem; font-weight: 600; border: 1px solid transparent;
+}
+.btn-primario { background: var(--acento-oscuro); color: white; }
+.btn-primario:hover { background: var(--acento); color: #082f49; }
+.btn-secundario { background: none; border-color: var(--borde); color: var(--texto); }
+.btn-secundario:hover { border-color: var(--acento); }
+.btn-peligro { background: none; border-color: var(--borde); color: var(--peligro); }
+.btn-peligro:hover { border-color: var(--peligro); }
+
+.fila-botones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.ayuda { font-size: 0.85rem; color: var(--texto-suave); }
+.ayuda a, .tarjeta a { color: var(--acento); }
+
+.estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
+.estado.error { color: var(--peligro); white-space: pre-wrap; }
+.estado.exito { color: #4ade80; }
+
+/* ── Formulario ── */
+form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
+form input {
+  background: var(--fondo); border: 1px solid var(--borde);
+  border-radius: 0.5rem; padding: 0.55rem 0.7rem;
+  color: var(--texto); font-size: 1rem;
+}
+form input:focus { outline: 2px solid var(--acento); border-color: transparent; }
+
+/* ── Lista de libros ── */
+.lista-libros { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.libro {
+  display: flex; align-items: center; gap: 0.75rem;
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.75rem; padding: 0.75rem 1rem;
+  cursor: pointer; width: 100%; text-align: left;
+  color: var(--texto); font: inherit;
+}
+.libro:hover { border-color: var(--acento); }
+.libro .portada { font-size: 1.6rem; }
+.libro .datos { flex: 1; min-width: 0; }
+.libro .nombre {
+  font-weight: 600; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+}
+.libro .detalle { font-size: 0.8rem; color: var(--texto-suave); }
+.libro .barra-progreso {
+  height: 4px; background: var(--borde); border-radius: 2px;
+  margin-top: 0.35rem; overflow: hidden;
+}
+.libro .barra-progreso > div { height: 100%; background: var(--acento); }
+
+/* ── Lector ── */
+#vista-lector { background: var(--fondo-lector); }
+
+.barra-lector {
+  display: flex; align-items: center; gap: 0.25rem;
+  padding: max(0.4rem, env(safe-area-inset-top)) 0.5rem 0.4rem;
+  background: var(--fondo); border-bottom: 1px solid var(--borde);
+  position: sticky; top: 0; z-index: 10;
+}
+.titulo-libro {
+  flex: 1; min-width: 0; font-size: 0.9rem; font-weight: 600;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.separador { width: 0.25rem; }
+.btn-pagina {
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  color: var(--texto); border-radius: 0.5rem; padding: 0.35rem 0.7rem;
+  font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+}
+.btn-pagina:hover { border-color: var(--acento); }
+
+#area-lectura { flex: 1; position: relative; overflow: auto; }
+#contenedor-pagina {
+  min-height: 100%; display: flex;
+  justify-content: center; align-items: flex-start; padding: 0.5rem;
+}
+#lienzo { box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px; background: white; }
+
+.modo-noche #lienzo { filter: invert(0.93) hue-rotate(180deg); }
+
+.zona-toque {
+  position: fixed; top: 20%; bottom: 10%; width: 18%;
+  background: none; border: none; cursor: pointer; z-index: 5;
+  color: transparent;
+}
+.zona-izq { left: 0; }
+.zona-der { right: 0; }
+
+/* ── Toast y carga ── */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.75rem; padding: 0.6rem 1.2rem; font-size: 0.9rem;
+  z-index: 100; max-width: 90vw; text-align: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.cargando {
+  position: fixed; inset: 0; z-index: 90;
+  background: rgba(15, 23, 42, 0.85);
+  display: flex; flex-direction: column; gap: 1rem;
+  align-items: center; justify-content: center;
+}
+.ruedecilla {
+  width: 2.5rem; height: 2.5rem; border-radius: 50%;
+  border: 4px solid var(--borde); border-top-color: var(--acento);
+  animation: girar 0.8s linear infinite;
+}
+@keyframes girar { to { transform: rotate(360deg); } }
