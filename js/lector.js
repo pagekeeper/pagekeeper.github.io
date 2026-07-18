@@ -45,11 +45,11 @@ export class Lector {
     return this.documento?.numPages ?? 0;
   }
 
-  async abrir(datos, paginaInicial = 1, modo = this.modo) {
+  async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1) {
     if (this.documento) { try { await this.documento.destroy(); } catch { /* ignorar */ } }
     this.documento = await pdfjs.getDocument({ data: datos }).promise;
     this.modo = modo;
-    this.zoom = 1;
+    this.zoom = Math.min(4, Math.max(0.5, zoom));
     this.pagina = Math.min(Math.max(1, paginaInicial), this.documento.numPages);
     await this.montar();
   }

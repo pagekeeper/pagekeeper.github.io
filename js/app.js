@@ -9,6 +9,18 @@ import { icono, pintarIconos } from './iconos.js';
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
 const CLAVE_MODO = 'lector.modo';
+const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
+const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
+
+function zoomPdfGuardado() {
+  const valor = parseFloat(localStorage.getItem(CLAVE_ZOOM_PDF));
+  return valor >= 0.5 && valor <= 4 ? valor : 1;
+}
+
+function letraEpubGuardada() {
+  const valor = parseInt(localStorage.getItem(CLAVE_LETRA_EPUB), 10);
+  return valor >= 60 && valor <= 300 ? valor : 100;
+}
 
 const $ = (id) => document.getElementById(id);
 
@@ -543,12 +555,13 @@ async function abrirEnLector(datos, libro) {
 
   if (esEpub) {
     $('btn-indicador').textContent = '…';
+    lectorEpub.tamano = letraEpubGuardada();
     await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
     lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
     if (avance?.cfi) avisar('Continuando donde lo dejaste');
   } else {
     lectorEpub.cerrar();
-    await lector.abrir(datos, avance?.pagina ?? 1, modoActual());
+    await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado());
     if (avance && avance.pagina > 1) {
       avisar(`Continuando en la página ${avance.pagina}`);
     }
@@ -675,14 +688,17 @@ $('btn-volver').addEventListener('click', () => {
 
 $('zona-anterior').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).anterior());
 $('zona-siguiente').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).siguiente());
-$('btn-zoom-menos').addEventListener('click', () => {
-  if (epubAbierto()) lectorEpub.cambiarTamano(-10);
-  else lector.cambiarZoom(1 / 1.2);
-});
-$('btn-zoom-mas').addEventListener('click', () => {
-  if (epubAbierto()) lectorEpub.cambiarTamano(10);
-  else lector.cambiarZoom(1.2);
-});
+async function ajustarZoom(direccion) {
+  if (epubAbierto()) {
+    lectorEpub.cambiarTamano(direccion * 10);
+    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  } else {
+    await lector.cambiarZoom(direccion > 0 ? 1.2 : 1 / 1.2);
+    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
+  }
+}
+$('btn-zoom-menos').addEventListener('click', () => ajustarZoom(-1));
+$('btn-zoom-mas').addEventListener('click', () => ajustarZoom(1));
 
 $('btn-indicador').addEventListener('click', () => {
   if (epubAbierto()) {

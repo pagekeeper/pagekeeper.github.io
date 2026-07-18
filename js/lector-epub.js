@@ -91,10 +91,15 @@ export class LectorEpub {
 
   montar(posicion) {
     this.contenedor.replaceChildren();
+    const continuo = this.modo === 'continuo';
     this.vista = this.libro.renderTo(this.contenedor, {
       width: '100%',
       height: '100%',
-      flow: this.modo === 'continuo' ? 'scrolled' : 'paginated',
+      flow: continuo ? 'scrolled' : 'paginated',
+      // En continuo, el gestor 'continuous' hace el scroll dentro del
+      // contenedor (fullsize:false); el gestor por defecto delega en el
+      // scroll de la página, que aquí no existe porque el contenedor es fijo.
+      ...(continuo ? { manager: 'continuous', fullsize: false } : {}),
       spread: 'none',
       allowScriptedContent: true,
     });
@@ -146,8 +151,17 @@ export class LectorEpub {
   async cambiarModo(modo) {
     if (modo === this.modo || !this.libro) return;
     this.modo = modo;
-    this.vista?.destroy();
+    this.desmontarVista();
     await this.montar(this.cfi);
+  }
+
+  // Separa la vista del lector antes de destruirla: las cargas de capítulos
+  // que queden en vuelo terminan sobre una vista ya desreferenciada y sus
+  // errores internos no afectan a la vista nueva.
+  desmontarVista() {
+    const vista = this.vista;
+    this.vista = null;
+    try { vista?.destroy(); } catch { /* restos de la vista anterior */ }
   }
 
   irAPorcentaje(porcentaje) {
@@ -161,9 +175,8 @@ export class LectorEpub {
   anterior() { this.vista?.prev(); }
 
   cerrar() {
-    try { this.vista?.destroy(); } catch { /* ya destruida */ }
+    this.desmontarVista();
     try { this.libro?.destroy(); } catch { /* ya destruido */ }
-    this.vista = null;
     this.libro = null;
     this.contenedor.replaceChildren();
   }
