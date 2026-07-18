@@ -125,22 +125,19 @@ export class LectorEpub {
   }
 
   aplicarTemas() {
-    const temas = this.vista.themes;
-    temas.register('dia', {
-      body: { color: '#1f2937', background: '#ffffff' },
-    });
-    temas.register('noche', {
-      body: { color: '#e2e8f0', background: '#171f2e' },
-      'a, a:visited': { color: '#7dd3fc' },
-      'img, svg': { filter: 'brightness(0.85)' },
-    });
-    temas.select(this.noche ? 'noche' : 'dia');
-    temas.fontSize(this.tamano + '%');
+    // Nota: register()/select() de epub.js inyecta los temas como hojas de
+    // estilo acumulativas y volver del tema oscuro al claro no funciona.
+    // override() aplica estilos en línea que sí se reemplazan al alternar.
+    this.vista.themes.default({ 'a, a:visited': { color: '#0ea5e9' } });
+    this.aplicarNoche(this.noche);
+    this.vista.themes.fontSize(this.tamano + '%');
   }
 
   aplicarNoche(activo) {
     this.noche = activo;
-    this.vista?.themes.select(activo ? 'noche' : 'dia');
+    if (!this.vista) return;
+    this.vista.themes.override('color', activo ? '#e2e8f0' : '#1f2937');
+    this.vista.themes.override('background', activo ? '#171f2e' : '#ffffff');
   }
 
   cambiarTamano(delta) {
