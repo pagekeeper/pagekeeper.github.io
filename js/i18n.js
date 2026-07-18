@@ -42,6 +42,7 @@ const textos = {
     webdavHelpHtml: 'Compatible con Nextcloud, ownCloud y cualquier servidor WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la posición de lectura se sincronizará entre todos tus dispositivos. ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la ayuda</a>.',
     passwordHelpHtml: '⚠️ En Nextcloud crea una <strong>contraseña de aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña principal. Además, para que el navegador pueda conectar, el servidor debe permitir CORS: en Nextcloud instala la app <strong>WebAppPassword</strong> y añade el dominio de este lector. Los datos se guardan únicamente en este navegador.',
     transferHelp: 'Copia un enlace que contiene la URL, el usuario y la contraseña de aplicación. Ábrelo en el otro dispositivo (mándatelo por un canal privado, por ejemplo una nota o un mensaje a ti mismo) y el lector quedará configurado automáticamente. ⚠️ Cualquiera con el enlace tendrá acceso a tu nube: no lo publiques y bórralo del canal después de usarlo.',
+    creditsHtml: 'Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconos <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
   },
   ca: {
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
@@ -80,6 +81,7 @@ const textos = {
     webdavHelpHtml: 'Compatible amb Nextcloud, ownCloud i qualsevol servidor WebDAV. Els PDF de la carpeta indicada apareixeran a la biblioteca i la posició de lectura se sincronitzarà entre tots els dispositius. No saps què hi has de posar? <a href="#" id="enlace-ayuda-ajustes">Llegeix l’ajuda</a>.',
     passwordHelpHtml: '⚠️ A Nextcloud crea una <strong>contrasenya d’aplicació</strong> (Configuració → Seguretat); no facis servir la contrasenya principal. Perquè el navegador es pugui connectar, el servidor ha de permetre CORS: a Nextcloud instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector. Les dades només es desen en aquest navegador.',
     transferHelp: 'Copia un enllaç amb l’URL, l’usuari i la contrasenya d’aplicació. Obre’l a l’altre dispositiu, per un canal privat, i el lector quedarà configurat automàticament. ⚠️ Qui tingui l’enllaç podrà accedir al núvol: no el publiquis i esborra’l després d’usar-lo.',
+    creditsHtml: 'Construït amb <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) i icones <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
   },
   en: {
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
@@ -118,6 +120,7 @@ const textos = {
     webdavHelpHtml: 'Compatible with Nextcloud, ownCloud and any WebDAV server. PDFs in the chosen folder will appear in your library and reading position will sync across all your devices. Not sure what to enter? <a href="#" id="enlace-ayuda-ajustes">Read the help</a>.',
     passwordHelpHtml: '⚠️ In Nextcloud, create an <strong>app password</strong> (Settings → Security); do not use your main password. The server must also allow CORS so the browser can connect: in Nextcloud, install <strong>WebAppPassword</strong> and add this reader’s domain. Data is stored only in this browser.',
     transferHelp: 'Copy a link containing the URL, username and app password. Open it on the other device through a private channel and the reader will be configured automatically. ⚠️ Anyone with the link can access your cloud: do not publish it and delete it after use.',
+    creditsHtml: 'Built with <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0), and <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> icons (ISC).',
   },
 };
 
