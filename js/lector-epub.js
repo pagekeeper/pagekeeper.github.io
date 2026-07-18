@@ -183,6 +183,18 @@ export class LectorEpub {
       }
     };
     recorrer(this.libro?.navigation?.toc);
+    if (!entradas.length) return entradas;
+
+    const primeraSeccion = this.libro?.spine?.spineItems
+      ?.find((seccion) => seccion.linear !== 'no' && seccion.href);
+    if (primeraSeccion) {
+      const sinFragmento = (href) => String(href ?? '').split('#')[0];
+      const hayEnlaceAlInicio = entradas.some((entrada) =>
+        sinFragmento(entrada.destino) === sinFragmento(primeraSeccion.href));
+      if (!hayEnlaceAlInicio) {
+        entradas.unshift({ esInicio: true, destino: primeraSeccion.href, nivel: 0 });
+      }
+    }
     return entradas;
   }
 

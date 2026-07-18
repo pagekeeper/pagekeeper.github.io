@@ -1035,7 +1035,7 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
       boton.style.paddingLeft = `${0.65 + Math.min(entrada.nivel, 6) * 0.85}rem`;
       const titulo = document.createElement('span');
       titulo.className = 'titulo-entrada-indice';
-      titulo.textContent = entrada.titulo;
+      titulo.textContent = entrada.esInicio ? t('bookStart') : entrada.titulo;
       boton.append(titulo);
       if (entrada.numero) {
         const pagina = document.createElement('span');

@@ -133,7 +133,11 @@ export class Lector {
         return null; // algunos PDF contienen marcadores rotos o externos
       }
     }));
-    return resueltos.filter(Boolean);
+    const entradas = resueltos.filter(Boolean);
+    if (!entradas.some((entrada) => entrada.destino === 1)) {
+      entradas.unshift({ esInicio: true, destino: 1, numero: 1, nivel: 0 });
+    }
+    return entradas;
   }
 
   // ───────────────────────── Montaje según el modo ─────────────────────────
