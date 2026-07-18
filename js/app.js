@@ -872,6 +872,7 @@ for (const [id, alSoltar] of [
 async function abrirEnLector(datos, libro) {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
+  reiniciarHistorialNavegacion();
   $('lista-indice-libro').replaceChildren();
   $('btn-indice-libro').classList.add('oculto');
   $('buscar-en-libro').value = '';
@@ -1015,6 +1016,72 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 
 let resultadosBusquedaLibro = [];
 let versionBusquedaLibro = 0;
+const historialNavegacion = { atras: [], adelante: [] };
+
+function posicionActualLibro() {
+  return epubAbierto() ? lectorEpub.cfi : lector.pagina;
+}
+
+function actualizarHistorialNavegacion() {
+  const hayAtras = historialNavegacion.atras.length > 0;
+  const hayAdelante = historialNavegacion.adelante.length > 0;
+  $('btn-posicion-anterior').disabled = !hayAtras;
+  $('btn-posicion-siguiente').disabled = !hayAdelante;
+  $('historial-navegacion').classList.toggle('oculto', !hayAtras && !hayAdelante);
+}
+
+function reiniciarHistorialNavegacion() {
+  historialNavegacion.atras = [];
+  historialNavegacion.adelante = [];
+  actualizarHistorialNavegacion();
+}
+
+async function saltarConHistorial(destino) {
+  if (destino === null || destino === undefined) return;
+  const activo = epubAbierto() ? lectorEpub : lector;
+  const anterior = posicionActualLibro();
+  if (anterior === destino) return;
+  const atrasAnterior = [...historialNavegacion.atras];
+  const adelanteAnterior = [...historialNavegacion.adelante];
+  if (anterior !== null && anterior !== undefined && anterior !== destino) {
+    historialNavegacion.atras.push(anterior);
+    if (historialNavegacion.atras.length > 50) historialNavegacion.atras.shift();
+  }
+  historialNavegacion.adelante = [];
+  try {
+    await activo.irA(destino);
+  } catch (error) {
+    historialNavegacion.atras = atrasAnterior;
+    historialNavegacion.adelante = adelanteAnterior;
+    throw error;
+  } finally {
+    actualizarHistorialNavegacion();
+  }
+}
+
+async function moverPorHistorial(origen, destino) {
+  if (!origen.length) return;
+  const objetivo = origen.pop();
+  const actual = posicionActualLibro();
+  try {
+    await (epubAbierto() ? lectorEpub : lector).irA(objetivo);
+    if (actual !== null && actual !== undefined) destino.push(actual);
+  } catch (error) {
+    origen.push(objetivo);
+    throw error;
+  } finally {
+    actualizarHistorialNavegacion();
+  }
+}
+
+$('btn-posicion-anterior').addEventListener('click', () => {
+  moverPorHistorial(historialNavegacion.atras, historialNavegacion.adelante)
+    .catch((error) => avisar(error.message, 5000));
+});
+$('btn-posicion-siguiente').addEventListener('click', () => {
+  moverPorHistorial(historialNavegacion.adelante, historialNavegacion.atras)
+    .catch((error) => avisar(error.message, 5000));
+});
 
 function cerrarIndiceLibro() {
   $('panel-indice-libro').classList.add('oculto');
@@ -1044,9 +1111,12 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
         boton.append(pagina);
       }
       boton.addEventListener('click', async () => {
-        const activo = epubAbierto() ? lectorEpub : lector;
-        await activo.irA(entrada.destino);
-        cerrarIndiceLibro();
+        try {
+          await saltarConHistorial(entrada.destino);
+          cerrarIndiceLibro();
+        } catch (error) {
+          avisar(error.message, 5000);
+        }
       });
       li.append(boton);
       lista.append(li);
@@ -1111,9 +1181,12 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
       boton.append(ubicacion, fragmento);
       boton.addEventListener('click', async () => {
         const elegido = resultadosBusquedaLibro[indice];
-        if (esEpub) await lectorEpub.irA(elegido.destino);
-        else await lector.irA(elegido.destino);
-        cerrarBusquedaLibro();
+        try {
+          await saltarConHistorial(elegido.destino);
+          cerrarBusquedaLibro();
+        } catch (error) {
+          avisar(error.message, 5000);
+        }
       });
       li.append(boton);
       lista.append(li);
@@ -1211,12 +1284,17 @@ $('btn-indicador').addEventListener('click', () => {
     if (!lectorEpub.conLocalizaciones) return;
     const respuesta = prompt(t('goPercent'), String(lectorEpub.porcentaje));
     const numero = parseInt(respuesta, 10);
-    if (!Number.isNaN(numero)) lectorEpub.irAPorcentaje(numero);
+    if (!Number.isNaN(numero)) {
+      saltarConHistorial(lectorEpub.destinoPorcentaje(numero))
+        .catch((error) => avisar(error.message, 5000));
+    }
     return;
   }
   const respuesta = prompt(t('goToPage', { total: lector.totalPaginas }), String(lector.pagina));
   const numero = parseInt(respuesta, 10);
-  if (!Number.isNaN(numero)) lector.irA(numero);
+  if (!Number.isNaN(numero)) {
+    saltarConHistorial(numero).catch((error) => avisar(error.message, 5000));
+  }
 });
 
 function pintarIconoNoche() {
@@ -1240,10 +1318,12 @@ function manejarTecla(evento) {
     case 'ArrowLeft': case 'PageUp': activo.anterior(); break;
     case 'ArrowRight': case 'PageDown': case ' ': activo.siguiente(); break;
     case 'Home':
-      if (epubAbierto()) lectorEpub.irAPorcentaje(0); else lector.irA(1);
+      saltarConHistorial(epubAbierto() ? lectorEpub.destinoPorcentaje(0) : 1)
+        .catch((error) => avisar(error.message, 5000));
       break;
     case 'End':
-      if (epubAbierto()) lectorEpub.irAPorcentaje(100); else lector.irA(lector.totalPaginas);
+      saltarConHistorial(epubAbierto() ? lectorEpub.destinoPorcentaje(100) : lector.totalPaginas)
+        .catch((error) => avisar(error.message, 5000));
       break;
   }
 }

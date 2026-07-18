@@ -394,6 +394,16 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .entrada-indice-libro .pagina-entrada-indice {
   flex: none; color: var(--texto-suave); font-size: 0.75rem; white-space: nowrap;
 }
+.historial-navegacion {
+  position: fixed; z-index: 8; left: 50%; bottom: max(1rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%); display: flex; gap: 0.15rem; padding: 0.2rem;
+  border: 1px solid var(--borde); border-radius: 0.7rem;
+  background: color-mix(in srgb, var(--fondo) 92%, transparent);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+}
+.historial-navegacion .btn-icono { color: var(--acento); }
+.historial-navegacion .btn-icono:disabled { color: var(--texto-suave); opacity: 0.4; cursor: default; }
+.historial-navegacion .btn-icono:disabled:hover { background: none; }
 .buscador-form { display: flex; align-items: center; gap: 0.4rem; }
 .buscador-form input {
   background: var(--fondo-tarjeta); border: 1px solid var(--borde);

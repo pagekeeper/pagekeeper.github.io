@@ -153,6 +153,13 @@
         <div id="estado-busqueda-libro" class="estado"></div>
         <ol id="resultados-busqueda-libro" class="resultados-busqueda"></ol>
       </aside>
+      <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
+        data-i18n-aria-label="historyNavigation">
+        <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
+          title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
+        <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
+          title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
+      </nav>
       <div id="contenedor-pagina"></div>
       <div id="contenedor-epub" class="oculto"></div>
       <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior" data-i18n-title="previous"></button>
@@ -263,6 +270,9 @@
           porcentaje en EPUB) para saltar directamente.</li>
           <li><strong>Índice:</strong> si el PDF o EPUB incluye uno, aparece
           un botón para abrirlo y saltar directamente a cualquier apartado.</li>
+          <li><strong>Volver tras un salto:</strong> después de usar el índice,
+          la búsqueda o el selector de posición aparecen botones para volver
+          atrás o avanzar de nuevo.</li>
           <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
           palabras o frases y lleva a la página o capítulo del resultado.</li>
           <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan

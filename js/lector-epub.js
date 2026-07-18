@@ -161,11 +161,15 @@ export class LectorEpub {
     try { vista?.destroy(); } catch { /* restos de la vista anterior */ }
   }
 
-  irAPorcentaje(porcentaje) {
+  destinoPorcentaje(porcentaje) {
     if (!this.conLocalizaciones) return;
     const fraccion = Math.min(100, Math.max(0, porcentaje)) / 100;
-    const cfi = this.libro.locations.cfiFromPercentage(fraccion);
-    if (cfi) this.vista?.display(cfi);
+    return this.libro.locations.cfiFromPercentage(fraccion) || null;
+  }
+
+  irAPorcentaje(porcentaje) {
+    const cfi = this.destinoPorcentaje(porcentaje);
+    if (cfi) return this.vista?.display(cfi);
   }
 
   siguiente() { this.vista?.next(); }

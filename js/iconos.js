@@ -24,6 +24,8 @@ const TRAZADOS = {
   'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/>',
   'search': '<circle cx="11" cy="11" r="8"/> <path d="m21 21-4.3-4.3"/>',
   'list-tree': '<path d="M21 12h-8"/> <path d="M21 6H8"/> <path d="M21 18h-8"/> <path d="M3 6h1v4h4"/> <path d="M3 10v4h5"/> <path d="M3 14v4h5"/>',
+  'undo-2': '<path d="M9 14 4 9l5-5"/> <path d="M4 9h10.5a5.5 5.5 0 0 1 5.5 5.5A5.5 5.5 0 0 1 14.5 20H11"/>',
+  'redo-2': '<path d="m15 14 5-5-5-5"/> <path d="M20 9H9.5A5.5 5.5 0 0 0 4 14.5 5.5 5.5 0 0 0 9.5 20H13"/>',
   'x': '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>',
 };
 
