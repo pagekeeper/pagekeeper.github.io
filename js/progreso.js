@@ -3,10 +3,140 @@
 // El progreso vive en dos sitios:
 //  - localStorage: siempre, para acceso inmediato y modo sin conexión.
 //  - lector-progreso.json en el servidor WebDAV: para sincronizar entre
-//    dispositivos. En cada libro gana la entrada con fecha más reciente.
+//    dispositivos. La posición y los marcadores se fusionan por separado.
 
 const CLAVE_LOCAL = 'lector.progreso';
 const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
+const CLAVE_CAMBIOS_PENDIENTES = 'lector.progreso.cambiosPendientes';
+const VERSION_DATOS = 2;
+const FECHA_CERO = '1970-01-01T00:00:00.000Z';
+
+function fechaMaxima(...fechas) {
+  return fechas.filter((fecha) => typeof fecha === 'string').sort().at(-1) ?? FECHA_CERO;
+}
+
+function fechaPosterior(...fechas) {
+  const maxima = fechaMaxima(...fechas);
+  const milisegundos = Date.parse(maxima);
+  return Number.isFinite(milisegundos)
+    ? new Date(milisegundos + 1).toISOString()
+    : new Date().toISOString();
+}
+
+function nuevoToken() {
+  return crypto.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+}
+
+function cargarCambiosPendientes() {
+  try {
+    const cambios = JSON.parse(localStorage.getItem(CLAVE_CAMBIOS_PENDIENTES));
+    if (cambios && typeof cambios === 'object' && !Array.isArray(cambios)) return cambios;
+  } catch { /* registro corrupto: se descarta */ }
+  return {};
+}
+
+function guardarCambiosPendientes(cambios) {
+  for (const id of Object.keys(cambios)) {
+    const cambio = cambios[id];
+    if (!cambio?.posicion && !Object.keys(cambio?.marcadores ?? {}).length) delete cambios[id];
+  }
+  if (Object.keys(cambios).length) localStorage.setItem(CLAVE_CAMBIOS_PENDIENTES, JSON.stringify(cambios));
+  else localStorage.removeItem(CLAVE_CAMBIOS_PENDIENTES);
+}
+
+function marcarPosicionPendiente(idLibro) {
+  if (idLibro.startsWith('local:')) return;
+  const cambios = cargarCambiosPendientes();
+  cambios[idLibro] ??= { marcadores: {} };
+  cambios[idLibro].posicion = nuevoToken();
+  guardarCambiosPendientes(cambios);
+}
+
+function marcarMarcadoresPendientes(idLibro, ids) {
+  if (idLibro.startsWith('local:') || !ids.length) return;
+  const cambios = cargarCambiosPendientes();
+  cambios[idLibro] ??= { marcadores: {} };
+  cambios[idLibro].marcadores ??= {};
+  for (const id of ids) cambios[idLibro].marcadores[id] = nuevoToken();
+  guardarCambiosPendientes(cambios);
+}
+
+function limpiarCambiosConfirmados(confirmados) {
+  const actuales = cargarCambiosPendientes();
+  for (const [idLibro, cambio] of Object.entries(confirmados)) {
+    const actual = actuales[idLibro];
+    if (!actual) continue;
+    if (actual.posicion === cambio.posicion) delete actual.posicion;
+    for (const [id, token] of Object.entries(cambio.marcadores ?? {})) {
+      if (actual.marcadores?.[id] === token) delete actual.marcadores[id];
+    }
+  }
+  guardarCambiosPendientes(actuales);
+}
+
+function descartarCambiosPendientes(idLibro) {
+  const cambios = cargarCambiosPendientes();
+  delete cambios[idLibro];
+  guardarCambiosPendientes(cambios);
+}
+
+function hashTexto(texto) {
+  let hash = 2166136261;
+  for (let i = 0; i < texto.length; i++) {
+    hash ^= texto.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(36);
+}
+
+function idMarcador(marcador) {
+  if (marcador.id) return marcador.id;
+  const posicion = marcador.cfi ?? marcador.pagina ?? marcador.porcentaje ?? '';
+  return `legacy-${hashTexto(`${posicion}|${marcador.creado ?? ''}`)}`;
+}
+
+function fechaColeccion(entrada) {
+  return entrada?.marcadoresActualizados ?? entrada?.actualizado ?? FECHA_CERO;
+}
+
+function normalizarMarcador(marcador, fechaPredeterminada) {
+  return {
+    ...marcador,
+    id: idMarcador(marcador),
+    actualizado: marcador.actualizado ?? marcador.creado ?? fechaPredeterminada,
+  };
+}
+
+function normalizarEntrada(entrada = {}) {
+  const posicionActualizada = entrada.posicionActualizada ?? entrada.actualizado ?? FECHA_CERO;
+  const marcadoresActualizados = fechaColeccion(entrada);
+  const marcadores = Array.isArray(entrada.marcadores)
+    ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
+    : [];
+  const resultado = {
+    ...entrada,
+    posicionActualizada,
+    marcadoresActualizados,
+    marcadoresVersion: 2,
+    actualizado: fechaMaxima(
+      entrada.actualizado,
+      posicionActualizada,
+      marcadoresActualizados,
+      ...marcadores.map((marcador) => marcador.actualizado),
+    ),
+  };
+  if (marcadores.length) resultado.marcadores = marcadores;
+  else delete resultado.marcadores;
+  return resultado;
+}
+
+function normalizarDatos(datos) {
+  const normalizados = { ...datos, version: VERSION_DATOS, libros: {} };
+  for (const [id, entrada] of Object.entries(datos?.libros ?? {})) {
+    normalizados.libros[id] = normalizarEntrada(entrada);
+  }
+  return normalizados;
+}
 
 function cargarRegistroBorrados() {
   try {
@@ -68,84 +198,228 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
   // lectura cancela cualquier limpieza pendiente de la copia anterior.
   completarBorradoPendiente(idLibro);
   const datos = cargarLocal();
+  const anterior = normalizarEntrada(datos.libros[idLibro]);
   // Los marcadores conviven con la posición en la misma entrada: al anotar
   // una página nueva se conservan los que ya hubiera.
   const { marcadores: marcadoresExtra, ...resto } = extra;
-  const marcadores = marcadoresExtra ?? datos.libros[idLibro]?.marcadores;
+  const marcadores = marcadoresExtra ?? anterior.marcadores;
+  const ahora = new Date().toISOString();
   datos.libros[idLibro] = {
+    ...anterior,
     ...resto,
     ...(Array.isArray(marcadores) && marcadores.length ? { marcadores } : {}),
     pagina,
     paginas: totalPaginas,
-    actualizado: new Date().toISOString(),
+    posicionActualizada: ahora,
+    actualizado: ahora,
     dispositivo: nombreDispositivo(),
   };
+  datos.version = VERSION_DATOS;
   guardarLocal(datos);
+  marcarPosicionPendiente(idLibro);
+  if (marcadoresExtra?.length) {
+    marcarMarcadoresPendientes(idLibro, marcadoresExtra.map(idMarcador));
+  }
   return datos.libros[idLibro];
 }
 
 export function marcadoresDe(idLibro) {
-  const marcadores = progresoDe(idLibro)?.marcadores;
-  return Array.isArray(marcadores) ? [...marcadores] : [];
+  const marcadores = normalizarEntrada(progresoDe(idLibro)).marcadores;
+  return Array.isArray(marcadores)
+    ? marcadores.filter((marcador) => !marcador.borrado).map((marcador) => ({ ...marcador }))
+    : [];
 }
 
-// Sustituye la lista de marcadores de un libro. Actualiza la fecha de la
-// entrada para que la fusión "gana la más reciente" propague el cambio.
+function contenidoMarcador(marcador) {
+  const contenido = { ...marcador };
+  delete contenido.id;
+  delete contenido.actualizado;
+  delete contenido.borrado;
+  return JSON.stringify(contenido);
+}
+
+// Sustituye la lista visible de marcadores. Los eliminados se conservan como
+// tombstones internos para que una copia antigua no los haga reaparecer.
 export function guardarMarcadores(idLibro, marcadores) {
   const datos = cargarLocal();
-  const entrada = datos.libros[idLibro] ?? { pagina: 0, paginas: 0 };
-  if (marcadores.length) entrada.marcadores = marcadores;
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? { pagina: 0, paginas: 0 });
+  const anteriores = new Map((entrada.marcadores ?? []).map((marcador) => [marcador.id, marcador]));
+  const ahora = new Date().toISOString();
+  const idsVisibles = new Set();
+  const modificados = [];
+  const siguientes = marcadores.map((marcador) => {
+    const id = idMarcador(marcador);
+    idsVisibles.add(id);
+    const anterior = anteriores.get(id);
+    if (anterior && !anterior.borrado && contenidoMarcador(anterior) === contenidoMarcador(marcador)) {
+      return anterior;
+    }
+    modificados.push(id);
+    const siguiente = { ...marcador, id, actualizado: ahora };
+    delete siguiente.borrado;
+    return siguiente;
+  });
+  for (const anterior of anteriores.values()) {
+    if (idsVisibles.has(anterior.id)) continue;
+    if (anterior.borrado) siguientes.push(anterior);
+    else {
+      siguientes.push({ id: anterior.id, actualizado: ahora, borrado: true });
+      modificados.push(anterior.id);
+    }
+  }
+  if (siguientes.length) entrada.marcadores = siguientes;
   else delete entrada.marcadores;
-  entrada.actualizado = new Date().toISOString();
+  entrada.marcadoresVersion = 2;
+  entrada.marcadoresActualizados = ahora;
+  entrada.actualizado = ahora;
   entrada.dispositivo = nombreDispositivo();
   datos.libros[idLibro] = entrada;
+  datos.version = VERSION_DATOS;
   guardarLocal(datos);
+  marcarMarcadoresPendientes(idLibro, modificados);
 }
 
 export function progresoDe(idLibro) {
   return cargarLocal().libros[idLibro] ?? null;
 }
 
-// Fusiona el progreso local con el remoto: para cada libro se queda la
-// entrada más reciente. Devuelve el resultado y lo persiste en ambos lados
-// (el PUT remoto solo si hubo cambios que subir).
-export async function sincronizar(cliente) {
-  const local = cargarLocal();
-  const remoto = (await cliente.leerProgreso()) ?? { version: 1, libros: {} };
-  if (typeof remoto.libros !== 'object' || !remoto.libros) remoto.libros = {};
-
-  let haySubida = false;
-  const borradosPendientes = cargarBorradosPendientes(cliente);
-  // Se aplican antes de fusionar para que una entrada remota obsoleta nunca
-  // vuelva a aparecer en localStorage mientras se reintenta su limpieza.
-  for (const id of borradosPendientes) {
-    delete local.libros[id];
-    if (id in remoto.libros) {
-      delete remoto.libros[id];
-      haySubida = true;
-    }
+function marcadorMasReciente(uno, otro) {
+  if (uno.actualizado !== otro.actualizado) {
+    return uno.actualizado > otro.actualizado ? uno : otro;
   }
-  const ids = new Set([...Object.keys(local.libros), ...Object.keys(remoto.libros)]);
+  // En un empate, el borrado es la opción conservadora: evita resucitar un
+  // marcador eliminado en otro dispositivo con la misma marca temporal.
+  return otro.borrado ? otro : uno;
+}
+
+function fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal) {
+  const local = normalizarEntrada(localOriginal);
+  const remoto = normalizarEntrada(remotoOriginal);
+  const locales = new Map((local.marcadores ?? []).map((marcador) => [marcador.id, marcador]));
+  const remotos = new Map((remoto.marcadores ?? []).map((marcador) => [marcador.id, marcador]));
+  const resultado = [];
+  const ids = new Set([...locales.keys(), ...remotos.keys()]);
+  const localEraLegacy = localOriginal?.marcadoresVersion !== 2;
+  const remotoEraLegacy = remotoOriginal?.marcadoresVersion !== 2;
+
   for (const id of ids) {
-    if (id.startsWith('local:')) continue; // libros locales: no se suben
-    const mio = local.libros[id];
-    const suyo = remoto.libros[id];
-    if (mio && (!suyo || suyo.actualizado < mio.actualizado)) {
-      remoto.libros[id] = mio;
-      haySubida = true;
+    const mio = locales.get(id);
+    const suyo = remotos.get(id);
+    if (mio && suyo) {
+      resultado.push(cambioLocal?.marcadores?.[id]
+        ? { ...mio, actualizado: fechaPosterior(mio.actualizado, suyo.actualizado) }
+        : marcadorMasReciente(mio, suyo));
+    } else if (mio) {
+      if (cambioLocal?.marcadores?.[id]) {
+        resultado.push({
+          ...mio,
+          actualizado: fechaPosterior(mio.actualizado, fechaColeccion(remotoOriginal)),
+        });
+      } else if (remotoEraLegacy && fechaColeccion(remotoOriginal) > mio.actualizado) {
+        resultado.push({ id, actualizado: fechaColeccion(remotoOriginal), borrado: true });
+      } else resultado.push(mio);
     } else if (suyo) {
-      local.libros[id] = suyo;
+      if (localEraLegacy && fechaColeccion(localOriginal) > suyo.actualizado) {
+        resultado.push({ id, actualizado: fechaColeccion(localOriginal), borrado: true });
+      } else resultado.push(suyo);
     }
   }
+  return resultado;
+}
 
-  guardarLocal(local);
-  if (haySubida) await cliente.escribirProgreso(remoto);
-  // Llegar aquí confirma que el remoto ya no contiene esas entradas (o que
-  // el PUT que las quitó terminó correctamente).
-  if (borradosPendientes.size) {
-    for (const id of borradosPendientes) completarBorradoPendiente(id, cliente);
+// Fusiona por separado la posición y cada marcador. `cambioLocal` contiene
+// tokens que solo viven en este navegador: mientras sigan pendientes, la
+// edición local prevalece aunque el reloj del dispositivo esté desajustado.
+export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}) {
+  const local = normalizarEntrada(localOriginal);
+  const remoto = normalizarEntrada(remotoOriginal);
+  const posicionLocal = !!cambioLocal.posicion || local.posicionActualizada > remoto.posicionActualizada;
+  const posicion = posicionLocal ? { ...local } : remoto;
+  if (cambioLocal.posicion) {
+    posicion.posicionActualizada = fechaPosterior(
+      local.posicionActualizada,
+      remoto.posicionActualizada,
+    );
   }
-  return local;
+  const reciente = local.actualizado >= remoto.actualizado ? local : remoto;
+  const anterior = reciente === local ? remoto : local;
+  const resultado = { ...anterior, ...reciente };
+  for (const campo of ['pagina', 'paginas', 'cfi']) delete resultado[campo];
+  for (const campo of ['pagina', 'paginas', 'cfi']) {
+    if (campo in posicion) resultado[campo] = posicion[campo];
+  }
+  const marcadores = fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal);
+  if (marcadores.length) resultado.marcadores = marcadores;
+  else delete resultado.marcadores;
+  resultado.posicionActualizada = posicion.posicionActualizada;
+  resultado.marcadoresActualizados = fechaMaxima(fechaColeccion(local), fechaColeccion(remoto));
+  resultado.marcadoresVersion = 2;
+  resultado.actualizado = fechaMaxima(
+    resultado.posicionActualizada,
+    resultado.marcadoresActualizados,
+    ...marcadores.map((marcador) => marcador.actualizado),
+  );
+  return resultado;
+}
+
+let colaSincronizacion = Promise.resolve();
+
+async function sincronizarAhora(cliente) {
+  for (let intento = 0; intento < 4; intento++) {
+    // La red se espera antes de leer localStorage para no sobrescribir una
+    // página que haya cambiado mientras llegaba la respuesta del servidor.
+    const respuestaRemota = await cliente.leerProgreso();
+    const remotoNoExiste = respuestaRemota === null;
+    const remotoLeido = respuestaRemota ?? { version: 1, libros: {} };
+    const etag = remotoLeido._etag ?? null;
+    const remotoOriginal = JSON.stringify(remotoLeido);
+    const remoto = normalizarDatos(remotoLeido);
+    const local = normalizarDatos(cargarLocal());
+    const cambios = cargarCambiosPendientes();
+    const confirmables = {};
+    const borradosPendientes = cargarBorradosPendientes(cliente);
+
+    // Se aplican antes de fusionar para que una entrada remota obsoleta nunca
+    // vuelva a aparecer mientras se reintenta su limpieza.
+    for (const id of borradosPendientes) {
+      delete local.libros[id];
+      delete remoto.libros[id];
+    }
+    const ids = new Set([...Object.keys(local.libros), ...Object.keys(remoto.libros)]);
+    for (const id of ids) {
+      if (id.startsWith('local:')) continue;
+      const mio = local.libros[id];
+      const suyo = remoto.libros[id];
+      if (mio && suyo) {
+        const fusionado = fusionarEntradas(mio, suyo, cambios[id]);
+        local.libros[id] = fusionado;
+        remoto.libros[id] = fusionado;
+      } else if (mio) remoto.libros[id] = normalizarEntrada(mio);
+      else if (suyo) local.libros[id] = normalizarEntrada(suyo);
+      if (cambios[id]) confirmables[id] = structuredClone(cambios[id]);
+    }
+
+    guardarLocal(local);
+    const haySubida = JSON.stringify(remoto) !== remotoOriginal;
+    try {
+      if (haySubida) await cliente.escribirProgreso(remoto, etag, remotoNoExiste);
+    } catch (error) {
+      if (error.conflictoSincronizacion && intento < 3) continue;
+      throw error;
+    }
+    for (const id of borradosPendientes) completarBorradoPendiente(id, cliente);
+    limpiarCambiosConfirmados(confirmables);
+    return local;
+  }
+  throw new Error('No se pudo sincronizar el progreso tras varios cambios simultáneos.');
+}
+
+// Serializa las sincronizaciones de esta pestaña y reintenta si el ETag
+// revela que otro dispositivo escribió entre nuestro GET y nuestro PUT.
+export function sincronizar(cliente) {
+  const tarea = colaSincronizacion.catch(() => null).then(() => sincronizarAhora(cliente));
+  colaSincronizacion = tarea;
+  return tarea;
 }
 
 // Traspasa la entrada local de un libro a otro identificador (p. ej. al
@@ -171,25 +445,20 @@ export function renombrar(idViejo, idNuevo) {
 // Elimina el progreso de todos los libros bajo un prefijo de ruta (una
 // carpeta borrada con su contenido), en local y en el archivo remoto.
 export async function olvidarPorPrefijo(prefijo, cliente = null) {
+  // Importa primero cualquier entrada que solo exista en remoto para que la
+  // eliminación de una carpeta alcance también a esos libros.
+  if (cliente) await sincronizar(cliente).catch(() => null);
   const local = cargarLocal();
   const ids = Object.keys(local.libros).filter((id) => id.startsWith(prefijo));
-  for (const id of ids) delete local.libros[id];
+  for (const id of ids) {
+    delete local.libros[id];
+    descartarCambiosPendientes(id);
+  }
   guardarLocal(local);
 
   if (!cliente) return;
   for (const id of ids) marcarBorradoPendiente(id, cliente);
-  const remoto = await cliente.leerProgreso();
-  if (remoto?.libros) {
-    let hayCambios = false;
-    for (const id of Object.keys(remoto.libros)) {
-      if (id.startsWith(prefijo)) {
-        delete remoto.libros[id];
-        hayCambios = true;
-      }
-    }
-    if (hayCambios) await cliente.escribirProgreso(remoto);
-  }
-  for (const id of ids) completarBorradoPendiente(id, cliente);
+  await sincronizar(cliente);
 }
 
 // Elimina el progreso de un libro borrado, en local y, si hay cliente,
@@ -197,18 +466,14 @@ export async function olvidarPorPrefijo(prefijo, cliente = null) {
 export async function olvidar(idLibro, cliente = null) {
   const local = cargarLocal();
   delete local.libros[idLibro];
+  descartarCambiosPendientes(idLibro);
   guardarLocal(local);
 
   if (!cliente) return;
   // Se registra antes de tocar la red. Si falla, sincronizar() lo reintentará
   // y bloqueará mientras tanto la reimportación de la entrada obsoleta.
   marcarBorradoPendiente(idLibro, cliente);
-  const remoto = await cliente.leerProgreso();
-  if (remoto?.libros && idLibro in remoto.libros) {
-    delete remoto.libros[idLibro];
-    await cliente.escribirProgreso(remoto);
-  }
-  completarBorradoPendiente(idLibro, cliente);
+  await sincronizar(cliente);
 }
 
 function nombreDispositivo() {

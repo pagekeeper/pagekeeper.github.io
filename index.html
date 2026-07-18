@@ -178,10 +178,15 @@
           <h2 data-i18n="bookmarks">Marcadores</h2>
           <button type="button" id="cerrar-marcadores" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
         </div>
-        <button type="button" id="btn-anadir-marcador" class="btn-primario btn-anadir-marcador">
-          <span class="icono-boton" data-icono="bookmark-plus"></span>
-          <span data-i18n="addBookmark">Añadir un marcador aquí</span>
-        </button>
+        <form id="form-anadir-marcador" class="form-anadir-marcador">
+          <label for="nombre-marcador" class="sr-solo" data-i18n="bookmarkName">Nombre del marcador</label>
+          <input id="nombre-marcador" type="text" maxlength="120" autocomplete="off"
+            placeholder="Nombre del marcador (opcional)" data-i18n-placeholder="bookmarkNamePlaceholder">
+          <button type="submit" id="btn-anadir-marcador" class="btn-primario btn-anadir-marcador">
+            <span class="icono-boton" data-icono="bookmark-plus"></span>
+            <span data-i18n="addBookmark">Añadir un marcador aquí</span>
+          </button>
+        </form>
         <p id="sin-marcadores" class="estado" data-i18n="noBookmarks">Todavía no hay marcadores.</p>
         <ol id="lista-marcadores" class="lista-indice-libro"></ol>
       </aside>
@@ -317,7 +322,8 @@
           <li><strong>Índice:</strong> si el PDF o EPUB incluye uno, aparece
           un botón para abrirlo y saltar directamente a cualquier apartado.</li>
           <li><strong>Marcadores:</strong> el botón del marcador guarda la
-          posición actual para volver a ella cuando quieras. En los libros de
+          posición actual para volver a ella cuando quieras. Puedes asignarle
+          un nombre y cambiarlo más tarde. En los libros de
           la nube, los marcadores se sincronizan entre dispositivos junto con
           la posición de lectura.</li>
           <li><strong>Texto y enlaces del PDF:</strong> puedes seleccionar y

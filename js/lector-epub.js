@@ -13,6 +13,9 @@
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
+const ELEMENTOS_ACTIVOS = 'script, iframe, frame, object, embed, applet';
+const ATRIBUTOS_URL = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data']);
+
 // Pilas de fuentes de los ajustes tipográficos ('libro' = sin forzar nada).
 const FUENTES = {
   serif: 'Georgia, "Times New Roman", serif',
@@ -37,7 +40,52 @@ export function cargarLibrerias() {
   return promesaLibrerias;
 }
 
-function inyectarMathJax(contents) {
+function crearNonce() {
+  const bytes = crypto.getRandomValues(new Uint8Array(16));
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+// Los capítulos se procesan como DOM antes de que epub.js los serialice en
+// el iframe. Se elimina cualquier contenido ejecutable aportado por el libro
+// y una CSP actúa como segunda barrera. Solo el MathJax incluido en
+// PageKeeper recibe el nonce que permite ejecutar JavaScript.
+export function sanitizarDocumentoEpub(doc) {
+  if (!doc?.documentElement) return;
+
+  doc.querySelectorAll(ELEMENTOS_ACTIVOS).forEach((elemento) => elemento.remove());
+  for (const elemento of doc.querySelectorAll('*')) {
+    for (const atributo of Array.from(elemento.attributes)) {
+      const nombre = atributo.name.toLowerCase();
+      if (nombre.startsWith('on') || nombre === 'srcdoc') {
+        elemento.removeAttribute(atributo.name);
+        continue;
+      }
+      if (ATRIBUTOS_URL.has(nombre)) {
+        const url = atributo.value.replace(/[\u0000-\u0020]/g, '').toLowerCase();
+        if (/^(javascript|vbscript|data:text\/html)/.test(url)) {
+          elemento.removeAttribute(atributo.name);
+        }
+      }
+    }
+  }
+
+  if (!doc.head) return;
+  doc.head.querySelectorAll('meta[http-equiv]').forEach((meta) => {
+    const directiva = meta.getAttribute('http-equiv')?.toLowerCase();
+    if (directiva === 'content-security-policy' || directiva === 'refresh') meta.remove();
+  });
+  const nonce = crearNonce();
+  doc.documentElement.dataset.pagekeeperScriptNonce = nonce;
+  const politica = doc.createElement('meta');
+  politica.setAttribute('http-equiv', 'Content-Security-Policy');
+  politica.content = `default-src 'none'; script-src 'nonce-${nonce}'; ` +
+    `style-src 'unsafe-inline' data: blob:; img-src data: blob:; ` +
+    `font-src data: blob:; media-src data: blob:; object-src 'none'; ` +
+    `frame-src 'none'; connect-src 'none'; form-action 'none'`;
+  doc.head.prepend(politica);
+}
+
+export function inyectarMathJax(contents) {
   const doc = contents.document;
   const hayMathML = !!doc.querySelector('math');
   const texto = doc.body?.textContent ?? '';
@@ -46,7 +94,11 @@ function inyectarMathJax(contents) {
   // MathML puro con soporte nativo del navegador: no hace falta MathJax.
   if (!hayLatex && typeof contents.window.MathMLElement === 'function') return;
 
+  const nonce = doc.documentElement.dataset.pagekeeperScriptNonce;
+  if (!nonce) return;
+
   const config = doc.createElement('script');
+  config.setAttribute('nonce', nonce);
   config.textContent = `window.MathJax = {
     tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']] },
     options: { enableMenu: false },
@@ -54,6 +106,7 @@ function inyectarMathJax(contents) {
   };`;
   doc.head.append(config);
   const script = doc.createElement('script');
+  script.setAttribute('nonce', nonce);
   script.src = RUTA_MATHJAX;
   doc.head.append(script);
 }
@@ -86,6 +139,7 @@ export class LectorEpub {
 
     this.libro = window.ePub(datos.buffer ?? datos);
     await this.libro.ready;
+    this.libro.spine.hooks.content.register(sanitizarDocumentoEpub);
     await this.montar(cfiInicial);
 
     // Las localizaciones permiten calcular el % del libro; se generan en

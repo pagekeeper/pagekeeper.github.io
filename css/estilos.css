@@ -511,15 +511,23 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 
 /* ── Panel de marcadores ── */
+.form-anadir-marcador { margin-bottom: 0.6rem; }
+.form-anadir-marcador input {
+  width: 100%; margin-bottom: 0.4rem; background: var(--fondo-tarjeta);
+  border: 1px solid var(--borde); border-radius: 0.5rem;
+  padding: 0.55rem 0.7rem; color: var(--texto); font: inherit;
+}
+.form-anadir-marcador input:focus { outline: 2px solid var(--acento); border-color: transparent; }
 .btn-anadir-marcador {
   display: flex; align-items: center; justify-content: center; gap: 0.45rem;
-  width: 100%; margin-bottom: 0.6rem;
+  width: 100%;
 }
 .btn-anadir-marcador .icono-boton { display: inline-flex; }
 .panel-marcadores .estado { margin-bottom: 0.3rem; }
 .fila-marcador { display: flex; align-items: center; gap: 0.25rem; }
 .fila-marcador .entrada-indice-libro { padding-left: 0.65rem; }
-.btn-borrar-marcador { flex: none; color: var(--texto-suave); }
+.btn-editar-marcador, .btn-borrar-marcador { flex: none; color: var(--texto-suave); }
+.btn-editar-marcador:hover { color: var(--acento); }
 .btn-borrar-marcador:hover { color: #f87171; }
 
 .zona-toque {

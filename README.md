@@ -90,7 +90,9 @@ Con otros servidores WebDAV el requisito es el mismo: deben enviar cabeceras
 CORS que permitan el dominio del lector (métodos `GET`, `PUT`, `DELETE`,
 `PROPFIND`, `MKCOL` y `MOVE`, y cabeceras `Authorization`, `Content-Type`,
 `Depth`, `Destination` y `Overwrite`; las carpetas y el mover libros
-necesitan estos dos últimos métodos).
+  necesitan estos dos últimos métodos). Para detectar escrituras simultáneas,
+  conviene además permitir las cabeceras `If-Match` e `If-None-Match`, y
+  exponer `ETag` mediante `Access-Control-Expose-Headers`.
 
 ## Publicar tu propia copia
 
@@ -112,13 +114,24 @@ python3 -m http.server 8000
 Y abre `http://localhost:8000`. (Hace falta un servidor; abrir `index.html`
 con doble clic no funciona porque la app usa módulos ES.)
 
+Las pruebas automatizadas de sincronización y WebDAV se ejecutan con:
+
+```bash
+node --test
+```
+
 ## Cómo funciona la sincronización
 
 - Cada vez que pasas de página, el progreso se apunta en `localStorage` y, a
   los pocos segundos, se fusiona con el archivo `lector-progreso.json` de tu
   carpeta WebDAV.
-- La fusión es por libro: se conserva la entrada con la fecha de actualización
-  más reciente, de modo que varios dispositivos pueden alternarse sin pisarse.
+- La posición y cada marcador se fusionan por separado. Los marcadores tienen
+  identificadores estables y los borrados dejan una marca interna para que una
+  copia antigua no los haga reaparecer.
+- Los cambios pendientes de este navegador prevalecen durante la siguiente
+  sincronización aunque su reloj esté desajustado. Cuando WebDAV expone un
+  `ETag`, el guardado usa `If-Match` y vuelve a leer y fusionar si otro
+  dispositivo ha escrito al mismo tiempo.
 - Si no hay conexión, se sigue leyendo con normalidad y el progreso se sube en
   la siguiente sincronización.
 

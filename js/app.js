@@ -1579,6 +1579,17 @@ function etiquetaMarcador(marcador) {
   return t('bookmark');
 }
 
+function tituloMarcador(marcador) {
+  return marcador.nombre?.trim() || etiquetaMarcador(marcador);
+}
+
+function detalleMarcador(marcador) {
+  const partes = [];
+  if (marcador.nombre?.trim()) partes.push(etiquetaMarcador(marcador));
+  if (marcador.creado) partes.push(new Date(marcador.creado).toLocaleDateString(idiomaActual()));
+  return partes.join(' · ');
+}
+
 // Mantiene la lista en el orden del libro. En EPUB compara los CFI con el
 // comparador de epub.js (cargado siempre que hay un EPUB abierto).
 function ordenarMarcadores(marcadores) {
@@ -1606,12 +1617,13 @@ function pintarMarcadores() {
     boton.className = 'entrada-indice-libro';
     const titulo = document.createElement('span');
     titulo.className = 'titulo-entrada-indice';
-    titulo.textContent = etiquetaMarcador(marcador);
+    titulo.textContent = tituloMarcador(marcador);
     boton.append(titulo);
-    if (marcador.creado) {
+    const detalle = detalleMarcador(marcador);
+    if (detalle) {
       const fecha = document.createElement('span');
       fecha.className = 'pagina-entrada-indice';
-      fecha.textContent = new Date(marcador.creado).toLocaleDateString(idiomaActual());
+      fecha.textContent = detalle;
       boton.append(fecha);
     }
     boton.addEventListener('click', async () => {
@@ -1621,6 +1633,23 @@ function pintarMarcadores() {
       } catch (error) {
         avisar(error.message, 5000);
       }
+    });
+    const editar = document.createElement('button');
+    editar.type = 'button';
+    editar.className = 'btn-icono btn-editar-marcador';
+    editar.title = t('editBookmark');
+    editar.innerHTML = icono('pencil');
+    editar.addEventListener('click', () => {
+      const respuesta = prompt(t('bookmarkNamePrompt'), marcador.nombre ?? '');
+      if (respuesta === null) return;
+      const actuales = progreso.marcadoresDe(libroActual.id);
+      const nombre = respuesta.trim().slice(0, 120);
+      if (nombre) actuales[indice].nombre = nombre;
+      else delete actuales[indice].nombre;
+      progreso.guardarMarcadores(libroActual.id, actuales);
+      planificarSincronizacion();
+      pintarMarcadores();
+      avisar(t('bookmarkRenamed'));
     });
     const borrar = document.createElement('button');
     borrar.type = 'button';
@@ -1635,12 +1664,13 @@ function pintarMarcadores() {
       pintarMarcadores();
       avisar(t('bookmarkRemoved'));
     });
-    li.append(boton, borrar);
+    li.append(boton, editar, borrar);
     lista.append(li);
   });
 }
 
-$('btn-anadir-marcador').addEventListener('click', () => {
+$('form-anadir-marcador').addEventListener('submit', (evento) => {
+  evento.preventDefault();
   if (!libroActual) return;
   const posicion = posicionMarcadorActual();
   if (!posicion) return; // EPUB recién abierto, sin posición todavía
@@ -1651,11 +1681,13 @@ $('btn-anadir-marcador').addEventListener('click', () => {
     avisar(t('bookmarkExists'));
     return;
   }
-  marcadores.push({ ...posicion, creado: new Date().toISOString() });
+  const nombre = $('nombre-marcador').value.trim().slice(0, 120);
+  marcadores.push({ ...posicion, ...(nombre ? { nombre } : {}), creado: new Date().toISOString() });
   ordenarMarcadores(marcadores);
   progreso.guardarMarcadores(libroActual.id, marcadores);
   planificarSincronizacion();
   pintarMarcadores();
+  $('nombre-marcador').value = '';
   avisar(t('bookmarkAdded'));
 });
 
@@ -2011,6 +2043,7 @@ document.addEventListener('idioma-cambiado', () => {
   aplicarAparienciaModo(modoActual());
   pintarIconoNoche();
   if (!libroActual) cargarBiblioteca();
+  else if (!$('panel-marcadores').classList.contains('oculto')) pintarMarcadores();
 });
 iniciarIdioma();
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
