@@ -135,6 +135,13 @@
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
+    <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
+      data-i18n-aria-label="historyNavigation">
+      <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
+        title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
+      <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
+        title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
+    </nav>
     <div id="area-lectura">
       <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
         <div class="cabecera-panel-lector">
@@ -153,13 +160,6 @@
         <div id="estado-busqueda-libro" class="estado"></div>
         <ol id="resultados-busqueda-libro" class="resultados-busqueda"></ol>
       </aside>
-      <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
-        data-i18n-aria-label="historyNavigation">
-        <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
-          title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
-        <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
-          title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
-      </nav>
       <div id="contenedor-pagina"></div>
       <div id="contenedor-epub" class="oculto"></div>
       <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior" data-i18n-title="previous"></button>

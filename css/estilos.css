@@ -395,11 +395,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   flex: none; color: var(--texto-suave); font-size: 0.75rem; white-space: nowrap;
 }
 .historial-navegacion {
-  position: fixed; z-index: 8; left: 50%; bottom: max(1rem, env(safe-area-inset-bottom));
-  transform: translateX(-50%); display: flex; gap: 0.15rem; padding: 0.2rem;
-  border: 1px solid var(--borde); border-radius: 0.7rem;
-  background: color-mix(in srgb, var(--fondo) 92%, transparent);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.45); backdrop-filter: blur(6px);
+  flex: none; display: flex; align-items: center; justify-content: center;
+  gap: 0.15rem; padding: 0.1rem 0.25rem;
+  border-bottom: 1px solid var(--borde); background: var(--fondo);
 }
 .historial-navegacion .btn-icono { color: var(--acento); }
 .historial-navegacion .btn-icono:disabled { color: var(--texto-suave); opacity: 0.4; cursor: default; }
