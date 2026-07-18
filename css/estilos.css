@@ -185,7 +185,7 @@ body.arrastrando-archivos .destino-arrastre { outline: 2px dashed var(--borde); 
 body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { display: flex; }
 
 .carga-local-vacia {
-  width: 100%; min-height: 8rem; padding: 1.25rem;
+  width: 100%; min-height: 6.5rem; padding: 1rem;
   display: flex; align-items: center; justify-content: center; gap: 1rem;
   border: 2px dashed var(--acento); border-radius: 0.75rem;
   background: color-mix(in srgb, var(--fondo-tarjeta) 70%, transparent);
