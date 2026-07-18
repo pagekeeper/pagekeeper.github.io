@@ -255,6 +255,7 @@ async function cargarBiblioteca() {
       ? ''
       : 'No hay ningún libro en la nube. Usa el botón de subir para añadir el primero.';
     pintarListaRemota(libros);
+    generarPortadasFaltantes(libros);
   } catch (error) {
     estado.className = 'estado error';
     estado.textContent = explicarError(error);
@@ -267,6 +268,7 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alBorrar }) {
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
 
   const elemento = document.createElement('li');
+  elemento.dataset.idLibro = id;
   const boton = document.createElement('button');
   boton.className = 'libro';
   boton.innerHTML = `
@@ -284,14 +286,9 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alBorrar }) {
       : `Página ${avance.pagina} de ${avance.paginas} · ${porcentaje}%`;
   boton.addEventListener('click', alAbrir);
 
-  // Miniatura de la cubierta, si se generó al abrir o subir el libro.
+  // Miniatura de la cubierta, si ya está generada.
   almacen.obtenerPortada(id).then((blob) => {
-    if (!blob) return;
-    const imagen = document.createElement('img');
-    imagen.alt = '';
-    imagen.onload = () => URL.revokeObjectURL(imagen.src);
-    imagen.src = URL.createObjectURL(blob);
-    boton.querySelector('.portada').replaceChildren(imagen);
+    if (blob) boton.querySelector('.portada').replaceChildren(crearImagenPortada(blob));
   }).catch(() => null);
 
   const borrar = document.createElement('button');
@@ -341,6 +338,54 @@ async function cargarLibrosLocales() {
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
+
+// ───────────────────────── Portadas ─────────────────────────
+
+function crearImagenPortada(blob) {
+  const imagen = document.createElement('img');
+  imagen.alt = '';
+  imagen.onload = () => URL.revokeObjectURL(imagen.src);
+  imagen.src = URL.createObjectURL(blob);
+  return imagen;
+}
+
+async function ponerPortadaEnFila(id) {
+  const blob = await almacen.obtenerPortada(id).catch(() => null);
+  if (!blob) return;
+  for (const fila of document.querySelectorAll('.lista-libros li')) {
+    if (fila.dataset.idLibro === id) {
+      fila.querySelector('.portada')?.replaceChildren(crearImagenPortada(blob));
+    }
+  }
+}
+
+// Genera en segundo plano las miniaturas de los libros de la nube que aún
+// no la tienen (por ejemplo, subidos desde otro dispositivo). Descarga los
+// libros de uno en uno y va actualizando las filas ya pintadas.
+const LIMITE_PORTADA = 40 * 1024 * 1024; // no descargar automáticamente >40 MB
+let generandoPortadas = false;
+
+async function generarPortadasFaltantes(libros) {
+  if (generandoPortadas) return;
+  generandoPortadas = true;
+  try {
+    for (const libro of libros) {
+      if (!cliente) break;
+      if (libro.tamano > LIMITE_PORTADA) continue;
+      try {
+        if (await almacen.obtenerPortada(libro.nombre)) continue;
+        const datos = await cliente.descargar(libro.nombre);
+        if (await asegurarMiniatura(libro.nombre, formatoDe(libro.nombre), datos)) {
+          await ponerPortadaEnFila(libro.nombre);
+        }
+      } catch {
+        // Sin conexión o archivo problemático: se reintentará en otra carga.
+      }
+    }
+  } finally {
+    generandoPortadas = false;
+  }
+}
 
 // ───────────────────────── Borrar libros ─────────────────────────
 
