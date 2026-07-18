@@ -84,6 +84,25 @@ export class Lector {
   anterior() { return this.irA(this.pagina - 1); }
   siguiente() { return this.irA(this.pagina + 1); }
 
+  async buscar(consulta) {
+    if (!this.documento) return [];
+    const buscado = consulta.trim().toLocaleLowerCase();
+    if (!buscado) return [];
+    const resultados = [];
+    for (let numero = 1; numero <= this.totalPaginas && resultados.length < 200; numero++) {
+      const pagina = await this.documento.getPage(numero);
+      const contenido = await pagina.getTextContent();
+      const texto = contenido.items.map((item) => item.str).join(' ').replace(/\s+/g, ' ').trim();
+      const minusculas = texto.toLocaleLowerCase();
+      let posicion = 0;
+      while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
+        resultados.push({ destino: numero, numero, fragmento: fragmentoBusqueda(texto, posicion, buscado.length) });
+        posicion += Math.max(1, buscado.length);
+      }
+    }
+    return resultados;
+  }
+
   // ───────────────────────── Montaje según el modo ─────────────────────────
 
   limpiar() {
@@ -211,4 +230,10 @@ export class Lector {
       this.alCambiarPagina?.(this.pagina, this.totalPaginas);
     }
   }
+}
+
+function fragmentoBusqueda(texto, posicion, longitud) {
+  const inicio = Math.max(0, posicion - 55);
+  const fin = Math.min(texto.length, posicion + longitud + 75);
+  return `${inicio ? '…' : ''}${texto.slice(inicio, fin)}${fin < texto.length ? '…' : ''}`;
 }

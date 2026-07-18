@@ -2,12 +2,12 @@
 //
 // Los PDF abiertos desde el dispositivo se guardan aquí para que aparezcan
 // en la biblioteca y puedan reabrirse sin volver a elegir el archivo.
-// Se usan tres almacenes: 'libros' (solo metadatos, para listar rápido sin
+// Se usan cuatro almacenes: 'libros' (solo metadatos, para listar rápido sin
 // cargar los PDF en memoria), 'datos' (el contenido, como Blob) y
-// 'portadas' (miniaturas de cubierta, también de los libros de la nube).
+// 'portadas' y 'metadatos' (también para los libros de la nube).
 
 const NOMBRE_BD = 'lector-pdf';
-const VERSION = 2;
+const VERSION = 3;
 
 function abrirBd() {
   return new Promise((resolver, rechazar) => {
@@ -17,6 +17,7 @@ function abrirBd() {
       if (!bd.objectStoreNames.contains('libros')) bd.createObjectStore('libros', { keyPath: 'id' });
       if (!bd.objectStoreNames.contains('datos')) bd.createObjectStore('datos');
       if (!bd.objectStoreNames.contains('portadas')) bd.createObjectStore('portadas');
+      if (!bd.objectStoreNames.contains('metadatos')) bd.createObjectStore('metadatos');
     };
     solicitud.onsuccess = () => resolver(solicitud.result);
     solicitud.onerror = () => rechazar(solicitud.error);
@@ -71,10 +72,11 @@ export async function obtenerDatos(id) {
 export async function borrarLibro(id) {
   const bd = await abrirBd();
   try {
-    const tx = bd.transaction(['libros', 'datos', 'portadas'], 'readwrite');
+    const tx = bd.transaction(['libros', 'datos', 'portadas', 'metadatos'], 'readwrite');
     tx.objectStore('libros').delete(id);
     tx.objectStore('datos').delete(id);
     tx.objectStore('portadas').delete(id);
+    tx.objectStore('metadatos').delete(id);
     await new Promise((resolver, rechazar) => {
       tx.oncomplete = resolver;
       tx.onerror = () => rechazar(tx.error);
@@ -112,12 +114,31 @@ export async function obtenerPortada(id) {
 export async function borrarPortada(id) {
   const bd = await abrirBd();
   try {
-    const tx = bd.transaction('portadas', 'readwrite');
+    const tx = bd.transaction(['portadas', 'metadatos'], 'readwrite');
     tx.objectStore('portadas').delete(id);
+    tx.objectStore('metadatos').delete(id);
     await new Promise((resolver, rechazar) => {
       tx.oncomplete = resolver;
       tx.onerror = () => rechazar(tx.error);
     });
+  } finally {
+    bd.close();
+  }
+}
+
+export async function guardarMetadatos(id, metadatos) {
+  const bd = await abrirBd();
+  try {
+    await esperar(bd.transaction('metadatos', 'readwrite').objectStore('metadatos').put(metadatos, id));
+  } finally {
+    bd.close();
+  }
+}
+
+export async function obtenerMetadatos(id) {
+  const bd = await abrirBd();
+  try {
+    return await esperar(bd.transaction('metadatos').objectStore('metadatos').get(id)) ?? null;
   } finally {
     bd.close();
   }

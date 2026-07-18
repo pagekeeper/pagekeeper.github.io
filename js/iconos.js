@@ -22,6 +22,8 @@ const TRAZADOS = {
   'sun': '<circle cx="12" cy="12" r="4"/> <path d="M12 2v2"/> <path d="M12 20v2"/> <path d="m4.93 4.93 1.41 1.41"/> <path d="m17.66 17.66 1.41 1.41"/> <path d="M2 12h2"/> <path d="M20 12h2"/> <path d="m6.34 17.66-1.41 1.41"/> <path d="m19.07 4.93-1.41 1.41"/>',
   'cloud': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
   'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/>',
+  'search': '<circle cx="11" cy="11" r="8"/> <path d="m21 21-4.3-4.3"/>',
+  'x': '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>',
 };
 
 export function icono(nombre, clase = 'icono') {

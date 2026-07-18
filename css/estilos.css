@@ -130,6 +130,19 @@ body {
 .estado.error { color: var(--peligro); white-space: pre-wrap; }
 .estado.exito { color: #4ade80; }
 
+.buscador {
+  display: flex; align-items: center; gap: 0.55rem;
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.65rem; padding: 0.25rem 0.7rem; color: var(--texto-suave);
+}
+.buscador:focus-within { border-color: var(--acento); }
+.buscador .icono { width: 1rem; height: 1rem; }
+.buscador input, .buscador-form input {
+  width: 100%; min-width: 0; background: transparent; border: none;
+  color: var(--texto); font: inherit; padding: 0.45rem 0;
+}
+.buscador input:focus, .buscador-form input:focus { outline: none; }
+
 /* ── Formulario ── */
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
 form input {
@@ -202,6 +215,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .libro .formato-pdf { color: #fb7185; }
 .libro .formato-epub { color: #2dd4bf; }
+.libro .autor {
+  color: var(--texto-suave); font-size: 0.78rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
 .libro .detalle {
   font-size: 0.8rem; color: var(--texto-suave);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -301,6 +318,29 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 /* En modo continuo las zonas de toque laterales estorbarían al scroll. */
 #vista-lector.modo-continuo .zona-toque { display: none; }
+
+.panel-busqueda-libro {
+  position: fixed; z-index: 40; top: 3.75rem; right: 0.6rem;
+  width: min(28rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 4.4rem);
+  overflow: auto; padding: 0.75rem; border: 1px solid var(--borde);
+  border-radius: 0.75rem; background: var(--fondo); color: var(--texto);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+}
+.buscador-form { display: flex; align-items: center; gap: 0.4rem; }
+.buscador-form input {
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.5rem; padding: 0.55rem 0.7rem;
+}
+.buscador-form .btn-primario { padding: 0.55rem 0.8rem; }
+.resultados-busqueda { list-style: none; display: flex; flex-direction: column; gap: 0.35rem; margin-top: 0.55rem; }
+.resultado-busqueda {
+  width: 100%; background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 0.5rem; padding: 0.55rem 0.7rem; color: var(--texto);
+  text-align: left; cursor: pointer;
+}
+.resultado-busqueda:hover { border-color: var(--acento); }
+.resultado-busqueda strong { display: block; color: var(--acento); margin-bottom: 0.15rem; }
+.resultado-busqueda span { color: var(--texto-suave); font-size: 0.82rem; line-height: 1.35; }
 
 .zona-toque {
   position: fixed; top: 20%; bottom: 10%; width: 18%;

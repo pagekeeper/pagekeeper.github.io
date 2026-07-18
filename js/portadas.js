@@ -8,7 +8,7 @@
 
 import * as pdfjs from '../vendor/pdf.min.js';
 import { cargarLibrerias } from './lector-epub.js';
-import { guardarPortada, obtenerPortada } from './almacen.js';
+import { guardarPortada, obtenerPortada, guardarMetadatos, obtenerMetadatos } from './almacen.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
@@ -26,17 +26,24 @@ export function asegurarMiniatura(id, formato, datos) {
     return Promise.resolve(false);
   }
   return (async () => {
-    if (await obtenerPortada(id)) return true;
-    const blob = formato === 'epub' ? await deEpub(copia) : await dePdf(copia);
-    if (!blob) return false;
-    await guardarPortada(id, blob);
-    return true;
+    const [portada, metadatos] = await Promise.all([obtenerPortada(id), obtenerMetadatos(id)]);
+    if (portada && metadatos) return true;
+    const resultado = formato === 'epub' ? await deEpub(copia) : await dePdf(copia);
+    if (resultado.metadatos && !metadatos) await guardarMetadatos(id, resultado.metadatos);
+    if (resultado.blob && !portada) await guardarPortada(id, resultado.blob);
+    return !!(resultado.blob || resultado.metadatos);
   })().catch(() => false);
 }
 
 async function dePdf(datos) {
   const documento = await pdfjs.getDocument({ data: datos }).promise;
   try {
+    const info = await documento.getMetadata().catch(() => ({ info: {}, metadata: null }));
+    const obtener = (clave) => info.info?.[clave] ?? info.metadata?.get?.(`dc:${clave.toLowerCase()}`) ?? '';
+    const metadatos = {
+      titulo: obtener('Title'), autor: obtener('Author'),
+      asunto: obtener('Subject'), palabras: obtener('Keywords'),
+    };
     const pagina = await documento.getPage(1);
     const base = pagina.getViewport({ scale: 1 });
     const vista = pagina.getViewport({ scale: ANCHO / base.width });
@@ -47,7 +54,7 @@ async function dePdf(datos) {
     contexto.fillStyle = '#ffffff';
     contexto.fillRect(0, 0, lienzo.width, lienzo.height);
     await pagina.render({ canvasContext: contexto, viewport: vista }).promise;
-    return await aJpeg(lienzo);
+    return { blob: await aJpeg(lienzo), metadatos };
   } finally {
     documento.destroy().catch(() => null);
   }
@@ -58,8 +65,14 @@ async function deEpub(datos) {
   const libro = window.ePub(datos.buffer);
   try {
     await libro.ready;
+    const metadata = await libro.loaded.metadata;
+    const metadatos = {
+      titulo: aTexto(metadata.title), autor: aTexto(metadata.creator),
+      editorial: aTexto(metadata.publisher), idioma: aTexto(metadata.language),
+      descripcion: aTexto(metadata.description),
+    };
     const url = await libro.coverUrl();
-    if (!url) return null;
+    if (!url) return { blob: null, metadatos };
     const imagen = await new Promise((resolver, rechazar) => {
       const img = new Image();
       img.onload = () => resolver(img);
@@ -72,7 +85,7 @@ async function deEpub(datos) {
     lienzo.height = Math.max(1, Math.round(imagen.naturalHeight * escala));
     lienzo.getContext('2d').drawImage(imagen, 0, 0, lienzo.width, lienzo.height);
     URL.revokeObjectURL(url);
-    return await aJpeg(lienzo);
+    return { blob: await aJpeg(lienzo), metadatos };
   } finally {
     try { libro.destroy(); } catch { /* ya destruido */ }
   }
@@ -80,4 +93,10 @@ async function deEpub(datos) {
 
 function aJpeg(lienzo) {
   return new Promise((resolver) => lienzo.toBlob(resolver, 'image/jpeg', 0.82));
+}
+
+function aTexto(valor) {
+  if (Array.isArray(valor)) return valor.map(aTexto).filter(Boolean).join(', ');
+  if (valor && typeof valor === 'object') return aTexto(valor.name ?? valor.value ?? valor.label ?? '');
+  return valor == null ? '' : String(valor);
 }

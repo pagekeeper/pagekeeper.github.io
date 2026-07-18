@@ -29,6 +29,14 @@
         <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
       </div>
 
+      <label class="buscador buscador-biblioteca">
+        <span data-icono="search"></span>
+        <span class="sr-solo" data-i18n="searchLibrary">Buscar en la biblioteca</span>
+        <input id="buscar-biblioteca" type="search" placeholder="Buscar por título, autor…"
+          data-i18n-placeholder="searchLibraryPlaceholder" autocomplete="off">
+      </label>
+      <p id="estado-filtro-biblioteca" class="estado oculto"></p>
+
       <div id="zona-remota" class="destino-arrastre oculto">
         <div class="indicador-arrastre" data-i18n="dropCloud">Suelta aquí para subir a la nube</div>
         <div class="fila-seccion">
@@ -79,6 +87,7 @@
       <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage">– / –</button>
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
+      <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
       <div id="control-margenes" class="control-margenes oculto">
         <button id="btn-margenes" class="btn-icono" data-icono="fold-horizontal"
@@ -107,6 +116,16 @@
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
     <div id="area-lectura">
+      <aside id="panel-busqueda-libro" class="panel-busqueda-libro oculto">
+        <form id="form-busqueda-libro" class="buscador-form">
+          <input id="buscar-en-libro" type="search" placeholder="Palabra o frase"
+            data-i18n-placeholder="wordOrPhrase" autocomplete="off">
+          <button type="submit" class="btn-primario" data-i18n="search">Buscar</button>
+          <button type="button" id="cerrar-busqueda-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
+        </form>
+        <div id="estado-busqueda-libro" class="estado"></div>
+        <ol id="resultados-busqueda-libro" class="resultados-busqueda"></ol>
+      </aside>
       <div id="contenedor-pagina"></div>
       <div id="contenedor-epub" class="oculto"></div>
       <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior" data-i18n-title="previous"></button>
@@ -185,7 +204,8 @@
         <ul class="lista-ayuda">
           <li><strong>Portadas:</strong> se generan solas (la cubierta del
           EPUB o la primera página del PDF) y muestran el avance de lectura
-          de cada libro.</li>
+          de cada libro. El buscador de la biblioteca filtra por nombre,
+          título, autor, formato y otros metadatos disponibles.</li>
           <li><strong>Subir a la nube:</strong> con una nube configurada, el
           botón de la nube de cada libro local lo copia a tu carpeta remota
           conservando la página por la que vas; también puedes subir un
@@ -213,6 +233,8 @@
           página.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
           porcentaje en EPUB) para saltar directamente.</li>
+          <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
+          palabras o frases y lleva a la página o capítulo del resultado.</li>
           <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan
           solo en cada dispositivo.</li>
         </ul>

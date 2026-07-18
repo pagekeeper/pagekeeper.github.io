@@ -171,10 +171,45 @@ export class LectorEpub {
   siguiente() { this.vista?.next(); }
   anterior() { this.vista?.prev(); }
 
+  irA(destino) { return this.vista?.display(destino); }
+
+  async buscar(consulta) {
+    if (!this.libro) return [];
+    const buscado = consulta.trim().toLocaleLowerCase();
+    if (!buscado) return [];
+    const resultados = [];
+    for (const seccion of this.libro.spine.spineItems) {
+      if (seccion.linear === 'no' || resultados.length >= 200) continue;
+      try {
+        await seccion.load(this.libro.load.bind(this.libro));
+        const texto = (seccion.document?.body?.textContent ?? '').replace(/\s+/g, ' ').trim();
+        const minusculas = texto.toLocaleLowerCase();
+        let posicion = 0;
+        while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
+          resultados.push({
+            destino: seccion.href,
+            numero: seccion.index + 1,
+            fragmento: fragmentoBusqueda(texto, posicion, buscado.length),
+          });
+          posicion += Math.max(1, buscado.length);
+        }
+      } finally {
+        seccion.unload();
+      }
+    }
+    return resultados;
+  }
+
   cerrar() {
     this.desmontarVista();
     try { this.libro?.destroy(); } catch { /* ya destruido */ }
     this.libro = null;
     this.contenedor.replaceChildren();
   }
+}
+
+function fragmentoBusqueda(texto, posicion, longitud) {
+  const inicio = Math.max(0, posicion - 55);
+  const fin = Math.min(texto.length, posicion + longitud + 75);
+  return `${inicio ? '…' : ''}${texto.slice(inicio, fin)}${fin < texto.length ? '…' : ''}`;
 }

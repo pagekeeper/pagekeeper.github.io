@@ -47,6 +47,10 @@ const textos = {
     dropLocal: 'Suelta aquí para guardar en este dispositivo', dropCloud: 'Suelta aquí para subir a la nube',
     unsupportedFiles: 'Solo se pueden añadir archivos PDF o EPUB.', localAddedOne: 'Libro guardado en este dispositivo.', localAddedMany: '{count} libros guardados en este dispositivo.',
     saveFailed: 'No se pudo guardar «{title}»: {error}',
+    searchLibrary: 'Buscar en la biblioteca', searchLibraryPlaceholder: 'Buscar por título, autor…',
+    searchBook: 'Buscar dentro del libro', wordOrPhrase: 'Palabra o frase', search: 'Buscar', close: 'Cerrar',
+    searchingBook: 'Buscando en el libro…', noSearchResults: 'No se encontraron resultados.', searchResults: '{count} resultados.',
+    chapter: 'Capítulo', noLibraryResults: 'No hay libros que coincidan con la búsqueda.',
   },
   ca: {
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
@@ -90,6 +94,10 @@ const textos = {
     dropLocal: 'Deixa anar aquí per desar en aquest dispositiu', dropCloud: 'Deixa anar aquí per pujar al núvol',
     unsupportedFiles: 'Només es poden afegir fitxers PDF o EPUB.', localAddedOne: 'Llibre desat en aquest dispositiu.', localAddedMany: 'S’han desat {count} llibres en aquest dispositiu.',
     saveFailed: 'No s’ha pogut desar «{title}»: {error}',
+    searchLibrary: 'Cerca a la biblioteca', searchLibraryPlaceholder: 'Cerca per títol, autor…',
+    searchBook: 'Cerca dins del llibre', wordOrPhrase: 'Paraula o frase', search: 'Cerca', close: 'Tanca',
+    searchingBook: 'S’està cercant al llibre…', noSearchResults: 'No s’han trobat resultats.', searchResults: '{count} resultats.',
+    chapter: 'Capítol', noLibraryResults: 'No hi ha llibres que coincideixin amb la cerca.',
   },
   en: {
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
@@ -133,14 +141,18 @@ const textos = {
     dropLocal: 'Drop here to save on this device', dropCloud: 'Drop here to upload to the cloud',
     unsupportedFiles: 'Only PDF or EPUB files can be added.', localAddedOne: 'Book saved on this device.', localAddedMany: '{count} books saved on this device.',
     saveFailed: 'Could not save “{title}”: {error}',
+    searchLibrary: 'Search library', searchLibraryPlaceholder: 'Search by title, author…',
+    searchBook: 'Search inside the book', wordOrPhrase: 'Word or phrase', search: 'Search', close: 'Close',
+    searchingBook: 'Searching the book…', noSearchResults: 'No results found.', searchResults: '{count} results.',
+    chapter: 'Chapter', noLibraryResults: 'No books match your search.',
   },
 };
 
 const ayudas = {
   ca: `
     <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
-    <div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també pots arrossegar fitxers a «Al núvol».</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
-    <div class="tarjeta"><h2>Controls del lector</h2><ul class="lista-ayuda"><li><strong>Mode de lectura:</strong> pàgina a pàgina o pàgines contínues amb desplaçament vertical.</li><li><strong>Zoom:</strong> les lupes amplien el PDF o canvien la mida de lletra de l’EPUB; ↔ torna a l’amplada automàtica.</li><li><strong>Marges (només EPUB):</strong> el control lliscant tria el marge de tots dos costats entre 0 i 30 %.</li><li><strong>Mode nit:</strong> el botó de la lluna/sol enfosqueix la pàgina.</li><li><strong>Ves a un punt:</strong> toca l’indicador de pàgina o percentatge.</li><li>El mode, el zoom, la lletra i els marges es recorden en cada dispositiu.</li></ul></div>
+    <div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés. El cercador filtra per nom, títol, autor, format i altres metadades.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també pots arrossegar fitxers a «Al núvol».</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
+    <div class="tarjeta"><h2>Controls del lector</h2><ul class="lista-ayuda"><li><strong>Mode de lectura:</strong> pàgina a pàgina o pàgines contínues amb desplaçament vertical.</li><li><strong>Zoom:</strong> les lupes amplien el PDF o canvien la mida de lletra de l’EPUB; ↔ torna a l’amplada automàtica.</li><li><strong>Marges (només EPUB):</strong> el control lliscant tria el marge de tots dos costats entre 0 i 30 %.</li><li><strong>Mode nit:</strong> el botó de la lluna/sol enfosqueix la pàgina.</li><li><strong>Ves a un punt:</strong> toca l’indicador de pàgina o percentatge.</li><li><strong>Cerca dins del llibre:</strong> la lupa troba paraules o frases i porta a la pàgina o capítol.</li><li>El mode, el zoom, la lletra i els marges es recorden en cada dispositiu.</li></ul></div>
     <div class="tarjeta"><h2>Què és WebDAV?</h2><p>És una manera estàndard d’accedir per internet als fitxers d’un servidor com si fos una carpeta remota. PageKeeper el fa servir per llegir els llibres i desar el progrés al teu propi núvol.</p></div>
     <div class="tarjeta importante"><h2>⚠️ Important: no serveix qualsevol núvol</h2><p>El navegador només es pot connectar si el servidor ho autoritza explícitament amb <em>CORS</em>. Per això la majoria de serveis comercials no funcionen.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox i OneDrive:</strong> no ofereixen un WebDAV usable aquí.</li><li><strong>Koofr, pCloud, Yandex i semblants:</strong> tenen WebDAV però bloquegen l’accés des de pàgines web.</li><li><strong>Nextcloud o ownCloud amb el permís activat:</strong> és l’opció que funciona a la pràctica.</li></ul></div>
     <div class="tarjeta"><h2>No tinc servidor propi</h2><p>Pots demanar accés a un Nextcloud d’un familiar, centre o equip: necessites l’<em>URL de la carpeta WebDAV</em>, l’<em>usuari</em> i una <em>contrasenya d’aplicació</em>. Si no en tens, afegeix llibres a «En aquest dispositiu»: es llegeixen igual, però sense sincronització automàtica.</p></div>
@@ -150,8 +162,8 @@ const ayudas = {
     <div class="tarjeta"><h2>Privadesa</h2><p>No hi ha cap servidor intermediari: el navegador es connecta directament al teu núvol. L’URL, l’usuari i la contrasenya es desen només en aquest navegador.</p></div>`,
   en: `
     <div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works immediately without accounts. The book is stored only in that browser. You can also drag one or more files onto the local section.</li><li><strong>Connect cloud storage (WebDAV):</strong> books and reading position sync between your devices.</li></ul></div>
-    <div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also drag files onto “In the cloud”.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
-    <div class="tarjeta"><h2>Reader controls</h2><ul class="lista-ayuda"><li><strong>Reading mode:</strong> one page at a time or continuous pages with vertical scrolling.</li><li><strong>Zoom:</strong> the magnifiers enlarge PDFs or change EPUB text size; ↔ returns to fit-to-width.</li><li><strong>Margins (EPUB only):</strong> use the slider to choose a margin on both sides from 0 to 30%.</li><li><strong>Night mode:</strong> the moon/sun button darkens the page.</li><li><strong>Go to a point:</strong> tap the page or percentage indicator.</li><li>Mode, zoom, font size and margins are remembered on each device.</li></ul></div>
+    <div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress. The search box filters by filename, title, author, format and other metadata.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also drag files onto “In the cloud”.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
+    <div class="tarjeta"><h2>Reader controls</h2><ul class="lista-ayuda"><li><strong>Reading mode:</strong> one page at a time or continuous pages with vertical scrolling.</li><li><strong>Zoom:</strong> the magnifiers enlarge PDFs or change EPUB text size; ↔ returns to fit-to-width.</li><li><strong>Margins (EPUB only):</strong> use the slider to choose a margin on both sides from 0 to 30%.</li><li><strong>Night mode:</strong> the moon/sun button darkens the page.</li><li><strong>Go to a point:</strong> tap the page or percentage indicator.</li><li><strong>Search inside the book:</strong> the magnifier finds words or phrases and jumps to the matching page or chapter.</li><li>Mode, zoom, font size and margins are remembered on each device.</li></ul></div>
     <div class="tarjeta"><h2>What is WebDAV?</h2><p>It is a standard way to access files on an internet server as though it were a remote folder. PageKeeper uses it to read books and store progress in your own cloud.</p></div>
     <div class="tarjeta importante"><h2>⚠️ Important: not every cloud works</h2><p>The browser can connect only when a server explicitly permits it through <em>CORS</em>. This rules out most commercial services.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox and OneDrive:</strong> do not provide usable WebDAV here.</li><li><strong>Koofr, pCloud, Yandex and similar:</strong> have WebDAV but block access from web pages.</li><li><strong>Nextcloud or ownCloud with permission enabled:</strong> is the practical working option.</li></ul></div>
     <div class="tarjeta"><h2>I do not have my own server</h2><p>You can ask for access to a family, school or work Nextcloud. You need the <em>WebDAV folder URL</em>, <em>username</em> and an <em>app password</em>. Otherwise, add books under “On this device”: reading works the same, but without automatic sync.</p></div>
@@ -199,6 +211,9 @@ export function aplicarIdioma(nuevo) {
   });
   document.querySelectorAll('[data-i18n-aria-label]').forEach((elemento) => {
     elemento.setAttribute('aria-label', t(elemento.dataset.i18nAriaLabel));
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach((elemento) => {
+    elemento.placeholder = t(elemento.dataset.i18nPlaceholder);
   });
   const selector = document.getElementById('selector-idioma');
   if (selector) selector.value = idioma;

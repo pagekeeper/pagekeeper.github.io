@@ -316,6 +316,7 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDesca
 
   const elemento = document.createElement('li');
   elemento.dataset.idLibro = id;
+  elemento.dataset.busqueda = normalizarBusqueda(`${titulo} ${formato}`);
   const boton = document.createElement('button');
   boton.className = 'libro';
   boton.innerHTML = `
@@ -325,6 +326,7 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDesca
         <span class="nombre"></span>
         <span class="formato formato-${formato}"></span>
       </span>
+      <span class="autor oculto"></span>
       <span class="detalle"></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
@@ -368,8 +370,42 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDesca
   borrar.innerHTML = icono('trash-2');
   borrar.addEventListener('click', alBorrar);
   elemento.append(borrar);
+  cargarMetadatosEnFila(elemento, id, titulo);
   return elemento;
 }
+
+function normalizarBusqueda(texto) {
+  return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+}
+
+async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
+  const metadatos = await almacen.obtenerMetadatos(id).catch(() => null);
+  if (!metadatos) return;
+  const valores = Object.values(metadatos).filter(Boolean);
+  fila.dataset.busqueda = normalizarBusqueda(`${tituloArchivo} ${fila.dataset.busqueda} ${valores.join(' ')}`);
+  if (metadatos.titulo?.trim()) fila.querySelector('.nombre').textContent = metadatos.titulo.trim();
+  if (metadatos.autor?.trim()) {
+    const autor = fila.querySelector('.autor');
+    autor.textContent = metadatos.autor.trim();
+    autor.classList.remove('oculto');
+  }
+  aplicarFiltroBiblioteca();
+}
+
+function aplicarFiltroBiblioteca() {
+  const consulta = normalizarBusqueda($('buscar-biblioteca').value.trim());
+  let visibles = 0;
+  for (const fila of document.querySelectorAll('.lista-libros li')) {
+    const coincide = !consulta || fila.dataset.busqueda?.includes(consulta);
+    fila.classList.toggle('oculto', !coincide);
+    if (coincide) visibles += 1;
+  }
+  const estado = $('estado-filtro-biblioteca');
+  estado.textContent = consulta && !visibles ? t('noLibraryResults') : '';
+  estado.classList.toggle('oculto', !estado.textContent);
+}
+
+$('buscar-biblioteca').addEventListener('input', aplicarFiltroBiblioteca);
 
 function pintarListaRemota(libros) {
   const lista = $('lista-libros');
@@ -385,6 +421,7 @@ function pintarListaRemota(libros) {
       alBorrar: () => borrarLibroRemoto(libro.nombre),
     }));
   }
+  aplicarFiltroBiblioteca();
 }
 
 async function cargarLibrosLocales() {
@@ -409,6 +446,7 @@ async function cargarLibrosLocales() {
       alBorrar: () => borrarLibroLocal(libro),
     }));
   }
+  aplicarFiltroBiblioteca();
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
@@ -425,10 +463,10 @@ function crearImagenPortada(blob) {
 
 async function ponerPortadaEnFila(id) {
   const blob = await almacen.obtenerPortada(id).catch(() => null);
-  if (!blob) return;
   for (const fila of document.querySelectorAll('.lista-libros li')) {
     if (fila.dataset.idLibro === id) {
-      fila.querySelector('.portada')?.replaceChildren(crearImagenPortada(blob));
+      if (blob) fila.querySelector('.portada')?.replaceChildren(crearImagenPortada(blob));
+      cargarMetadatosEnFila(fila, id, fila.querySelector('.nombre')?.textContent ?? '');
     }
   }
 }
@@ -447,7 +485,11 @@ async function generarPortadasFaltantes(libros) {
       if (!cliente) break;
       if (libro.tamano > LIMITE_PORTADA) continue;
       try {
-        if (await almacen.obtenerPortada(libro.nombre)) continue;
+        const [portada, metadatos] = await Promise.all([
+          almacen.obtenerPortada(libro.nombre),
+          almacen.obtenerMetadatos(libro.nombre),
+        ]);
+        if (portada && metadatos) continue;
         const datos = await cliente.descargar(libro.nombre);
         if (await asegurarMiniatura(libro.nombre, formatoDe(libro.nombre), datos)) {
           await ponerPortadaEnFila(libro.nombre);
@@ -771,6 +813,10 @@ for (const [id, alSoltar] of [
 }
 
 async function abrirEnLector(datos, libro) {
+  cerrarBusquedaLibro();
+  $('buscar-en-libro').value = '';
+  $('estado-busqueda-libro').textContent = '';
+  $('resultados-busqueda-libro').replaceChildren();
   libroActual = libro;
   $('titulo-libro').textContent = libro.titulo;
   // El botón de subir solo tiene sentido con un libro local y una nube configurada.
@@ -906,7 +952,66 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 
 // ───────────────────────── Controles del lector ─────────────────────────
 
+let resultadosBusquedaLibro = [];
+let versionBusquedaLibro = 0;
+
+function cerrarBusquedaLibro() {
+  versionBusquedaLibro += 1;
+  $('panel-busqueda-libro').classList.add('oculto');
+}
+
+$('btn-buscar-libro').addEventListener('click', () => {
+  const panel = $('panel-busqueda-libro');
+  panel.classList.toggle('oculto');
+  if (!panel.classList.contains('oculto')) $('buscar-en-libro').focus();
+});
+$('cerrar-busqueda-libro').addEventListener('click', cerrarBusquedaLibro);
+
+$('form-busqueda-libro').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const consulta = $('buscar-en-libro').value.trim();
+  if (!consulta) return;
+  const version = ++versionBusquedaLibro;
+  const estado = $('estado-busqueda-libro');
+  const lista = $('resultados-busqueda-libro');
+  estado.textContent = t('searchingBook');
+  lista.replaceChildren();
+  try {
+    const esEpub = epubAbierto();
+    const activo = esEpub ? lectorEpub : lector;
+    resultadosBusquedaLibro = await activo.buscar(consulta);
+    if (version !== versionBusquedaLibro) return;
+    estado.textContent = resultadosBusquedaLibro.length
+      ? t('searchResults', { count: resultadosBusquedaLibro.length })
+      : t('noSearchResults');
+    resultadosBusquedaLibro.forEach((resultado, indice) => {
+      const li = document.createElement('li');
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'resultado-busqueda';
+      const ubicacion = document.createElement('strong');
+      ubicacion.textContent = esEpub
+        ? `${t('chapter')} ${resultado.numero}`
+        : `${t('page')} ${resultado.numero}`;
+      const fragmento = document.createElement('span');
+      fragmento.textContent = resultado.fragmento;
+      boton.append(ubicacion, fragmento);
+      boton.addEventListener('click', async () => {
+        const elegido = resultadosBusquedaLibro[indice];
+        if (esEpub) await lectorEpub.irA(elegido.destino);
+        else await lector.irA(elegido.destino);
+        cerrarBusquedaLibro();
+      });
+      li.append(boton);
+      lista.append(li);
+    });
+  } catch (error) {
+    if (version === versionBusquedaLibro) estado.textContent = error.message;
+  }
+});
+
 $('btn-volver').addEventListener('click', () => {
+  cerrarBusquedaLibro();
   clearTimeout(temporizadorSync);
   if (libroActual?.tipo === 'webdav' && cliente) {
     progreso.sincronizar(cliente).catch(() => null);
