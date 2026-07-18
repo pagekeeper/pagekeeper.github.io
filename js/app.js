@@ -286,7 +286,11 @@ async function cargarBiblioteca() {
   const hayConfig = cliente !== null;
   $('aviso-sin-config').classList.toggle('oculto', hayConfig);
   $('zona-remota').classList.toggle('oculto', !hayConfig);
-  if (!hayConfig) return;
+  if (!hayConfig) {
+    $('lista-libros').replaceChildren();
+    actualizarVisibilidadBuscadorBiblioteca();
+    return;
+  }
 
   const estado = $('estado-remoto');
   estado.className = 'estado';
@@ -446,6 +450,16 @@ function aplicarFiltroBiblioteca() {
 
 $('buscar-biblioteca').addEventListener('input', aplicarFiltroBiblioteca);
 
+function actualizarVisibilidadBuscadorBiblioteca() {
+  const hayLibros = document.querySelector('.lista-libros li') !== null;
+  document.querySelector('.buscador-biblioteca').classList.toggle('oculto', !hayLibros);
+  if (!hayLibros) {
+    $('buscar-biblioteca').value = '';
+    $('estado-filtro-biblioteca').textContent = '';
+    $('estado-filtro-biblioteca').classList.add('oculto');
+  }
+}
+
 function pintarListaRemota(libros) {
   const lista = $('lista-libros');
   lista.replaceChildren();
@@ -461,6 +475,7 @@ function pintarListaRemota(libros) {
     }));
   }
   aplicarFiltroBiblioteca();
+  actualizarVisibilidadBuscadorBiblioteca();
 }
 
 async function cargarLibrosLocales() {
@@ -486,6 +501,7 @@ async function cargarLibrosLocales() {
     }));
   }
   aplicarFiltroBiblioteca();
+  actualizarVisibilidadBuscadorBiblioteca();
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
@@ -790,6 +806,8 @@ $('selector-archivo').addEventListener('change', (evento) => {
   evento.target.value = '';
   guardarArchivosLocales(archivos, true);
 });
+
+$('aviso-local-vacio').addEventListener('click', () => $('selector-archivo').click());
 
 $('selector-subir-nube').addEventListener('change', (evento) => {
   const archivos = [...evento.target.files];
