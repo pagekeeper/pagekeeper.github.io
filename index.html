@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f172a">
-  <title>PageKeeper: lector de PDF y EPUB</title>
+  <title>PageKeeper</title>
   <link rel="stylesheet" href="css/estilos.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
@@ -15,25 +15,26 @@
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
       <h1><span class="icono-app" data-icono="book-open"></span>PageKeeper</h1>
-      <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda"></button>
-      <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes"></button>
+      <label class="selector-idioma" for="selector-idioma"><span class="sr-solo" data-i18n="language">Idioma</span>
+        <select id="selector-idioma" aria-label="Idioma" data-i18n-aria-label="language">
+          <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option>
+        </select>
+      </label>
+      <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
+      <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes" data-i18n-title="settings"></button>
     </header>
     <main class="contenido">
-      <div id="aviso-sin-config" class="tarjeta oculto">
-        <p>No hay ningún servidor configurado. Puedes abrir un libro (PDF o
-        EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube
-        (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura
-        entre dispositivos.</p>
-        <p class="ayuda">¿No sabes qué es esto o qué necesitas?
-        <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
+      <div id="aviso-sin-config" class="tarjeta oculto" data-i18n-html="noConfigHtml">
+        No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.
+        <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
       </div>
 
       <div id="zona-remota" class="oculto">
         <div class="fila-seccion">
-          <h2 id="titulo-carpeta"><span class="icono-seccion" data-icono="cloud"></span>En la nube</h2>
-          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube"></label>
+          <h2 id="titulo-carpeta"><span class="icono-seccion" data-icono="cloud"></span><span data-i18n="cloud">En la nube</span></h2>
+          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube" data-i18n-title="addCloud"></label>
           <input type="file" id="selector-subir-nube" accept=".pdf,.epub,application/pdf,application/epub+zip" hidden>
-          <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar"></button>
+          <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar" data-i18n-title="reload"></button>
         </div>
         <div id="estado-remoto" class="estado"></div>
         <ul id="lista-libros" class="lista-libros"></ul>
@@ -41,13 +42,11 @@
 
       <div id="zona-local">
         <div class="fila-seccion">
-          <h2><span class="icono-seccion" data-icono="smartphone"></span>En este dispositivo</h2>
-          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo"></label>
+          <h2><span class="icono-seccion" data-icono="smartphone"></span><span data-i18n="device">En este dispositivo</span></h2>
+          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo" data-i18n-title="addLocal"></label>
           <input type="file" id="selector-archivo" accept=".pdf,.epub,application/pdf,application/epub+zip" hidden>
         </div>
-        <p id="aviso-local-vacio" class="ayuda oculto">No hay ningún libro guardado
-        en este dispositivo. Pulsa «+» para añadir un PDF o EPUB: quedará en la
-        biblioteca y se recordará por dónde vas (solo en este dispositivo).</p>
+        <p id="aviso-local-vacio" class="ayuda oculto" data-i18n="emptyLocal">No hay ningún libro guardado en este dispositivo. Pulsa «+» para añadir un PDF o EPUB: quedará en la biblioteca y se recordará por dónde vas (solo en este dispositivo).</p>
         <ul id="lista-locales" class="lista-libros"></ul>
       </div>
 
@@ -56,13 +55,13 @@
           <span>© 2026 <a href="https://educacion.bilateria.org/" target="_blank"
             rel="noopener">Juan José de Haro</a></span>
           <span aria-hidden="true">·</span>
-          <a href="LICENSE">Licencia MIT</a>
+          <a href="LICENSE" data-i18n="license">Licencia MIT</a>
           <span aria-hidden="true">·</span>
           <a href="https://github.com/pagekeeper/pagekeeper.github.io" target="_blank"
-            rel="noopener">Código fuente</a>
+            rel="noopener" data-i18n="source">Código fuente</a>
           <span aria-hidden="true">·</span>
           <details class="creditos-pie">
-            <summary>Créditos</summary>
+            <summary data-i18n="credits">Créditos</summary>
             <p>Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a>
             (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a>
             (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a>
@@ -76,43 +75,43 @@
   <!-- ═══════════ LECTOR ═══════════ -->
   <section id="vista-lector" class="vista oculto">
     <header class="barra-lector">
-      <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca"></button>
+      <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca" data-i18n-title="backLibrary"></button>
       <span id="titulo-libro" class="titulo-libro"></span>
-      <button id="btn-indicador" class="btn-pagina" title="Ir a una página">– / –</button>
+      <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage">– / –</button>
       <span class="separador"></span>
-      <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube"></button>
+      <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
       <div id="control-margenes" class="control-margenes oculto">
         <button id="btn-margenes" class="btn-icono" data-icono="fold-horizontal"
-          title="Ajustar márgenes" aria-label="Ajustar márgenes del texto"
+          title="Ajustar márgenes" data-i18n-title="margins" aria-label="Ajustar márgenes del texto"
           aria-haspopup="dialog" aria-expanded="false"></button>
         <div id="panel-margenes" class="panel-margenes" role="dialog"
           aria-label="Márgenes del texto" hidden>
           <div class="cabecera-margenes">
-            <label for="margen-epub">Margen lateral</label>
+            <label for="margen-epub" data-i18n="marginSide">Margen lateral</label>
             <output id="valor-margen" for="margen-epub">10 % por lado</output>
           </div>
           <input id="margen-epub" type="range" min="0" max="30" step="1" value="10"
             aria-describedby="ayuda-margen">
           <div class="extremos-margen" aria-hidden="true">
-            <span>Sin margen</span><span>Más margen</span>
+            <span data-i18n="noMargin">Sin margen</span><span data-i18n="moreMargin">Más margen</span>
           </div>
-          <p id="ayuda-margen" class="ayuda">El texto se reajusta al mover el control.</p>
+          <p id="ayuda-margen" class="ayuda" data-i18n="marginHelp">El texto se reajusta al mover el control.</p>
           <button id="btn-restablecer-margen" type="button" class="btn-secundario">
-            Restablecer
+            <span data-i18n="reset">Restablecer</span>
           </button>
         </div>
       </div>
-      <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir"></button>
-      <button id="btn-ancho-auto" class="btn-icono" data-icono="move-horizontal" title="Ancho automático"></button>
-      <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar"></button>
+      <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir" data-i18n-title="zoomOut"></button>
+      <button id="btn-ancho-auto" class="btn-icono" data-icono="move-horizontal" title="Ancho automático" data-i18n-title="autoWidth"></button>
+      <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
     <div id="area-lectura">
       <div id="contenedor-pagina"></div>
       <div id="contenedor-epub" class="oculto"></div>
-      <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior"></button>
-      <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente"></button>
+      <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior" data-i18n-title="previous"></button>
+      <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente" data-i18n-title="next"></button>
     </div>
   </section>
 
@@ -120,24 +119,24 @@
   <section id="vista-ajustes" class="vista oculto">
     <header class="cabecera">
       <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
-      <h1>Ajustes</h1>
+      <h1 data-i18n="settings">Ajustes</h1>
     </header>
     <main class="contenido">
       <form id="formulario-webdav" class="tarjeta">
-        <h2>Nube (WebDAV)</h2>
+        <h2 data-i18n="webdav">Nube (WebDAV)</h2>
         <p class="ayuda">Compatible con Nextcloud, ownCloud y cualquier servidor
         WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la
         posición de lectura se sincronizará entre todos tus dispositivos.
         ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la
         ayuda</a>.</p>
 
-        <label>URL de la carpeta WebDAV
+        <label><span data-i18n="webdavFolder">URL de la carpeta WebDAV</span>
           <input type="url" id="campo-url" placeholder="https://tu-nube.com/remote.php/dav/files/USUARIO/Libros" autocomplete="url">
         </label>
-        <label>Usuario
+        <label><span data-i18n="user">Usuario</span>
           <input type="text" id="campo-usuario" autocomplete="username">
         </label>
-        <label>Contraseña de aplicación
+        <label><span data-i18n="appPassword">Contraseña de aplicación</span>
           <input type="password" id="campo-clave" autocomplete="current-password">
         </label>
         <p class="ayuda">⚠️ En Nextcloud crea una <strong>contraseña de
@@ -148,15 +147,15 @@
         Los datos se guardan únicamente en este navegador.</p>
 
         <div class="fila-botones">
-          <button type="button" id="btn-probar" class="btn-secundario">Probar conexión</button>
-          <button type="submit" class="btn-primario">Guardar</button>
-          <button type="button" id="btn-borrar-config" class="btn-peligro">Borrar configuración</button>
+          <button type="button" id="btn-probar" class="btn-secundario" data-i18n="testConnection">Probar conexión</button>
+          <button type="submit" class="btn-primario" data-i18n="save">Guardar</button>
+          <button type="button" id="btn-borrar-config" class="btn-peligro" data-i18n="deleteConfig">Borrar configuración</button>
         </div>
         <div id="resultado-prueba" class="estado"></div>
       </form>
 
       <div class="tarjeta">
-        <h2>Llevar la configuración a otro dispositivo</h2>
+        <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
         <p class="ayuda">Copia un enlace que contiene la URL, el usuario y la
         contraseña de aplicación. Ábrelo en el otro dispositivo (mándatelo por
         un canal privado, por ejemplo una nota o un mensaje a ti mismo) y el
@@ -164,7 +163,7 @@
         enlace tendrá acceso a tu nube: no lo publiques y bórralo del canal
         después de usarlo.</p>
         <div class="fila-botones">
-          <button type="button" id="btn-copiar-config" class="btn-secundario">Copiar enlace de configuración</button>
+          <button type="button" id="btn-copiar-config" class="btn-secundario" data-i18n="copyConfig">Copiar enlace de configuración</button>
         </div>
         <div id="resultado-copia" class="estado"></div>
       </div>
@@ -175,7 +174,7 @@
   <section id="vista-ayuda" class="vista oculto">
     <header class="cabecera">
       <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
-      <h1>Ayuda</h1>
+      <h1 data-i18n="help">Ayuda</h1>
     </header>
     <main class="contenido">
 

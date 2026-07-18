@@ -66,6 +66,13 @@ body {
   display: inline-flex; align-items: center; justify-content: center;
 }
 .btn-icono:hover { background: var(--fondo-tarjeta); color: var(--acento); }
+.selector-idioma select {
+  appearance: none; background: var(--fondo-tarjeta); color: var(--texto);
+  border: 1px solid var(--borde); border-radius: 0.45rem; padding: 0.35rem 0.45rem;
+  font: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+}
+.selector-idioma select:focus { outline: 2px solid var(--acento); border-color: transparent; }
+.sr-solo { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 .btn-primario, .btn-secundario, .btn-peligro {
   display: inline-block; text-align: center; cursor: pointer;
