@@ -102,13 +102,22 @@ body {
 
 /* ── Pie de página ── */
 .pie {
-  margin-top: auto; padding: 1.25rem 0 0.5rem;
+  margin-top: auto; padding: 0.65rem 0 0.3rem;
   border-top: 1px solid var(--borde);
   font-size: 0.78rem; color: var(--texto-suave);
-  text-align: center; line-height: 1.7;
+  text-align: center; line-height: 1.4;
+}
+.pie-principal {
+  display: flex; align-items: baseline; justify-content: center;
+  flex-wrap: wrap; column-gap: 0.35rem;
 }
 .pie a { color: var(--acento); text-decoration: none; }
 .pie a:hover { text-decoration: underline; }
+.creditos-pie { display: inline-block; }
+.creditos-pie summary { color: var(--acento); cursor: pointer; }
+.creditos-pie summary:hover { text-decoration: underline; }
+.creditos-pie[open] { flex-basis: 100%; margin-top: 0.25rem; }
+.creditos-pie p { max-width: 42rem; margin: 0 auto; }
 
 .estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
 .estado.error { color: var(--peligro); white-space: pre-wrap; }
