@@ -38,7 +38,7 @@ export class ClienteWebDav {
       },
       body: `<?xml version="1.0"?>
         <d:propfind xmlns:d="DAV:">
-          <d:prop><d:resourcetype/><d:getcontentlength/></d:prop>
+          <d:prop><d:resourcetype/><d:getcontentlength/><d:getetag/><d:getlastmodified/></d:prop>
         </d:propfind>`,
     });
     if (!respuesta.ok) throw await this.errorDe(respuesta, 'listar la carpeta');
@@ -61,7 +61,9 @@ export class ClienteWebDav {
       }
       if (!/\.(pdf|epub)$/i.test(nombre)) continue;
       const tamano = Number(nodo.getElementsByTagNameNS('DAV:', 'getcontentlength')[0]?.textContent ?? 0);
-      libros.push({ nombre, tamano });
+      const etag = nodo.getElementsByTagNameNS('DAV:', 'getetag')[0]?.textContent ?? '';
+      const modificado = nodo.getElementsByTagNameNS('DAV:', 'getlastmodified')[0]?.textContent ?? '';
+      libros.push({ nombre, tamano, ...(etag ? { etag } : {}), ...(modificado ? { modificado } : {}) });
     }
     carpetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     libros.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));

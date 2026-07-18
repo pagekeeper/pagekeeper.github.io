@@ -22,6 +22,13 @@ libros y sincronizar el progreso de lectura.
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red).
+- ▶️ **Continuar leyendo**: al abrir la aplicación, el libro usado más
+  recientemente aparece destacado al principio de la biblioteca con su
+  portada, progreso y acceso directo, aunque esté dentro de una subcarpeta.
+- 📴 **Libros de la nube sin conexión**: cada PDF o EPUB remoto se puede fijar
+  en el dispositivo. PageKeeper guarda una copia en IndexedDB, la actualiza
+  cuando cambia en WebDAV y la abre automáticamente si falla la conexión, sin
+  confundirla con un libro local ni borrar nunca el original de la nube.
 - 📂 **Biblioteca local**: también puedes añadir PDF del propio dispositivo
   sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
   en la sección «En este dispositivo» y se reabren sin volver a elegir el

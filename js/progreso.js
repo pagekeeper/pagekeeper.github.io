@@ -283,6 +283,19 @@ export function progresoDe(idLibro) {
   return cargarLocal().libros[idLibro] ?? null;
 }
 
+// El libro cuya posición cambió más recientemente es el candidato natural
+// para «Continuar leyendo». Se usa la fecha de posición, no la de marcadores,
+// para que editar una nota de un libro antiguo no lo convierta en el actual.
+export function ultimoLibroLeido(datos = cargarLocal()) {
+  let ultimo = null;
+  for (const [id, entrada] of Object.entries(datos?.libros ?? {})) {
+    if (!entrada || (!Number.isFinite(entrada.pagina) && !entrada.cfi)) continue;
+    const fecha = entrada.posicionActualizada ?? entrada.actualizado ?? FECHA_CERO;
+    if (!ultimo || fecha > ultimo.fecha) ultimo = { id, fecha, progreso: entrada };
+  }
+  return ultimo;
+}
+
 function marcadorMasReciente(uno, otro) {
   if (uno.actualizado !== otro.actualizado) {
     return uno.actualizado > otro.actualizado ? uno : otro;

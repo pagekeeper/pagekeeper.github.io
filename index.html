@@ -29,6 +29,17 @@
         <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
       </div>
 
+      <section id="continuar-leyendo" class="continuar-leyendo oculto" aria-labelledby="titulo-continuar">
+        <div class="cabecera-continuar">
+          <span class="icono-continuar" data-icono="book-open"></span>
+          <div>
+            <h2 id="titulo-continuar" data-i18n="continueReading">Continuar leyendo</h2>
+            <p data-i18n="continueReadingHelp">Tu libro más reciente, siempre a mano</p>
+          </div>
+        </div>
+        <ul id="libro-continuar" class="lista-libros"></ul>
+      </section>
+
       <label class="buscador buscador-biblioteca oculto">
         <span data-icono="search"></span>
         <span class="sr-solo" data-i18n="searchLibrary">Buscar en la biblioteca</span>
@@ -276,6 +287,9 @@
       <div class="tarjeta">
         <h2>La biblioteca</h2>
         <ul class="lista-ayuda">
+          <li><strong>Continuar leyendo:</strong> el último libro leído aparece
+          destacado al principio de la biblioteca para abrirlo directamente,
+          aunque esté guardado dentro de una carpeta de la nube.</li>
           <li><strong>Portadas:</strong> se generan solas (la cubierta del
           EPUB o la primera página del PDF) y muestran el avance de lectura
           de cada libro. El buscador de la biblioteca filtra por nombre,
@@ -298,6 +312,10 @@
           <li><strong>Descargar:</strong> el botón de descarga guarda una
           copia del archivo (PDF o EPUB) en el dispositivo, venga de la nube
           o de la biblioteca local.</li>
+          <li><strong>Disponible sin conexión:</strong> el botón de la nube
+          con flecha guarda una copia gestionada del libro remoto. Si la red
+          falla, PageKeeper la muestra y la abre automáticamente. El botón
+          verde permite quitar solo esa copia sin borrar el libro de la nube.</li>
           <li><strong>Borrar:</strong> la papelera de cada libro lo elimina
           (del servidor si es de la nube, o de este dispositivo si es
           local).</li>

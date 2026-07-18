@@ -126,6 +126,30 @@ body {
 .tarjeta.destacado { border-color: var(--acento); }
 .tarjeta.destacado h2 { color: var(--acento); }
 
+.continuar-leyendo {
+  padding: 0.9rem; border: 1px solid color-mix(in srgb, var(--acento) 65%, var(--borde));
+  border-radius: 0.9rem;
+  background: linear-gradient(135deg,
+    color-mix(in srgb, var(--acento) 13%, var(--fondo-tarjeta)),
+    var(--fondo-tarjeta));
+  box-shadow: 0 0.4rem 1.4rem rgb(0 0 0 / 18%);
+}
+.cabecera-continuar { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.7rem; }
+.cabecera-continuar h2 { color: var(--acento); font-size: 1rem; }
+.cabecera-continuar p { color: var(--texto-suave); font-size: 0.78rem; }
+.icono-continuar {
+  width: 2.15rem; height: 2.15rem; border-radius: 50%; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #082f49; background: var(--acento);
+}
+.icono-continuar .icono { width: 1.2rem; height: 1.2rem; }
+.continuar-leyendo .libro {
+  border-color: color-mix(in srgb, var(--acento) 48%, var(--borde));
+  background: color-mix(in srgb, var(--fondo) 48%, var(--fondo-tarjeta));
+}
+.continuar-leyendo .libro .portada { width: 3.3rem; height: 4.4rem; }
+.continuar-leyendo .libro .nombre { font-size: 1.05rem; }
+
 /* ── Pie de página ── */
 .pie {
   margin-top: auto; padding: 0.65rem 0 0.3rem;
@@ -231,10 +255,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   border-color: var(--peligro); color: var(--peligro);
   background: var(--fondo-tarjeta);
 }
-.btn-subir-libro:hover, .btn-descargar-libro:hover {
+.btn-subir-libro:hover, .btn-descargar-libro:hover, .btn-sin-conexion:hover {
   border-color: var(--acento); color: var(--acento);
   background: var(--fondo-tarjeta);
 }
+.btn-sin-conexion.disponible { color: #34d399; }
+.btn-sin-conexion.desactualizada { color: #fbbf24; }
+.estado-sin-conexion {
+  flex: none; color: #34d399; font-size: 0.62rem; font-weight: 750;
+  line-height: 1.25; white-space: nowrap;
+}
+.estado-sin-conexion.desactualizada { color: #fbbf24; }
 .libro:hover { border-color: var(--acento); }
 .libro .portada {
   width: 2.7rem; height: 3.6rem; flex: none;

@@ -8,6 +8,8 @@ const TRAZADOS = {
   'refresh-cw': '<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/> <path d="M21 3v5h-5"/> <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/> <path d="M8 16H3v5"/>',
   'plus': '<path d="M5 12h14"/> <path d="M12 5v14"/>',
   'cloud-upload': '<path d="M12 13v8"/> <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/> <path d="m8 17 4-4 4 4"/>',
+  'cloud-download': '<path d="M12 13v8"/> <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 1 1 0 9"/> <path d="m8 17 4 4 4-4"/>',
+  'cloud-check': '<path d="m17 15-5.5 5.5L9 18"/> <path d="M5 17.743A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 1.5 8.742"/>',
   'book': '<path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H19a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H6.5a1 1 0 0 1 0-5H20"/>',
   'trash-2': '<path d="M10 11v6"/> <path d="M14 11v6"/> <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/> <path d="M3 6h18"/> <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
   'arrow-left': '<path d="m12 19-7-7 7-7"/> <path d="M19 12H5"/>',

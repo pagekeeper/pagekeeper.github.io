@@ -5,6 +5,7 @@ import {
   anotarPagina,
   fusionarEntradas,
   sincronizar,
+  ultimoLibroLeido,
 } from '../js/progreso.js';
 
 function entrada({ pagina, posicionActualizada, marcadores = [], actualizado = posicionActualizada }) {
@@ -18,6 +19,29 @@ function entrada({ pagina, posicionActualizada, marcadores = [], actualizado = p
     actualizado,
   };
 }
+
+test('elige como lectura actual el libro cuya posición cambió más recientemente', () => {
+  const resultado = ultimoLibroLeido({ libros: {
+    'anterior.pdf': entrada({ pagina: 80, posicionActualizada: '2026-01-02T10:00:00.000Z' }),
+    'actual.epub': entrada({ pagina: 25, posicionActualizada: '2026-01-03T10:00:00.000Z' }),
+  } });
+  assert.equal(resultado.id, 'actual.epub');
+});
+
+test('editar un marcador no desplaza al libro leído más recientemente', () => {
+  const resultado = ultimoLibroLeido({ libros: {
+    'marcador-editado.pdf': entrada({
+      pagina: 10,
+      posicionActualizada: '2026-01-01T10:00:00.000Z',
+      actualizado: '2026-02-01T10:00:00.000Z',
+    }),
+    'lectura-actual.pdf': entrada({
+      pagina: 40,
+      posicionActualizada: '2026-01-05T10:00:00.000Z',
+    }),
+  } });
+  assert.equal(resultado.id, 'lectura-actual.pdf');
+});
 
 test('editar un marcador desde una posición antigua no hace retroceder la lectura', () => {
   const local = entrada({

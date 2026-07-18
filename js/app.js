@@ -123,6 +123,39 @@ function mostrarVista(nombre) {
   }
 }
 
+const ESTADO_VISTA = 'pagekeeperVista';
+
+function registrarVistaLector() {
+  if (history.state?.[ESTADO_VISTA] === 'lector') return;
+  history.pushState({ [ESTADO_VISTA]: 'lector' }, '');
+}
+
+function cerrarVistaLector() {
+  cerrarBusquedaLibro();
+  cerrarIndiceLibro();
+  cerrarPanelMarcadores();
+  clearTimeout(temporizadorSync);
+  if (libroActual?.tipo === 'webdav' && cliente) {
+    progreso.sincronizar(cliente).catch(() => null);
+  }
+  lectorEpub.cerrar();
+  libroActual = null;
+  mostrarVista('biblioteca');
+  cargarBiblioteca();
+}
+
+// Cada libro ocupa una entrada del historial del navegador. Al retroceder se
+// vuelve a la biblioteca; una entrada antigua del lector no intenta reabrir
+// datos que ya no están en memoria al avanzar de nuevo.
+window.addEventListener('popstate', () => {
+  if (libroActual || !$('vista-lector').classList.contains('oculto')) {
+    cerrarVistaLector();
+  }
+  if (history.state?.[ESTADO_VISTA] === 'lector') {
+    history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
+  }
+});
+
 let temporizadorToast;
 function avisar(mensaje, ms = 3500) {
   const toast = $('toast');
@@ -320,6 +353,7 @@ $('btn-cerrar-ajustes').addEventListener('click', () => {
 
 async function cargarBiblioteca() {
   cargarLibrosLocales();
+  pintarContinuarLeyendo();
 
   const hayConfig = cliente !== null;
   $('aviso-sin-config').classList.toggle('oculto', hayConfig);
@@ -337,18 +371,34 @@ async function cargarBiblioteca() {
   estado.className = 'estado';
   estado.textContent = t('loadingLibrary');
   $('lista-libros').replaceChildren();
+  const promesaCopias = almacen.listarCopiasRemotas(cliente.base).catch(() => []);
 
   try {
-    const [{ carpetas, libros }] = await Promise.all([
+    const [{ carpetas, libros }, copias] = await Promise.all([
       cliente.listar(rutaNube),
+      promesaCopias,
       progreso.sincronizar(cliente).catch(() => null),
     ]);
     estado.textContent = carpetas.length || libros.length
       ? ''
       : t(rutaNube ? 'emptyFolder' : 'noCloudBooks');
-    pintarListaRemota(carpetas, libros);
+    pintarListaRemota(carpetas, libros, copias);
+    pintarContinuarLeyendo();
     generarPortadasFaltantes(libros.map((libro) => ({ ...libro, nombre: idRemoto(libro.nombre) })));
   } catch (error) {
+    const copias = await promesaCopias;
+    const bibliotecaOffline = almacen.bibliotecaDeCopias(copias, rutaNube);
+    if (bibliotecaOffline.carpetas.length || bibliotecaOffline.libros.length) {
+      estado.className = 'estado';
+      estado.textContent = t('offlineLibrary');
+      pintarListaRemota(
+        bibliotecaOffline.carpetas,
+        bibliotecaOffline.libros,
+        copias,
+        { soloCopias: true },
+      );
+      return;
+    }
     // Si la subcarpeta abierta ya no existe (borrada desde otro sitio), se
     // vuelve a la raíz en lugar de dejar la sección bloqueada en un error.
     if (rutaNube) {
@@ -361,8 +411,53 @@ async function cargarBiblioteca() {
   }
 }
 
+let versionContinuarLeyendo = 0;
+
+async function pintarContinuarLeyendo() {
+  const version = ++versionContinuarLeyendo;
+  const seccion = $('continuar-leyendo');
+  const lista = $('libro-continuar');
+  const ultimo = progreso.ultimoLibroLeido();
+  lista.replaceChildren();
+  seccion.classList.add('oculto');
+  if (!ultimo) return;
+
+  let nombre;
+  let tamano = 0;
+  let alAbrir;
+  if (ultimo.id.startsWith('local:')) {
+    const libros = await almacen.listarLibros().catch(() => []);
+    if (version !== versionContinuarLeyendo) return;
+    const libro = libros.find((candidato) => candidato.id === ultimo.id);
+    if (!libro) return;
+    nombre = libro.nombre;
+    tamano = libro.tamano;
+    alAbrir = () => abrirLibroLocal(libro);
+  } else {
+    if (!cliente) return;
+    nombre = nombreDeId(ultimo.id);
+    alAbrir = () => abrirLibroRemoto(ultimo.id);
+  }
+
+  const fila = crearFilaLibro({
+    id: ultimo.id,
+    titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
+    tamano,
+    formato: formatoDe(nombre),
+    alAbrir,
+  });
+  fila.dataset.destacado = 'true';
+  lista.append(fila);
+  seccion.classList.remove('oculto');
+  aplicarFiltroBiblioteca();
+  actualizarVisibilidadBuscadorBiblioteca();
+}
+
 // Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
-function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar }) {
+function crearFilaLibro({
+  id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
+  alSinConexion, sinConexion = false, copiaDesactualizada = false,
+}) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
 
@@ -377,6 +472,7 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alMover
       <span class="cabecera-libro">
         <span class="nombre"></span>
         <span class="formato formato-${formato}"></span>
+        <span class="estado-sin-conexion oculto"></span>
       </span>
       <span class="autor oculto"></span>
       <span class="detalle"></span>
@@ -396,6 +492,12 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alMover
   nombreLibro.textContent = titulo;
   nombreLibro.title = titulo;
   boton.querySelector('.formato').textContent = formato.toUpperCase();
+  const estadoSinConexion = boton.querySelector('.estado-sin-conexion');
+  if (sinConexion) {
+    estadoSinConexion.textContent = t(copiaDesactualizada ? 'offlineOutdated' : 'availableOffline');
+    estadoSinConexion.classList.remove('oculto');
+    estadoSinConexion.classList.toggle('desactualizada', copiaDesactualizada);
+  }
   boton.querySelector('.detalle').textContent = !avance
     ? `${(tamano / 1024 / 1024).toFixed(1)} MB · ${t('notStarted')}`
     : avance.cfi
@@ -470,12 +572,31 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alMover
     elemento.append(descargar);
   }
 
-  const borrar = document.createElement('button');
-  borrar.className = 'btn-fila-libro btn-borrar-libro';
-  borrar.title = t('deleteBook', { title: titulo });
-  borrar.innerHTML = icono('trash-2');
-  borrar.addEventListener('click', alBorrar);
-  elemento.append(borrar);
+  if (alSinConexion) {
+    const offline = document.createElement('button');
+    offline.className = 'btn-fila-libro btn-sin-conexion';
+    offline.classList.toggle('disponible', sinConexion && !copiaDesactualizada);
+    offline.classList.toggle('desactualizada', copiaDesactualizada);
+    offline.title = copiaDesactualizada
+      ? t('updateOfflineCopy', { title: titulo })
+      : sinConexion
+        ? t('removeOfflineCopy', { title: titulo })
+        : t('makeAvailableOffline', { title: titulo });
+    offline.innerHTML = icono(copiaDesactualizada
+      ? 'refresh-cw'
+      : sinConexion ? 'cloud-check' : 'cloud-download');
+    offline.addEventListener('click', alSinConexion);
+    elemento.append(offline);
+  }
+
+  if (alBorrar) {
+    const borrar = document.createElement('button');
+    borrar.className = 'btn-fila-libro btn-borrar-libro';
+    borrar.title = t('deleteBook', { title: titulo });
+    borrar.innerHTML = icono('trash-2');
+    borrar.addEventListener('click', alBorrar);
+    elemento.append(borrar);
+  }
   cargarMetadatosEnFila(elemento, id, titulo);
   return elemento;
 }
@@ -513,6 +634,11 @@ function aplicarFiltroBiblioteca() {
   const estado = $('estado-filtro-biblioteca');
   estado.textContent = consulta && !visibles ? t('noLibraryResults') : '';
   estado.classList.toggle('oculto', !estado.textContent);
+  const filaContinuar = $('libro-continuar').firstElementChild;
+  $('continuar-leyendo').classList.toggle(
+    'oculto',
+    !filaContinuar || filaContinuar.classList.contains('oculto'),
+  );
 }
 
 $('buscar-biblioteca').addEventListener('input', aplicarFiltroBiblioteca);
@@ -619,7 +745,7 @@ function pintarRutaNube() {
   }, true);
 }
 
-function crearFilaCarpeta(nombre) {
+function crearFilaCarpeta(nombre, soloLectura = false) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
   const boton = document.createElement('button');
@@ -636,31 +762,41 @@ function crearFilaCarpeta(nombre) {
   hacerDestinoDeLibro(boton, rutaNube ? `${rutaNube}/${nombre}` : nombre);
   elemento.append(boton);
 
-  const borrar = document.createElement('button');
-  borrar.className = 'btn-fila-libro btn-borrar-libro';
-  borrar.title = t('deleteFolder', { name: nombre });
-  borrar.innerHTML = icono('trash-2');
-  borrar.addEventListener('click', () => borrarCarpetaRemota(nombre));
-  elemento.append(borrar);
+  if (!soloLectura) {
+    const borrar = document.createElement('button');
+    borrar.className = 'btn-fila-libro btn-borrar-libro';
+    borrar.title = t('deleteFolder', { name: nombre });
+    borrar.innerHTML = icono('trash-2');
+    borrar.addEventListener('click', () => borrarCarpetaRemota(nombre));
+    elemento.append(borrar);
+  }
   return elemento;
 }
 
-function pintarListaRemota(carpetas, libros) {
+function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false } = {}) {
   pintarRutaNube();
   const lista = $('lista-libros');
   lista.replaceChildren();
-  for (const carpeta of carpetas) lista.append(crearFilaCarpeta(carpeta.nombre));
+  const copiasPorId = new Map(copias.map((copia) => [copia.id, copia]));
+  for (const carpeta of carpetas) lista.append(crearFilaCarpeta(carpeta.nombre, soloCopias));
   for (const libro of libros) {
     const id = idRemoto(libro.nombre);
+    const copia = copiasPorId.get(id);
+    const desactualizada = !soloCopias && almacen.copiaRemotaDesactualizada(copia, libro);
     lista.append(crearFilaLibro({
       id,
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
-      alAbrir: () => abrirLibroRemoto(id),
-      alMover: () => abrirDialogoMover({ id, nombre: libro.nombre }),
-      alDescargar: () => descargarLibroRemoto(id),
-      alBorrar: () => borrarLibroRemoto(id),
+      alAbrir: () => abrirLibroRemoto(id, libro),
+      alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
+      alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
+      alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
+      alSinConexion: copia && !desactualizada
+        ? () => quitarCopiaSinConexion(id, libro.nombre)
+        : () => guardarCopiaSinConexion(id, libro),
+      sinConexion: Boolean(copia),
+      copiaDesactualizada: desactualizada,
     }));
   }
   aplicarFiltroBiblioteca();
@@ -707,6 +843,7 @@ async function borrarCarpetaRemota(nombre) {
     await cliente.borrar(ruta);
     // Limpia el progreso de todos los libros que colgaban de la carpeta.
     await progreso.olvidarPorPrefijo(ruta + '/', cliente).catch(() => null);
+    await almacen.borrarCopiasRemotasPorPrefijo(cliente.base, ruta + '/').catch(() => null);
     avisar(t('folderDeleted'));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -791,7 +928,7 @@ async function moverLibroA(id, rutaDestino) {
     progreso.renombrar(id, destino);
     await progreso.olvidar(id, cliente).catch(() => null);
     await progreso.sincronizar(cliente).catch(() => null);
-    await trasladarCache(id, destino);
+    await trasladarCache(id, destino, sobrescribir);
     avisar(t('bookMoved', { title: nombre }));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -826,7 +963,7 @@ $('btn-carpeta-nueva-mover').addEventListener('click', async () => {
 });
 
 // La miniatura y los metadatos ya generados se reutilizan bajo el id nuevo.
-async function trasladarCache(idViejo, idNuevo) {
+async function trasladarCache(idViejo, idNuevo, sobrescribir = false) {
   try {
     const [portada, metadatos] = await Promise.all([
       almacen.obtenerPortada(idViejo),
@@ -836,6 +973,10 @@ async function trasladarCache(idViejo, idNuevo) {
     if (metadatos) await almacen.guardarMetadatos(idNuevo, metadatos);
     await almacen.borrarPortada(idViejo);
   } catch { /* sin caché que trasladar: se regenerará sola */ }
+  try {
+    const movida = await almacen.moverCopiaRemota(cliente.base, idViejo, idNuevo);
+    if (!movida && sobrescribir) await almacen.borrarCopiaRemota(cliente.base, idNuevo);
+  } catch { /* la copia sin conexión se podrá volver a descargar */ }
 }
 
 async function cargarLibrosLocales() {
@@ -932,6 +1073,61 @@ async function generarPortadasFaltantes(libros) {
 
 // ───────────────────────── Descargar libros ─────────────────────────
 
+async function guardarCopiaSinConexion(id, libro) {
+  if (!cliente) return;
+  const nombre = libro.nombre ?? nombreDeId(id);
+  mostrarCarga(t('savingOffline', { title: nombre }));
+  try {
+    await almacen.solicitarPersistencia();
+    const datos = await cliente.descargar(id, (recibido, total) => {
+      const pct = Math.round((recibido / total) * 100);
+      $('texto-cargando').textContent = `${t('savingOffline', { title: nombre })} ${pct}%`;
+    });
+    await almacen.guardarCopiaRemota({
+      servidor: cliente.base,
+      id,
+      nombre,
+      tamano: libro.tamano || datos.byteLength,
+      etag: libro.etag,
+      modificado: libro.modificado,
+    }, datos);
+    asegurarMiniatura(id, formatoDe(nombre), datos);
+    avisar(t('offlineSaved', {
+      title: nombre,
+      size: (datos.byteLength / 1024 / 1024).toFixed(1),
+    }), 5000);
+  } catch (error) {
+    avisar(error?.name === 'QuotaExceededError'
+      ? t('storageFull', { title: nombre })
+      : explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
+  }
+}
+
+async function quitarCopiaSinConexion(id, nombre) {
+  if (!cliente || !confirm(t('removeOfflineConfirm', { title: nombre }))) return;
+  try {
+    await almacen.borrarCopiaRemota(cliente.base, id);
+    avisar(t('offlineRemoved'));
+  } catch (error) {
+    avisar(error.message, 6000);
+  }
+  cargarBiblioteca();
+}
+
+async function descargarCopiaRemota(id) {
+  if (!cliente) return;
+  try {
+    const copia = await almacen.obtenerCopiaRemota(cliente.base, id);
+    if (!copia) throw new Error(t('offlineFolderEmpty'));
+    entregarDescarga(copia.nombre, copia.datos);
+  } catch (error) {
+    avisar(error.message, 6000);
+  }
+}
+
 // Entrega los bytes al usuario como descarga del navegador.
 function entregarDescarga(nombre, datos) {
   const tipo = /\.epub$/i.test(nombre) ? 'application/epub+zip' : 'application/pdf';
@@ -970,6 +1166,23 @@ async function descargarLibroLocal(libro) {
   }
 }
 
+// Si el destino ya estaba fijado para leer sin conexión, una sobrescritura
+// hecha desde PageKeeper actualiza también esa copia en lugar de dejar bytes
+// antiguos con metadatos aparentemente vigentes.
+async function actualizarCopiaGuardada(id, nombre, datos) {
+  if (!cliente) return;
+  const existente = await almacen.obtenerInfoCopiaRemota(cliente.base, id).catch(() => null);
+  if (!existente) return;
+  try {
+    await almacen.guardarCopiaRemota({
+      servidor: cliente.base,
+      id,
+      nombre,
+      tamano: datos.byteLength,
+    }, datos);
+  } catch { /* la subida ya terminó; la copia se actualizará al abrirla */ }
+}
+
 // Sube un libro de este dispositivo a una carpeta de la nube (por defecto,
 // la abierta), conservando el progreso bajo el identificador de la nube.
 async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
@@ -993,6 +1206,7 @@ async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
     const datos = await almacen.obtenerDatos(libro.id);
     if (!datos) throw new Error('no se encontró el libro en este dispositivo');
     await cliente.subir(destino, datos);
+    await actualizarCopiaGuardada(destino, nombre, datos);
     asegurarMiniatura(destino, formatoDe(nombre), datos);
 
     const avance = progreso.progresoDe(libro.id);
@@ -1021,6 +1235,7 @@ async function borrarLibroRemoto(id) {
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     await cliente.borrar(id);
+    await almacen.borrarCopiaRemota(cliente.base, id).catch(() => null);
     let limpiezaPendiente = false;
     try {
       await progreso.olvidar(id, cliente);
@@ -1047,20 +1262,52 @@ async function borrarLibroLocal(libro) {
     avisar(`No se pudo borrar: ${error.message}`, 6000);
   }
   cargarLibrosLocales();
+  pintarContinuarLeyendo();
 }
 
 // ───────────────────────── Abrir libros ─────────────────────────
 
-async function abrirLibroRemoto(id) {
+async function abrirLibroRemoto(id, infoRemota = {}) {
   const nombre = nombreDeId(id);
   mostrarCarga(t('downloading', { title: nombre }));
   try {
     // Antes de abrir, trae el progreso más reciente de otros dispositivos.
     await progreso.sincronizar(cliente).catch(() => null);
-    const datos = await cliente.descargar(id, (recibido, total) => {
-      const pct = Math.round((recibido / total) * 100);
-      $('texto-cargando').textContent = `${t('downloading', { title: nombre })} ${pct}%`;
-    });
+    const infoCopia = await almacen.obtenerInfoCopiaRemota(cliente.base, id).catch(() => null);
+    let datos = null;
+    let desdeCopia = false;
+    let falloActualizacion = false;
+    let errorRed = null;
+    if (navigator.onLine !== false) {
+      try {
+        datos = await cliente.descargar(id, (recibido, total) => {
+          const pct = Math.round((recibido / total) * 100);
+          $('texto-cargando').textContent = `${t('downloading', { title: nombre })} ${pct}%`;
+        });
+        if (infoCopia) {
+          try {
+            await almacen.guardarCopiaRemota({
+              servidor: cliente.base,
+              id,
+              nombre,
+              tamano: infoRemota.tamano || infoCopia.tamano || datos.byteLength,
+              etag: infoRemota.etag ?? infoCopia.etag,
+              modificado: infoRemota.modificado ?? infoCopia.modificado,
+            }, datos);
+          } catch {
+            falloActualizacion = true;
+          }
+        }
+      } catch (error) {
+        errorRed = error;
+      }
+    }
+    if (!datos && infoCopia) {
+      const copia = await almacen.obtenerCopiaRemota(cliente.base, id);
+      datos = copia?.datos ?? null;
+      desdeCopia = Boolean(datos);
+    }
+    if (!datos) throw errorRed ?? new Error(t('offlineFolderEmpty'));
     asegurarMiniatura(id, formatoDe(nombre), datos);
     await abrirEnLector(datos, {
       id,
@@ -1068,6 +1315,8 @@ async function abrirLibroRemoto(id) {
       tipo: 'webdav',
       formato: formatoDe(nombre),
     });
+    if (desdeCopia) avisar(t('openedOfflineCopy'), 5000);
+    else if (falloActualizacion) avisar(t('offlineUpdateFailed'), 5000);
   } catch (error) {
     avisar(explicarError(error), 6000);
   } finally {
@@ -1157,6 +1406,7 @@ async function subirArchivoANube(archivo) {
     mostrarCarga(t('uploading', { title: nombre }));
     const datos = new Uint8Array(await archivo.arrayBuffer());
     await cliente.subir(destino, datos);
+    await actualizarCopiaGuardada(destino, nombre, datos);
     await asegurarMiniatura(destino, formatoDe(nombre), datos);
     avisar(t('cloudUploaded', { title: nombre }));
     return true;
@@ -1291,24 +1541,31 @@ async function abrirEnLector(datos, libro) {
   cerrarPanelTexto();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
+  registrarVistaLector();
 
-  if (esEpub) {
-    $('btn-indicador').textContent = '…';
-    aplicarMargenEpub();
-    lectorEpub.tamano = letraEpubGuardada();
-    lectorEpub.fuente = fuenteEpubGuardada();
-    lectorEpub.interlineado = interlineadoEpubGuardado();
-    await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
-    lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
-    if (avance?.cfi) avisar(t('continuing'));
-  } else {
-    lectorEpub.cerrar();
-    await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado());
-    if (avance && avance.pagina > 1) {
-      avisar(t('continuingPage', { page: avance.pagina }));
+  try {
+    if (esEpub) {
+      $('btn-indicador').textContent = '…';
+      aplicarMargenEpub();
+      lectorEpub.tamano = letraEpubGuardada();
+      lectorEpub.fuente = fuenteEpubGuardada();
+      lectorEpub.interlineado = interlineadoEpubGuardado();
+      await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
+      lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
+      if (avance?.cfi) avisar(t('continuing'));
+    } else {
+      lectorEpub.cerrar();
+      await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado());
+      if (avance && avance.pagina > 1) {
+        avisar(t('continuingPage', { page: avance.pagina }));
+      }
     }
+    await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
+  } catch (error) {
+    cerrarVistaLector();
+    if (history.state?.[ESTADO_VISTA] === 'lector') history.back();
+    throw error;
   }
-  await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
 }
 
 // Sube el libro local abierto a la carpeta de la nube y lo convierte en un
@@ -1335,6 +1592,7 @@ async function subirLibroActual() {
     const datos = await almacen.obtenerDatos(libroActual.id);
     if (!datos) throw new Error('no se encontró el libro en el almacén de este dispositivo');
     await cliente.subir(destino, datos);
+    await actualizarCopiaGuardada(destino, nombre, datos);
     asegurarMiniatura(destino, libroActual.formato, datos);
 
     // Traspasa la posición de lectura y los marcadores del identificador
@@ -1774,17 +2032,8 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
 });
 
 $('btn-volver').addEventListener('click', () => {
-  cerrarBusquedaLibro();
-  cerrarIndiceLibro();
-  cerrarPanelMarcadores();
-  clearTimeout(temporizadorSync);
-  if (libroActual?.tipo === 'webdav' && cliente) {
-    progreso.sincronizar(cliente).catch(() => null);
-  }
-  lectorEpub.cerrar();
-  libroActual = null;
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  if (history.state?.[ESTADO_VISTA] === 'lector') history.back();
+  else cerrarVistaLector();
 });
 
 $('zona-anterior').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).anterior());
@@ -2058,5 +2307,6 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
 
 importarConfigDeUrl();
 crearCliente();
+history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
 mostrarVista('biblioteca');
 cargarBiblioteca();
