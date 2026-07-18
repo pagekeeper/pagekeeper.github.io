@@ -182,10 +182,13 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 #area-lectura.arrastrando { user-select: none; }
 
 /* Contenedor del lector EPUB: ocupa toda el área; epub.js gestiona dentro
-   su propio scroll y paginado. */
+   su propio scroll y paginado. El texto se limita a --max-texto y el
+   sobrante se convierte en márgenes laterales (0 en pantallas estrechas). */
 #contenedor-epub {
   position: absolute; inset: 0;
   background: #ffffff;
+  --max-texto: 46rem;
+  padding: 0 max(0px, calc((100% - var(--max-texto)) / 2));
 }
 .modo-noche #contenedor-epub { background: var(--fondo-lector); }
 #contenedor-epub iframe { border: none; }
