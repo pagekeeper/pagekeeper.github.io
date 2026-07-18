@@ -183,6 +183,9 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 }
 body.arrastrando-archivos .destino-arrastre { outline: 2px dashed var(--borde); outline-offset: 0.35rem; }
 body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { display: flex; }
+/* También al arrastrar un libro local (arrastre interno, sin clase en body). */
+.destino-arrastre.sobre-destino { outline: 2px dashed var(--acento); outline-offset: 0.35rem; }
+.destino-arrastre.sobre-destino .indicador-arrastre { display: flex; }
 
 .carga-local-vacia {
   width: 100%; min-height: 6.5rem; padding: 1rem;
@@ -320,6 +323,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: var(--fondo-tarjeta); color: var(--texto);
   box-shadow: 0 10px 32px rgba(0,0,0,0.45);
 }
+.campo-texto-epub {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  margin-bottom: 0.8rem; font-size: 0.95rem;
+}
+.campo-texto-epub > span { font-weight: 650; }
+.campo-texto-epub select {
+  background: var(--fondo-tarjeta); color: var(--texto);
+  border: 1px solid var(--borde); border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem; font: inherit; cursor: pointer;
+}
+.campo-texto-epub select:focus-visible { outline: 2px solid var(--acento); }
 .cabecera-margenes {
   display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
   margin-bottom: 0.8rem;
@@ -465,6 +479,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .separador-miga { color: var(--texto-suave); }
 .miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
 .libro .portada-carpeta { color: #fbbf24; }
+/* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
+.libro.carpeta.destino-mover { border-color: var(--acento); background: var(--fondo-tarjeta); }
+.miga.destino-mover {
+  outline: 2px solid var(--acento); outline-offset: 1px;
+  background: var(--fondo-tarjeta); text-decoration: none;
+}
 
 .dialogo-fondo {
   position: fixed; inset: 0; z-index: 95;

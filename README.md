@@ -36,8 +36,9 @@ libros y sincronizar el progreso de lectura.
   subirlos directamente por WebDAV.
 - 📁 **Subcarpetas en la nube**: la biblioteca muestra las carpetas de tu
   nube y permite navegar por ellas, crear carpetas nuevas, borrarlas y mover
-  libros de una carpeta a otra conservando el progreso y los marcadores. Las
-  subidas van a la carpeta que tengas abierta.
+  libros de una carpeta a otra (con el botón de mover o arrastrando el libro
+  hasta la carpeta) conservando el progreso y los marcadores. Las subidas
+  van a la carpeta que tengas abierta.
 - 🔖 **Marcadores**: guarda las posiciones que quieras de cada libro y vuelve
   a ellas desde un panel. En los libros de la nube se sincronizan entre
   dispositivos junto con la posición de lectura.
@@ -52,8 +53,9 @@ libros y sincronizar el progreso de lectura.
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
-- ↔️ **Márgenes ajustables en EPUB**: un deslizador permite elegir el margen
-  lateral y conserva la preferencia localmente en cada dispositivo.
+- 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
+  sin serifa), interlineado y margen lateral, con las preferencias guardadas
+  localmente en cada dispositivo.
 - 🔗 **Configuración portátil**: desde Ajustes puedes copiar un enlace que
   lleva la configuración de la nube (URL, usuario y contraseña, codificados
   en el fragmento `#cfg=…`, que nunca se envía a ningún servidor). Al abrirlo

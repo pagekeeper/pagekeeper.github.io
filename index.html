@@ -123,12 +123,28 @@
         aria-controls="panel-marcadores" aria-expanded="false"></button>
       <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
-      <div id="control-margenes" class="control-margenes oculto">
-        <button id="btn-margenes" class="btn-icono" data-icono="fold-horizontal"
-          title="Ajustar márgenes" data-i18n-title="margins" aria-label="Ajustar márgenes del texto"
-          aria-haspopup="dialog" aria-expanded="false"></button>
-        <div id="panel-margenes" class="panel-margenes" role="dialog"
-          aria-label="Márgenes del texto" hidden>
+      <div id="control-texto" class="control-margenes oculto">
+        <button id="btn-texto" class="btn-icono" data-icono="type"
+          title="Ajustes de texto" data-i18n-title="textSettings" aria-label="Ajustes de texto"
+          data-i18n-aria-label="textSettings" aria-haspopup="dialog" aria-expanded="false"></button>
+        <div id="panel-texto" class="panel-margenes" role="dialog"
+          aria-label="Ajustes de texto" data-i18n-aria-label="textSettings" hidden>
+          <label class="campo-texto-epub"><span data-i18n="fontFamily">Tipo de letra</span>
+            <select id="fuente-epub">
+              <option value="libro" data-i18n="bookFont">La del libro</option>
+              <option value="serif" data-i18n="serifFont">Con serifa</option>
+              <option value="sans" data-i18n="sansFont">Sin serifa</option>
+            </select>
+          </label>
+          <label class="campo-texto-epub"><span data-i18n="lineSpacing">Interlineado</span>
+            <select id="interlineado-epub">
+              <option value="libro" data-i18n="bookSpacing">El del libro</option>
+              <option value="1.3" data-i18n="spacingCompact">Compacto</option>
+              <option value="1.5" data-i18n="spacingNormal">Normal</option>
+              <option value="1.8" data-i18n="spacingWide">Amplio</option>
+              <option value="2.1" data-i18n="spacingWider">Muy amplio</option>
+            </select>
+          </label>
           <div class="cabecera-margenes">
             <label for="margen-epub" data-i18n="marginSide">Margen lateral</label>
             <output id="valor-margen" for="margen-epub">10 % por lado</output>
@@ -139,7 +155,7 @@
             <span data-i18n="noMargin">Sin margen</span><span data-i18n="moreMargin">Más margen</span>
           </div>
           <p id="ayuda-margen" class="ayuda" data-i18n="marginHelp">El texto se reajusta al mover el control.</p>
-          <button id="btn-restablecer-margen" type="button" class="btn-secundario">
+          <button id="btn-restablecer-texto" type="button" class="btn-secundario">
             <span data-i18n="reset">Restablecer</span>
           </button>
         </div>
@@ -263,14 +279,17 @@
           <li><strong>Subir a la nube:</strong> con una nube configurada, el
           botón de la nube de cada libro local lo copia a tu carpeta remota
           conservando la página por la que vas; también puedes subir un
-          archivo con el «+» o arrastrarlo a la sección «En la nube». Todo se
-          sube a la carpeta que tengas abierta.</li>
+          archivo con el «+» o arrastrarlo a la sección «En la nube»; también
+          puedes arrastrar un libro de «En este dispositivo» hasta la nube o
+          hasta una de sus carpetas. Todo se sube a la carpeta que tengas
+          abierta.</li>
           <li><strong>Carpetas:</strong> la sección «En la nube» muestra las
           subcarpetas de tu carpeta y permite entrar en ellas (la ruta aparece
           encima de la lista para volver). Puedes crear carpetas nuevas,
           borrarlas con su papelera (se elimina también el contenido) y mover
-          un libro de una carpeta a otra con su botón de mover, conservando
-          el progreso y los marcadores.</li>
+          un libro de una carpeta a otra con su botón de mover o
+          arrastrándolo hasta una carpeta de la lista (o hasta un tramo de la
+          ruta), conservando el progreso y los marcadores.</li>
           <li><strong>Descargar:</strong> el botón de descarga guarda una
           copia del archivo (PDF o EPUB) en el dispositivo, venga de la nube
           o de la biblioteca local.</li>
@@ -288,8 +307,9 @@
           <li><strong>Zoom:</strong> las lupas amplían el PDF (con zoom puedes
           arrastrar la página con el ratón o el dedo) o cambian el tamaño de
           letra del EPUB; el botón ↔ vuelve al ancho automático.</li>
-          <li><strong>Márgenes (solo EPUB):</strong> abre un deslizador para
-          elegir el margen de ambos lados entre 0 y 30 %.</li>
+          <li><strong>Ajustes de texto (solo EPUB):</strong> el botón de la
+          letra permite elegir el tipo de letra (la del libro, con serifa o
+          sin serifa), el interlineado y el margen de ambos lados.</li>
           <li><strong>Modo noche:</strong> el botón de la luna/sol oscurece la
           página.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
@@ -310,8 +330,8 @@
           página o porcentaje.</li>
           <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
           palabras o frases y lleva a la página o capítulo del resultado.</li>
-          <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan
-          solo en cada dispositivo.</li>
+          <li>Estas preferencias (modo, zoom, tamaño y tipo de letra,
+          interlineado y márgenes) se recuerdan solo en cada dispositivo.</li>
         </ul>
       </div>
 

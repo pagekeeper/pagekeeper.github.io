@@ -13,6 +13,8 @@ const CLAVE_MODO = 'lector.modo';
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
+const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
+const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
 
 const MARGEN_EPUB_INICIAL = 10;
 const MARGEN_EPUB_MAXIMO = 30;
@@ -29,15 +31,30 @@ function margenEpubActual() {
     : MARGEN_EPUB_INICIAL;
 }
 
-let frameMargenEpub = null;
+// epub.js escucha el resize de la ventana y recalcula el paginado; se agrupa
+// en un frame para no relanzarlo en cada paso de un deslizador.
+let frameReflowEpub = null;
+function reflowEpub() {
+  cancelAnimationFrame(frameReflowEpub);
+  frameReflowEpub = requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+}
+
 function aplicarMargenEpub(valor = margenEpubActual()) {
   $('contenedor-epub').style.setProperty('--margen-texto', `${valor}%`);
   $('margen-epub').value = String(valor);
   $('margen-epub').setAttribute('aria-valuetext', t('epubMargin', { value: valor }));
   $('valor-margen').textContent = t('epubMargin', { value: valor });
-  // epub.js escucha el resize de la ventana y recalcula el paginado.
-  cancelAnimationFrame(frameMargenEpub);
-  frameMargenEpub = requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+  reflowEpub();
+}
+
+function fuenteEpubGuardada() {
+  const valor = localStorage.getItem(CLAVE_FUENTE_EPUB);
+  return ['serif', 'sans'].includes(valor) ? valor : 'libro';
+}
+
+function interlineadoEpubGuardado() {
+  const valor = parseFloat(localStorage.getItem(CLAVE_INTERLINEADO_EPUB));
+  return valor >= 1 && valor <= 3 ? valor : null;
 }
 
 function zoomPdfGuardado() {
@@ -307,6 +324,9 @@ async function cargarBiblioteca() {
   const hayConfig = cliente !== null;
   $('aviso-sin-config').classList.toggle('oculto', hayConfig);
   $('zona-remota').classList.toggle('oculto', !hayConfig);
+  // La sección local solo tiene sentido en la raíz: dentro de una subcarpeta
+  // de la nube distraería y sus libros no pertenecen a esa carpeta.
+  $('zona-local').classList.toggle('oculto', Boolean(hayConfig && rutaNube));
   if (!hayConfig) {
     $('lista-libros').replaceChildren();
     actualizarVisibilidadBuscadorBiblioteca();
@@ -362,6 +382,16 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alMover
       <span class="detalle"></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
+  // Los libros de la nube (los que se pueden mover) también admiten
+  // arrastrarse hasta una carpeta de la lista o un tramo de la ruta.
+  if (alMover) {
+    boton.draggable = true;
+    boton.addEventListener('dragstart', (evento) => {
+      evento.dataTransfer.setData(TIPO_ARRASTRE_LIBRO, id);
+      evento.dataTransfer.effectAllowed = 'move';
+    });
+  }
+
   const nombreLibro = boton.querySelector('.nombre');
   nombreLibro.textContent = titulo;
   nombreLibro.title = titulo;
@@ -497,9 +527,61 @@ function actualizarVisibilidadBuscadorBiblioteca() {
   }
 }
 
+// ── Arrastrar un libro de la nube hasta una carpeta para moverlo ──
+
+const TIPO_ARRASTRE_LIBRO = 'application/x-pagekeeper-libro';       // libro de la nube: mover
+const TIPO_ARRASTRE_LOCAL = 'application/x-pagekeeper-libro-local'; // libro local: subir (copia)
+
+function tiposArrastreLibro(evento) {
+  const tipos = Array.from(evento.dataTransfer?.types ?? []);
+  return {
+    nube: tipos.includes(TIPO_ARRASTRE_LIBRO),
+    local: tipos.includes(TIPO_ARRASTRE_LOCAL),
+  };
+}
+
+// Lee el libro local serializado en un arrastre ({ id, nombre }).
+function libroLocalArrastrado(evento) {
+  try {
+    const libro = JSON.parse(evento.dataTransfer.getData(TIPO_ARRASTRE_LOCAL));
+    return libro?.id && libro?.nombre ? libro : null;
+  } catch {
+    return null;
+  }
+}
+
+// Convierte un elemento en destino donde soltar un libro arrastrado: un
+// libro de la nube se mueve a la carpeta indicada; uno local se sube (copia).
+function hacerDestinoDeLibro(elemento, rutaDestino) {
+  elemento.addEventListener('dragover', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    evento.dataTransfer.dropEffect = nube ? 'move' : 'copy';
+    elemento.classList.add('destino-mover');
+  });
+  elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
+  elemento.addEventListener('drop', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    elemento.classList.remove('destino-mover');
+    if (nube) {
+      const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
+      if (id) moverLibroA(id, rutaDestino);
+    } else {
+      const libro = libroLocalArrastrado(evento);
+      if (libro) subirLibroLocalANube(libro, rutaDestino);
+    }
+  });
+}
+
 // Pinta una ruta como migas: la raíz y cada carpeta intermedia son botones
-// que navegan al pulsar; la carpeta actual se muestra sin enlace.
-function pintarMigas(nav, ruta, alNavegar) {
+// que navegan al pulsar; la carpeta actual se muestra sin enlace. Con
+// `admiteLibros`, cada tramo acepta también libros arrastrados para moverlos.
+function pintarMigas(nav, ruta, alNavegar, admiteLibros = false) {
   nav.replaceChildren();
   const segmentos = ruta ? ruta.split('/') : [];
   const anadir = (texto, destino, esUltimo) => {
@@ -514,6 +596,7 @@ function pintarMigas(nav, ruta, alNavegar) {
       boton.className = 'miga';
       boton.textContent = texto;
       boton.addEventListener('click', () => alNavegar(destino));
+      if (admiteLibros) hacerDestinoDeLibro(boton, destino);
       nav.append(boton);
     }
   };
@@ -533,7 +616,7 @@ function pintarRutaNube() {
   pintarMigas(nav, rutaNube, (destino) => {
     rutaNube = destino;
     cargarBiblioteca();
-  });
+  }, true);
 }
 
 function crearFilaCarpeta(nombre) {
@@ -550,6 +633,7 @@ function crearFilaCarpeta(nombre) {
     rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
     cargarBiblioteca();
   });
+  hacerDestinoDeLibro(boton, rutaNube ? `${rutaNube}/${nombre}` : nombre);
   elemento.append(boton);
 
   const borrar = document.createElement('button');
@@ -687,11 +771,11 @@ async function pintarDialogoMover() {
   }
 }
 
-$('btn-confirmar-mover').addEventListener('click', async () => {
-  if (!movimiento || !cliente) return;
-  const { id, nombre, ruta } = movimiento;
-  const destino = ruta ? `${ruta}/${nombre}` : nombre;
-  cerrarDialogoMover();
+// Mueve un libro de la nube a otra carpeta (rutaDestino relativa a la base).
+async function moverLibroA(id, rutaDestino) {
+  if (!cliente) return;
+  const nombre = nombreDeId(id);
+  const destino = rutaDestino ? `${rutaDestino}/${nombre}` : nombre;
   if (destino === id) return;
   mostrarCarga(t('moving', { title: nombre }));
   try {
@@ -715,6 +799,13 @@ $('btn-confirmar-mover').addEventListener('click', async () => {
     ocultarCarga();
     cargarBiblioteca();
   }
+}
+
+$('btn-confirmar-mover').addEventListener('click', async () => {
+  if (!movimiento || !cliente) return;
+  const { id, ruta } = movimiento;
+  cerrarDialogoMover();
+  await moverLibroA(id, ruta);
 });
 
 $('btn-cancelar-mover').addEventListener('click', cerrarDialogoMover);
@@ -757,7 +848,7 @@ async function cargarLibrosLocales() {
   $('aviso-local-vacio').classList.toggle('oculto', libros.length > 0);
   lista.replaceChildren();
   for (const libro of libros) {
-    lista.append(crearFilaLibro({
+    const fila = crearFilaLibro({
       id: libro.id,
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano: libro.tamano,
@@ -767,7 +858,19 @@ async function cargarLibrosLocales() {
       alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
       alDescargar: () => descargarLibroLocal(libro),
       alBorrar: () => borrarLibroLocal(libro),
-    }));
+    });
+    // Con nube configurada, el libro local también puede arrastrarse hasta
+    // la sección remota o una de sus carpetas para subirlo.
+    if (cliente) {
+      const boton = fila.querySelector('.libro');
+      boton.draggable = true;
+      boton.addEventListener('dragstart', (evento) => {
+        evento.dataTransfer.setData(TIPO_ARRASTRE_LOCAL,
+          JSON.stringify({ id: libro.id, nombre: libro.nombre }));
+        evento.dataTransfer.effectAllowed = 'copy';
+      });
+    }
+    lista.append(fila);
   }
   aplicarFiltroBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
@@ -867,13 +970,13 @@ async function descargarLibroLocal(libro) {
   }
 }
 
-// Sube un libro de este dispositivo a la carpeta de la nube, conservando
-// el progreso de lectura bajo el identificador de la nube.
-async function subirLibroLocalANube(libro) {
+// Sube un libro de este dispositivo a una carpeta de la nube (por defecto,
+// la abierta), conservando el progreso bajo el identificador de la nube.
+async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
   if (!cliente) return;
   let nombre = libro.nombre;
   if (!/\.(pdf|epub)$/i.test(nombre)) nombre += '.pdf';
-  const destino = idRemoto(nombre); // se sube a la carpeta abierta
+  const destino = rutaDestino ? `${rutaDestino}/${nombre}` : nombre;
 
   try {
     if (await cliente.existe(destino) &&
@@ -1145,6 +1248,28 @@ for (const [id, alSoltar] of [
   });
 }
 
+// Soltar un libro local sobre la sección de la nube lo sube a la carpeta
+// abierta (las carpetas de la lista tienen su propio destino más específico).
+{
+  const zona = $('zona-remota');
+  zona.addEventListener('dragover', (evento) => {
+    if (!tiposArrastreLibro(evento).local) return;
+    evento.preventDefault();
+    evento.dataTransfer.dropEffect = 'copy';
+    zona.classList.add('sobre-destino');
+  });
+  zona.addEventListener('dragleave', (evento) => {
+    if (!zona.contains(evento.relatedTarget)) zona.classList.remove('sobre-destino');
+  });
+  zona.addEventListener('drop', (evento) => {
+    if (!tiposArrastreLibro(evento).local) return;
+    evento.preventDefault();
+    zona.classList.remove('sobre-destino');
+    const libro = libroLocalArrastrado(evento);
+    if (libro) subirLibroLocalANube(libro, rutaNube);
+  });
+}
+
 async function abrirEnLector(datos, libro) {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
@@ -1162,8 +1287,8 @@ async function abrirEnLector(datos, libro) {
   const esEpub = libro.formato === 'epub';
   $('contenedor-pagina').classList.toggle('oculto', esEpub);
   $('contenedor-epub').classList.toggle('oculto', !esEpub);
-  $('control-margenes').classList.toggle('oculto', !esEpub);
-  cerrarPanelMargenes();
+  $('control-texto').classList.toggle('oculto', !esEpub);
+  cerrarPanelTexto();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
 
@@ -1171,6 +1296,8 @@ async function abrirEnLector(datos, libro) {
     $('btn-indicador').textContent = '…';
     aplicarMargenEpub();
     lectorEpub.tamano = letraEpubGuardada();
+    lectorEpub.fuente = fuenteEpubGuardada();
+    lectorEpub.interlineado = interlineadoEpubGuardado();
     await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
     lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
     if (avance?.cfi) avisar(t('continuing'));
@@ -1642,19 +1769,41 @@ async function ajustarZoom(direccion) {
 $('btn-zoom-menos').addEventListener('click', () => ajustarZoom(-1));
 $('btn-zoom-mas').addEventListener('click', () => ajustarZoom(1));
 
-function cerrarPanelMargenes() {
-  $('panel-margenes').hidden = true;
-  $('btn-margenes').setAttribute('aria-expanded', 'false');
+function cerrarPanelTexto() {
+  $('panel-texto').hidden = true;
+  $('btn-texto').setAttribute('aria-expanded', 'false');
 }
 
-$('btn-margenes').addEventListener('click', () => {
-  const abrir = $('panel-margenes').hidden;
-  $('panel-margenes').hidden = !abrir;
-  $('btn-margenes').setAttribute('aria-expanded', String(abrir));
+// Refleja en los selectores los valores guardados en este dispositivo.
+function pintarAjustesTexto() {
+  $('fuente-epub').value = fuenteEpubGuardada();
+  const interlineado = interlineadoEpubGuardado();
+  $('interlineado-epub').value = interlineado === null ? 'libro' : String(interlineado);
+}
+
+$('btn-texto').addEventListener('click', () => {
+  const abrir = $('panel-texto').hidden;
+  $('panel-texto').hidden = !abrir;
+  $('btn-texto').setAttribute('aria-expanded', String(abrir));
   if (abrir) {
     aplicarMargenEpub();
-    $('margen-epub').focus();
+    pintarAjustesTexto();
+    $('fuente-epub').focus();
   }
+});
+
+$('fuente-epub').addEventListener('change', (evento) => {
+  localStorage.setItem(CLAVE_FUENTE_EPUB, evento.target.value);
+  lectorEpub.cambiarFuente(evento.target.value);
+  reflowEpub();
+});
+
+$('interlineado-epub').addEventListener('change', (evento) => {
+  const valor = evento.target.value;
+  if (valor === 'libro') localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
+  else localStorage.setItem(CLAVE_INTERLINEADO_EPUB, valor);
+  lectorEpub.cambiarInterlineado(valor === 'libro' ? null : valor);
+  reflowEpub();
 });
 
 $('margen-epub').addEventListener('input', (evento) => {
@@ -1663,13 +1812,19 @@ $('margen-epub').addEventListener('input', (evento) => {
   aplicarMargenEpub(valor);
 });
 
-$('btn-restablecer-margen').addEventListener('click', () => {
+$('btn-restablecer-texto').addEventListener('click', () => {
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
+  localStorage.removeItem(CLAVE_FUENTE_EPUB);
+  localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
+  pintarAjustesTexto();
+  lectorEpub.cambiarFuente('libro');
+  lectorEpub.cambiarInterlineado(null);
+  reflowEpub();
 });
 
 document.addEventListener('click', (evento) => {
-  if (!$('control-margenes').contains(evento.target)) cerrarPanelMargenes();
+  if (!$('control-texto').contains(evento.target)) cerrarPanelTexto();
 });
 
 document.addEventListener('keydown', (evento) => {
@@ -1690,9 +1845,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
     cerrarBusquedaLibro();
     $('btn-buscar-libro').focus();
-  } else if (!$('panel-margenes').hidden) {
-    cerrarPanelMargenes();
-    $('btn-margenes').focus();
+  } else if (!$('panel-texto').hidden) {
+    cerrarPanelTexto();
+    $('btn-texto').focus();
   }
 });
 

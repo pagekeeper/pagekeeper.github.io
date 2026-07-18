@@ -13,6 +13,12 @@
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
+// Pilas de fuentes de los ajustes tipográficos ('libro' = sin forzar nada).
+const FUENTES = {
+  serif: 'Georgia, "Times New Roman", serif',
+  sans: '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+};
+
 let promesaLibrerias = null;
 
 function cargarScript(ruta) {
@@ -62,6 +68,8 @@ export class LectorEpub {
     this.vista = null;   // objeto Rendition de epub.js
     this.modo = 'pagina';
     this.tamano = 100;   // tamaño de letra en %
+    this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
+    this.interlineado = null;  // null = el del libro; número = factor (1.5…)
     this.noche = false;
     this.cfi = null;
     this.porcentaje = 0;
@@ -104,6 +112,7 @@ export class LectorEpub {
       allowScriptedContent: true,
     });
     this.vista.hooks.content.register(inyectarMathJax);
+    this.vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
     this.aplicarTemas();
     this.vista.on('relocated', (lugar) => {
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
@@ -143,6 +152,51 @@ export class LectorEpub {
   cambiarTamano(delta) {
     this.tamano = Math.min(300, Math.max(60, this.tamano + delta));
     this.vista?.themes.fontSize(this.tamano + '%');
+  }
+
+  // ───────────── Ajustes tipográficos (fuente e interlineado) ─────────────
+
+  // Inserta (o actualiza) en el capítulo una hoja de estilos con la fuente y
+  // el interlineado elegidos. Se usa una hoja con !important en lugar de los
+  // overrides de epub.js porque el CSS del libro suele fijar la fuente en
+  // p/div y ganaría a un estilo en línea del body.
+  inyectarTipografia(contents) {
+    const doc = contents?.document;
+    if (!doc?.head) return;
+    let estilo = doc.getElementById('pagekeeper-tipografia');
+    if (!estilo) {
+      estilo = doc.createElement('style');
+      estilo.id = 'pagekeeper-tipografia';
+      doc.head.append(estilo);
+    }
+    const reglas = [];
+    const fuente = FUENTES[this.fuente];
+    if (fuente) {
+      // Se respeta la fuente del código (pre, code…) y la de las fórmulas.
+      reglas.push(`html, body { font-family: ${fuente} !important; }`);
+      reglas.push(`body :not(pre, pre *, code, code *, kbd, samp, var, tt, math, math *) { font-family: ${fuente} !important; }`);
+    }
+    if (this.interlineado) {
+      reglas.push(`body, p, li, blockquote, dd, dt { line-height: ${this.interlineado} !important; }`);
+    }
+    estilo.textContent = reglas.join('\n');
+  }
+
+  aplicarTipografia() {
+    for (const contents of this.vista?.getContents() ?? []) {
+      this.inyectarTipografia(contents);
+    }
+  }
+
+  cambiarFuente(fuente) {
+    this.fuente = fuente in FUENTES ? fuente : 'libro';
+    this.aplicarTipografia();
+  }
+
+  cambiarInterlineado(valor) {
+    const numero = Number(valor);
+    this.interlineado = Number.isFinite(numero) && numero >= 1 && numero <= 3 ? numero : null;
+    this.aplicarTipografia();
   }
 
   async cambiarModo(modo) {
