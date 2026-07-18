@@ -135,8 +135,14 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
   background: var(--fondo-tarjeta);
 }
 .libro:hover { border-color: var(--acento); }
-.libro .portada { display: flex; color: var(--acento); }
-.libro .portada .icono { width: 1.7rem; height: 1.7rem; }
+.libro .portada {
+  width: 2.7rem; height: 3.6rem; flex: none;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--fondo); border: 1px solid var(--borde);
+  border-radius: 0.35rem; overflow: hidden; color: var(--acento);
+}
+.libro .portada .icono { width: 1.5rem; height: 1.5rem; }
+.libro .portada img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .libro .datos { flex: 1; min-width: 0; }
 .libro .nombre {
   font-weight: 600; overflow: hidden;

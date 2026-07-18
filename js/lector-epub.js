@@ -25,7 +25,7 @@ function cargarScript(ruta) {
   });
 }
 
-function cargarLibrerias() {
+export function cargarLibrerias() {
   promesaLibrerias ??= cargarScript('vendor/jszip.min.js')
     .then(() => cargarScript('vendor/epub.min.js'));
   return promesaLibrerias;

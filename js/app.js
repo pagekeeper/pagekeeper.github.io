@@ -3,6 +3,7 @@ import { Lector } from './lector.js';
 import { LectorEpub } from './lector-epub.js';
 import * as progreso from './progreso.js';
 import * as almacen from './almacen.js';
+import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 
 const CLAVE_CONFIG = 'lector.config';
@@ -215,6 +216,16 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alBorrar }) {
       : `Página ${avance.pagina} de ${avance.paginas} · ${porcentaje}%`;
   boton.addEventListener('click', alAbrir);
 
+  // Miniatura de la cubierta, si se generó al abrir o subir el libro.
+  almacen.obtenerPortada(id).then((blob) => {
+    if (!blob) return;
+    const imagen = document.createElement('img');
+    imagen.alt = '';
+    imagen.onload = () => URL.revokeObjectURL(imagen.src);
+    imagen.src = URL.createObjectURL(blob);
+    boton.querySelector('.portada').replaceChildren(imagen);
+  }).catch(() => null);
+
   const borrar = document.createElement('button');
   borrar.className = 'btn-borrar-libro';
   borrar.title = `Borrar «${titulo}»`;
@@ -272,6 +283,7 @@ async function borrarLibroRemoto(nombre) {
   try {
     await cliente.borrar(nombre);
     await progreso.olvidar(nombre, cliente).catch(() => null);
+    almacen.borrarPortada(nombre).catch(() => null);
     avisar('Libro borrado de la nube.');
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -304,6 +316,7 @@ async function abrirLibroRemoto(nombre) {
       const pct = Math.round((recibido / total) * 100);
       $('texto-cargando').textContent = `Descargando «${nombre}»… ${pct}%`;
     });
+    asegurarMiniatura(nombre, formatoDe(nombre), datos);
     await abrirEnLector(datos, {
       id: nombre,
       titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
@@ -322,6 +335,7 @@ async function abrirLibroLocal(libro) {
   try {
     const datos = await almacen.obtenerDatos(libro.id);
     if (!datos) throw new Error('el libro ya no está en el almacén de este dispositivo');
+    asegurarMiniatura(libro.id, formatoDe(libro.nombre), datos);
     await abrirEnLector(datos, {
       id: libro.id,
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
@@ -355,6 +369,7 @@ $('selector-archivo').addEventListener('change', async (evento) => {
     } catch {
       avisar('No se pudo guardar en la biblioteca (¿espacio o navegación privada?). Se abre sin guardar.', 5000);
     }
+    asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
     await abrirEnLector(datos, {
       id: libro.id,
       titulo: archivo.name.replace(/\.(pdf|epub)$/i, ''),
@@ -392,6 +407,7 @@ $('selector-subir-nube').addEventListener('change', async (evento) => {
   try {
     const datos = new Uint8Array(await archivo.arrayBuffer());
     await cliente.subir(nombre, datos);
+    await asegurarMiniatura(nombre, formatoDe(nombre), datos);
     avisar(`«${nombre}» subido a tu nube.`);
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -449,6 +465,7 @@ async function subirLibroActual() {
     const datos = await almacen.obtenerDatos(libroActual.id);
     if (!datos) throw new Error('no se encontró el libro en el almacén de este dispositivo');
     await cliente.subir(nombre, datos);
+    asegurarMiniatura(nombre, libroActual.formato, datos);
 
     // Traspasa la posición de lectura del identificador local al de la nube
     // (el nombre del archivo) para no empezar de cero al reabrirlo.
