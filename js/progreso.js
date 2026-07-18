@@ -68,8 +68,13 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
   // lectura cancela cualquier limpieza pendiente de la copia anterior.
   completarBorradoPendiente(idLibro);
   const datos = cargarLocal();
+  // Los marcadores conviven con la posición en la misma entrada: al anotar
+  // una página nueva se conservan los que ya hubiera.
+  const { marcadores: marcadoresExtra, ...resto } = extra;
+  const marcadores = marcadoresExtra ?? datos.libros[idLibro]?.marcadores;
   datos.libros[idLibro] = {
-    ...extra,
+    ...resto,
+    ...(Array.isArray(marcadores) && marcadores.length ? { marcadores } : {}),
     pagina,
     paginas: totalPaginas,
     actualizado: new Date().toISOString(),
@@ -77,6 +82,24 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
   };
   guardarLocal(datos);
   return datos.libros[idLibro];
+}
+
+export function marcadoresDe(idLibro) {
+  const marcadores = progresoDe(idLibro)?.marcadores;
+  return Array.isArray(marcadores) ? [...marcadores] : [];
+}
+
+// Sustituye la lista de marcadores de un libro. Actualiza la fecha de la
+// entrada para que la fusión "gana la más reciente" propague el cambio.
+export function guardarMarcadores(idLibro, marcadores) {
+  const datos = cargarLocal();
+  const entrada = datos.libros[idLibro] ?? { pagina: 0, paginas: 0 };
+  if (marcadores.length) entrada.marcadores = marcadores;
+  else delete entrada.marcadores;
+  entrada.actualizado = new Date().toISOString();
+  entrada.dispositivo = nombreDispositivo();
+  datos.libros[idLibro] = entrada;
+  guardarLocal(datos);
 }
 
 export function progresoDe(idLibro) {

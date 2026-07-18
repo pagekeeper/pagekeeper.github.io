@@ -34,6 +34,12 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
   local para guardarlos en el dispositivo o sobre la sección remota para
   subirlos directamente por WebDAV.
+- 🔖 **Marcadores**: guarda las posiciones que quieras de cada libro y vuelve
+  a ellas desde un panel. En los libros de la nube se sincronizan entre
+  dispositivos junto con la posición de lectura.
+- ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
+  PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
+  su página y los externos se abren en otra pestaña.
 - 🔎 **Dos buscadores**: filtra la biblioteca por título, autor, formato y
   metadatos, y encuentra palabras o frases dentro del PDF o EPUB con acceso
   directo a la página o capítulo correspondiente.

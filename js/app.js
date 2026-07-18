@@ -5,7 +5,7 @@ import * as progreso from './progreso.js';
 import * as almacen from './almacen.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
-import { t, iniciarIdioma } from './i18n.js';
+import { t, iniciarIdioma, idiomaActual } from './i18n.js';
 
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
@@ -62,6 +62,11 @@ const lector = new Lector({
   area: $('area-lectura'),
   contenedor: $('contenedor-pagina'),
   alCambiarPagina: cuandoCambiaPagina,
+  // Enlaces internos del PDF: saltan a su página dejando rastro en el
+  // historial para poder volver.
+  alPulsarEnlaceInterno: (pagina) => {
+    saltarConHistorial(pagina).catch((error) => avisar(error.message, 5000));
+  },
 });
 
 const lectorEpub = new LectorEpub({
@@ -623,8 +628,10 @@ async function subirLibroLocalANube(libro) {
 
     const avance = progreso.progresoDe(libro.id);
     if (avance) {
-      progreso.anotarPagina(nombre, avance.pagina, avance.paginas,
-        avance.cfi ? { cfi: avance.cfi } : {});
+      progreso.anotarPagina(nombre, avance.pagina, avance.paginas, {
+        ...(avance.cfi ? { cfi: avance.cfi } : {}),
+        ...(avance.marcadores?.length ? { marcadores: avance.marcadores } : {}),
+      });
     }
     await progreso.sincronizar(cliente).catch(() => null);
     avisar(t('cloudUploaded', { title: nombre }));
@@ -872,6 +879,7 @@ for (const [id, alSoltar] of [
 async function abrirEnLector(datos, libro) {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
+  cerrarPanelMarcadores();
   reiniciarHistorialNavegacion();
   $('lista-indice-libro').replaceChildren();
   $('btn-indice-libro').classList.add('oculto');
@@ -932,12 +940,14 @@ async function subirLibroActual() {
     await cliente.subir(nombre, datos);
     asegurarMiniatura(nombre, libroActual.formato, datos);
 
-    // Traspasa la posición de lectura del identificador local al de la nube
-    // (el nombre del archivo) para no empezar de cero al reabrirlo.
+    // Traspasa la posición de lectura y los marcadores del identificador
+    // local al de la nube (el nombre del archivo) para no empezar de cero.
+    const marcadores = progreso.marcadoresDe(libroActual.id);
+    const extra = marcadores.length ? { marcadores } : {};
     if (libroActual.formato === 'epub') {
-      progreso.anotarPagina(nombre, lectorEpub.porcentaje, 100, { cfi: lectorEpub.cfi });
+      progreso.anotarPagina(nombre, lectorEpub.porcentaje, 100, { cfi: lectorEpub.cfi, ...extra });
     } else {
-      progreso.anotarPagina(nombre, lector.pagina, lector.totalPaginas);
+      progreso.anotarPagina(nombre, lector.pagina, lector.totalPaginas, extra);
     }
 
     libroActual = {
@@ -1146,6 +1156,123 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
   }
 }
 
+// ───────────────────────── Marcadores ─────────────────────────
+
+function cerrarPanelMarcadores() {
+  $('panel-marcadores').classList.add('oculto');
+  $('btn-marcadores').setAttribute('aria-expanded', 'false');
+}
+
+// Posición que guardaría un marcador creado ahora mismo. En EPUB el
+// porcentaje puede no conocerse aún (localizaciones en curso).
+function posicionMarcadorActual() {
+  if (epubAbierto()) {
+    if (!lectorEpub.cfi) return null;
+    return {
+      cfi: lectorEpub.cfi,
+      ...(lectorEpub.conLocalizaciones ? { porcentaje: lectorEpub.porcentaje } : {}),
+    };
+  }
+  return { pagina: lector.pagina };
+}
+
+function etiquetaMarcador(marcador) {
+  if (marcador.pagina) return `${t('page')} ${marcador.pagina}`;
+  if (Number.isFinite(marcador.porcentaje)) return `${marcador.porcentaje} %`;
+  return t('bookmark');
+}
+
+// Mantiene la lista en el orden del libro. En EPUB compara los CFI con el
+// comparador de epub.js (cargado siempre que hay un EPUB abierto).
+function ordenarMarcadores(marcadores) {
+  if (epubAbierto() && window.ePub?.CFI) {
+    try {
+      const comparador = new window.ePub.CFI();
+      marcadores.sort((a, b) => comparador.compare(a.cfi, b.cfi));
+      return;
+    } catch { /* CFI ilegible: se mantiene el orden por página/creación */ }
+  }
+  marcadores.sort((a, b) => (a.pagina ?? 0) - (b.pagina ?? 0));
+}
+
+function pintarMarcadores() {
+  if (!libroActual) return;
+  const marcadores = progreso.marcadoresDe(libroActual.id);
+  const lista = $('lista-marcadores');
+  lista.replaceChildren();
+  $('sin-marcadores').classList.toggle('oculto', marcadores.length > 0);
+  marcadores.forEach((marcador, indice) => {
+    const li = document.createElement('li');
+    li.className = 'fila-marcador';
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'entrada-indice-libro';
+    const titulo = document.createElement('span');
+    titulo.className = 'titulo-entrada-indice';
+    titulo.textContent = etiquetaMarcador(marcador);
+    boton.append(titulo);
+    if (marcador.creado) {
+      const fecha = document.createElement('span');
+      fecha.className = 'pagina-entrada-indice';
+      fecha.textContent = new Date(marcador.creado).toLocaleDateString(idiomaActual());
+      boton.append(fecha);
+    }
+    boton.addEventListener('click', async () => {
+      try {
+        await saltarConHistorial(marcador.cfi ?? marcador.pagina);
+        cerrarPanelMarcadores();
+      } catch (error) {
+        avisar(error.message, 5000);
+      }
+    });
+    const borrar = document.createElement('button');
+    borrar.type = 'button';
+    borrar.className = 'btn-icono btn-borrar-marcador';
+    borrar.title = t('deleteBookmark');
+    borrar.innerHTML = icono('trash-2');
+    borrar.addEventListener('click', () => {
+      const actuales = progreso.marcadoresDe(libroActual.id);
+      actuales.splice(indice, 1);
+      progreso.guardarMarcadores(libroActual.id, actuales);
+      planificarSincronizacion();
+      pintarMarcadores();
+      avisar(t('bookmarkRemoved'));
+    });
+    li.append(boton, borrar);
+    lista.append(li);
+  });
+}
+
+$('btn-anadir-marcador').addEventListener('click', () => {
+  if (!libroActual) return;
+  const posicion = posicionMarcadorActual();
+  if (!posicion) return; // EPUB recién abierto, sin posición todavía
+  const marcadores = progreso.marcadoresDe(libroActual.id);
+  const repetido = marcadores.some((marcador) =>
+    posicion.cfi ? marcador.cfi === posicion.cfi : marcador.pagina === posicion.pagina);
+  if (repetido) {
+    avisar(t('bookmarkExists'));
+    return;
+  }
+  marcadores.push({ ...posicion, creado: new Date().toISOString() });
+  ordenarMarcadores(marcadores);
+  progreso.guardarMarcadores(libroActual.id, marcadores);
+  planificarSincronizacion();
+  pintarMarcadores();
+  avisar(t('bookmarkAdded'));
+});
+
+$('btn-marcadores').addEventListener('click', () => {
+  const panel = $('panel-marcadores');
+  cerrarIndiceLibro();
+  cerrarBusquedaLibro();
+  const abrir = panel.classList.contains('oculto');
+  panel.classList.toggle('oculto', !abrir);
+  $('btn-marcadores').setAttribute('aria-expanded', String(abrir));
+  if (abrir) pintarMarcadores();
+});
+$('cerrar-marcadores').addEventListener('click', cerrarPanelMarcadores);
+
 function cerrarBusquedaLibro() {
   versionBusquedaLibro += 1;
   $('panel-busqueda-libro').classList.add('oculto');
@@ -1154,6 +1281,7 @@ function cerrarBusquedaLibro() {
 $('btn-buscar-libro').addEventListener('click', () => {
   const panel = $('panel-busqueda-libro');
   cerrarIndiceLibro();
+  cerrarPanelMarcadores();
   panel.classList.toggle('oculto');
   if (!panel.classList.contains('oculto')) $('buscar-en-libro').focus();
 });
@@ -1162,6 +1290,7 @@ $('cerrar-busqueda-libro').addEventListener('click', cerrarBusquedaLibro);
 $('btn-indice-libro').addEventListener('click', () => {
   const panel = $('panel-indice-libro');
   cerrarBusquedaLibro();
+  cerrarPanelMarcadores();
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
   $('btn-indice-libro').setAttribute('aria-expanded', String(abrir));
@@ -1218,6 +1347,7 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
 $('btn-volver').addEventListener('click', () => {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
+  cerrarPanelMarcadores();
   clearTimeout(temporizadorSync);
   if (libroActual?.tipo === 'webdav' && cliente) {
     progreso.sincronizar(cliente).catch(() => null);
@@ -1280,6 +1410,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-indice-libro').classList.contains('oculto')) {
     cerrarIndiceLibro();
     $('btn-indice-libro').focus();
+  } else if (!$('panel-marcadores').classList.contains('oculto')) {
+    cerrarPanelMarcadores();
+    $('btn-marcadores').focus();
   } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
     cerrarBusquedaLibro();
     $('btn-buscar-libro').focus();
@@ -1401,6 +1534,9 @@ let clicTrasArrastre = false;
 
 $('area-lectura').addEventListener('pointerdown', (evento) => {
   if (evento.pointerType !== 'mouse' || evento.button !== 0) return;
+  // Sobre el texto seleccionable o un enlace del PDF manda la selección o
+  // el clic, no el arrastre de la página.
+  if (evento.target.closest('.capa-texto span, .capa-enlaces a')) return;
   const area = $('area-lectura');
   if (area.scrollWidth <= area.clientWidth && area.scrollHeight <= area.clientHeight) return;
   arrastre = {

@@ -295,7 +295,8 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
 #area-lectura canvas { cursor: grab; }
-#area-lectura.arrastrando, #area-lectura.arrastrando canvas { cursor: grabbing; }
+#area-lectura.arrastrando, #area-lectura.arrastrando canvas,
+#area-lectura.arrastrando .capa-texto { cursor: grabbing; }
 #area-lectura.arrastrando { user-select: none; }
 
 /* Contenedor del lector EPUB: ocupa toda el área; epub.js gestiona dentro
@@ -349,22 +350,43 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   min-height: 100%; display: flex;
   justify-content: flex-start; align-items: flex-start; padding: 0.5rem;
 }
-/* Centrado con margin:auto: si la página es más ancha que la vista, los
-   márgenes se anulan y el scroll horizontal alcanza toda la página. */
-#contenedor-pagina > canvas { margin: 0 auto; }
 #contenedor-pagina.continuo {
   /* flex-start + margin:auto en las páginas: se centran cuando caben y
      permiten scroll horizontal (sin recorte izquierdo) cuando hay zoom. */
   flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 0.6rem 0.5rem;
 }
-#contenedor-pagina > canvas {
-  box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px; background: white; display: block;
+/* Envoltorio de cada página del PDF: canvas + capas de texto y enlaces.
+   Centrado con margin:auto: si la página es más ancha que la vista, los
+   márgenes se anulan y el scroll horizontal alcanza toda la página. */
+.pagina-pdf {
+  position: relative; margin: 0 auto; flex: none;
+  background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px;
 }
-.pagina-continua {
-  background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-  border-radius: 2px; margin: 0 auto; flex: none;
+.pagina-pdf canvas { display: block; border-radius: 2px; }
+
+/* Capa de texto de PDF.js: texto invisible superpuesto al canvas para poder
+   seleccionarlo y copiarlo. PDF.js coloca cada tramo con la variable CSS
+   --scale-factor, que fija el propio lector en el envoltorio. */
+.capa-texto {
+  position: absolute; inset: 0; overflow: clip;
+  line-height: 1; text-align: initial; transform-origin: 0 0;
+  forced-color-adjust: none; -webkit-text-size-adjust: none; text-size-adjust: none;
+  caret-color: CanvasText; cursor: grab;
 }
-.pagina-continua > canvas { display: block; }
+.capa-texto :is(span, br) {
+  color: transparent; position: absolute; white-space: pre;
+  cursor: text; transform-origin: 0 0;
+}
+.capa-texto span.markedContent { top: 0; height: 0; }
+.capa-texto ::selection { background: rgba(14, 165, 233, 0.4); }
+
+/* Enlaces del PDF (índices internos, referencias, webs). */
+.capa-enlaces { position: absolute; inset: 0; pointer-events: none; }
+.capa-enlaces a { position: absolute; pointer-events: auto; border-radius: 2px; }
+.capa-enlaces a:hover, .capa-enlaces a:focus-visible {
+  background: rgba(14, 165, 233, 0.15);
+  outline: 1px solid rgba(14, 165, 233, 0.6);
+}
 
 .modo-noche #area-lectura canvas { filter: invert(0.93) hue-rotate(180deg); }
 
@@ -429,6 +451,18 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .resultado-busqueda:hover { border-color: var(--acento); }
 .resultado-busqueda strong { display: block; color: var(--acento); margin-bottom: 0.15rem; }
 .resultado-busqueda span { color: var(--texto-suave); font-size: 0.82rem; line-height: 1.35; }
+
+/* ── Panel de marcadores ── */
+.btn-anadir-marcador {
+  display: flex; align-items: center; justify-content: center; gap: 0.45rem;
+  width: 100%; margin-bottom: 0.6rem;
+}
+.btn-anadir-marcador .icono-boton { display: inline-flex; }
+.panel-marcadores .estado { margin-bottom: 0.3rem; }
+.fila-marcador { display: flex; align-items: center; gap: 0.25rem; }
+.fila-marcador .entrada-indice-libro { padding-left: 0.65rem; }
+.btn-borrar-marcador { flex: none; color: var(--texto-suave); }
+.btn-borrar-marcador:hover { color: #f87171; }
 
 .zona-toque {
   position: fixed; top: 20%; bottom: 10%; width: 18%;

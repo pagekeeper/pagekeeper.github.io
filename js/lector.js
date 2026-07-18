@@ -11,10 +11,11 @@ import * as pdfjs from '../vendor/pdf.min.js';
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
 export class Lector {
-  constructor({ area, contenedor, alCambiarPagina }) {
+  constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno }) {
     this.area = area;             // contenedor con scroll (#area-lectura)
     this.contenedor = contenedor; // donde se colocan las páginas (#contenedor-pagina)
     this.alCambiarPagina = alCambiarPagina;
+    this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
 
     this.documento = null;
     this.pagina = 1;
@@ -22,6 +23,7 @@ export class Lector {
     this.modo = 'pagina';
 
     this.lienzo = null;    // canvas único (modo página)
+    this.envoltorio = null; // página única: canvas + capas de texto y enlaces
     this.paginas = [];     // envoltorios por número de página (modo continuo)
     this.observador = null;
     this.tareaRender = null;
@@ -120,15 +122,9 @@ export class Lector {
 
     const resueltos = await Promise.all(plano.map(async (entrada) => {
       try {
-        const destino = typeof entrada.referencia === 'string'
-          ? await this.documento.getDestination(entrada.referencia)
-          : entrada.referencia;
-        const referenciaPagina = destino?.[0];
-        const indicePagina = Number.isInteger(referenciaPagina)
-          ? referenciaPagina
-          : await this.documento.getPageIndex(referenciaPagina);
-        if (!Number.isInteger(indicePagina) || !entrada.titulo) return null;
-        return { titulo: entrada.titulo, destino: indicePagina + 1, numero: indicePagina + 1, nivel: entrada.nivel };
+        const numero = await this.paginaDeDestino(entrada.referencia);
+        if (numero === null || !entrada.titulo) return null;
+        return { titulo: entrada.titulo, destino: numero, numero, nivel: entrada.nivel };
       } catch {
         return null; // algunos PDF contienen marcadores rotos o externos
       }
@@ -140,6 +136,19 @@ export class Lector {
     return entradas;
   }
 
+  // Traduce un destino interno del PDF (referencia de esquema o de enlace)
+  // al número de página, o null si no se puede resolver.
+  async paginaDeDestino(referencia) {
+    const destino = typeof referencia === 'string'
+      ? await this.documento.getDestination(referencia)
+      : referencia;
+    const referenciaPagina = destino?.[0];
+    const indicePagina = Number.isInteger(referenciaPagina)
+      ? referenciaPagina
+      : await this.documento.getPageIndex(referenciaPagina);
+    return Number.isInteger(indicePagina) ? indicePagina + 1 : null;
+  }
+
   // ───────────────────────── Montaje según el modo ─────────────────────────
 
   limpiar() {
@@ -148,6 +157,7 @@ export class Lector {
     this.contenedor.classList.remove('continuo');
     this.paginas = [];
     this.lienzo = null;
+    this.envoltorio = null;
     this.pendiente = null;
   }
 
@@ -160,7 +170,10 @@ export class Lector {
 
   async montarPagina() {
     this.lienzo = document.createElement('canvas');
-    this.contenedor.append(this.lienzo);
+    this.envoltorio = document.createElement('div');
+    this.envoltorio.className = 'pagina-pdf';
+    this.envoltorio.append(this.lienzo);
+    this.contenedor.append(this.envoltorio);
     await this.renderUnica(this.pagina);
     this.area.scrollTop = 0;
   }
@@ -178,7 +191,7 @@ export class Lector {
 
     for (let n = 1; n <= this.totalPaginas; n++) {
       const envoltorio = document.createElement('div');
-      envoltorio.className = 'pagina-continua';
+      envoltorio.className = 'pagina-pdf pagina-continua';
       envoltorio.dataset.num = String(n);
       envoltorio.style.width = `${Math.floor(vista.width)}px`;
       envoltorio.style.height = `${Math.floor(vista.height)}px`;
@@ -207,7 +220,13 @@ export class Lector {
     while (this.pendiente !== null) {
       const n = this.pendiente;
       this.pendiente = null;
-      this.tareaRender = this.pintar(n, this.lienzo);
+      this.tareaRender = (async () => {
+        const { pagina, vista } = await this.pintar(n, this.lienzo);
+        // Las capas solo se montan para el último render solicitado.
+        if (this.pendiente === null && this.envoltorio) {
+          await this.montarCapas(this.envoltorio, pagina, vista);
+        }
+      })();
       await this.tareaRender.catch(() => {});
       this.tareaRender = null;
     }
@@ -220,9 +239,10 @@ export class Lector {
     envoltorio.dataset.estado = 'render';
     const lienzo = document.createElement('canvas');
     try {
-      await this.pintar(numero, lienzo);
+      const { pagina, vista } = await this.pintar(numero, lienzo);
       envoltorio.style.height = ''; // ajusta al alto real de la página
       envoltorio.replaceChildren(lienzo);
+      await this.montarCapas(envoltorio, pagina, vista);
       envoltorio.dataset.estado = 'listo';
     } catch {
       delete envoltorio.dataset.estado; // se reintentará al volver a entrar en vista
@@ -249,6 +269,72 @@ export class Lector {
       viewport: vista,
       transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
     }).promise;
+    return { pagina, vista };
+  }
+
+  // ─────────────── Capas de texto y enlaces sobre el canvas ───────────────
+
+  // Superpone al canvas el texto seleccionable (TextLayer de PDF.js) y los
+  // enlaces del PDF. Los tamaños de la capa de texto dependen de la variable
+  // CSS --scale-factor, que debe reflejar la escala del viewport.
+  async montarCapas(envoltorio, pagina, vista) {
+    for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces')) capa.remove();
+    envoltorio.style.setProperty('--scale-factor', String(vista.scale));
+
+    const capaTexto = document.createElement('div');
+    capaTexto.className = 'capa-texto';
+    envoltorio.append(capaTexto);
+    try {
+      await new pdfjs.TextLayer({
+        textContentSource: pagina.streamTextContent(),
+        container: capaTexto,
+        viewport: vista,
+      }).render();
+    } catch {
+      capaTexto.remove(); // sin capa de texto la página sigue siendo legible
+    }
+    await this.montarEnlaces(envoltorio, pagina, vista);
+  }
+
+  // Vuelve clicables los enlaces del PDF: los externos abren en otra pestaña
+  // y los internos saltan a su página a través de alPulsarEnlaceInterno.
+  async montarEnlaces(envoltorio, pagina, vista) {
+    let anotaciones = [];
+    try {
+      anotaciones = await pagina.getAnnotations({ intent: 'display' });
+    } catch {
+      return; // anotaciones ilegibles: la página queda sin enlaces
+    }
+    const enlaces = anotaciones.filter((anotacion) =>
+      anotacion.subtype === 'Link' && (anotacion.url || anotacion.dest));
+    if (!enlaces.length) return;
+
+    const capa = document.createElement('div');
+    capa.className = 'capa-enlaces';
+    for (const anotacion of enlaces) {
+      const [x1, y1, x2, y2] = pdfjs.Util.normalizeRect(
+        vista.convertToViewportRectangle(anotacion.rect));
+      const enlace = document.createElement('a');
+      enlace.style.left = `${x1}px`;
+      enlace.style.top = `${y1}px`;
+      enlace.style.width = `${x2 - x1}px`;
+      enlace.style.height = `${y2 - y1}px`;
+      if (anotacion.url) {
+        enlace.href = anotacion.url;
+        enlace.target = '_blank';
+        enlace.rel = 'noopener';
+        enlace.title = anotacion.url;
+      } else {
+        enlace.href = '#';
+        enlace.addEventListener('click', async (evento) => {
+          evento.preventDefault();
+          const destino = await this.paginaDeDestino(anotacion.dest).catch(() => null);
+          if (destino !== null) this.alPulsarEnlaceInterno?.(destino);
+        });
+      }
+      capa.append(enlace);
+    }
+    envoltorio.append(capa);
   }
 
   // Determina qué página ocupa la parte superior de la vista y avisa si cambia.

@@ -117,6 +117,8 @@
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
       <button id="btn-indice-libro" class="btn-icono oculto" data-icono="list-tree" title="Mostrar el índice" data-i18n-title="showBookIndex"
         aria-controls="panel-indice-libro" aria-expanded="false"></button>
+      <button id="btn-marcadores" class="btn-icono" data-icono="bookmark" title="Marcadores" data-i18n-title="bookmarks"
+        aria-controls="panel-marcadores" aria-expanded="false"></button>
       <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
       <div id="control-margenes" class="control-margenes oculto">
@@ -152,6 +154,18 @@
           <button type="button" id="cerrar-indice-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
         </div>
         <ol id="lista-indice-libro" class="lista-indice-libro"></ol>
+      </aside>
+      <aside id="panel-marcadores" class="panel-flotante-lector panel-marcadores oculto">
+        <div class="cabecera-panel-lector">
+          <h2 data-i18n="bookmarks">Marcadores</h2>
+          <button type="button" id="cerrar-marcadores" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
+        </div>
+        <button type="button" id="btn-anadir-marcador" class="btn-primario btn-anadir-marcador">
+          <span class="icono-boton" data-icono="bookmark-plus"></span>
+          <span data-i18n="addBookmark">Añadir un marcador aquí</span>
+        </button>
+        <p id="sin-marcadores" class="estado" data-i18n="noBookmarks">Todavía no hay marcadores.</p>
+        <ol id="lista-marcadores" class="lista-indice-libro"></ol>
       </aside>
       <aside id="panel-busqueda-libro" class="panel-flotante-lector panel-busqueda-libro oculto">
         <form id="form-busqueda-libro" class="buscador-form">
@@ -273,6 +287,14 @@
           porcentaje en EPUB) para saltar directamente.</li>
           <li><strong>Índice:</strong> si el PDF o EPUB incluye uno, aparece
           un botón para abrirlo y saltar directamente a cualquier apartado.</li>
+          <li><strong>Marcadores:</strong> el botón del marcador guarda la
+          posición actual para volver a ella cuando quieras. En los libros de
+          la nube, los marcadores se sincronizan entre dispositivos junto con
+          la posición de lectura.</li>
+          <li><strong>Texto y enlaces del PDF:</strong> puedes seleccionar y
+          copiar texto, y los enlaces del propio PDF funcionan: los internos
+          (índice, referencias) saltan a su página y los externos se abren en
+          otra pestaña.</li>
           <li><strong>Volver tras un salto:</strong> después de usar el índice,
           la búsqueda o el selector de posición aparecen botones para volver
           atrás o avanzar de nuevo. En móvil están dentro del indicador de
