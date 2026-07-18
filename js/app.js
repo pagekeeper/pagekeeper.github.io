@@ -395,7 +395,8 @@ $('btn-libro-ejemplo').addEventListener('click', async () => {
 async function cargarBiblioteca() {
   mostrarLibroEjemplo(false);
   const promesaLocales = cargarLibrosLocales();
-  pintarContinuarLeyendo();
+  versionContinuarLeyendo += 1; // cancela una comprobación remota anterior aún en curso
+  $('continuar-leyendo').classList.add('oculto');
 
   const hayConfig = cliente !== null;
   $('aviso-sin-config').classList.toggle('oculto', hayConfig);
@@ -406,6 +407,7 @@ async function cargarBiblioteca() {
   if (!hayConfig) {
     $('lista-libros').replaceChildren();
     mostrarLibroEjemplo((await promesaLocales) === 0);
+    await pintarContinuarLeyendo();
     actualizarVisibilidadBuscadorBiblioteca();
     return;
   }
@@ -432,10 +434,16 @@ async function cargarBiblioteca() {
     pintarListaRemota(carpetas, libros, copias);
     const cantidadLocales = await promesaLocales;
     mostrarLibroEjemplo(!rutaNube && cantidadLocales === 0 && carpetas.length === 0 && libros.length === 0);
-    pintarContinuarLeyendo();
+    await pintarContinuarLeyendo({
+      idsRemotosDisponibles: new Set(libros.map((libro) => idRemoto(libro.nombre))),
+    });
     generarPortadasFaltantes(libros.map((libro) => ({ ...libro, nombre: idRemoto(libro.nombre) })));
   } catch (error) {
     const copias = await promesaCopias;
+    await pintarContinuarLeyendo({
+      idsRemotosDisponibles: new Set(copias.map((copia) => copia.id)),
+      comprobarRemotos: false,
+    });
     const bibliotecaOffline = almacen.bibliotecaDeCopias(copias, rutaNube);
     if (bibliotecaOffline.carpetas.length || bibliotecaOffline.libros.length) {
       mostrarLibroEjemplo(false);
@@ -502,17 +510,40 @@ function actualizarDesplegableContinuar() {
     : t('showMoreRecent', { count: Math.max(0, filas.length - 1) });
 }
 
+function lecturaTerminada(avance, porcentaje = null) {
+  const pct = porcentaje ?? (avance?.paginas
+    ? Math.round((avance.pagina / avance.paginas) * 100)
+    : 0);
+  return avance?.terminado === true || (avance?.terminado !== false && pct >= 100);
+}
+
+function retirarFilaVisibleDeContinuar(id) {
+  const fila = [...$('libro-continuar').children].find((elemento) => elemento.dataset.idLibro === id);
+  if (!fila) return;
+  fila.remove();
+  if (!$('libro-continuar').children.length) {
+    $('continuar-leyendo').classList.add('oculto');
+    $('btn-mas-recientes').classList.add('oculto');
+    return;
+  }
+  actualizarDesplegableContinuar();
+}
+
 $('btn-mas-recientes').addEventListener('click', () => {
   continuarExpandido = !continuarExpandido;
   actualizarDesplegableContinuar();
 });
 
-async function pintarContinuarLeyendo() {
+async function pintarContinuarLeyendo({
+  idsRemotosDisponibles = new Set(),
+  comprobarRemotos = Boolean(cliente),
+} = {}) {
   const version = ++versionContinuarLeyendo;
   const seccion = $('continuar-leyendo');
   const lista = $('libro-continuar');
   const ocultos = librosOcultosDeContinuar();
-  const recientes = progreso.librosRecientes(Infinity).filter((reciente) => !ocultos.has(reciente.id));
+  const recientes = progreso.librosRecientes(Infinity).filter((reciente) =>
+    !ocultos.has(reciente.id) && !lecturaTerminada(reciente.progreso));
   lista.replaceChildren();
   seccion.classList.add('oculto');
   $('btn-mas-recientes').classList.add('oculto');
@@ -534,6 +565,12 @@ async function pintarContinuarLeyendo() {
       alAbrir = () => abrirLibroLocal(libro);
     } else {
       if (!cliente) continue;
+      if (!idsRemotosDisponibles.has(reciente.id)) {
+        if (!comprobarRemotos) continue;
+        const existe = await cliente.existe(reciente.id).catch(() => false);
+        if (version !== versionContinuarLeyendo) return;
+        if (!existe) continue;
+      }
       nombre = nombreDeId(reciente.id);
       alAbrir = () => abrirLibroRemoto(reciente.id);
     }
@@ -573,7 +610,7 @@ function crearFilaLibro({
 }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
-  const estadoLectura = avance?.terminado === true || (avance?.terminado !== false && porcentaje >= 100)
+  const estadoLectura = lecturaTerminada(avance, porcentaje)
     ? 'terminados'
     : avance && (avance.cfi || avance.pagina > 0) ? 'leyendo' : 'pendientes';
 
@@ -821,6 +858,7 @@ $('orden-biblioteca').addEventListener('change', (evento) => {
 
 async function alternarTerminado(id, terminado) {
   progreso.marcarTerminado(id, terminado);
+  if (terminado) retirarFilaVisibleDeContinuar(id);
   if (!id.startsWith('local:') && cliente) {
     try {
       await progreso.sincronizar(cliente);
