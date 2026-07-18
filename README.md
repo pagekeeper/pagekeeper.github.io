@@ -31,6 +31,9 @@ libros y sincronizar el progreso de lectura.
   local, copiarlo a la nube con un toque conservando la página actual.
 - 🗑️ **Borrar documentos**: cada libro tiene una papelera para eliminarlo,
   tanto de la nube (se borra del servidor) como del dispositivo.
+- 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
+  local para guardarlos en el dispositivo o sobre la sección remota para
+  subirlos directamente por WebDAV.
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.

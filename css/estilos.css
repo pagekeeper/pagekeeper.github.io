@@ -140,6 +140,18 @@ form input {
 form input:focus { outline: 2px solid var(--acento); border-color: transparent; }
 
 /* ── Lista de libros ── */
+.destino-arrastre { position: relative; border-radius: 0.75rem; transition: outline-color 0.15s, background 0.15s; }
+.indicador-arrastre {
+  display: none; position: absolute; inset: 0; z-index: 20;
+  align-items: center; justify-content: center; padding: 1rem;
+  border: 2px dashed var(--acento); border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--fondo) 88%, transparent);
+  color: var(--acento); font-weight: 700; text-align: center;
+  pointer-events: none;
+}
+body.arrastrando-archivos .destino-arrastre { outline: 2px dashed var(--borde); outline-offset: 0.35rem; }
+body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { display: flex; }
+
 .lista-libros { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
 .lista-libros li { display: flex; align-items: stretch; gap: 0.4rem; }
 .libro {

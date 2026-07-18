@@ -611,26 +611,21 @@ async function abrirLibroLocal(libro) {
   }
 }
 
-// Añadir un PDF a la biblioteca de este dispositivo: se guarda en el
-// navegador (IndexedDB) y se abre para leer.
-$('selector-archivo').addEventListener('change', async (evento) => {
-  const archivo = evento.target.files[0];
-  evento.target.value = '';
-  if (!archivo) return;
+function archivosCompatibles(archivos) {
+  return Array.from(archivos).filter((archivo) => /\.(pdf|epub)$/i.test(archivo.name));
+}
+
+async function guardarArchivoLocal(archivo, abrirDespues = false) {
   mostrarCarga(t('adding', { title: archivo.name }));
-  try {
-    const datos = new Uint8Array(await archivo.arrayBuffer());
-    const libro = {
-      id: `local:${archivo.name}:${archivo.size}`,
-      nombre: archivo.name,
-      tamano: archivo.size,
-    };
-    try {
-      await almacen.guardarLibro(libro, datos);
-    } catch {
-      avisar('No se pudo guardar en la biblioteca (¿espacio o navegación privada?). Se abre sin guardar.', 5000);
-    }
-    asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
+  const datos = new Uint8Array(await archivo.arrayBuffer());
+  const libro = {
+    id: `local:${archivo.name}:${archivo.size}`,
+    nombre: archivo.name,
+    tamano: archivo.size,
+  };
+  await almacen.guardarLibro(libro, datos);
+  asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
+  if (abrirDespues) {
     await abrirEnLector(datos, {
       id: libro.id,
       titulo: archivo.name.replace(/\.(pdf|epub)$/i, ''),
@@ -638,45 +633,133 @@ $('selector-archivo').addEventListener('change', async (evento) => {
       nombre: archivo.name,
       formato: formatoDe(archivo.name),
     });
-  } catch (error) {
-    avisar(`No se pudo abrir el libro: ${error.message}`, 6000);
+  }
+}
+
+async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
+  const validos = archivosCompatibles(archivos);
+  if (!validos.length) {
+    avisar(t('unsupportedFiles'));
+    return;
+  }
+  let guardados = 0;
+  try {
+    for (const archivo of validos) {
+      try {
+        await guardarArchivoLocal(archivo, abrirSiEsUno && validos.length === 1);
+        guardados += 1;
+      } catch (error) {
+        avisar(t('saveFailed', { title: archivo.name, error: error.message }), 6000);
+      }
+    }
   } finally {
     ocultarCarga();
   }
-});
+  if (!(abrirSiEsUno && validos.length === 1)) {
+    await cargarLibrosLocales();
+    if (guardados) avisar(t(guardados === 1 ? 'localAddedOne' : 'localAddedMany', { count: guardados }));
+  }
+}
 
-// Subir un libro del dispositivo directamente a la carpeta de la nube.
-$('selector-subir-nube').addEventListener('change', async (evento) => {
-  const archivo = evento.target.files[0];
-  evento.target.value = '';
-  if (!archivo || !cliente) return;
-
+async function subirArchivoANube(archivo) {
+  if (!cliente) return false;
   let nombre = archivo.name;
-  if (!/\.(pdf|epub)$/i.test(nombre)) nombre += '.pdf';
-
   try {
     if (await cliente.existe(nombre) &&
         !confirm(t('overwrite', { title: nombre }))) {
-      return;
+      return false;
     }
-  } catch (error) {
-    avisar(explicarError(error), 6000);
-    return;
-  }
-
-  mostrarCarga(t('uploading', { title: nombre }));
-  try {
+    mostrarCarga(t('uploading', { title: nombre }));
     const datos = new Uint8Array(await archivo.arrayBuffer());
     await cliente.subir(nombre, datos);
     await asegurarMiniatura(nombre, formatoDe(nombre), datos);
     avisar(t('cloudUploaded', { title: nombre }));
+    return true;
   } catch (error) {
     avisar(explicarError(error), 6000);
+    return false;
   } finally {
     ocultarCarga();
-    cargarBiblioteca();
   }
+}
+
+async function subirArchivosANube(archivos) {
+  const validos = archivosCompatibles(archivos);
+  if (!validos.length) {
+    avisar(t('unsupportedFiles'));
+    return;
+  }
+  for (const archivo of validos) await subirArchivoANube(archivo);
+  cargarBiblioteca();
+}
+
+// Los selectores y el arrastre comparten el mismo procesamiento; el selector
+// local conserva el comportamiento anterior de abrir un único libro.
+$('selector-archivo').addEventListener('change', (evento) => {
+  const archivos = [...evento.target.files];
+  evento.target.value = '';
+  guardarArchivosLocales(archivos, true);
 });
+
+$('selector-subir-nube').addEventListener('change', (evento) => {
+  const archivos = [...evento.target.files];
+  evento.target.value = '';
+  subirArchivosANube(archivos);
+});
+
+// ───────────────────────── Arrastrar archivos ─────────────────────────
+
+function contieneArchivos(evento) {
+  return Array.from(evento.dataTransfer?.types ?? []).includes('Files');
+}
+
+function terminarArrastre() {
+  document.body.classList.remove('arrastrando-archivos');
+  document.querySelectorAll('.sobre-destino').forEach((zona) => zona.classList.remove('sobre-destino'));
+}
+
+document.addEventListener('dragover', (evento) => {
+  if (!contieneArchivos(evento)) return;
+  evento.preventDefault();
+  document.body.classList.add('arrastrando-archivos');
+});
+
+document.addEventListener('drop', (evento) => {
+  if (contieneArchivos(evento)) evento.preventDefault();
+  terminarArrastre();
+});
+
+document.addEventListener('dragleave', (evento) => {
+  if (!evento.relatedTarget) terminarArrastre();
+});
+
+for (const [id, alSoltar] of [
+  ['zona-local', (archivos) => guardarArchivosLocales(archivos)],
+  ['zona-remota', (archivos) => subirArchivosANube(archivos)],
+]) {
+  const zona = $(id);
+  zona.addEventListener('dragenter', (evento) => {
+    if (!contieneArchivos(evento)) return;
+    evento.preventDefault();
+    zona.classList.add('sobre-destino');
+  });
+  zona.addEventListener('dragleave', (evento) => {
+    if (!zona.contains(evento.relatedTarget)) zona.classList.remove('sobre-destino');
+  });
+  zona.addEventListener('dragover', (evento) => {
+    if (!contieneArchivos(evento)) return;
+    evento.preventDefault();
+    evento.dataTransfer.dropEffect = 'copy';
+  });
+  zona.addEventListener('drop', (evento) => {
+    if (!contieneArchivos(evento)) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    const archivos = [...evento.dataTransfer.files];
+    terminarArrastre();
+    alSoltar(archivos);
+  });
+}
 
 async function abrirEnLector(datos, libro) {
   libroActual = libro;
