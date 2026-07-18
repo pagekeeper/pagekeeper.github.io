@@ -2,6 +2,8 @@
 //
 // Las librerías (JSZip y epub.js, en vendor/) se cargan bajo demanda la
 // primera vez que se abre un EPUB, para no penalizar la lectura de PDF.
+// epub.js incluye las correcciones oficiales posteriores a 0.3.93 para
+// evitar saltos y parpadeos al retroceder en el modo continuo.
 //
 // Fórmulas matemáticas: si el capítulo trae MathML y el navegador lo dibuja
 // de forma nativa, no se hace nada. Si trae LaTeX (\(...\), $$...$$) o el
