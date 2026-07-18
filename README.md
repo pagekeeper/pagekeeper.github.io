@@ -1,14 +1,19 @@
 # 📖 Lector PDF
 
-Lector de PDF pensado para leer libros desde varios dispositivos **continuando
-siempre en la misma página**. Es una web estática (funciona en GitHub Pages,
+Lector de libros **PDF y EPUB** pensado para leer desde varios dispositivos
+**continuando siempre en la misma página**. Es una web estática (funciona en GitHub Pages,
 sin servidor propio) y cada persona conecta **su propia nube** para guardar los
 libros y sincronizar el progreso de lectura.
 
 ## Características
 
-- 📚 **Biblioteca en tu nube**: lista los PDF de una carpeta de tu Nextcloud,
-  ownCloud o cualquier servidor **WebDAV**.
+- 📚 **Biblioteca en tu nube**: lista los PDF y EPUB de una carpeta de tu
+  Nextcloud, ownCloud o cualquier servidor **WebDAV**.
+- 📐 **EPUB con fórmulas matemáticas**: los EPUB se leen con epub.js y las
+  fórmulas (MathML o LaTeX) se dibujan con MathML nativo del navegador o
+  MathJax incrustado, también sin conexión. En los EPUB el progreso se guarda
+  como posición exacta (CFI) y porcentaje del libro, y los botones de zoom
+  ajustan el tamaño de letra.
 - 🔄 **Sincronización de posición**: la página por la que vas se guarda en un
   archivo `lector-progreso.json` en esa misma carpeta. Al abrir el libro en
   otro dispositivo, continúas donde lo dejaste (gana siempre la lectura más
@@ -94,7 +99,11 @@ con doble clic no funciona porque la app usa módulos ES.)
 
 - [PDF.js](https://mozilla.github.io/pdf.js/) (Mozilla) para renderizar los
   PDF, incluido en `vendor/`.
-- JavaScript sin dependencias ni empaquetadores.
+- [epub.js](https://github.com/futurepress/epub.js) + JSZip para los EPUB y
+  [MathJax](https://www.mathjax.org/) para las fórmulas, también en `vendor/`
+  (se cargan solo al abrir un EPUB).
+- JavaScript sin dependencias externas en tiempo de ejecución ni
+  empaquetadores.
 - Service worker + manifiesto PWA para instalación y uso sin conexión.
 
 ## Licencia

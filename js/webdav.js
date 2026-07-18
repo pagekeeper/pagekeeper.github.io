@@ -23,7 +23,7 @@ export class ClienteWebDav {
     return this.base + '/' + encodeURIComponent(nombre);
   }
 
-  async listarPdfs() {
+  async listarLibros() {
     const respuesta = await fetch(this.base + '/', {
       method: 'PROPFIND',
       headers: {
@@ -45,7 +45,7 @@ export class ClienteWebDav {
       const esCarpeta = nodo.getElementsByTagNameNS('DAV:', 'collection').length > 0;
       if (esCarpeta) continue;
       const nombre = decodeURIComponent(href.replace(/\/+$/, '').split('/').pop());
-      if (!/\.pdf$/i.test(nombre)) continue;
+      if (!/\.(pdf|epub)$/i.test(nombre)) continue;
       const tamano = Number(nodo.getElementsByTagNameNS('DAV:', 'getcontentlength')[0]?.textContent ?? 0);
       libros.push({ nombre, tamano });
     }
@@ -88,9 +88,10 @@ export class ClienteWebDav {
   }
 
   async subir(nombre, datos) {
+    const tipo = /\.epub$/i.test(nombre) ? 'application/epub+zip' : 'application/pdf';
     const respuesta = await fetch(this.urlDe(nombre), {
       method: 'PUT',
-      headers: { ...this.cabeceras, 'Content-Type': 'application/pdf' },
+      headers: { ...this.cabeceras, 'Content-Type': tipo },
       body: datos,
     });
     if (!respuesta.ok) throw await this.errorDe(respuesta, `subir «${nombre}»`);

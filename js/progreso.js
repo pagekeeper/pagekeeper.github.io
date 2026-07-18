@@ -19,9 +19,13 @@ export function guardarLocal(datos) {
   localStorage.setItem(CLAVE_LOCAL, JSON.stringify(datos));
 }
 
-export function anotarPagina(idLibro, pagina, totalPaginas) {
+// `extra` admite campos adicionales según el formato (p. ej. el CFI de un
+// EPUB); en los PDF pagina/paginas son páginas reales, en los EPUB son el
+// porcentaje leído sobre 100.
+export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
   const datos = cargarLocal();
   datos.libros[idLibro] = {
+    ...extra,
     pagina,
     paginas: totalPaginas,
     actualizado: new Date().toISOString(),

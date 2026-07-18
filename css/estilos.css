@@ -171,6 +171,15 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 .btn-pagina:hover { border-color: var(--acento); }
 
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
+
+/* Contenedor del lector EPUB: ocupa toda el área; epub.js gestiona dentro
+   su propio scroll y paginado. */
+#contenedor-epub {
+  position: absolute; inset: 0;
+  background: #ffffff;
+}
+.modo-noche #contenedor-epub { background: var(--fondo-lector); }
+#contenedor-epub iframe { border: none; }
 #contenedor-pagina {
   min-height: 100%; display: flex;
   justify-content: center; align-items: flex-start; padding: 0.5rem;

@@ -20,8 +20,8 @@
     </header>
     <main class="contenido">
       <div id="aviso-sin-config" class="tarjeta oculto">
-        <p>No hay ningún servidor configurado. Puedes abrir un PDF de este
-        dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube
+        <p>No hay ningún servidor configurado. Puedes abrir un libro (PDF o
+        EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube
         (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura
         entre dispositivos.</p>
         <p class="ayuda">¿No sabes qué es esto o qué necesitas?
@@ -31,8 +31,8 @@
       <div id="zona-remota" class="oculto">
         <div class="fila-seccion">
           <h2 id="titulo-carpeta"><span class="icono-seccion" data-icono="cloud"></span>En la nube</h2>
-          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un PDF a la nube"></label>
-          <input type="file" id="selector-subir-nube" accept="application/pdf,.pdf" hidden>
+          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube"></label>
+          <input type="file" id="selector-subir-nube" accept=".pdf,.epub,application/pdf,application/epub+zip" hidden>
           <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar"></button>
         </div>
         <div id="estado-remoto" class="estado"></div>
@@ -42,12 +42,12 @@
       <div id="zona-local">
         <div class="fila-seccion">
           <h2><span class="icono-seccion" data-icono="smartphone"></span>En este dispositivo</h2>
-          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un PDF de este dispositivo"></label>
-          <input type="file" id="selector-archivo" accept="application/pdf,.pdf" hidden>
+          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo"></label>
+          <input type="file" id="selector-archivo" accept=".pdf,.epub,application/pdf,application/epub+zip" hidden>
         </div>
         <p id="aviso-local-vacio" class="ayuda oculto">No hay ningún libro guardado
-        en este dispositivo. Pulsa «+» para añadir un PDF: quedará en la biblioteca
-        y se recordará por dónde vas (solo en este dispositivo).</p>
+        en este dispositivo. Pulsa «+» para añadir un PDF o EPUB: quedará en la
+        biblioteca y se recordará por dónde vas (solo en este dispositivo).</p>
         <ul id="lista-locales" class="lista-libros"></ul>
       </div>
     </main>
@@ -68,6 +68,7 @@
     </header>
     <div id="area-lectura">
       <div id="contenedor-pagina"></div>
+      <div id="contenedor-epub" class="oculto"></div>
       <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior"></button>
       <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente"></button>
     </div>
@@ -124,16 +125,17 @@
 
       <div class="tarjeta">
         <h2>¿Qué hace este lector?</h2>
-        <p>Lee tus libros en PDF desde el móvil, la tablet o el ordenador y
-        recuerda por dónde vas. Hay dos formas de usarlo:</p>
+        <p>Lee tus libros en PDF y EPUB (con fórmulas matemáticas incluidas)
+        desde el móvil, la tablet o el ordenador y recuerda por dónde vas.
+        Hay dos formas de usarlo:</p>
         <ul class="lista-ayuda">
-          <li><strong>Añadir un PDF de tu dispositivo:</strong> funciona al
+          <li><strong>Añadir un libro de tu dispositivo:</strong> funciona al
           instante, sin cuentas ni ajustes. El libro queda guardado en la
           biblioteca de ese navegador y se recuerda por dónde vas. Única pega:
           todo se guarda solo en ese dispositivo.</li>
           <li><strong>Conectar una nube (WebDAV):</strong> tus libros y tu
           posición de lectura se sincronizan entre todos tus dispositivos.
-          Puedes subir PDF a la nube y borrarlos desde la propia biblioteca.
+          Puedes subir libros a la nube y borrarlos desde la propia biblioteca.
           Necesita una configuración previa que se explica más abajo.</li>
         </ul>
       </div>
