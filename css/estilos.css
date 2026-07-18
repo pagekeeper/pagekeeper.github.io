@@ -452,6 +452,44 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .resultado-busqueda strong { display: block; color: var(--acento); margin-bottom: 0.15rem; }
 .resultado-busqueda span { color: var(--texto-suave); font-size: 0.82rem; line-height: 1.35; }
 
+/* ── Subcarpetas de la nube ── */
+.ruta-carpeta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.15rem;
+  font-size: 0.85rem; margin: 0.4rem 0 0.15rem;
+}
+.miga {
+  background: none; border: none; padding: 0.1rem 0.25rem; font: inherit;
+  color: var(--acento); cursor: pointer; border-radius: 0.3rem;
+}
+.miga:hover, .miga:focus-visible { text-decoration: underline; outline: none; }
+.separador-miga { color: var(--texto-suave); }
+.miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
+.libro .portada-carpeta { color: #fbbf24; }
+
+.dialogo-fondo {
+  position: fixed; inset: 0; z-index: 95;
+  background: rgba(15, 23, 42, 0.7);
+  display: flex; align-items: center; justify-content: center; padding: 1rem;
+}
+.dialogo {
+  width: min(26rem, 100%); max-height: min(34rem, 90dvh); overflow: auto;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
+  padding: 1rem; box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  display: flex; flex-direction: column; gap: 0.55rem;
+}
+.dialogo h2 { font-size: 1rem; }
+.lista-carpetas-mover {
+  list-style: none; display: flex; flex-direction: column; gap: 0.25rem;
+  min-height: 5rem;
+}
+.entrada-carpeta-mover { align-items: center; gap: 0.5rem; padding-left: 0.65rem; }
+.entrada-carpeta-mover .icono { color: #fbbf24; }
+.botones-mover { justify-content: flex-end; flex-wrap: wrap; }
+.botones-mover .btn-primario:disabled {
+  opacity: 0.45; cursor: not-allowed;
+  background: var(--acento-oscuro); color: white;
+}
+
 /* ── Panel de marcadores ── */
 .btn-anadir-marcador {
   display: flex; align-items: center; justify-content: center; gap: 0.45rem;

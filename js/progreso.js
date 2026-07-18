@@ -148,6 +148,50 @@ export async function sincronizar(cliente) {
   return local;
 }
 
+// Traspasa la entrada local de un libro a otro identificador (p. ej. al
+// moverlo de carpeta). La fecha se renueva para que la fusión "gana la más
+// reciente" propague la entrada nueva; la limpieza del id antiguo corre a
+// cargo de olvidar().
+export function renombrar(idViejo, idNuevo) {
+  const datos = cargarLocal();
+  const entrada = datos.libros[idViejo];
+  if (!entrada) return;
+  datos.libros[idNuevo] = {
+    ...entrada,
+    actualizado: new Date().toISOString(),
+    dispositivo: nombreDispositivo(),
+  };
+  delete datos.libros[idViejo];
+  guardarLocal(datos);
+  // Si el nuevo id tenía una limpieza pendiente (un libro anterior con el
+  // mismo nombre), la entrada recién creada la cancela.
+  completarBorradoPendiente(idNuevo);
+}
+
+// Elimina el progreso de todos los libros bajo un prefijo de ruta (una
+// carpeta borrada con su contenido), en local y en el archivo remoto.
+export async function olvidarPorPrefijo(prefijo, cliente = null) {
+  const local = cargarLocal();
+  const ids = Object.keys(local.libros).filter((id) => id.startsWith(prefijo));
+  for (const id of ids) delete local.libros[id];
+  guardarLocal(local);
+
+  if (!cliente) return;
+  for (const id of ids) marcarBorradoPendiente(id, cliente);
+  const remoto = await cliente.leerProgreso();
+  if (remoto?.libros) {
+    let hayCambios = false;
+    for (const id of Object.keys(remoto.libros)) {
+      if (id.startsWith(prefijo)) {
+        delete remoto.libros[id];
+        hayCambios = true;
+      }
+    }
+    if (hayCambios) await cliente.escribirProgreso(remoto);
+  }
+  for (const id of ids) completarBorradoPendiente(id, cliente);
+}
+
 // Elimina el progreso de un libro borrado, en local y, si hay cliente,
 // también en el archivo remoto (para que no reaparezca al sincronizar).
 export async function olvidar(idLibro, cliente = null) {

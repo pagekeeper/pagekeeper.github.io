@@ -34,6 +34,10 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
   local para guardarlos en el dispositivo o sobre la sección remota para
   subirlos directamente por WebDAV.
+- 📁 **Subcarpetas en la nube**: la biblioteca muestra las carpetas de tu
+  nube y permite navegar por ellas, crear carpetas nuevas, borrarlas y mover
+  libros de una carpeta a otra conservando el progreso y los marcadores. Las
+  subidas van a la carpeta que tengas abierta.
 - 🔖 **Marcadores**: guarda las posiciones que quieras de cada libro y vuelve
   a ellas desde un panel. En los libros de la nube se sincronizan entre
   dispositivos junto con la posición de lectura.
@@ -82,7 +86,9 @@ libros y sincronizar el progreso de lectura.
 
 Con otros servidores WebDAV el requisito es el mismo: deben enviar cabeceras
 CORS que permitan el dominio del lector (métodos `GET`, `PUT`, `DELETE`,
-`PROPFIND` y cabeceras `Authorization`, `Content-Type`, `Depth`).
+`PROPFIND`, `MKCOL` y `MOVE`, y cabeceras `Authorization`, `Content-Type`,
+`Depth`, `Destination` y `Overwrite`; las carpetas y el mover libros
+necesitan estos dos últimos métodos).
 
 ## Publicar tu propia copia
 

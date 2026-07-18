@@ -59,6 +59,16 @@ const textos = {
     noBookmarks: 'Todavía no hay marcadores.', bookmarkAdded: 'Marcador añadido.',
     bookmarkRemoved: 'Marcador borrado.', bookmarkExists: 'Ya hay un marcador en esta posición.',
     deleteBookmark: 'Borrar el marcador',
+    cloudRoot: 'Inicio', currentFolder: 'Carpeta actual', targetFolder: 'Carpeta de destino',
+    newFolder: 'Crear una carpeta', folderNamePrompt: 'Nombre de la carpeta nueva:',
+    invalidFolderName: 'El nombre de la carpeta no es válido.',
+    creatingFolder: 'Creando la carpeta «{name}»…', folderCreated: 'Carpeta «{name}» creada.',
+    openFolder: 'Abrir la carpeta «{name}»', deleteFolder: 'Borrar la carpeta «{name}»',
+    deleteFolderConfirm: '¿Borrar la carpeta «{name}» y todo su contenido de tu nube?',
+    folderDeleted: 'Carpeta borrada de la nube.', emptyFolder: 'Esta carpeta está vacía.',
+    moveBook: 'Mover «{title}» a otra carpeta', moveHere: 'Mover aquí',
+    moving: 'Moviendo «{title}»…', bookMoved: '«{title}» movido.', cancel: 'Cancelar',
+    loadingFolders: 'Cargando carpetas…', noSubfolders: 'No hay subcarpetas.',
   },
   ca: {
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
@@ -114,6 +124,16 @@ const textos = {
     noBookmarks: 'Encara no hi ha marcadors.', bookmarkAdded: 'S’ha afegit el marcador.',
     bookmarkRemoved: 'S’ha esborrat el marcador.', bookmarkExists: 'Ja hi ha un marcador en aquesta posició.',
     deleteBookmark: 'Esborra el marcador',
+    cloudRoot: 'Inici', currentFolder: 'Carpeta actual', targetFolder: 'Carpeta de destinació',
+    newFolder: 'Crea una carpeta', folderNamePrompt: 'Nom de la carpeta nova:',
+    invalidFolderName: 'El nom de la carpeta no és vàlid.',
+    creatingFolder: 'S’està creant la carpeta «{name}»…', folderCreated: 'S’ha creat la carpeta «{name}».',
+    openFolder: 'Obre la carpeta «{name}»', deleteFolder: 'Esborra la carpeta «{name}»',
+    deleteFolderConfirm: 'Vols esborrar la carpeta «{name}» i tot el seu contingut del núvol?',
+    folderDeleted: 'S’ha esborrat la carpeta del núvol.', emptyFolder: 'Aquesta carpeta és buida.',
+    moveBook: 'Mou «{title}» a una altra carpeta', moveHere: 'Mou aquí',
+    moving: 'S’està movent «{title}»…', bookMoved: 'S’ha mogut «{title}».', cancel: 'Cancel·la',
+    loadingFolders: 'S’estan carregant les carpetes…', noSubfolders: 'No hi ha subcarpetes.',
   },
   en: {
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
@@ -169,13 +189,23 @@ const textos = {
     noBookmarks: 'No bookmarks yet.', bookmarkAdded: 'Bookmark added.',
     bookmarkRemoved: 'Bookmark deleted.', bookmarkExists: 'There is already a bookmark at this position.',
     deleteBookmark: 'Delete bookmark',
+    cloudRoot: 'Home', currentFolder: 'Current folder', targetFolder: 'Destination folder',
+    newFolder: 'Create a folder', folderNamePrompt: 'Name for the new folder:',
+    invalidFolderName: 'The folder name is not valid.',
+    creatingFolder: 'Creating folder “{name}”…', folderCreated: 'Folder “{name}” created.',
+    openFolder: 'Open the folder “{name}”', deleteFolder: 'Delete the folder “{name}”',
+    deleteFolderConfirm: 'Delete the folder “{name}” and all its contents from your cloud?',
+    folderDeleted: 'Folder deleted from the cloud.', emptyFolder: 'This folder is empty.',
+    moveBook: 'Move “{title}” to another folder', moveHere: 'Move here',
+    moving: 'Moving “{title}”…', bookMoved: '“{title}” moved.', cancel: 'Cancel',
+    loadingFolders: 'Loading folders…', noSubfolders: 'No subfolders.',
   },
 };
 
 const ayudas = {
   ca: `
     <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
-    <div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés. El cercador filtra per nom, títol, autor, format i altres metadades. Al mòbil, mantén premut un títol tallat per veure’l complet.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també pots arrossegar fitxers a «Al núvol».</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
+    <div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés. El cercador filtra per nom, títol, autor, format i altres metadades. Al mòbil, mantén premut un títol tallat per veure’l complet.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també pots arrossegar fitxers a «Al núvol». Tot es puja a la carpeta que tinguis oberta.</li><li><strong>Carpetes:</strong> la secció «Al núvol» mostra les subcarpetes i permet entrar-hi (la ruta apareix a sobre de la llista per tornar). Pots crear carpetes noves, esborrar-les amb la paperera (també se n’elimina el contingut) i moure un llibre d’una carpeta a una altra amb el seu botó de moure, conservant el progrés i els marcadors.</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
     <div class="tarjeta"><h2>Controls del lector</h2><ul class="lista-ayuda"><li><strong>Mode de lectura:</strong> pàgina a pàgina o pàgines contínues amb desplaçament vertical.</li><li><strong>Zoom:</strong> les lupes amplien el PDF o canvien la mida de lletra de l’EPUB; ↔ torna a l’amplada automàtica.</li><li><strong>Marges (només EPUB):</strong> el control lliscant tria el marge de tots dos costats entre 0 i 30 %.</li><li><strong>Mode nit:</strong> el botó de la lluna/sol enfosqueix la pàgina.</li><li><strong>Ves a un punt:</strong> toca l’indicador de pàgina o percentatge.</li><li><strong>Índex:</strong> si el PDF o EPUB n’inclou un, apareix un botó per obrir-lo i saltar directament a qualsevol apartat.</li><li><strong>Marcadors:</strong> el botó del marcador desa la posició actual per tornar-hi quan vulguis. Als llibres del núvol, els marcadors se sincronitzen entre dispositius juntament amb la posició de lectura.</li><li><strong>Text i enllaços del PDF:</strong> pots seleccionar i copiar text, i els enllaços del PDF funcionen: els interns salten a la seva pàgina i els externs s’obren en una altra pestanya.</li><li><strong>Torna després d’un salt:</strong> després d’usar l’índex, la cerca o el selector de posició apareixen botons per tornar enrere o avançar de nou. En mòbil són dins de l’indicador de pàgina o percentatge.</li><li><strong>Cerca dins del llibre:</strong> la lupa troba paraules o frases i porta a la pàgina o capítol.</li><li>El mode, el zoom, la lletra i els marges es recorden en cada dispositiu.</li></ul></div>
     <div class="tarjeta"><h2>Què és WebDAV?</h2><p>És una manera estàndard d’accedir per internet als fitxers d’un servidor com si fos una carpeta remota. PageKeeper el fa servir per llegir els llibres i desar el progrés al teu propi núvol.</p></div>
     <div class="tarjeta importante"><h2>⚠️ Important: no serveix qualsevol núvol</h2><p>El navegador només es pot connectar si el servidor ho autoritza explícitament amb <em>CORS</em>. Per això la majoria de serveis comercials no funcionen.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox i OneDrive:</strong> no ofereixen un WebDAV usable aquí.</li><li><strong>Koofr, pCloud, Yandex i semblants:</strong> tenen WebDAV però bloquegen l’accés des de pàgines web.</li><li><strong>Nextcloud o ownCloud amb el permís activat:</strong> és l’opció que funciona a la pràctica.</li></ul></div>
@@ -186,7 +216,7 @@ const ayudas = {
     <div class="tarjeta"><h2>Privadesa</h2><p>No hi ha cap servidor intermediari: el navegador es connecta directament al teu núvol. L’URL, l’usuari i la contrasenya es desen només en aquest navegador.</p></div>`,
   en: `
     <div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works immediately without accounts. The book is stored only in that browser. You can also drag one or more files onto the local section.</li><li><strong>Connect cloud storage (WebDAV):</strong> books and reading position sync between your devices.</li></ul></div>
-    <div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress. The search box filters by filename, title, author, format and other metadata. On mobile, press and hold a truncated title to see it in full.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also drag files onto “In the cloud”.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
+    <div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress. The search box filters by filename, title, author, format and other metadata. On mobile, press and hold a truncated title to see it in full.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also drag files onto “In the cloud”. Everything is uploaded to the folder you have open.</li><li><strong>Folders:</strong> the “In the cloud” section shows subfolders and lets you enter them (the path appears above the list so you can go back). You can create new folders, delete them with their bin (their contents are removed too) and move a book from one folder to another with its move button, keeping progress and bookmarks.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
     <div class="tarjeta"><h2>Reader controls</h2><ul class="lista-ayuda"><li><strong>Reading mode:</strong> one page at a time or continuous pages with vertical scrolling.</li><li><strong>Zoom:</strong> the magnifiers enlarge PDFs or change EPUB text size; ↔ returns to fit-to-width.</li><li><strong>Margins (EPUB only):</strong> use the slider to choose a margin on both sides from 0 to 30%.</li><li><strong>Night mode:</strong> the moon/sun button darkens the page.</li><li><strong>Go to a point:</strong> tap the page or percentage indicator.</li><li><strong>Table of contents:</strong> when a PDF or EPUB includes one, a button appears so you can open it and jump directly to any section.</li><li><strong>Bookmarks:</strong> the bookmark button saves the current position so you can return to it any time. For cloud books, bookmarks sync between devices along with the reading position.</li><li><strong>PDF text and links:</strong> you can select and copy text, and the PDF’s own links work: internal ones jump to their page and external ones open in a new tab.</li><li><strong>Return after a jump:</strong> after using the contents, search or position selector, buttons appear to go back or forward again. On mobile they are inside the page or percentage indicator.</li><li><strong>Search inside the book:</strong> the magnifier finds words or phrases and jumps to the matching page or chapter.</li><li>Mode, zoom, font size and margins are remembered on each device.</li></ul></div>
     <div class="tarjeta"><h2>What is WebDAV?</h2><p>It is a standard way to access files on an internet server as though it were a remote folder. PageKeeper uses it to read books and store progress in your own cloud.</p></div>
     <div class="tarjeta importante"><h2>⚠️ Important: not every cloud works</h2><p>The browser can connect only when a server explicitly permits it through <em>CORS</em>. This rules out most commercial services.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox and OneDrive:</strong> do not provide usable WebDAV here.</li><li><strong>Koofr, pCloud, Yandex and similar:</strong> have WebDAV but block access from web pages.</li><li><strong>Nextcloud or ownCloud with permission enabled:</strong> is the practical working option.</li></ul></div>

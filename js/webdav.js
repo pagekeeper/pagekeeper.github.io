@@ -19,12 +19,17 @@ export class ClienteWebDav {
     this.cabeceras = { Authorization: 'Basic ' + base64Utf8(`${usuario}:${clave}`) };
   }
 
-  urlDe(nombre) {
-    return this.base + '/' + encodeURIComponent(nombre);
+  // `ruta` es una ruta relativa a la carpeta base ('' para la propia base,
+  // 'Novelas/Fantasía' para una subcarpeta). Cada segmento se codifica por
+  // separado para conservar las barras.
+  urlDe(ruta) {
+    return this.base + '/' + String(ruta).split('/').map(encodeURIComponent).join('/');
   }
 
-  async listarLibros() {
-    const respuesta = await fetch(this.base + '/', {
+  // Lista una carpeta: devuelve sus subcarpetas y sus libros (PDF/EPUB).
+  async listar(ruta = '') {
+    const url = (ruta ? this.urlDe(ruta) : this.base) + '/';
+    const respuesta = await fetch(url, {
       method: 'PROPFIND',
       headers: {
         ...this.cabeceras,
@@ -39,18 +44,52 @@ export class ClienteWebDav {
     if (!respuesta.ok) throw await this.errorDe(respuesta, 'listar la carpeta');
 
     const xml = new DOMParser().parseFromString(await respuesta.text(), 'application/xml');
+    // El PROPFIND incluye la propia carpeta consultada: se identifica por su
+    // ruta normalizada para no listarla como subcarpeta de sí misma.
+    const rutaPedida = decodeURIComponent(new URL(url).pathname).replace(/\/+$/, '');
+    const carpetas = [];
     const libros = [];
     for (const nodo of xml.getElementsByTagNameNS('DAV:', 'response')) {
       const href = nodo.getElementsByTagNameNS('DAV:', 'href')[0]?.textContent ?? '';
+      const rutaHref = decodeURIComponent(new URL(href, this.base).pathname).replace(/\/+$/, '');
+      if (!rutaHref || rutaHref === rutaPedida) continue;
+      const nombre = rutaHref.split('/').pop();
       const esCarpeta = nodo.getElementsByTagNameNS('DAV:', 'collection').length > 0;
-      if (esCarpeta) continue;
-      const nombre = decodeURIComponent(href.replace(/\/+$/, '').split('/').pop());
+      if (esCarpeta) {
+        if (!nombre.startsWith('.')) carpetas.push({ nombre });
+        continue;
+      }
       if (!/\.(pdf|epub)$/i.test(nombre)) continue;
       const tamano = Number(nodo.getElementsByTagNameNS('DAV:', 'getcontentlength')[0]?.textContent ?? 0);
       libros.push({ nombre, tamano });
     }
+    carpetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     libros.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    return libros;
+    return { carpetas, libros };
+  }
+
+  async crearCarpeta(ruta) {
+    const respuesta = await fetch(this.urlDe(ruta), {
+      method: 'MKCOL',
+      headers: this.cabeceras,
+    });
+    if (respuesta.status === 405) {
+      throw new Error('No se pudo crear la carpeta: ya existe un elemento con ese nombre (405)');
+    }
+    if (!respuesta.ok) throw await this.errorDe(respuesta, 'crear la carpeta');
+  }
+
+  // Mueve (o renombra) un archivo dentro del mismo servidor.
+  async mover(origen, destino, sobrescribir = false) {
+    const respuesta = await fetch(this.urlDe(origen), {
+      method: 'MOVE',
+      headers: {
+        ...this.cabeceras,
+        Destination: this.urlDe(destino),
+        Overwrite: sobrescribir ? 'T' : 'F',
+      },
+    });
+    if (!respuesta.ok) throw await this.errorDe(respuesta, `mover «${origen}»`);
   }
 
   async descargar(nombre, alProgresar) {

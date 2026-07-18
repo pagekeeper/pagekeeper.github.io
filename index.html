@@ -47,10 +47,12 @@
             </div>
             <p data-i18n="cloudScope">Libros y progreso disponibles en todos tus dispositivos</p>
           </div>
+          <button id="btn-carpeta-nueva" class="btn-icono" data-icono="folder-plus" title="Crear una carpeta" data-i18n-title="newFolder"></button>
           <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube" data-i18n-title="addCloud"></label>
           <input type="file" id="selector-subir-nube" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
           <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar" data-i18n-title="reload"></button>
         </div>
+        <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
         <div id="estado-remoto" class="estado"></div>
         <ul id="lista-libros" class="lista-libros"></ul>
       </div>
@@ -261,7 +263,14 @@
           <li><strong>Subir a la nube:</strong> con una nube configurada, el
           botón de la nube de cada libro local lo copia a tu carpeta remota
           conservando la página por la que vas; también puedes subir un
-          archivo con el «+» o arrastrarlo a la sección «En la nube».</li>
+          archivo con el «+» o arrastrarlo a la sección «En la nube». Todo se
+          sube a la carpeta que tengas abierta.</li>
+          <li><strong>Carpetas:</strong> la sección «En la nube» muestra las
+          subcarpetas de tu carpeta y permite entrar en ellas (la ruta aparece
+          encima de la lista para volver). Puedes crear carpetas nuevas,
+          borrarlas con su papelera (se elimina también el contenido) y mover
+          un libro de una carpeta a otra con su botón de mover, conservando
+          el progreso y los marcadores.</li>
           <li><strong>Descargar:</strong> el botón de descarga guarda una
           copia del archivo (PDF o EPUB) en el dispositivo, venga de la nube
           o de la biblioteca local.</li>
@@ -397,6 +406,21 @@
 
     </main>
   </section>
+
+  <!-- Diálogo para mover un libro de la nube a otra carpeta -->
+  <div id="dialogo-mover" class="dialogo-fondo oculto">
+    <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-mover">
+      <h2 id="titulo-mover"></h2>
+      <nav id="ruta-mover" class="ruta-carpeta" aria-label="Carpeta de destino" data-i18n-aria-label="targetFolder"></nav>
+      <ul id="lista-carpetas-mover" class="lista-carpetas-mover"></ul>
+      <div id="estado-mover" class="estado"></div>
+      <div class="fila-botones botones-mover">
+        <button type="button" id="btn-carpeta-nueva-mover" class="btn-secundario" data-i18n="newFolder">Crear una carpeta</button>
+        <button type="button" id="btn-cancelar-mover" class="btn-secundario" data-i18n="cancel">Cancelar</button>
+        <button type="button" id="btn-confirmar-mover" class="btn-primario" data-i18n="moveHere">Mover aquí</button>
+      </div>
+    </div>
+  </div>
 
   <div id="toast" class="toast oculto"></div>
   <div id="cargando" class="cargando oculto"><div class="ruedecilla"></div><span id="texto-cargando">Cargando…</span></div>
