@@ -6,6 +6,47 @@
 //    dispositivos. En cada libro gana la entrada con fecha más reciente.
 
 const CLAVE_LOCAL = 'lector.progreso';
+const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
+
+function cargarRegistroBorrados() {
+  try {
+    const registro = JSON.parse(localStorage.getItem(CLAVE_BORRADOS_PENDIENTES));
+    if (registro && typeof registro === 'object' && !Array.isArray(registro)) return registro;
+  } catch { /* lista corrupta: se descarta */ }
+  return {};
+}
+
+function guardarRegistroBorrados(registro) {
+  for (const servidor of Object.keys(registro)) {
+    if (!Array.isArray(registro[servidor]) || !registro[servidor].length) delete registro[servidor];
+  }
+  if (Object.keys(registro).length) localStorage.setItem(CLAVE_BORRADOS_PENDIENTES, JSON.stringify(registro));
+  else localStorage.removeItem(CLAVE_BORRADOS_PENDIENTES);
+}
+
+function claveServidor(cliente) {
+  return cliente?.base ?? 'servidor';
+}
+
+function cargarBorradosPendientes(cliente) {
+  return new Set(cargarRegistroBorrados()[claveServidor(cliente)] ?? []);
+}
+
+function marcarBorradoPendiente(idLibro, cliente) {
+  const registro = cargarRegistroBorrados();
+  const servidor = claveServidor(cliente);
+  registro[servidor] = [...new Set([...(registro[servidor] ?? []), idLibro])];
+  guardarRegistroBorrados(registro);
+}
+
+function completarBorradoPendiente(idLibro, cliente = null) {
+  const registro = cargarRegistroBorrados();
+  const servidores = cliente ? [claveServidor(cliente)] : Object.keys(registro);
+  for (const servidor of servidores) {
+    registro[servidor] = (registro[servidor] ?? []).filter((id) => id !== idLibro);
+  }
+  guardarRegistroBorrados(registro);
+}
 
 export function cargarLocal() {
   try {
@@ -23,6 +64,9 @@ export function guardarLocal(datos) {
 // EPUB); en los PDF pagina/paginas son páginas reales, en los EPUB son el
 // porcentaje leído sobre 100.
 export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
+  // Si el usuario vuelve a añadir un libro con el mismo nombre, la nueva
+  // lectura cancela cualquier limpieza pendiente de la copia anterior.
+  completarBorradoPendiente(idLibro);
   const datos = cargarLocal();
   datos.libros[idLibro] = {
     ...extra,
@@ -48,6 +92,16 @@ export async function sincronizar(cliente) {
   if (typeof remoto.libros !== 'object' || !remoto.libros) remoto.libros = {};
 
   let haySubida = false;
+  const borradosPendientes = cargarBorradosPendientes(cliente);
+  // Se aplican antes de fusionar para que una entrada remota obsoleta nunca
+  // vuelva a aparecer en localStorage mientras se reintenta su limpieza.
+  for (const id of borradosPendientes) {
+    delete local.libros[id];
+    if (id in remoto.libros) {
+      delete remoto.libros[id];
+      haySubida = true;
+    }
+  }
   const ids = new Set([...Object.keys(local.libros), ...Object.keys(remoto.libros)]);
   for (const id of ids) {
     if (id.startsWith('local:')) continue; // libros locales: no se suben
@@ -63,6 +117,11 @@ export async function sincronizar(cliente) {
 
   guardarLocal(local);
   if (haySubida) await cliente.escribirProgreso(remoto);
+  // Llegar aquí confirma que el remoto ya no contiene esas entradas (o que
+  // el PUT que las quitó terminó correctamente).
+  if (borradosPendientes.size) {
+    for (const id of borradosPendientes) completarBorradoPendiente(id, cliente);
+  }
   return local;
 }
 
@@ -74,11 +133,15 @@ export async function olvidar(idLibro, cliente = null) {
   guardarLocal(local);
 
   if (!cliente) return;
+  // Se registra antes de tocar la red. Si falla, sincronizar() lo reintentará
+  // y bloqueará mientras tanto la reimportación de la entrada obsoleta.
+  marcarBorradoPendiente(idLibro, cliente);
   const remoto = await cliente.leerProgreso();
   if (remoto?.libros && idLibro in remoto.libros) {
     delete remoto.libros[idLibro];
     await cliente.escribirProgreso(remoto);
   }
+  completarBorradoPendiente(idLibro, cliente);
 }
 
 function nombreDispositivo() {

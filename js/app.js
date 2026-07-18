@@ -543,9 +543,14 @@ async function borrarLibroRemoto(nombre) {
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     await cliente.borrar(nombre);
-    await progreso.olvidar(nombre, cliente).catch(() => null);
+    let limpiezaPendiente = false;
+    try {
+      await progreso.olvidar(nombre, cliente);
+    } catch {
+      limpiezaPendiente = true;
+    }
     almacen.borrarPortada(nombre).catch(() => null);
-    avisar(t('cloudBookDeleted'));
+    avisar(t(limpiezaPendiente ? 'cloudBookDeletedPending' : 'cloudBookDeleted'), limpiezaPendiente ? 6000 : 3500);
   } catch (error) {
     avisar(explicarError(error), 6000);
   } finally {
