@@ -4,6 +4,9 @@ import assert from 'node:assert/strict';
 import {
   anotarPagina,
   fusionarEntradas,
+  librosRecientes,
+  marcarTerminado,
+  progresoDe,
   sincronizar,
   ultimoLibroLeido,
 } from '../js/progreso.js';
@@ -26,6 +29,45 @@ test('elige como lectura actual el libro cuya posición cambió más recientemen
     'actual.epub': entrada({ pagina: 25, posicionActualizada: '2026-01-03T10:00:00.000Z' }),
   } });
   assert.equal(resultado.id, 'actual.epub');
+});
+
+test('devuelve los tres libros recientes en orden de lectura', () => {
+  const libros = Object.fromEntries([1, 4, 2, 3].map((dia) => [
+    `libro-${dia}.pdf`,
+    entrada({ pagina: dia, posicionActualizada: `2026-01-0${dia}T10:00:00.000Z` }),
+  ]));
+  assert.deepEqual(
+    librosRecientes(3, { libros }).map((libro) => libro.id),
+    ['libro-4.pdf', 'libro-3.pdf', 'libro-2.pdf'],
+  );
+});
+
+test('permite marcar y desmarcar manualmente un libro como terminado', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  marcarTerminado('libro.pdf', true);
+  assert.equal(progresoDe('libro.pdf').terminado, true);
+  marcarTerminado('libro.pdf', false);
+  assert.equal(progresoDe('libro.pdf').terminado, false);
+});
+
+test('fusiona el estado terminado sin alterar la posición de lectura', () => {
+  const local = entrada({ pagina: 20, posicionActualizada: '2026-01-03T10:00:00.000Z' });
+  local.terminado = false;
+  local.terminadoActualizado = '2026-01-01T10:00:00.000Z';
+  const remoto = entrada({ pagina: 10, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.terminado = true;
+  remoto.terminadoActualizado = '2026-01-04T10:00:00.000Z';
+  const resultado = fusionarEntradas(local, remoto);
+  assert.equal(resultado.pagina, 20);
+  assert.equal(resultado.terminado, true);
 });
 
 test('editar un marcador no desplaza al libro leído más recientemente', () => {

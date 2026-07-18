@@ -29,12 +29,22 @@
         <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
       </div>
 
+      <section id="libro-ejemplo" class="libro-ejemplo oculto">
+        <span class="icono-libro-ejemplo" data-icono="book-open"></span>
+        <div class="texto-libro-ejemplo">
+          <h2 data-i18n="sampleBookHeading">Empieza con un libro de ejemplo</h2>
+          <p><span data-i18n="sampleBookHelp">Tu biblioteca está vacía. Puedes probar PageKeeper con</span>
+            <strong id="titulo-libro-ejemplo"></strong>.</p>
+        </div>
+        <button id="btn-libro-ejemplo" type="button" class="btn-primario" data-i18n="loadSampleBook">Añadir y abrir</button>
+      </section>
+
       <section id="continuar-leyendo" class="continuar-leyendo oculto" aria-labelledby="titulo-continuar">
         <div class="cabecera-continuar">
           <span class="icono-continuar" data-icono="book-open"></span>
           <div>
             <h2 id="titulo-continuar" data-i18n="continueReading">Continuar leyendo</h2>
-            <p data-i18n="continueReadingHelp">Tu libro más reciente, siempre a mano</p>
+            <p data-i18n="continueReadingHelp">Tus tres libros más recientes, siempre a mano</p>
           </div>
         </div>
         <ul id="libro-continuar" class="lista-libros"></ul>
@@ -47,6 +57,27 @@
           data-i18n-placeholder="searchLibraryPlaceholder" autocomplete="off">
       </label>
       <p id="estado-filtro-biblioteca" class="estado oculto"></p>
+
+      <div id="organizacion-biblioteca" class="organizacion-biblioteca oculto">
+        <label>
+          <span data-i18n="filterBy">Mostrar</span>
+          <select id="filtro-biblioteca">
+            <option value="todos" data-i18n="filterAll">Todos</option>
+            <option value="leyendo" data-i18n="filterReading">Leyendo</option>
+            <option value="pendientes" data-i18n="filterPending">Pendientes</option>
+            <option value="terminados" data-i18n="filterFinished">Terminados</option>
+          </select>
+        </label>
+        <label>
+          <span data-i18n="sortBy">Ordenar por</span>
+          <select id="orden-biblioteca">
+            <option value="reciente" data-i18n="sortRecent">Lectura reciente</option>
+            <option value="titulo" data-i18n="sortTitle">Título</option>
+            <option value="autor" data-i18n="sortAuthor">Autor</option>
+            <option value="progreso" data-i18n="sortProgress">Progreso</option>
+          </select>
+        </label>
+      </div>
 
       <div id="zona-remota" class="destino-arrastre oculto">
         <div class="indicador-arrastre" data-i18n="dropCloud">Suelta aquí para subir a la nube</div>
@@ -287,9 +318,15 @@
       <div class="tarjeta">
         <h2>La biblioteca</h2>
         <ul class="lista-ayuda">
-          <li><strong>Continuar leyendo:</strong> el último libro leído aparece
-          destacado al principio de la biblioteca para abrirlo directamente,
-          aunque esté guardado dentro de una carpeta de la nube.</li>
+          <li><strong>Continuar leyendo:</strong> los tres últimos libros leídos
+          aparecen destacados al principio de la biblioteca para abrirlos
+          directamente, aunque estén dentro de carpetas de la nube.</li>
+          <li><strong>Orden y estados:</strong> puedes ordenar por lectura
+          reciente, título, autor o progreso, filtrar los libros pendientes,
+          en lectura o terminados y marcar cualquiera como terminado.</li>
+          <li><strong>Libro de ejemplo:</strong> cuando la biblioteca está
+          completamente vacía puedes añadir y abrir una obra de muestra en el
+          idioma de la interfaz. Después funciona como cualquier libro local.</li>
           <li><strong>Portadas:</strong> se generan solas (la cubierta del
           EPUB o la primera página del PDF) y muestran el avance de lectura
           de cada libro. El buscador de la biblioteca filtra por nombre,

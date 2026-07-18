@@ -15,6 +15,14 @@ const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
+const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
+const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
+
+const LIBROS_EJEMPLO = {
+  es: { ruta: 'ejemplos/lazarillo-de-tormes-es.epub', nombre: 'Lazarillo de Tormes.epub' },
+  ca: { ruta: 'ejemplos/lauca-del-senyor-esteve-ca.epub', nombre: 'L’auca del senyor Esteve.epub' },
+  en: { ruta: 'ejemplos/alice-in-wonderland-en.epub', nombre: 'Alice’s Adventures in Wonderland.epub' },
+};
 
 const MARGEN_EPUB_INICIAL = 10;
 const MARGEN_EPUB_MAXIMO = 30;
@@ -360,8 +368,32 @@ function actualizarEstadoSincronizacion(error = null) {
   estado.title = error ? explicarError(error) : '';
 }
 
+function mostrarLibroEjemplo(mostrar) {
+  $('titulo-libro-ejemplo').textContent = t('sampleBookTitle');
+  $('libro-ejemplo').classList.toggle('oculto', !mostrar);
+}
+
+$('btn-libro-ejemplo').addEventListener('click', async () => {
+  const ejemplo = LIBROS_EJEMPLO[idiomaActual()] ?? LIBROS_EJEMPLO.es;
+  const boton = $('btn-libro-ejemplo');
+  boton.disabled = true;
+  mostrarCarga(t('loadingSampleBook'));
+  try {
+    const respuesta = await fetch(ejemplo.ruta);
+    if (!respuesta.ok) throw new Error(`${respuesta.status} ${respuesta.statusText}`);
+    const archivo = new File([await respuesta.blob()], ejemplo.nombre, { type: 'application/epub+zip' });
+    await guardarArchivosLocales([archivo], true);
+  } catch (error) {
+    avisar(t('saveFailed', { title: t('sampleBookTitle'), error: error.message }), 7000);
+  } finally {
+    boton.disabled = false;
+    ocultarCarga();
+  }
+});
+
 async function cargarBiblioteca() {
-  cargarLibrosLocales();
+  mostrarLibroEjemplo(false);
+  const promesaLocales = cargarLibrosLocales();
   pintarContinuarLeyendo();
 
   const hayConfig = cliente !== null;
@@ -372,6 +404,7 @@ async function cargarBiblioteca() {
   $('zona-local').classList.toggle('oculto', Boolean(hayConfig && rutaNube));
   if (!hayConfig) {
     $('lista-libros').replaceChildren();
+    mostrarLibroEjemplo((await promesaLocales) === 0);
     actualizarVisibilidadBuscadorBiblioteca();
     return;
   }
@@ -396,12 +429,15 @@ async function cargarBiblioteca() {
       ? ''
       : t(rutaNube ? 'emptyFolder' : 'noCloudBooks');
     pintarListaRemota(carpetas, libros, copias);
+    const cantidadLocales = await promesaLocales;
+    mostrarLibroEjemplo(!rutaNube && cantidadLocales === 0 && carpetas.length === 0 && libros.length === 0);
     pintarContinuarLeyendo();
     generarPortadasFaltantes(libros.map((libro) => ({ ...libro, nombre: idRemoto(libro.nombre) })));
   } catch (error) {
     const copias = await promesaCopias;
     const bibliotecaOffline = almacen.bibliotecaDeCopias(copias, rutaNube);
     if (bibliotecaOffline.carpetas.length || bibliotecaOffline.libros.length) {
+      mostrarLibroEjemplo(false);
       estado.className = 'estado';
       estado.textContent = t('offlineLibrary');
       pintarListaRemota(
@@ -419,6 +455,7 @@ async function cargarBiblioteca() {
       return cargarBiblioteca();
     }
     estado.className = 'estado error';
+    mostrarLibroEjemplo(false);
     estado.textContent = explicarError(error);
     pintarRutaNube();
   }
@@ -430,55 +467,71 @@ async function pintarContinuarLeyendo() {
   const version = ++versionContinuarLeyendo;
   const seccion = $('continuar-leyendo');
   const lista = $('libro-continuar');
-  const ultimo = progreso.ultimoLibroLeido();
+  const recientes = progreso.librosRecientes(8);
   lista.replaceChildren();
   seccion.classList.add('oculto');
-  if (!ultimo) return;
+  if (!recientes.length) return;
 
-  let nombre;
-  let tamano = 0;
-  let alAbrir;
-  if (ultimo.id.startsWith('local:')) {
-    const libros = await almacen.listarLibros().catch(() => []);
-    if (version !== versionContinuarLeyendo) return;
-    const libro = libros.find((candidato) => candidato.id === ultimo.id);
-    if (!libro) return;
-    nombre = libro.nombre;
-    tamano = libro.tamano;
-    alAbrir = () => abrirLibroLocal(libro);
-  } else {
-    if (!cliente) return;
-    nombre = nombreDeId(ultimo.id);
-    alAbrir = () => abrirLibroRemoto(ultimo.id);
+  const locales = await almacen.listarLibros().catch(() => []);
+  if (version !== versionContinuarLeyendo) return;
+  const localesPorId = new Map(locales.map((libro) => [libro.id, libro]));
+  for (const reciente of recientes) {
+    if (lista.children.length >= 3) break;
+    let nombre;
+    let tamano = 0;
+    let alAbrir;
+    if (reciente.id.startsWith('local:')) {
+      const libro = localesPorId.get(reciente.id);
+      if (!libro) continue;
+      nombre = libro.nombre;
+      tamano = libro.tamano;
+      alAbrir = () => abrirLibroLocal(libro);
+    } else {
+      if (!cliente) continue;
+      nombre = nombreDeId(reciente.id);
+      alAbrir = () => abrirLibroRemoto(reciente.id);
+    }
+    const fila = crearFilaLibro({
+      id: reciente.id,
+      titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
+      tamano,
+      formato: formatoDe(nombre),
+      alAbrir,
+      mostrarTerminado: false,
+    });
+    fila.dataset.destacado = 'true';
+    lista.append(fila);
   }
-
-  const fila = crearFilaLibro({
-    id: ultimo.id,
-    titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
-    tamano,
-    formato: formatoDe(nombre),
-    alAbrir,
-  });
-  fila.dataset.destacado = 'true';
-  lista.append(fila);
+  if (!lista.children.length) return;
   seccion.classList.remove('oculto');
-  aplicarFiltroBiblioteca();
+  aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
 }
 
 // Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
-  alSinConexion, sinConexion = false, copiaDesactualizada = false,
+  alSinConexion, sinConexion = false, copiaDesactualizada = false, mostrarTerminado = true,
 }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
+  const estadoLectura = avance?.terminado === true || (avance?.terminado !== false && porcentaje >= 100)
+    ? 'terminados'
+    : avance && (avance.cfi || avance.pagina > 0) ? 'leyendo' : 'pendientes';
 
   const elemento = document.createElement('li');
   elemento.dataset.idLibro = id;
   elemento.dataset.busqueda = normalizarBusqueda(`${titulo} ${formato}`);
-  const boton = document.createElement('button');
+  elemento.dataset.titulo = normalizarBusqueda(titulo);
+  elemento.dataset.autor = '';
+  elemento.dataset.progreso = String(porcentaje);
+  elemento.dataset.fechaLectura = avance?.posicionActualizada ?? avance?.actualizado ?? '';
+  elemento.dataset.estadoLectura = estadoLectura;
+  elemento.classList.toggle('libro-terminado', estadoLectura === 'terminados');
+  const boton = document.createElement('div');
   boton.className = 'libro';
+  boton.setAttribute('role', 'button');
+  boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
     <span class="datos">
@@ -488,7 +541,7 @@ function crearFilaLibro({
         <span class="estado-sin-conexion oculto"></span>
       </span>
       <span class="autor oculto"></span>
-      <span class="detalle"></span>
+      <span class="fila-detalle"><span class="detalle"></span></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
   // Los libros de la nube (los que se pueden mover) también admiten
@@ -550,6 +603,26 @@ function crearFilaLibro({
     }
     alAbrir(evento);
   });
+  boton.addEventListener('keydown', (evento) => {
+    if (evento.target !== boton) return;
+    if (evento.key !== 'Enter' && evento.key !== ' ') return;
+    evento.preventDefault();
+    alAbrir(evento);
+  });
+
+  if (mostrarTerminado) {
+    const terminado = document.createElement('button');
+    terminado.type = 'button';
+    terminado.className = 'btn-terminado-en-libro';
+    terminado.classList.toggle('terminado', estadoLectura === 'terminados');
+    terminado.title = t(estadoLectura === 'terminados' ? 'markUnfinished' : 'markFinished', { title: titulo });
+    terminado.innerHTML = `${icono('circle-check')}<span${estadoLectura === 'terminados' ? '' : ' class="sr-solo"'}>${t('finished')}</span>`;
+    terminado.addEventListener('click', (evento) => {
+      evento.stopPropagation();
+      alternarTerminado(id, estadoLectura !== 'terminados');
+    });
+    boton.querySelector('.fila-detalle').append(terminado);
+  }
 
   // Miniatura de la cubierta, si ya está generada.
   almacen.obtenerPortada(id).then((blob) => {
@@ -627,38 +700,85 @@ async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
     const nombre = fila.querySelector('.nombre');
     nombre.textContent = metadatos.titulo.trim();
     nombre.title = metadatos.titulo.trim();
+    fila.dataset.titulo = normalizarBusqueda(metadatos.titulo.trim());
   }
   if (metadatos.autor?.trim()) {
     const autor = fila.querySelector('.autor');
     autor.textContent = metadatos.autor.trim();
     autor.classList.remove('oculto');
+    fila.dataset.autor = normalizarBusqueda(metadatos.autor.trim());
   }
-  aplicarFiltroBiblioteca();
+  aplicarOrganizacionBiblioteca();
 }
 
-function aplicarFiltroBiblioteca() {
+function aplicarOrganizacionBiblioteca() {
   const consulta = normalizarBusqueda($('buscar-biblioteca').value.trim());
+  const filtro = $('filtro-biblioteca').value;
+  const orden = $('orden-biblioteca').value;
+  const comparadorTexto = new Intl.Collator(idiomaActual(), { sensitivity: 'base', numeric: true });
+
+  for (const lista of [$('lista-libros'), $('lista-locales')]) {
+    const filas = [...lista.querySelectorAll(':scope > li[data-id-libro]')];
+    filas.sort((a, b) => {
+      if (orden === 'progreso') {
+        const diferencia = Number(b.dataset.progreso) - Number(a.dataset.progreso);
+        if (diferencia) return diferencia;
+      } else if (orden === 'autor') {
+        const diferencia = comparadorTexto.compare(a.dataset.autor || a.dataset.titulo, b.dataset.autor || b.dataset.titulo);
+        if (diferencia) return diferencia;
+      } else if (orden === 'reciente') {
+        const diferencia = (b.dataset.fechaLectura || '').localeCompare(a.dataset.fechaLectura || '');
+        if (diferencia) return diferencia;
+      }
+      return comparadorTexto.compare(a.dataset.titulo, b.dataset.titulo);
+    });
+    for (const fila of filas) lista.append(fila);
+  }
+
   let visibles = 0;
-  for (const fila of document.querySelectorAll('.lista-libros li')) {
-    const coincide = !consulta || fila.dataset.busqueda?.includes(consulta);
+  const filas = document.querySelectorAll('#lista-libros > li, #lista-locales > li');
+  for (const fila of filas) {
+    const coincideTexto = !consulta || fila.dataset.busqueda?.includes(consulta);
+    const coincideEstado = !fila.dataset.idLibro || filtro === 'todos' || fila.dataset.estadoLectura === filtro;
+    const coincide = coincideTexto && coincideEstado;
     fila.classList.toggle('oculto', !coincide);
-    if (coincide) visibles += 1;
+    if (coincide && fila.dataset.idLibro) visibles += 1;
   }
   const estado = $('estado-filtro-biblioteca');
-  estado.textContent = consulta && !visibles ? t('noLibraryResults') : '';
+  estado.textContent = (consulta || filtro !== 'todos') && !visibles ? t('noLibraryResults') : '';
   estado.classList.toggle('oculto', !estado.textContent);
-  const filaContinuar = $('libro-continuar').firstElementChild;
-  $('continuar-leyendo').classList.toggle(
-    'oculto',
-    !filaContinuar || filaContinuar.classList.contains('oculto'),
-  );
 }
 
-$('buscar-biblioteca').addEventListener('input', aplicarFiltroBiblioteca);
+$('buscar-biblioteca').addEventListener('input', aplicarOrganizacionBiblioteca);
+$('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
+$('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
+$('filtro-biblioteca').addEventListener('change', (evento) => {
+  localStorage.setItem(CLAVE_FILTRO_BIBLIOTECA, evento.target.value);
+  aplicarOrganizacionBiblioteca();
+});
+$('orden-biblioteca').addEventListener('change', (evento) => {
+  localStorage.setItem(CLAVE_ORDEN_BIBLIOTECA, evento.target.value);
+  aplicarOrganizacionBiblioteca();
+});
+
+async function alternarTerminado(id, terminado) {
+  progreso.marcarTerminado(id, terminado);
+  if (!id.startsWith('local:') && cliente) {
+    try {
+      await progreso.sincronizar(cliente);
+      actualizarEstadoSincronizacion();
+    } catch (error) {
+      actualizarEstadoSincronizacion(error);
+      avisar(t('syncFailed', { error: explicarError(error) }), 7000);
+    }
+  }
+  cargarBiblioteca();
+}
 
 function actualizarVisibilidadBuscadorBiblioteca() {
-  const hayLibros = document.querySelector('.lista-libros li') !== null;
+  const hayLibros = document.querySelector('#lista-libros > li[data-id-libro], #lista-locales > li[data-id-libro]') !== null;
   document.querySelector('.buscador-biblioteca').classList.toggle('oculto', !hayLibros);
+  $('organizacion-biblioteca').classList.toggle('oculto', !hayLibros);
   if (!hayLibros) {
     $('buscar-biblioteca').value = '';
     $('estado-filtro-biblioteca').textContent = '';
@@ -812,7 +932,7 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
       copiaDesactualizada: desactualizada,
     }));
   }
-  aplicarFiltroBiblioteca();
+  aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
 }
 
@@ -1026,8 +1146,9 @@ async function cargarLibrosLocales() {
     }
     lista.append(fila);
   }
-  aplicarFiltroBiblioteca();
+  aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
+  return libros.length;
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);

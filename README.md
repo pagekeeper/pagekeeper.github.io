@@ -22,9 +22,15 @@ libros y sincronizar el progreso de lectura.
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red).
-- ▶️ **Continuar leyendo**: al abrir la aplicación, el libro usado más
-  recientemente aparece destacado al principio de la biblioteca con su
-  portada, progreso y acceso directo, aunque esté dentro de una subcarpeta.
+- ▶️ **Continuar leyendo**: al abrir la aplicación, los tres libros usados más
+  recientemente aparecen destacados al principio de la biblioteca con su
+  portada, progreso y acceso directo, aunque estén dentro de subcarpetas.
+- 🗂️ **Biblioteca organizada**: permite ordenar por lectura reciente, título,
+  autor o progreso; filtrar por pendientes, en lectura y terminados; y marcar
+  manualmente cualquier libro como terminado.
+- 📖 **Libro de ejemplo**: cuando la biblioteca está completamente vacía,
+  ofrece añadir y abrir una obra incluida en español, catalán o inglés según
+  el idioma de la interfaz. Los tres EPUB están disponibles también sin red.
 - 📴 **Libros de la nube sin conexión**: cada PDF o EPUB remoto se puede fijar
   en el dispositivo. PageKeeper guarda una copia en IndexedDB, la actualiza
   cuando cambia en WebDAV y la abre automáticamente si falla la conexión, sin

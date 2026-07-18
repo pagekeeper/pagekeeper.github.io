@@ -110,6 +110,7 @@ function normalizarMarcador(marcador, fechaPredeterminada) {
 function normalizarEntrada(entrada = {}) {
   const posicionActualizada = entrada.posicionActualizada ?? entrada.actualizado ?? FECHA_CERO;
   const marcadoresActualizados = fechaColeccion(entrada);
+  const terminadoActualizado = entrada.terminadoActualizado ?? FECHA_CERO;
   const marcadores = Array.isArray(entrada.marcadores)
     ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
     : [];
@@ -117,11 +118,13 @@ function normalizarEntrada(entrada = {}) {
     ...entrada,
     posicionActualizada,
     marcadoresActualizados,
+    terminadoActualizado,
     marcadoresVersion: 2,
     actualizado: fechaMaxima(
       entrada.actualizado,
       posicionActualizada,
       marcadoresActualizados,
+      terminadoActualizado,
       ...marcadores.map((marcador) => marcador.actualizado),
     ),
   };
@@ -283,17 +286,35 @@ export function progresoDe(idLibro) {
   return cargarLocal().libros[idLibro] ?? null;
 }
 
+export function marcarTerminado(idLibro, terminado) {
+  const datos = cargarLocal();
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? { pagina: 0, paginas: 0 });
+  const ahora = new Date().toISOString();
+  entrada.terminado = Boolean(terminado);
+  entrada.terminadoActualizado = ahora;
+  entrada.actualizado = fechaMaxima(entrada.actualizado, ahora);
+  entrada.dispositivo = nombreDispositivo();
+  datos.libros[idLibro] = entrada;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return entrada;
+}
+
 // El libro cuya posición cambió más recientemente es el candidato natural
 // para «Continuar leyendo». Se usa la fecha de posición, no la de marcadores,
 // para que editar una nota de un libro antiguo no lo convierta en el actual.
 export function ultimoLibroLeido(datos = cargarLocal()) {
-  let ultimo = null;
+  return librosRecientes(1, datos)[0] ?? null;
+}
+
+export function librosRecientes(limite = 3, datos = cargarLocal()) {
+  const libros = [];
   for (const [id, entrada] of Object.entries(datos?.libros ?? {})) {
     if (!entrada || (!Number.isFinite(entrada.pagina) && !entrada.cfi)) continue;
     const fecha = entrada.posicionActualizada ?? entrada.actualizado ?? FECHA_CERO;
-    if (!ultimo || fecha > ultimo.fecha) ultimo = { id, fecha, progreso: entrada };
+    libros.push({ id, fecha, progreso: entrada });
   }
-  return ultimo;
+  return libros.sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, limite);
 }
 
 function marcadorMasReciente(uno, otro) {
@@ -365,9 +386,14 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   resultado.posicionActualizada = posicion.posicionActualizada;
   resultado.marcadoresActualizados = fechaMaxima(fechaColeccion(local), fechaColeccion(remoto));
   resultado.marcadoresVersion = 2;
+  const finalizacion = local.terminadoActualizado > remoto.terminadoActualizado ? local : remoto;
+  resultado.terminadoActualizado = finalizacion.terminadoActualizado;
+  if (typeof finalizacion.terminado === 'boolean') resultado.terminado = finalizacion.terminado;
+  else delete resultado.terminado;
   resultado.actualizado = fechaMaxima(
     resultado.posicionActualizada,
     resultado.marcadoresActualizados,
+    resultado.terminadoActualizado,
     ...marcadores.map((marcador) => marcador.actualizado),
   );
   return resultado;

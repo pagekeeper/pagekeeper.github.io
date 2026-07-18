@@ -130,6 +130,22 @@ body {
 .tarjeta.destacado { border-color: var(--acento); }
 .tarjeta.destacado h2 { color: var(--acento); }
 
+.libro-ejemplo {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 0.8rem;
+  padding: 1rem; border: 1px dashed color-mix(in srgb, var(--acento) 70%, var(--borde));
+  border-radius: 0.85rem; background: color-mix(in srgb, var(--acento) 7%, var(--fondo-tarjeta));
+}
+.icono-libro-ejemplo {
+  width: 3rem; height: 3rem; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: var(--acento-oscuro); color: white;
+}
+.icono-libro-ejemplo .icono { width: 1.55rem; height: 1.55rem; }
+.texto-libro-ejemplo { min-width: 0; }
+.texto-libro-ejemplo h2 { color: var(--acento); font-size: 1rem; }
+.texto-libro-ejemplo p { margin-top: 0.2rem; color: var(--texto-suave); font-size: 0.82rem; }
+.texto-libro-ejemplo strong { color: var(--texto); }
+.libro-ejemplo .btn-primario { white-space: nowrap; padding: 0.55rem 0.8rem; }
+
 .continuar-leyendo {
   padding: 0.9rem; border: 1px solid color-mix(in srgb, var(--acento) 65%, var(--borde));
   border-radius: 0.9rem;
@@ -153,6 +169,22 @@ body {
 }
 .continuar-leyendo .libro .portada { width: 3.3rem; height: 4.4rem; }
 .continuar-leyendo .libro .nombre { font-size: 1.05rem; }
+.continuar-leyendo li:not(:first-child) .libro { padding: 0.5rem 0.7rem; }
+.continuar-leyendo li:not(:first-child) .portada { width: 2rem; height: 2.7rem; }
+.continuar-leyendo li:not(:first-child) .nombre { font-size: 0.9rem; }
+.continuar-leyendo li:not(:first-child) .barra-progreso { margin-top: 0.2rem; }
+
+.organizacion-biblioteca { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.organizacion-biblioteca label {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  color: var(--texto-suave); font-size: 0.72rem; font-weight: 650;
+}
+.organizacion-biblioteca select {
+  width: 100%; min-width: 0; padding: 0.5rem 0.65rem;
+  border: 1px solid var(--borde); border-radius: 0.55rem;
+  background: var(--fondo-tarjeta); color: var(--texto); font: inherit; font-size: 0.85rem;
+}
+.organizacion-biblioteca select:focus { outline: 2px solid var(--acento); border-color: transparent; }
 
 /* ── Pie de página ── */
 .pie {
@@ -304,6 +336,18 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   font-size: 0.8rem; color: var(--texto-suave);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.libro .fila-detalle { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
+.libro .fila-detalle .detalle { flex: 1; min-width: 0; }
+.btn-terminado-en-libro {
+  flex: none; display: inline-flex; align-items: center; gap: 0.25rem;
+  padding: 0.12rem 0.35rem; border: 1px solid var(--borde); border-radius: 999px;
+  background: transparent; color: var(--texto-suave); cursor: pointer;
+  font: inherit; font-size: 0.62rem; font-weight: 700;
+}
+.btn-terminado-en-libro .icono { width: 0.8rem; height: 0.8rem; }
+.btn-terminado-en-libro:hover { color: var(--acento); border-color: var(--acento); }
+.btn-terminado-en-libro.terminado { color: #34d399; border-color: #34d399; }
+.libro-terminado .barra-progreso > div { background: #34d399; }
 .libro .barra-progreso {
   height: 4px; background: var(--borde); border-radius: 2px;
   margin-top: 0.35rem; overflow: hidden;
@@ -394,6 +438,8 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
     display: -webkit-box; flex: 1; white-space: normal; line-height: 1.25;
     -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
   }
+  .libro-ejemplo { grid-template-columns: auto 1fr; }
+  .libro-ejemplo .btn-primario { grid-column: 1 / -1; width: 100%; }
 }
 #contenedor-pagina {
   min-height: 100%; display: flex;
