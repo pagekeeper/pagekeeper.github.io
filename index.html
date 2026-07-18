@@ -44,10 +44,12 @@
           <span class="icono-continuar" data-icono="book-open"></span>
           <div>
             <h2 id="titulo-continuar" data-i18n="continueReading">Continuar leyendo</h2>
-            <p data-i18n="continueReadingHelp">Tus tres libros más recientes, siempre a mano</p>
+            <p data-i18n="continueReadingHelp">Tu lectura más reciente, con las demás a un toque</p>
           </div>
         </div>
         <ul id="libro-continuar" class="lista-libros"></ul>
+        <button id="btn-mas-recientes" type="button" class="btn-mas-recientes oculto"
+          aria-expanded="false" aria-controls="libro-continuar"></button>
       </section>
 
       <label class="buscador buscador-biblioteca oculto">
@@ -318,9 +320,9 @@
       <div class="tarjeta">
         <h2>La biblioteca</h2>
         <ul class="lista-ayuda">
-          <li><strong>Continuar leyendo:</strong> los tres últimos libros leídos
-          aparecen destacados al principio de la biblioteca para abrirlos
-          directamente, aunque estén dentro de carpetas de la nube.</li>
+          <li><strong>Continuar leyendo:</strong> el último libro aparece destacado;
+          puedes desplegar otros recientes o quitar los que ya no quieras ver.
+          Un libro descartado vuelve a aparecer cuando lo abres de nuevo.</li>
           <li><strong>Orden y estados:</strong> puedes ordenar por lectura
           reciente, título, autor o progreso, filtrar los libros pendientes,
           en lectura o terminados y marcar cualquiera como terminado.</li>

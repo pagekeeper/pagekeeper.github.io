@@ -17,6 +17,7 @@ const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
+const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 
 const LIBROS_EJEMPLO = {
   es: { ruta: 'ejemplos/lazarillo-de-tormes-es.epub', nombre: 'Lazarillo de Tormes.epub' },
@@ -462,14 +463,59 @@ async function cargarBiblioteca() {
 }
 
 let versionContinuarLeyendo = 0;
+let continuarExpandido = false;
+
+function librosOcultosDeContinuar() {
+  try {
+    const ids = JSON.parse(localStorage.getItem(CLAVE_CONTINUAR_OCULTOS));
+    if (Array.isArray(ids)) return new Set(ids.filter((id) => typeof id === 'string'));
+  } catch { /* preferencia corrupta: se parte de una lista limpia */ }
+  return new Set();
+}
+
+function guardarOcultosDeContinuar(ids) {
+  if (ids.size) localStorage.setItem(CLAVE_CONTINUAR_OCULTOS, JSON.stringify([...ids]));
+  else localStorage.removeItem(CLAVE_CONTINUAR_OCULTOS);
+}
+
+function quitarDeContinuar(id) {
+  const ocultos = librosOcultosDeContinuar();
+  ocultos.add(id);
+  guardarOcultosDeContinuar(ocultos);
+  pintarContinuarLeyendo();
+}
+
+function restaurarEnContinuar(id) {
+  const ocultos = librosOcultosDeContinuar();
+  if (!ocultos.delete(id)) return;
+  guardarOcultosDeContinuar(ocultos);
+}
+
+function actualizarDesplegableContinuar() {
+  const filas = [...$('libro-continuar').children];
+  filas.forEach((fila, indice) => fila.classList.toggle('oculto', !continuarExpandido && indice > 0));
+  const boton = $('btn-mas-recientes');
+  boton.classList.toggle('oculto', filas.length <= 1);
+  boton.setAttribute('aria-expanded', String(continuarExpandido));
+  boton.textContent = continuarExpandido
+    ? t('showFewerRecent')
+    : t('showMoreRecent', { count: Math.max(0, filas.length - 1) });
+}
+
+$('btn-mas-recientes').addEventListener('click', () => {
+  continuarExpandido = !continuarExpandido;
+  actualizarDesplegableContinuar();
+});
 
 async function pintarContinuarLeyendo() {
   const version = ++versionContinuarLeyendo;
   const seccion = $('continuar-leyendo');
   const lista = $('libro-continuar');
-  const recientes = progreso.librosRecientes(8);
+  const ocultos = librosOcultosDeContinuar();
+  const recientes = progreso.librosRecientes(Infinity).filter((reciente) => !ocultos.has(reciente.id));
   lista.replaceChildren();
   seccion.classList.add('oculto');
+  $('btn-mas-recientes').classList.add('oculto');
   if (!recientes.length) return;
 
   const locales = await almacen.listarLibros().catch(() => []);
@@ -500,10 +546,22 @@ async function pintarContinuarLeyendo() {
       mostrarTerminado: false,
     });
     fila.dataset.destacado = 'true';
+    const quitar = document.createElement('button');
+    quitar.type = 'button';
+    quitar.className = 'btn-quitar-continuar';
+    quitar.title = t('removeFromContinue', { title: fila.querySelector('.nombre').textContent });
+    quitar.setAttribute('aria-label', quitar.title);
+    quitar.innerHTML = icono('x');
+    quitar.addEventListener('click', (evento) => {
+      evento.stopPropagation();
+      quitarDeContinuar(reciente.id);
+    });
+    fila.append(quitar);
     lista.append(fila);
   }
   if (!lista.children.length) return;
   seccion.classList.remove('oculto');
+  actualizarDesplegableContinuar();
   aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
 }
@@ -1700,6 +1758,8 @@ async function abrirEnLector(datos, libro) {
       }
     }
     await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
+    restaurarEnContinuar(libro.id);
+    continuarExpandido = false;
   } catch (error) {
     cerrarVistaLector();
     if (history.state?.[ESTADO_VISTA] === 'lector') history.back();

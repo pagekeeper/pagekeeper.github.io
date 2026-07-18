@@ -166,10 +166,31 @@ body {
 .continuar-leyendo .libro {
   border-color: color-mix(in srgb, var(--acento) 48%, var(--borde));
   background: color-mix(in srgb, var(--fondo) 48%, var(--fondo-tarjeta));
+  padding-right: 2.8rem;
+}
+.continuar-leyendo li { position: relative; }
+.btn-quitar-continuar {
+  position: absolute; z-index: 2; top: 0.45rem; right: 0.45rem;
+  width: 1.8rem; height: 1.8rem; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; border: none; border-radius: 50%;
+  background: transparent; color: var(--texto-suave); cursor: pointer;
+}
+.btn-quitar-continuar:hover, .btn-quitar-continuar:focus-visible {
+  background: color-mix(in srgb, var(--peligro) 14%, transparent); color: var(--peligro);
+  outline: none;
+}
+.btn-quitar-continuar .icono { width: 1rem; height: 1rem; }
+.btn-mas-recientes {
+  display: block; margin: 0.65rem auto 0; padding: 0.25rem 0.65rem;
+  border: none; border-radius: 0.4rem; background: transparent;
+  color: var(--acento); font: inherit; font-size: 0.8rem; font-weight: 650; cursor: pointer;
+}
+.btn-mas-recientes:hover, .btn-mas-recientes:focus-visible {
+  background: color-mix(in srgb, var(--acento) 12%, transparent); outline: none;
 }
 .continuar-leyendo .libro .portada { width: 3.3rem; height: 4.4rem; }
 .continuar-leyendo .libro .nombre { font-size: 1.05rem; }
-.continuar-leyendo li:not(:first-child) .libro { padding: 0.5rem 0.7rem; }
+.continuar-leyendo li:not(:first-child) .libro { padding: 0.5rem 2.8rem 0.5rem 0.7rem; }
 .continuar-leyendo li:not(:first-child) .portada { width: 2rem; height: 2.7rem; }
 .continuar-leyendo li:not(:first-child) .nombre { font-size: 0.9rem; }
 .continuar-leyendo li:not(:first-child) .barra-progreso { margin-top: 0.2rem; }

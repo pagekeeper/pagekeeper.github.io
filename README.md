@@ -22,9 +22,9 @@ libros y sincronizar el progreso de lectura.
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red).
-- ▶️ **Continuar leyendo**: al abrir la aplicación, los tres libros usados más
-  recientemente aparecen destacados al principio de la biblioteca con su
-  portada, progreso y acceso directo, aunque estén dentro de subcarpetas.
+- ▶️ **Continuar leyendo**: al abrir la aplicación, el último libro aparece
+  destacado. Los demás recientes se pueden desplegar y quitar individualmente;
+  vuelven a aparecer al abrirlos de nuevo.
 - 🗂️ **Biblioteca organizada**: permite ordenar por lectura reciente, título,
   autor o progreso; filtrar por pendientes, en lectura y terminados; y marcar
   manualmente cualquier libro como terminado.
