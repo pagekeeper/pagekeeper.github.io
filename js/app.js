@@ -711,7 +711,10 @@ function crearFilaLibro({
     terminado.className = 'btn-terminado-en-libro';
     terminado.classList.toggle('terminado', estadoLectura === 'terminados');
     terminado.title = t(estadoLectura === 'terminados' ? 'markUnfinished' : 'markFinished', { title: titulo });
-    terminado.innerHTML = `${icono('circle-check')}<span${estadoLectura === 'terminados' ? '' : ' class="sr-solo"'}>${t('finished')}</span>`;
+    terminado.setAttribute('aria-label', terminado.title);
+    terminado.setAttribute('aria-pressed', String(estadoLectura === 'terminados'));
+    terminado.innerHTML = `${icono('circle-check')}<span${estadoLectura === 'terminados' ? '' : ' class="sr-solo"'}>${t('finished')}</span>` +
+      (estadoLectura === 'terminados' ? icono('x', 'icono icono-quitar-terminado') : '');
     terminado.addEventListener('click', (evento) => {
       evento.stopPropagation();
       alternarTerminado(id, estadoLectura !== 'terminados');
@@ -1796,6 +1799,7 @@ async function abrirEnLector(datos, libro) {
       }
     }
     await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
+    if (lecturaTerminada(avance)) progreso.marcarTerminado(libro.id, false);
     restaurarEnContinuar(libro.id);
     continuarExpandido = false;
   } catch (error) {

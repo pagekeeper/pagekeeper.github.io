@@ -379,6 +379,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .btn-terminado-en-libro .icono { width: 0.8rem; height: 0.8rem; }
 .btn-terminado-en-libro:hover { color: var(--acento); border-color: var(--acento); }
 .btn-terminado-en-libro.terminado { color: #34d399; border-color: #34d399; }
+.btn-terminado-en-libro.terminado:hover, .btn-terminado-en-libro.terminado:focus-visible {
+  color: var(--peligro); border-color: var(--peligro); outline: none;
+}
+.btn-terminado-en-libro .icono-quitar-terminado { width: 0.7rem; height: 0.7rem; margin-left: 0.05rem; }
 .libro-terminado .barra-progreso > div { background: #34d399; }
 .libro .barra-progreso {
   height: 4px; background: var(--borde); border-radius: 2px;
