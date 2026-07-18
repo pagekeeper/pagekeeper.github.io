@@ -177,6 +177,9 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 .btn-pagina:hover { border-color: var(--acento); }
 
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
+#area-lectura canvas { cursor: grab; }
+#area-lectura.arrastrando, #area-lectura.arrastrando canvas { cursor: grabbing; }
+#area-lectura.arrastrando { user-select: none; }
 
 /* Contenedor del lector EPUB: ocupa toda el área; epub.js gestiona dentro
    su propio scroll y paginado. */

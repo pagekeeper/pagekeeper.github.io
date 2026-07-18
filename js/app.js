@@ -700,6 +700,18 @@ async function ajustarZoom(direccion) {
 $('btn-zoom-menos').addEventListener('click', () => ajustarZoom(-1));
 $('btn-zoom-mas').addEventListener('click', () => ajustarZoom(1));
 
+// Ancho automático: la página vuelve a ajustarse al ancho de la pantalla
+// (en EPUB, tamaño de letra al 100 %).
+$('btn-ancho-auto').addEventListener('click', async () => {
+  if (epubAbierto()) {
+    lectorEpub.cambiarTamano(100 - lectorEpub.tamano);
+    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  } else {
+    await lector.cambiarZoom(1 / lector.zoom);
+    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
+  }
+});
+
 $('btn-indicador').addEventListener('click', () => {
   if (epubAbierto()) {
     if (!lectorEpub.conLocalizaciones) return;
@@ -755,11 +767,59 @@ $('area-lectura').addEventListener('touchend', (evento) => {
   const dy = evento.changedTouches[0].clientY - toqueY;
   toqueX = toqueY = null;
   if (modoActual() === 'continuo') return; // en continuo manda el scroll vertical
+  // Con zoom (la página desborda a lo ancho), el dedo desplaza el lienzo
+  // con el scroll nativo: no debe interpretarse como pasar página.
+  const area = $('area-lectura');
+  if (area.scrollWidth > area.clientWidth + 2) return;
   if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
     const activo = epubAbierto() ? lectorEpub : lector;
     if (dx < 0) activo.siguiente(); else activo.anterior();
   }
 }, { passive: true });
+
+// Arrastrar con el ratón para desplazar la página cuando desborda (zoom o
+// página más alta que la vista). En táctil ya lo hace el scroll nativo.
+let arrastre = null;
+let clicTrasArrastre = false;
+
+$('area-lectura').addEventListener('pointerdown', (evento) => {
+  if (evento.pointerType !== 'mouse' || evento.button !== 0) return;
+  const area = $('area-lectura');
+  if (area.scrollWidth <= area.clientWidth && area.scrollHeight <= area.clientHeight) return;
+  arrastre = {
+    x: evento.clientX, y: evento.clientY,
+    izquierda: area.scrollLeft, arriba: area.scrollTop,
+    movido: false,
+  };
+  area.classList.add('arrastrando');
+});
+
+window.addEventListener('pointermove', (evento) => {
+  if (!arrastre) return;
+  const dx = evento.clientX - arrastre.x;
+  const dy = evento.clientY - arrastre.y;
+  if (Math.abs(dx) > 4 || Math.abs(dy) > 4) arrastre.movido = true;
+  const area = $('area-lectura');
+  area.scrollLeft = arrastre.izquierda - dx;
+  area.scrollTop = arrastre.arriba - dy;
+});
+
+window.addEventListener('pointerup', () => {
+  if (!arrastre) return;
+  clicTrasArrastre = arrastre.movido;
+  arrastre = null;
+  $('area-lectura').classList.remove('arrastrando');
+});
+
+// Tras un arrastre, el clic que lo remata no debe pasar página (las zonas
+// de toque laterales lo capturarían).
+$('area-lectura').addEventListener('click', (evento) => {
+  if (clicTrasArrastre) {
+    clicTrasArrastre = false;
+    evento.preventDefault();
+    evento.stopPropagation();
+  }
+}, true);
 
 // ───────────────────────── Arranque ─────────────────────────
 
