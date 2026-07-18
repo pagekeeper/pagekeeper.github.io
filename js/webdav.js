@@ -96,6 +96,14 @@ export class ClienteWebDav {
     if (!respuesta.ok) throw await this.errorDe(respuesta, `subir «${nombre}»`);
   }
 
+  async borrar(nombre) {
+    const respuesta = await fetch(this.urlDe(nombre), {
+      method: 'DELETE',
+      headers: this.cabeceras,
+    });
+    if (!respuesta.ok) throw await this.errorDe(respuesta, `borrar «${nombre}»`);
+  }
+
   async leerProgreso() {
     const respuesta = await fetch(this.urlDe(ARCHIVO_PROGRESO), {
       headers: { ...this.cabeceras, 'Cache-Control': 'no-cache' },

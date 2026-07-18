@@ -62,6 +62,21 @@ export async function sincronizar(cliente) {
   return local;
 }
 
+// Elimina el progreso de un libro borrado, en local y, si hay cliente,
+// también en el archivo remoto (para que no reaparezca al sincronizar).
+export async function olvidar(idLibro, cliente = null) {
+  const local = cargarLocal();
+  delete local.libros[idLibro];
+  guardarLocal(local);
+
+  if (!cliente) return;
+  const remoto = await cliente.leerProgreso();
+  if (remoto?.libros && idLibro in remoto.libros) {
+    delete remoto.libros[idLibro];
+    await cliente.escribirProgreso(remoto);
+  }
+}
+
 function nombreDispositivo() {
   const ua = navigator.userAgent;
   if (/android/i.test(ua)) return 'Android';

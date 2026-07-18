@@ -14,9 +14,9 @@
   <!-- ═══════════ BIBLIOTECA ═══════════ -->
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
-      <h1>📖 Lector PDF</h1>
-      <button id="btn-ayuda" class="btn-icono" title="Ayuda">❓</button>
-      <button id="btn-ajustes" class="btn-icono" title="Ajustes">⚙️</button>
+      <h1><span class="icono-app" data-icono="book-open"></span>Lector PDF</h1>
+      <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda"></button>
+      <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes"></button>
     </header>
     <main class="contenido">
       <div id="aviso-sin-config" class="tarjeta oculto">
@@ -30,18 +30,25 @@
 
       <div id="zona-remota" class="oculto">
         <div class="fila-seccion">
-          <h2 id="titulo-carpeta">Mi biblioteca</h2>
-          <button id="btn-recargar" class="btn-icono" title="Recargar">🔄</button>
+          <h2 id="titulo-carpeta"><span class="icono-seccion" data-icono="cloud"></span>En la nube</h2>
+          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un PDF a la nube"></label>
+          <input type="file" id="selector-subir-nube" accept="application/pdf,.pdf" hidden>
+          <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar"></button>
         </div>
         <div id="estado-remoto" class="estado"></div>
         <ul id="lista-libros" class="lista-libros"></ul>
       </div>
 
-      <div class="tarjeta">
-        <h2>Abrir PDF de este dispositivo</h2>
-        <p class="ayuda">La posición se recuerda solo en este dispositivo.</p>
-        <label class="btn-primario" for="selector-archivo">Elegir archivo…</label>
-        <input type="file" id="selector-archivo" accept="application/pdf,.pdf" hidden>
+      <div id="zona-local">
+        <div class="fila-seccion">
+          <h2><span class="icono-seccion" data-icono="smartphone"></span>En este dispositivo</h2>
+          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un PDF de este dispositivo"></label>
+          <input type="file" id="selector-archivo" accept="application/pdf,.pdf" hidden>
+        </div>
+        <p id="aviso-local-vacio" class="ayuda oculto">No hay ningún libro guardado
+        en este dispositivo. Pulsa «+» para añadir un PDF: quedará en la biblioteca
+        y se recordará por dónde vas (solo en este dispositivo).</p>
+        <ul id="lista-locales" class="lista-libros"></ul>
       </div>
     </main>
   </section>
@@ -49,15 +56,15 @@
   <!-- ═══════════ LECTOR ═══════════ -->
   <section id="vista-lector" class="vista oculto">
     <header class="barra-lector">
-      <button id="btn-volver" class="btn-icono" title="Volver a la biblioteca">←</button>
+      <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca"></button>
       <span id="titulo-libro" class="titulo-libro"></span>
       <button id="btn-indicador" class="btn-pagina" title="Ir a una página">– / –</button>
       <span class="separador"></span>
-      <button id="btn-subir" class="btn-icono oculto" title="Guardar en mi nube">☁️</button>
-      <button id="btn-modo" class="btn-icono" title="Ver páginas continuas">📜</button>
-      <button id="btn-zoom-menos" class="btn-icono" title="Reducir">−</button>
-      <button id="btn-zoom-mas" class="btn-icono" title="Ampliar">+</button>
-      <button id="btn-noche" class="btn-icono" title="Modo noche">🌙</button>
+      <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube"></button>
+      <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
+      <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir"></button>
+      <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar"></button>
+      <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
     <div id="area-lectura">
       <div id="contenedor-pagina"></div>
@@ -69,7 +76,7 @@
   <!-- ═══════════ AJUSTES ═══════════ -->
   <section id="vista-ajustes" class="vista oculto">
     <header class="cabecera">
-      <button id="btn-cerrar-ajustes" class="btn-icono" title="Volver">←</button>
+      <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
       <h1>Ajustes</h1>
     </header>
     <main class="contenido">
@@ -110,7 +117,7 @@
   <!-- ═══════════ AYUDA ═══════════ -->
   <section id="vista-ayuda" class="vista oculto">
     <header class="cabecera">
-      <button id="btn-cerrar-ayuda" class="btn-icono" title="Volver">←</button>
+      <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
       <h1>Ayuda</h1>
     </header>
     <main class="contenido">
@@ -120,11 +127,13 @@
         <p>Lee tus libros en PDF desde el móvil, la tablet o el ordenador y
         recuerda por dónde vas. Hay dos formas de usarlo:</p>
         <ul class="lista-ayuda">
-          <li><strong>Abrir un PDF de tu dispositivo:</strong> funciona al
-          instante, sin cuentas ni ajustes. Única pega: la posición de lectura
-          se guarda solo en ese dispositivo.</li>
+          <li><strong>Añadir un PDF de tu dispositivo:</strong> funciona al
+          instante, sin cuentas ni ajustes. El libro queda guardado en la
+          biblioteca de ese navegador y se recuerda por dónde vas. Única pega:
+          todo se guarda solo en ese dispositivo.</li>
           <li><strong>Conectar una nube (WebDAV):</strong> tus libros y tu
           posición de lectura se sincronizan entre todos tus dispositivos.
+          Puedes subir PDF a la nube y borrarlos desde la propia biblioteca.
           Necesita una configuración previa que se explica más abajo.</li>
         </ul>
       </div>

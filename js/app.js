@@ -1,6 +1,8 @@
 import { ClienteWebDav, explicarError } from './webdav.js';
 import { Lector } from './lector.js';
 import * as progreso from './progreso.js';
+import * as almacen from './almacen.js';
+import { icono, pintarIconos } from './iconos.js';
 
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
@@ -148,6 +150,8 @@ $('btn-cerrar-ajustes').addEventListener('click', () => {
 // ───────────────────────── Biblioteca ─────────────────────────
 
 async function cargarBiblioteca() {
+  cargarLibrosLocales();
+
   const hayConfig = cliente !== null;
   $('aviso-sin-config').classList.toggle('oculto', hayConfig);
   $('zona-remota').classList.toggle('oculto', !hayConfig);
@@ -163,42 +167,112 @@ async function cargarBiblioteca() {
       cliente.listarPdfs(),
       progreso.sincronizar(cliente).catch(() => null),
     ]);
-    estado.textContent = libros.length ? '' : 'No hay ningún PDF en la carpeta configurada.';
-    pintarListaLibros(libros);
+    estado.textContent = libros.length
+      ? ''
+      : 'No hay ningún PDF en la nube. Usa el botón de subir para añadir el primero.';
+    pintarListaRemota(libros);
   } catch (error) {
     estado.className = 'estado error';
     estado.textContent = explicarError(error);
   }
 }
 
-function pintarListaLibros(libros) {
+// Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
+function crearFilaLibro({ id, titulo, tamano, alAbrir, alBorrar }) {
+  const avance = progreso.progresoDe(id);
+  const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
+
+  const elemento = document.createElement('li');
+  const boton = document.createElement('button');
+  boton.className = 'libro';
+  boton.innerHTML = `
+    <span class="portada">${icono('book')}</span>
+    <span class="datos">
+      <span class="nombre"></span>
+      <span class="detalle"></span>
+      <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
+    </span>`;
+  boton.querySelector('.nombre').textContent = titulo;
+  boton.querySelector('.detalle').textContent = avance
+    ? `Página ${avance.pagina} de ${avance.paginas} · ${porcentaje}%`
+    : `${(tamano / 1024 / 1024).toFixed(1)} MB · sin empezar`;
+  boton.addEventListener('click', alAbrir);
+
+  const borrar = document.createElement('button');
+  borrar.className = 'btn-borrar-libro';
+  borrar.title = `Borrar «${titulo}»`;
+  borrar.innerHTML = icono('trash-2');
+  borrar.addEventListener('click', alBorrar);
+
+  elemento.append(boton, borrar);
+  return elemento;
+}
+
+function pintarListaRemota(libros) {
   const lista = $('lista-libros');
   lista.replaceChildren();
   for (const libro of libros) {
-    const avance = progreso.progresoDe(libro.nombre);
-    const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
+    lista.append(crearFilaLibro({
+      id: libro.nombre,
+      titulo: libro.nombre.replace(/\.pdf$/i, ''),
+      tamano: libro.tamano,
+      alAbrir: () => abrirLibroRemoto(libro.nombre),
+      alBorrar: () => borrarLibroRemoto(libro.nombre),
+    }));
+  }
+}
 
-    const elemento = document.createElement('li');
-    const boton = document.createElement('button');
-    boton.className = 'libro';
-    boton.innerHTML = `
-      <span class="portada">📕</span>
-      <span class="datos">
-        <span class="nombre"></span>
-        <span class="detalle"></span>
-        <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
-      </span>`;
-    boton.querySelector('.nombre').textContent = libro.nombre.replace(/\.pdf$/i, '');
-    boton.querySelector('.detalle').textContent = avance
-      ? `Página ${avance.pagina} de ${avance.paginas} · ${porcentaje}%`
-      : `${(libro.tamano / 1024 / 1024).toFixed(1)} MB · sin empezar`;
-    boton.addEventListener('click', () => abrirLibroRemoto(libro.nombre));
-    elemento.append(boton);
-    lista.append(elemento);
+async function cargarLibrosLocales() {
+  const lista = $('lista-locales');
+  let libros = [];
+  try {
+    libros = await almacen.listarLibros();
+  } catch { /* IndexedDB no disponible (p. ej. navegación privada) */ }
+
+  $('aviso-local-vacio').classList.toggle('oculto', libros.length > 0);
+  lista.replaceChildren();
+  for (const libro of libros) {
+    lista.append(crearFilaLibro({
+      id: libro.id,
+      titulo: libro.nombre.replace(/\.pdf$/i, ''),
+      tamano: libro.tamano,
+      alAbrir: () => abrirLibroLocal(libro),
+      alBorrar: () => borrarLibroLocal(libro),
+    }));
   }
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
+
+// ───────────────────────── Borrar libros ─────────────────────────
+
+async function borrarLibroRemoto(nombre) {
+  if (!cliente) return;
+  if (!confirm(`¿Borrar «${nombre}» de tu nube? Se eliminará el archivo del servidor.`)) return;
+  mostrarCarga(`Borrando «${nombre}»…`);
+  try {
+    await cliente.borrar(nombre);
+    await progreso.olvidar(nombre, cliente).catch(() => null);
+    avisar('Libro borrado de la nube.');
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
+  }
+}
+
+async function borrarLibroLocal(libro) {
+  if (!confirm(`¿Borrar «${libro.nombre}» de este dispositivo?`)) return;
+  try {
+    await almacen.borrarLibro(libro.id);
+    await progreso.olvidar(libro.id).catch(() => null);
+    avisar('Libro borrado de este dispositivo.');
+  } catch (error) {
+    avisar(`No se pudo borrar: ${error.message}`, 6000);
+  }
+  cargarLibrosLocales();
+}
 
 // ───────────────────────── Abrir libros ─────────────────────────
 
@@ -219,23 +293,85 @@ async function abrirLibroRemoto(nombre) {
   }
 }
 
-$('selector-archivo').addEventListener('change', async (evento) => {
-  const archivo = evento.target.files[0];
-  evento.target.value = '';
-  if (!archivo) return;
-  mostrarCarga(`Abriendo «${archivo.name}»…`);
+async function abrirLibroLocal(libro) {
+  mostrarCarga(`Abriendo «${libro.nombre}»…`);
   try {
-    const datos = new Uint8Array(await archivo.arrayBuffer());
+    const datos = await almacen.obtenerDatos(libro.id);
+    if (!datos) throw new Error('el libro ya no está en el almacén de este dispositivo');
     await abrirEnLector(datos, {
-      id: `local:${archivo.name}:${archivo.size}`,
-      titulo: archivo.name.replace(/\.pdf$/i, ''),
+      id: libro.id,
+      titulo: libro.nombre.replace(/\.pdf$/i, ''),
       tipo: 'local',
-      archivo,
+      nombre: libro.nombre,
     });
   } catch (error) {
     avisar(`No se pudo abrir el PDF: ${error.message}`, 6000);
   } finally {
     ocultarCarga();
+  }
+}
+
+// Añadir un PDF a la biblioteca de este dispositivo: se guarda en el
+// navegador (IndexedDB) y se abre para leer.
+$('selector-archivo').addEventListener('change', async (evento) => {
+  const archivo = evento.target.files[0];
+  evento.target.value = '';
+  if (!archivo) return;
+  mostrarCarga(`Añadiendo «${archivo.name}»…`);
+  try {
+    const datos = new Uint8Array(await archivo.arrayBuffer());
+    const libro = {
+      id: `local:${archivo.name}:${archivo.size}`,
+      nombre: archivo.name,
+      tamano: archivo.size,
+    };
+    try {
+      await almacen.guardarLibro(libro, datos);
+    } catch {
+      avisar('No se pudo guardar en la biblioteca (¿espacio o navegación privada?). Se abre sin guardar.', 5000);
+    }
+    await abrirEnLector(datos, {
+      id: libro.id,
+      titulo: archivo.name.replace(/\.pdf$/i, ''),
+      tipo: 'local',
+      nombre: archivo.name,
+    });
+  } catch (error) {
+    avisar(`No se pudo abrir el PDF: ${error.message}`, 6000);
+  } finally {
+    ocultarCarga();
+  }
+});
+
+// Subir un PDF del dispositivo directamente a la carpeta de la nube.
+$('selector-subir-nube').addEventListener('change', async (evento) => {
+  const archivo = evento.target.files[0];
+  evento.target.value = '';
+  if (!archivo || !cliente) return;
+
+  let nombre = archivo.name;
+  if (!/\.pdf$/i.test(nombre)) nombre += '.pdf';
+
+  try {
+    if (await cliente.existe(nombre) &&
+        !confirm(`Ya existe «${nombre}» en tu nube. ¿Quieres sobrescribirlo?`)) {
+      return;
+    }
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+    return;
+  }
+
+  mostrarCarga(`Subiendo «${nombre}» a tu nube…`);
+  try {
+    const datos = new Uint8Array(await archivo.arrayBuffer());
+    await cliente.subir(nombre, datos);
+    avisar(`«${nombre}» subido a tu nube.`);
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
   }
 });
 
@@ -255,9 +391,9 @@ async function abrirEnLector(datos, libro) {
 // Sube el PDF local abierto a la carpeta de la nube y lo convierte en un
 // libro sincronizado, conservando la página actual.
 async function subirLibroActual() {
-  if (!libroActual || libroActual.tipo !== 'local' || !cliente || !libroActual.archivo) return;
+  if (!libroActual || libroActual.tipo !== 'local' || !cliente) return;
 
-  let nombre = libroActual.archivo.name;
+  let nombre = libroActual.nombre ?? libroActual.titulo;
   if (!/\.pdf$/i.test(nombre)) nombre += '.pdf';
 
   try {
@@ -272,7 +408,8 @@ async function subirLibroActual() {
 
   mostrarCarga(`Subiendo «${nombre}» a tu nube…`);
   try {
-    const datos = new Uint8Array(await libroActual.archivo.arrayBuffer());
+    const datos = await almacen.obtenerDatos(libroActual.id);
+    if (!datos) throw new Error('no se encontró el libro en el almacén de este dispositivo');
     await cliente.subir(nombre, datos);
 
     // Traspasa la posición de lectura del identificador local al de la nube
@@ -301,7 +438,7 @@ function modoActual() {
 
 function aplicarAparienciaModo(modo) {
   $('vista-lector').classList.toggle('modo-continuo', modo === 'continuo');
-  $('btn-modo').textContent = modo === 'continuo' ? '📄' : '📜';
+  $('btn-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text');
   $('btn-modo').title = modo === 'continuo'
     ? 'Ver página a página (como un libro)'
     : 'Ver páginas continuas (scroll)';
@@ -354,9 +491,16 @@ $('btn-indicador').addEventListener('click', () => {
   if (!Number.isNaN(numero)) lector.irA(numero);
 });
 
+function pintarIconoNoche() {
+  const activo = document.body.classList.contains('modo-noche');
+  $('btn-noche').innerHTML = icono(activo ? 'sun' : 'moon');
+  $('btn-noche').title = activo ? 'Modo día' : 'Modo noche';
+}
+
 $('btn-noche').addEventListener('click', () => {
   const activo = document.body.classList.toggle('modo-noche');
   localStorage.setItem(CLAVE_NOCHE, activo ? '1' : '0');
+  pintarIconoNoche();
 });
 
 document.addEventListener('keydown', (evento) => {
@@ -389,9 +533,11 @@ $('area-lectura').addEventListener('touchend', (evento) => {
 
 // ───────────────────────── Arranque ─────────────────────────
 
+pintarIconos();
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
   document.body.classList.add('modo-noche');
 }
+pintarIconoNoche();
 aplicarAparienciaModo(modoActual());
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

@@ -31,7 +31,17 @@ body {
   padding: max(0.75rem, env(safe-area-inset-top)) 1rem 0.75rem;
   border-bottom: 1px solid var(--borde);
 }
-.cabecera h1 { font-size: 1.2rem; flex: 1; }
+.cabecera h1 {
+  font-size: 1.2rem; flex: 1;
+  display: flex; align-items: center; gap: 0.5rem;
+}
+
+/* ── Iconos SVG (Lucide) ── */
+.icono { width: 1.25rem; height: 1.25rem; display: block; flex: none; }
+.icono-app .icono { width: 1.4rem; height: 1.4rem; color: var(--acento); }
+.icono-seccion { display: inline-flex; margin-right: 0.45rem; vertical-align: -0.2rem; }
+.icono-seccion .icono { width: 1.05rem; height: 1.05rem; }
+.icono-app, .icono-seccion { flex: none; }
 
 .contenido {
   width: 100%; max-width: 42rem; margin: 0 auto;
@@ -51,10 +61,11 @@ body {
 
 .btn-icono {
   background: none; border: none; color: var(--texto);
-  font-size: 1.25rem; cursor: pointer; padding: 0.4rem 0.6rem;
+  font-size: 1.25rem; cursor: pointer; padding: 0.45rem 0.55rem;
   border-radius: 0.5rem; line-height: 1;
+  display: inline-flex; align-items: center; justify-content: center;
 }
-.btn-icono:hover { background: var(--fondo-tarjeta); }
+.btn-icono:hover { background: var(--fondo-tarjeta); color: var(--acento); }
 
 .btn-primario, .btn-secundario, .btn-peligro {
   display: inline-block; text-align: center; cursor: pointer;
@@ -104,15 +115,28 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 
 /* ── Lista de libros ── */
 .lista-libros { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+.lista-libros li { display: flex; align-items: stretch; gap: 0.4rem; }
 .libro {
+  flex: 1; min-width: 0;
   display: flex; align-items: center; gap: 0.75rem;
   background: var(--fondo-tarjeta); border: 1px solid var(--borde);
   border-radius: 0.75rem; padding: 0.75rem 1rem;
-  cursor: pointer; width: 100%; text-align: left;
+  cursor: pointer; text-align: left;
   color: var(--texto); font: inherit;
 }
+.btn-borrar-libro {
+  background: none; border: 1px solid transparent; border-radius: 0.75rem;
+  color: var(--texto-suave); font-size: 1.05rem; cursor: pointer;
+  padding: 0 0.55rem; display: flex; align-items: center;
+}
+.btn-borrar-libro .icono { width: 1.15rem; height: 1.15rem; }
+.btn-borrar-libro:hover {
+  border-color: var(--peligro); color: var(--peligro);
+  background: var(--fondo-tarjeta);
+}
 .libro:hover { border-color: var(--acento); }
-.libro .portada { font-size: 1.6rem; }
+.libro .portada { display: flex; color: var(--acento); }
+.libro .portada .icono { width: 1.7rem; height: 1.7rem; }
 .libro .datos { flex: 1; min-width: 0; }
 .libro .nombre {
   font-weight: 600; overflow: hidden;

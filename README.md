@@ -16,11 +16,15 @@ libros y sincronizar el progreso de lectura.
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red).
-- 📂 **Modo local**: también puedes abrir un PDF del propio dispositivo sin
-  configurar nada (en ese caso la posición solo se recuerda en ese navegador).
-- ☁️ **Subir a la nube**: si abres un PDF local teniendo una nube configurada,
-  un botón te permite copiarlo a tu carpeta remota con un toque, para que pase
-  a formar parte de la biblioteca sincronizada (conservando la página actual).
+- 📂 **Biblioteca local**: también puedes añadir PDF del propio dispositivo
+  sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
+  en la sección «En este dispositivo» y se reabren sin volver a elegir el
+  archivo (la posición solo se recuerda en ese navegador).
+- ☁️ **Subir a la nube**: con una nube configurada puedes subir un PDF
+  directamente desde la biblioteca (botón ➕) o, si ya lo estás leyendo en
+  local, copiarlo a la nube con un toque conservando la página actual.
+- 🗑️ **Borrar documentos**: cada libro tiene una papelera para eliminarlo,
+  tanto de la nube (se borra del servidor) como del dispositivo.
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.
@@ -53,8 +57,8 @@ libros y sincronizar el progreso de lectura.
    publicado el lector (por ejemplo `https://tu-usuario.github.io`).
 
 Con otros servidores WebDAV el requisito es el mismo: deben enviar cabeceras
-CORS que permitan el dominio del lector (métodos `GET`, `PUT`, `PROPFIND` y
-cabeceras `Authorization`, `Content-Type`, `Depth`).
+CORS que permitan el dominio del lector (métodos `GET`, `PUT`, `DELETE`,
+`PROPFIND` y cabeceras `Authorization`, `Content-Type`, `Depth`).
 
 ## Publicar tu propia copia
 
