@@ -321,11 +321,15 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDesca
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
     <span class="datos">
-      <span class="nombre"></span>
+      <span class="cabecera-libro">
+        <span class="nombre"></span>
+        <span class="formato formato-${formato}"></span>
+      </span>
       <span class="detalle"></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
   boton.querySelector('.nombre').textContent = titulo;
+  boton.querySelector('.formato').textContent = formato.toUpperCase();
   boton.querySelector('.detalle').textContent = !avance
     ? `${(tamano / 1024 / 1024).toFixed(1)} MB · ${t('notStarted')}`
     : avance.cfi

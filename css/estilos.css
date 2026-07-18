@@ -189,11 +189,19 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   flex: 1; min-width: 0;
   display: flex; flex-direction: column; gap: 0.1rem;
 }
+.libro .cabecera-libro { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
 .libro .nombre {
-  display: block; max-width: 100%;
+  display: block; flex: 0 1 auto; min-width: 0;
   font-weight: 600; overflow: hidden;
   text-overflow: ellipsis; white-space: nowrap;
 }
+.libro .formato {
+  flex: none; padding: 0.08rem 0.35rem; border: 1px solid currentColor;
+  border-radius: 0.3rem; font-size: 0.62rem; font-weight: 750;
+  line-height: 1.25; letter-spacing: 0.035em;
+}
+.libro .formato-pdf { color: #fb7185; }
+.libro .formato-epub { color: #2dd4bf; }
 .libro .detalle {
   font-size: 0.8rem; color: var(--texto-suave);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
