@@ -1550,7 +1550,12 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.tamano = letraEpubGuardada();
       lectorEpub.fuente = fuenteEpubGuardada();
       lectorEpub.interlineado = interlineadoEpubGuardado();
-      await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
+      prepararSeguimientoEpub(avance?.cfi ?? null);
+      try {
+        await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
+      } finally {
+        restaurandoPosicionEpub = false;
+      }
       lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
       if (avance?.cfi) avisar(t('continuing'));
     } else {
@@ -1648,6 +1653,18 @@ $('btn-modo').addEventListener('click', async () => {
 
 // ───────────────────────── Progreso y sincronización ─────────────────────────
 
+let restaurandoPosicionEpub = false;
+let cfiEpubGuardado = null;
+let cfiEpubPendientePorcentaje = null;
+
+function prepararSeguimientoEpub(cfiInicial) {
+  cfiEpubGuardado = cfiInicial;
+  cfiEpubPendientePorcentaje = null;
+  // epub.js reubica el CFI recibido al inicio de la página visual. Ese punto
+  // depende del ancho y la tipografía del dispositivo y no es un avance real.
+  restaurandoPosicionEpub = Boolean(cfiInicial);
+}
+
 function planificarSincronizacion() {
   if (libroActual?.tipo !== 'webdav' || !cliente) return;
   clearTimeout(temporizadorSync);
@@ -1668,6 +1685,19 @@ function cuandoCambiaPagina(pagina, total) {
 function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   $('btn-indicador').textContent = conLocalizaciones ? `${porcentaje}%` : '…';
   if (!libroActual || !cfi) return;
+  if (restaurandoPosicionEpub) {
+    cfiEpubGuardado = cfi;
+    return;
+  }
+  if (cfi === cfiEpubGuardado) {
+    // Si el usuario se movió antes de que terminara el cálculo del porcentaje,
+    // se completa ahora el mismo cambio. En una apertura normal no se escribe.
+    if (!(conLocalizaciones && cfiEpubPendientePorcentaje === cfi)) return;
+    cfiEpubPendientePorcentaje = null;
+  } else {
+    cfiEpubGuardado = cfi;
+    cfiEpubPendientePorcentaje = conLocalizaciones ? null : cfi;
+  }
   // Mientras no hay localizaciones se conserva el % anterior para no
   // machacar la barra de progreso de la biblioteca con un cero.
   const pct = conLocalizaciones
