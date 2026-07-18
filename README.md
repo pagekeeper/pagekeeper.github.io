@@ -36,6 +36,8 @@ libros y sincronizar el progreso de lectura.
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
+- ↔️ **Márgenes ajustables en EPUB**: un deslizador permite elegir el margen
+  lateral y conserva la preferencia localmente en cada dispositivo.
 - 🔗 **Configuración portátil**: desde Ajustes puedes copiar un enlace que
   lleva la configuración de la nube (URL, usuario y contraseña, codificados
   en el fragmento `#cfg=…`, que nunca se envía a ningún servidor). Al abrirlo

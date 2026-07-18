@@ -13,24 +13,30 @@ const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 
-// Ancho máximo de la línea de texto en EPUB; el resto queda como márgenes
-// laterales, que solo se notan en pantallas anchas.
-const ANCHOS_TEXTO = {
-  medio: { valor: '46rem', aviso: 'Texto a ancho medio' },
-  estrecho: { valor: '34rem', aviso: 'Texto estrecho' },
-  completo: { valor: '100%', aviso: 'Texto a ancho completo' },
-};
-const ORDEN_ANCHOS = ['medio', 'estrecho', 'completo'];
+const MARGEN_EPUB_INICIAL = 10;
+const MARGEN_EPUB_MAXIMO = 30;
 
 function margenEpubActual() {
-  const valor = localStorage.getItem(CLAVE_MARGEN_EPUB);
-  return valor in ANCHOS_TEXTO ? valor : 'medio';
+  const guardado = localStorage.getItem(CLAVE_MARGEN_EPUB);
+  // Migra las tres opciones de versiones anteriores a valores aproximados.
+  const anterior = { completo: 0, medio: 10, estrecho: 22 }[guardado];
+  if (anterior !== undefined) return anterior;
+  if (guardado === null) return MARGEN_EPUB_INICIAL;
+  const valor = Number(guardado);
+  return Number.isFinite(valor) && valor >= 0 && valor <= MARGEN_EPUB_MAXIMO
+    ? valor
+    : MARGEN_EPUB_INICIAL;
 }
 
-function aplicarMargenEpub() {
-  $('contenedor-epub').style.setProperty('--max-texto', ANCHOS_TEXTO[margenEpubActual()].valor);
+let frameMargenEpub = null;
+function aplicarMargenEpub(valor = margenEpubActual()) {
+  $('contenedor-epub').style.setProperty('--margen-texto', `${valor}%`);
+  $('margen-epub').value = String(valor);
+  $('margen-epub').setAttribute('aria-valuetext', `${valor} % por lado`);
+  $('valor-margen').textContent = `${valor} % por lado`;
   // epub.js escucha el resize de la ventana y recalcula el paginado.
-  window.dispatchEvent(new Event('resize'));
+  cancelAnimationFrame(frameMargenEpub);
+  frameMargenEpub = requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
 }
 
 function zoomPdfGuardado() {
@@ -672,13 +678,14 @@ async function abrirEnLector(datos, libro) {
   const esEpub = libro.formato === 'epub';
   $('contenedor-pagina').classList.toggle('oculto', esEpub);
   $('contenedor-epub').classList.toggle('oculto', !esEpub);
-  $('btn-margenes').classList.toggle('oculto', !esEpub);
+  $('control-margenes').classList.toggle('oculto', !esEpub);
+  cerrarPanelMargenes();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
 
   if (esEpub) {
     $('btn-indicador').textContent = '…';
-    $('contenedor-epub').style.setProperty('--max-texto', ANCHOS_TEXTO[margenEpubActual()].valor);
+    aplicarMargenEpub();
     lectorEpub.tamano = letraEpubGuardada();
     await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
     lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
@@ -824,12 +831,41 @@ async function ajustarZoom(direccion) {
 $('btn-zoom-menos').addEventListener('click', () => ajustarZoom(-1));
 $('btn-zoom-mas').addEventListener('click', () => ajustarZoom(1));
 
-// Alternar el ancho de línea del EPUB: medio → estrecho → completo.
+function cerrarPanelMargenes() {
+  $('panel-margenes').hidden = true;
+  $('btn-margenes').setAttribute('aria-expanded', 'false');
+}
+
 $('btn-margenes').addEventListener('click', () => {
-  const siguiente = ORDEN_ANCHOS[(ORDEN_ANCHOS.indexOf(margenEpubActual()) + 1) % ORDEN_ANCHOS.length];
-  localStorage.setItem(CLAVE_MARGEN_EPUB, siguiente);
-  aplicarMargenEpub();
-  avisar(ANCHOS_TEXTO[siguiente].aviso, 2000);
+  const abrir = $('panel-margenes').hidden;
+  $('panel-margenes').hidden = !abrir;
+  $('btn-margenes').setAttribute('aria-expanded', String(abrir));
+  if (abrir) {
+    aplicarMargenEpub();
+    $('margen-epub').focus();
+  }
+});
+
+$('margen-epub').addEventListener('input', (evento) => {
+  const valor = Number(evento.target.value);
+  localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
+  aplicarMargenEpub(valor);
+});
+
+$('btn-restablecer-margen').addEventListener('click', () => {
+  localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
+  aplicarMargenEpub(MARGEN_EPUB_INICIAL);
+});
+
+document.addEventListener('click', (evento) => {
+  if (!$('control-margenes').contains(evento.target)) cerrarPanelMargenes();
+});
+
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape' && !$('panel-margenes').hidden) {
+    cerrarPanelMargenes();
+    $('btn-margenes').focus();
+  }
 });
 
 // Ancho automático: la página vuelve a ajustarse al ancho de la pantalla

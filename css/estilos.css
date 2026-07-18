@@ -203,16 +203,43 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 #area-lectura.arrastrando { user-select: none; }
 
 /* Contenedor del lector EPUB: ocupa toda el área; epub.js gestiona dentro
-   su propio scroll y paginado. El texto se limita a --max-texto y el
-   sobrante se convierte en márgenes laterales (0 en pantallas estrechas). */
+   su propio scroll y paginado. El usuario elige el margen de cada lado. */
 #contenedor-epub {
   position: absolute; inset: 0;
   background: #ffffff;
-  --max-texto: 46rem;
-  padding: 0 max(0px, calc((100% - var(--max-texto)) / 2));
+  --margen-texto: 10%;
+  padding: 0 var(--margen-texto);
 }
 .modo-noche #contenedor-epub { background: var(--fondo-lector); }
 #contenedor-epub iframe { border: none; }
+
+/* Selector de márgenes EPUB. Se abre junto al botón de la barra y en móvil
+   usa casi todo el ancho para que el deslizador sea cómodo de tocar. */
+.control-margenes { position: relative; display: flex; }
+.panel-margenes {
+  position: absolute; z-index: 30; top: calc(100% + 0.55rem); right: 0;
+  width: min(20rem, calc(100vw - 1rem));
+  padding: 1rem; border: 1px solid var(--borde); border-radius: 0.75rem;
+  background: var(--fondo-tarjeta); color: var(--texto);
+  box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+}
+.cabecera-margenes {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+.cabecera-margenes label { font-size: 0.95rem; font-weight: 650; }
+#valor-margen { color: var(--acento); font-size: 0.9rem; white-space: nowrap; }
+#margen-epub { width: 100%; accent-color: var(--acento-oscuro); cursor: pointer; }
+.extremos-margen {
+  display: flex; justify-content: space-between;
+  color: var(--texto-suave); font-size: 0.72rem; margin-top: 0.15rem;
+}
+.panel-margenes .ayuda { margin: 0.75rem 0; }
+.panel-margenes .btn-secundario { width: 100%; padding: 0.45rem 0.8rem; }
+
+@media (max-width: 600px) {
+  .panel-margenes { position: fixed; top: 4rem; left: 0.5rem; right: 0.5rem; width: auto; }
+}
 #contenedor-pagina {
   min-height: 100%; display: flex;
   justify-content: flex-start; align-items: flex-start; padding: 0.5rem;

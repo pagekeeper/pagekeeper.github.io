@@ -73,7 +73,27 @@
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
-      <button id="btn-margenes" class="btn-icono oculto" data-icono="fold-horizontal" title="Ancho del texto"></button>
+      <div id="control-margenes" class="control-margenes oculto">
+        <button id="btn-margenes" class="btn-icono" data-icono="fold-horizontal"
+          title="Ajustar márgenes" aria-label="Ajustar márgenes del texto"
+          aria-haspopup="dialog" aria-expanded="false"></button>
+        <div id="panel-margenes" class="panel-margenes" role="dialog"
+          aria-label="Márgenes del texto" hidden>
+          <div class="cabecera-margenes">
+            <label for="margen-epub">Margen lateral</label>
+            <output id="valor-margen" for="margen-epub">10 % por lado</output>
+          </div>
+          <input id="margen-epub" type="range" min="0" max="30" step="1" value="10"
+            aria-describedby="ayuda-margen">
+          <div class="extremos-margen" aria-hidden="true">
+            <span>Sin margen</span><span>Más margen</span>
+          </div>
+          <p id="ayuda-margen" class="ayuda">El texto se reajusta al mover el control.</p>
+          <button id="btn-restablecer-margen" type="button" class="btn-secundario">
+            Restablecer
+          </button>
+        </div>
+      </div>
       <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir"></button>
       <button id="btn-ancho-auto" class="btn-icono" data-icono="move-horizontal" title="Ancho automático"></button>
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar"></button>
@@ -193,14 +213,14 @@
           <li><strong>Zoom:</strong> las lupas amplían el PDF (con zoom puedes
           arrastrar la página con el ratón o el dedo) o cambian el tamaño de
           letra del EPUB; el botón ↔ vuelve al ancho automático.</li>
-          <li><strong>Ancho del texto (solo EPUB):</strong> alterna línea
-          media, estrecha o a pantalla completa; útil en pantallas anchas.</li>
+          <li><strong>Márgenes (solo EPUB):</strong> abre un deslizador para
+          elegir el margen de ambos lados entre 0 y 30 %.</li>
           <li><strong>Modo noche:</strong> el botón de la luna/sol oscurece la
           página.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
           porcentaje en EPUB) para saltar directamente.</li>
-          <li>Estas preferencias (modo, zoom, letra, ancho) se recuerdan solo
-          en cada dispositivo.</li>
+          <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan
+          solo en cada dispositivo.</li>
         </ul>
       </div>
 
