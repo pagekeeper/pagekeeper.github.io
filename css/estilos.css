@@ -292,6 +292,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 @media (max-width: 600px) {
   .panel-margenes { position: fixed; top: 4rem; left: 0.5rem; right: 0.5rem; width: auto; }
+  .libro { padding: 0.65rem 0.7rem; }
+  .libro .cabecera-libro { align-items: flex-start; }
+  .libro .nombre {
+    display: -webkit-box; flex: 1; white-space: normal; line-height: 1.25;
+    -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+  }
 }
 #contenedor-pagina {
   min-height: 100%; display: flex;

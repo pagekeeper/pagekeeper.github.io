@@ -86,14 +86,14 @@ export class Lector {
 
   async buscar(consulta) {
     if (!this.documento) return [];
-    const buscado = consulta.trim().toLocaleLowerCase();
+    const buscado = normalizarBusqueda(consulta.trim());
     if (!buscado) return [];
     const resultados = [];
     for (let numero = 1; numero <= this.totalPaginas && resultados.length < 200; numero++) {
       const pagina = await this.documento.getPage(numero);
       const contenido = await pagina.getTextContent();
       const texto = contenido.items.map((item) => item.str).join(' ').replace(/\s+/g, ' ').trim();
-      const minusculas = texto.toLocaleLowerCase();
+      const minusculas = normalizarBusqueda(texto);
       let posicion = 0;
       while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
         resultados.push({ destino: numero, numero, fragmento: fragmentoBusqueda(texto, posicion, buscado.length) });
@@ -236,4 +236,8 @@ function fragmentoBusqueda(texto, posicion, longitud) {
   const inicio = Math.max(0, posicion - 55);
   const fin = Math.min(texto.length, posicion + longitud + 75);
   return `${inicio ? '…' : ''}${texto.slice(inicio, fin)}${fin < texto.length ? '…' : ''}`;
+}
+
+function normalizarBusqueda(texto) {
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
 }

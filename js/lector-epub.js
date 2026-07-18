@@ -175,7 +175,7 @@ export class LectorEpub {
 
   async buscar(consulta) {
     if (!this.libro) return [];
-    const buscado = consulta.trim().toLocaleLowerCase();
+    const buscado = normalizarBusqueda(consulta.trim());
     if (!buscado) return [];
     const resultados = [];
     for (const seccion of this.libro.spine.spineItems) {
@@ -183,7 +183,7 @@ export class LectorEpub {
       try {
         await seccion.load(this.libro.load.bind(this.libro));
         const texto = (seccion.document?.body?.textContent ?? '').replace(/\s+/g, ' ').trim();
-        const minusculas = texto.toLocaleLowerCase();
+        const minusculas = normalizarBusqueda(texto);
         let posicion = 0;
         while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
           resultados.push({
@@ -212,4 +212,8 @@ function fragmentoBusqueda(texto, posicion, longitud) {
   const inicio = Math.max(0, posicion - 55);
   const fin = Math.min(texto.length, posicion + longitud + 75);
   return `${inicio ? '…' : ''}${texto.slice(inicio, fin)}${fin < texto.length ? '…' : ''}`;
+}
+
+function normalizarBusqueda(texto) {
+  return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
 }

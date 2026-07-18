@@ -330,14 +330,49 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDesca
       <span class="detalle"></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
-  boton.querySelector('.nombre').textContent = titulo;
+  const nombreLibro = boton.querySelector('.nombre');
+  nombreLibro.textContent = titulo;
+  nombreLibro.title = titulo;
   boton.querySelector('.formato').textContent = formato.toUpperCase();
   boton.querySelector('.detalle').textContent = !avance
     ? `${(tamano / 1024 / 1024).toFixed(1)} MB · ${t('notStarted')}`
     : avance.cfi
       ? `${porcentaje}% ${t('read')}`
       : `${t('page')} ${avance.pagina} ${t('of')} ${avance.paginas} · ${porcentaje}%`;
-  boton.addEventListener('click', alAbrir);
+  let pulsacionLarga = false;
+  let temporizadorTitulo = null;
+  let inicioPulsacion = null;
+  nombreLibro.addEventListener('pointerdown', (evento) => {
+    if (evento.pointerType === 'mouse') return;
+    pulsacionLarga = false;
+    inicioPulsacion = { x: evento.clientX, y: evento.clientY };
+    temporizadorTitulo = setTimeout(() => {
+      pulsacionLarga = true;
+      avisar(nombreLibro.textContent, 5000);
+      navigator.vibrate?.(30);
+    }, 550);
+  });
+  nombreLibro.addEventListener('pointermove', (evento) => {
+    if (!inicioPulsacion) return;
+    if (Math.hypot(evento.clientX - inicioPulsacion.x, evento.clientY - inicioPulsacion.y) > 8) {
+      clearTimeout(temporizadorTitulo);
+      inicioPulsacion = null;
+    }
+  });
+  for (const tipo of ['pointerup', 'pointercancel', 'pointerleave']) {
+    nombreLibro.addEventListener(tipo, () => {
+      clearTimeout(temporizadorTitulo);
+      inicioPulsacion = null;
+    });
+  }
+  boton.addEventListener('click', (evento) => {
+    if (pulsacionLarga) {
+      evento.preventDefault();
+      pulsacionLarga = false;
+      return;
+    }
+    alAbrir(evento);
+  });
 
   // Miniatura de la cubierta, si ya está generada.
   almacen.obtenerPortada(id).then((blob) => {
@@ -383,7 +418,11 @@ async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
   if (!metadatos) return;
   const valores = Object.values(metadatos).filter(Boolean);
   fila.dataset.busqueda = normalizarBusqueda(`${tituloArchivo} ${fila.dataset.busqueda} ${valores.join(' ')}`);
-  if (metadatos.titulo?.trim()) fila.querySelector('.nombre').textContent = metadatos.titulo.trim();
+  if (metadatos.titulo?.trim()) {
+    const nombre = fila.querySelector('.nombre');
+    nombre.textContent = metadatos.titulo.trim();
+    nombre.title = metadatos.titulo.trim();
+  }
   if (metadatos.autor?.trim()) {
     const autor = fila.querySelector('.autor');
     autor.textContent = metadatos.autor.trim();
