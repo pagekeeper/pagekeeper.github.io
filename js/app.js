@@ -268,7 +268,7 @@ for (const id of ['enlace-ayuda-aviso', 'enlace-ayuda-ajustes']) {
 }
 // Los enlaces del aviso inicial se regeneran al cambiar de idioma.
 document.addEventListener('click', (evento) => {
-  const enlace = evento.target.closest('#enlace-configurar, #enlace-ayuda-aviso');
+  const enlace = evento.target.closest('#enlace-configurar, #enlace-ayuda-aviso, #enlace-ayuda-ajustes');
   if (!enlace) return;
   evento.preventDefault();
   if (enlace.id === 'enlace-configurar') abrirAjustes(); else abrirAyuda();

@@ -118,17 +118,13 @@
   <!-- ═══════════ AJUSTES ═══════════ -->
   <section id="vista-ajustes" class="vista oculto">
     <header class="cabecera">
-      <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
+      <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
       <h1 data-i18n="settings">Ajustes</h1>
     </header>
     <main class="contenido">
       <form id="formulario-webdav" class="tarjeta">
         <h2 data-i18n="webdav">Nube (WebDAV)</h2>
-        <p class="ayuda">Compatible con Nextcloud, ownCloud y cualquier servidor
-        WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la
-        posición de lectura se sincronizará entre todos tus dispositivos.
-        ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la
-        ayuda</a>.</p>
+        <p class="ayuda" data-i18n-html="webdavHelpHtml">Compatible con Nextcloud, ownCloud y cualquier servidor WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la posición de lectura se sincronizará entre todos tus dispositivos. ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la ayuda</a>.</p>
 
         <label><span data-i18n="webdavFolder">URL de la carpeta WebDAV</span>
           <input type="url" id="campo-url" placeholder="https://tu-nube.com/remote.php/dav/files/USUARIO/Libros" autocomplete="url">
@@ -139,12 +135,7 @@
         <label><span data-i18n="appPassword">Contraseña de aplicación</span>
           <input type="password" id="campo-clave" autocomplete="current-password">
         </label>
-        <p class="ayuda">⚠️ En Nextcloud crea una <strong>contraseña de
-        aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña
-        principal. Además, para que el navegador pueda conectar, el servidor
-        debe permitir CORS: en Nextcloud instala la app
-        <strong>WebAppPassword</strong> y añade el dominio de este lector.
-        Los datos se guardan únicamente en este navegador.</p>
+        <p class="ayuda" data-i18n-html="passwordHelpHtml">⚠️ En Nextcloud crea una <strong>contraseña de aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña principal. Además, para que el navegador pueda conectar, el servidor debe permitir CORS: en Nextcloud instala la app <strong>WebAppPassword</strong> y añade el dominio de este lector. Los datos se guardan únicamente en este navegador.</p>
 
         <div class="fila-botones">
           <button type="button" id="btn-probar" class="btn-secundario" data-i18n="testConnection">Probar conexión</button>
@@ -156,12 +147,7 @@
 
       <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
-        <p class="ayuda">Copia un enlace que contiene la URL, el usuario y la
-        contraseña de aplicación. Ábrelo en el otro dispositivo (mándatelo por
-        un canal privado, por ejemplo una nota o un mensaje a ti mismo) y el
-        lector quedará configurado automáticamente. ⚠️ Cualquiera con el
-        enlace tendrá acceso a tu nube: no lo publiques y bórralo del canal
-        después de usarlo.</p>
+        <p class="ayuda" data-i18n="transferHelp">Copia un enlace que contiene la URL, el usuario y la contraseña de aplicación. Ábrelo en el otro dispositivo (mándatelo por un canal privado, por ejemplo una nota o un mensaje a ti mismo) y el lector quedará configurado automáticamente. ⚠️ Cualquiera con el enlace tendrá acceso a tu nube: no lo publiques y bórralo del canal después de usarlo.</p>
         <div class="fila-botones">
           <button type="button" id="btn-copiar-config" class="btn-secundario" data-i18n="copyConfig">Copiar enlace de configuración</button>
         </div>
@@ -173,10 +159,10 @@
   <!-- ═══════════ AYUDA ═══════════ -->
   <section id="vista-ayuda" class="vista oculto">
     <header class="cabecera">
-      <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver"></button>
+      <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
       <h1 data-i18n="help">Ayuda</h1>
     </header>
-    <main class="contenido">
+    <main id="contenido-ayuda" class="contenido" data-i18n-ayuda>
 
       <div class="tarjeta">
         <h2>¿Qué hace PageKeeper?</h2>

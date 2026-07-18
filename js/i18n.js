@@ -6,7 +6,7 @@ const IDIOMAS = ['es', 'ca', 'en'];
 
 const textos = {
   es: {
-    language: 'Idioma', help: 'Ayuda', settings: 'Ajustes', cloud: 'En la nube',
+    language: 'Idioma', help: 'Ayuda', settings: 'Ajustes', back: 'Volver', cloud: 'En la nube',
     device: 'En este dispositivo', addLocal: 'Añadir un libro (PDF o EPUB) de este dispositivo',
     addCloud: 'Subir un libro (PDF o EPUB) a la nube', reload: 'Recargar',
     backLibrary: 'Volver a la biblioteca', saveCloud: 'Guardar en mi nube',
@@ -39,9 +39,12 @@ const textos = {
     dayMode: 'Modo día', nightMode: 'Modo noche', goPercent: 'Ir al porcentaje del libro (0–100):', goToPage: 'Ir a la página (1–{total}):',
     noConfigHtml: 'No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.<p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>',
     emptyLocal: 'No hay ningún libro guardado en este dispositivo. Pulsa «+» para añadir un PDF o EPUB: quedará en la biblioteca y se recordará por dónde vas (solo en este dispositivo).',
+    webdavHelpHtml: 'Compatible con Nextcloud, ownCloud y cualquier servidor WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la posición de lectura se sincronizará entre todos tus dispositivos. ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la ayuda</a>.',
+    passwordHelpHtml: '⚠️ En Nextcloud crea una <strong>contraseña de aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña principal. Además, para que el navegador pueda conectar, el servidor debe permitir CORS: en Nextcloud instala la app <strong>WebAppPassword</strong> y añade el dominio de este lector. Los datos se guardan únicamente en este navegador.',
+    transferHelp: 'Copia un enlace que contiene la URL, el usuario y la contraseña de aplicación. Ábrelo en el otro dispositivo (mándatelo por un canal privado, por ejemplo una nota o un mensaje a ti mismo) y el lector quedará configurado automáticamente. ⚠️ Cualquiera con el enlace tendrá acceso a tu nube: no lo publiques y bórralo del canal después de usarlo.',
   },
   ca: {
-    language: 'Idioma', help: 'Ajuda', settings: 'Configuració', cloud: 'Al núvol',
+    language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
     device: 'En aquest dispositiu', addLocal: 'Afegeix un llibre (PDF o EPUB) d’aquest dispositiu',
     addCloud: 'Puja un llibre (PDF o EPUB) al núvol', reload: 'Recarrega',
     backLibrary: 'Torna a la biblioteca', saveCloud: 'Desa al meu núvol',
@@ -74,9 +77,12 @@ const textos = {
     dayMode: 'Mode dia', nightMode: 'Mode nit', goPercent: 'Ves al percentatge del llibre (0–100):', goToPage: 'Ves a la pàgina (1–{total}):',
     noConfigHtml: 'No hi ha cap servidor configurat. Pots obrir un llibre (PDF o EPUB) d’aquest dispositiu, o <a href="#" id="enlace-configurar">configurar el teu núvol (Nextcloud o un altre WebDAV)</a> per sincronitzar la posició de lectura entre dispositius.<p class="ayuda">No saps què és això o què necessites? <a href="#" id="enlace-ayuda-aviso">Llegeix l’ajuda</a>.</p>',
     emptyLocal: 'No hi ha cap llibre desat en aquest dispositiu. Prem «+» per afegir un PDF o EPUB: quedarà a la biblioteca i recordarà per on vas (només en aquest dispositiu).',
+    webdavHelpHtml: 'Compatible amb Nextcloud, ownCloud i qualsevol servidor WebDAV. Els PDF de la carpeta indicada apareixeran a la biblioteca i la posició de lectura se sincronitzarà entre tots els dispositius. No saps què hi has de posar? <a href="#" id="enlace-ayuda-ajustes">Llegeix l’ajuda</a>.',
+    passwordHelpHtml: '⚠️ A Nextcloud crea una <strong>contrasenya d’aplicació</strong> (Configuració → Seguretat); no facis servir la contrasenya principal. Perquè el navegador es pugui connectar, el servidor ha de permetre CORS: a Nextcloud instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector. Les dades només es desen en aquest navegador.',
+    transferHelp: 'Copia un enllaç amb l’URL, l’usuari i la contrasenya d’aplicació. Obre’l a l’altre dispositiu, per un canal privat, i el lector quedarà configurat automàticament. ⚠️ Qui tingui l’enllaç podrà accedir al núvol: no el publiquis i esborra’l després d’usar-lo.',
   },
   en: {
-    language: 'Language', help: 'Help', settings: 'Settings', cloud: 'In the cloud',
+    language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
     device: 'On this device', addLocal: 'Add a book (PDF or EPUB) from this device',
     addCloud: 'Upload a book (PDF or EPUB) to the cloud', reload: 'Reload',
     backLibrary: 'Back to library', saveCloud: 'Save to my cloud',
@@ -109,8 +115,38 @@ const textos = {
     dayMode: 'Day mode', nightMode: 'Night mode', goPercent: 'Go to book percentage (0–100):', goToPage: 'Go to page (1–{total}):',
     noConfigHtml: 'No server is configured. You can open a book (PDF or EPUB) from this device, or <a href="#" id="enlace-configurar">set up your cloud (Nextcloud or another WebDAV server)</a> to sync your reading position between devices.<p class="ayuda">Not sure what this is or what you need? <a href="#" id="enlace-ayuda-aviso">Read the help</a>.</p>',
     emptyLocal: 'There are no books saved on this device. Press “+” to add a PDF or EPUB: it will stay in the library and remember where you were (on this device only).',
+    webdavHelpHtml: 'Compatible with Nextcloud, ownCloud and any WebDAV server. PDFs in the chosen folder will appear in your library and reading position will sync across all your devices. Not sure what to enter? <a href="#" id="enlace-ayuda-ajustes">Read the help</a>.',
+    passwordHelpHtml: '⚠️ In Nextcloud, create an <strong>app password</strong> (Settings → Security); do not use your main password. The server must also allow CORS so the browser can connect: in Nextcloud, install <strong>WebAppPassword</strong> and add this reader’s domain. Data is stored only in this browser.',
+    transferHelp: 'Copy a link containing the URL, username and app password. Open it on the other device through a private channel and the reader will be configured automatically. ⚠️ Anyone with the link can access your cloud: do not publish it and delete it after use.',
   },
 };
+
+const ayudas = {
+  ca: `
+    <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
+    <div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també en pots pujar directament a «Al núvol».</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
+    <div class="tarjeta"><h2>Controls del lector</h2><ul class="lista-ayuda"><li><strong>Mode de lectura:</strong> pàgina a pàgina o pàgines contínues amb desplaçament vertical.</li><li><strong>Zoom:</strong> les lupes amplien el PDF o canvien la mida de lletra de l’EPUB; ↔ torna a l’amplada automàtica.</li><li><strong>Marges (només EPUB):</strong> el control lliscant tria el marge de tots dos costats entre 0 i 30 %.</li><li><strong>Mode nit:</strong> el botó de la lluna/sol enfosqueix la pàgina.</li><li><strong>Ves a un punt:</strong> toca l’indicador de pàgina o percentatge.</li><li>El mode, el zoom, la lletra i els marges es recorden en cada dispositiu.</li></ul></div>
+    <div class="tarjeta"><h2>Què és WebDAV?</h2><p>És una manera estàndard d’accedir per internet als fitxers d’un servidor com si fos una carpeta remota. PageKeeper el fa servir per llegir els llibres i desar el progrés al teu propi núvol.</p></div>
+    <div class="tarjeta importante"><h2>⚠️ Important: no serveix qualsevol núvol</h2><p>El navegador només es pot connectar si el servidor ho autoritza explícitament amb <em>CORS</em>. Per això la majoria de serveis comercials no funcionen.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox i OneDrive:</strong> no ofereixen un WebDAV usable aquí.</li><li><strong>Koofr, pCloud, Yandex i semblants:</strong> tenen WebDAV però bloquegen l’accés des de pàgines web.</li><li><strong>Nextcloud o ownCloud amb el permís activat:</strong> és l’opció que funciona a la pràctica.</li></ul></div>
+    <div class="tarjeta"><h2>No tinc servidor propi</h2><p>Pots demanar accés a un Nextcloud d’un familiar, centre o equip: necessites l’<em>URL de la carpeta WebDAV</em>, l’<em>usuari</em> i una <em>contrasenya d’aplicació</em>. Si no en tens, afegeix llibres a «En aquest dispositiu»: es llegeixen igual, però sense sincronització automàtica.</p></div>
+    <div class="tarjeta"><h2>Tinc o administro un Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector (<code id="ayuda-dominio">aquest lloc</code>) als orígens permesos.</li><li>Crea una <strong>contrasenya d’aplicació</strong> a Configuració → Seguretat; no facis servir la principal.</li><li>A <strong>⚙️ Configuració</strong>, indica l’URL de la carpeta, l’usuari i la contrasenya.</li></ul></div>
+    <div class="tarjeta"><h2>Porta la configuració a un altre dispositiu</h2><p>A <strong>⚙️ Configuració → «Copia l’enllaç de configuració»</strong> obtens un enllaç amb l’URL, l’usuari i la contrasenya. Obre’l a l’altre dispositiu i comparteix-lo només per canals privats; esborra’l després.</p></div>
+    <div class="tarjeta destacado"><h2>🤖 Tens dubtes? Pregunta a una IA</h2><p>ChatGPT, Claude o Gemini et poden guiar per configurar el servidor. Per exemple: «Tinc un servidor Nextcloud. Com instal·lo <em>WebAppPassword</em> i permeto l’accés WebDAV des d’una web allotjada a <code id="ayuda-dominio-ia">aquest lloc</code>?»</p></div>
+    <div class="tarjeta"><h2>Privadesa</h2><p>No hi ha cap servidor intermediari: el navegador es connecta directament al teu núvol. L’URL, l’usuari i la contrasenya es desen només en aquest navegador.</p></div>`,
+  en: `
+    <div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works immediately without accounts. The book is stored only in that browser.</li><li><strong>Connect cloud storage (WebDAV):</strong> books and reading position sync between your devices.</li></ul></div>
+    <div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also upload directly under “In the cloud”.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
+    <div class="tarjeta"><h2>Reader controls</h2><ul class="lista-ayuda"><li><strong>Reading mode:</strong> one page at a time or continuous pages with vertical scrolling.</li><li><strong>Zoom:</strong> the magnifiers enlarge PDFs or change EPUB text size; ↔ returns to fit-to-width.</li><li><strong>Margins (EPUB only):</strong> use the slider to choose a margin on both sides from 0 to 30%.</li><li><strong>Night mode:</strong> the moon/sun button darkens the page.</li><li><strong>Go to a point:</strong> tap the page or percentage indicator.</li><li>Mode, zoom, font size and margins are remembered on each device.</li></ul></div>
+    <div class="tarjeta"><h2>What is WebDAV?</h2><p>It is a standard way to access files on an internet server as though it were a remote folder. PageKeeper uses it to read books and store progress in your own cloud.</p></div>
+    <div class="tarjeta importante"><h2>⚠️ Important: not every cloud works</h2><p>The browser can connect only when a server explicitly permits it through <em>CORS</em>. This rules out most commercial services.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox and OneDrive:</strong> do not provide usable WebDAV here.</li><li><strong>Koofr, pCloud, Yandex and similar:</strong> have WebDAV but block access from web pages.</li><li><strong>Nextcloud or ownCloud with permission enabled:</strong> is the practical working option.</li></ul></div>
+    <div class="tarjeta"><h2>I do not have my own server</h2><p>You can ask for access to a family, school or work Nextcloud. You need the <em>WebDAV folder URL</em>, <em>username</em> and an <em>app password</em>. Otherwise, add books under “On this device”: reading works the same, but without automatic sync.</p></div>
+    <div class="tarjeta"><h2>I have or administer Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Install <strong>WebAppPassword</strong> and add this reader’s domain (<code id="ayuda-dominio">this site</code>) to the allowed origins.</li><li>Create an <strong>app password</strong> in Settings → Security; do not use your main password.</li><li>Under this reader’s <strong>⚙️ Settings</strong>, enter the folder URL, username and password.</li></ul></div>
+    <div class="tarjeta"><h2>Move configuration to another device</h2><p>Under <strong>⚙️ Settings → “Copy configuration link”</strong>, you get a link containing the URL, username and password. Open it on the other device, share it only through private channels and delete it afterwards.</p></div>
+    <div class="tarjeta destacado"><h2>🤖 Need help? Ask an AI</h2><p>ChatGPT, Claude or Gemini can guide you through server setup. For example: “I have a Nextcloud server. How do I install <em>WebAppPassword</em> and allow WebDAV access from a website hosted at <code id="ayuda-dominio-ia">this site</code>?”</p></div>
+    <div class="tarjeta"><h2>Privacy</h2><p>There is no intermediary server: your browser connects directly to your cloud. The URL, username and password are stored only in this browser.</p></div>`,
+};
+
+const originales = new WeakMap();
 
 let idioma = resolverIdioma();
 
@@ -138,6 +174,10 @@ export function aplicarIdioma(nuevo) {
   });
   document.querySelectorAll('[data-i18n-html]').forEach((elemento) => {
     elemento.innerHTML = t(elemento.dataset.i18nHtml);
+  });
+  document.querySelectorAll('[data-i18n-ayuda]').forEach((elemento) => {
+    if (!originales.has(elemento)) originales.set(elemento, elemento.innerHTML);
+    elemento.innerHTML = idioma === 'es' ? originales.get(elemento) : ayudas[idioma];
   });
   document.querySelectorAll('[data-i18n-title]').forEach((elemento) => {
     elemento.title = t(elemento.dataset.i18nTitle);
