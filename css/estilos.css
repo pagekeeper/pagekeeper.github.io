@@ -68,6 +68,10 @@ body {
   border-color: color-mix(in srgb, #fbbf24 55%, transparent);
   background: color-mix(in srgb, #fbbf24 10%, transparent); color: #fbbf24;
 }
+.estado-sincronizacion.error {
+  border-color: color-mix(in srgb, var(--peligro) 65%, transparent);
+  background: color-mix(in srgb, var(--peligro) 11%, transparent); color: var(--peligro);
+}
 .fila-seccion > .btn-icono { margin-top: -0.25rem; }
 
 /* ── Tarjetas y botones ── */

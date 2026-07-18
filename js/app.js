@@ -351,6 +351,15 @@ $('btn-cerrar-ajustes').addEventListener('click', () => {
 
 // ───────────────────────── Biblioteca ─────────────────────────
 
+function actualizarEstadoSincronizacion(error = null) {
+  const estado = document.querySelector('#zona-remota .estado-sincronizacion');
+  if (!estado) return;
+  estado.classList.toggle('sincronizado', !error);
+  estado.classList.toggle('error', Boolean(error));
+  estado.textContent = t(error ? 'syncError' : 'syncYes');
+  estado.title = error ? explicarError(error) : '';
+}
+
 async function cargarBiblioteca() {
   cargarLibrosLocales();
   pintarContinuarLeyendo();
@@ -374,11 +383,15 @@ async function cargarBiblioteca() {
   const promesaCopias = almacen.listarCopiasRemotas(cliente.base).catch(() => []);
 
   try {
-    const [{ carpetas, libros }, copias] = await Promise.all([
+    const [{ carpetas, libros }, copias, errorSincronizacion] = await Promise.all([
       cliente.listar(rutaNube),
       promesaCopias,
-      progreso.sincronizar(cliente).catch(() => null),
+      progreso.sincronizar(cliente).then(() => null).catch((error) => error),
     ]);
+    actualizarEstadoSincronizacion(errorSincronizacion);
+    if (errorSincronizacion) {
+      avisar(t('syncFailed', { error: explicarError(errorSincronizacion) }), 7000);
+    }
     estado.textContent = carpetas.length || libros.length
       ? ''
       : t(rutaNube ? 'emptyFolder' : 'noCloudBooks');
@@ -1669,9 +1682,12 @@ function planificarSincronizacion() {
   if (libroActual?.tipo !== 'webdav' || !cliente) return;
   clearTimeout(temporizadorSync);
   temporizadorSync = setTimeout(() => {
-    progreso.sincronizar(cliente).catch(() => {
-      // Sin conexión: el progreso queda en local y subirá la próxima vez.
-    });
+    progreso.sincronizar(cliente)
+      .then(() => actualizarEstadoSincronizacion())
+      .catch((error) => {
+        actualizarEstadoSincronizacion(error);
+        avisar(t('syncFailed', { error: explicarError(error) }), 7000);
+      });
   }, 3000);
 }
 

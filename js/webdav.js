@@ -152,49 +152,23 @@ export class ClienteWebDav {
     });
     if (respuesta.status === 404) return null;
     if (!respuesta.ok) throw await this.errorDe(respuesta, 'leer el progreso');
-    const etag = respuesta.headers.get('ETag');
     try {
-      const datos = await respuesta.json();
-      // No se serializa dentro del JSON: acompaña a esta lectura únicamente
-      // para poder hacer el PUT condicional y detectar escrituras simultáneas.
-      Object.defineProperty(datos, '_etag', {
-        value: etag,
-        enumerable: false,
-      });
-      return datos;
+      return await respuesta.json();
     } catch {
-      // Se regenera mediante un PUT condicional sobre el ETag del archivo
-      // corrupto; devolver null lo confundiría con un 404 real.
-      const datos = { version: 1, libros: {} };
-      Object.defineProperty(datos, '_etag', { value: etag, enumerable: false });
-      return datos;
+      // Devolver una estructura vacía permite regenerar un JSON corrupto.
+      return { version: 1, libros: {} };
     }
   }
 
-  async escribirProgreso(datos, etag = datos?._etag ?? null, crear = false) {
-    const headers = { ...this.cabeceras, 'Content-Type': 'application/json' };
-    if (crear) headers['If-None-Match'] = '*';
-    else if (etag) headers['If-Match'] = etag;
-    const peticion = () => fetch(this.urlDe(ARCHIVO_PROGRESO), {
-      method: 'PUT', headers, body: JSON.stringify(datos, null, 2),
+  async escribirProgreso(datos) {
+    // Se usa un PUT WebDAV normal por compatibilidad. Algunos servidores y
+    // proxies aceptan leer ETag pero rechazan If-Match en esta ruta, dejando
+    // el progreso únicamente en el navegador sin actualizar el archivo.
+    const respuesta = await fetch(this.urlDe(ARCHIVO_PROGRESO), {
+      method: 'PUT',
+      headers: { ...this.cabeceras, 'Content-Type': 'application/json' },
+      body: JSON.stringify(datos, null, 2),
     });
-    let respuesta;
-    try {
-      respuesta = await peticion();
-    } catch (error) {
-      // Algunos CORS antiguos no admiten aún las cabeceras condicionales.
-      // Se conserva la compatibilidad, aunque en ese servidor concreto no
-      // pueda cerrarse la ventana de carrera entre GET y PUT.
-      if (!('If-Match' in headers) && !('If-None-Match' in headers)) throw error;
-      delete headers['If-Match'];
-      delete headers['If-None-Match'];
-      respuesta = await peticion();
-    }
-    if (respuesta.status === 412) {
-      const error = new Error('El progreso cambió en otro dispositivo mientras se guardaba.');
-      error.conflictoSincronizacion = true;
-      throw error;
-    }
     if (!respuesta.ok) throw await this.errorDe(respuesta, 'guardar el progreso');
   }
 

@@ -101,7 +101,7 @@ test('una posición remota más reciente prevalece aunque haya un cambio local p
   assert.equal(resultado.posicionActualizada, remoto.posicionActualizada);
 });
 
-test('relee, fusiona y reintenta cuando falla un PUT por ETag', async () => {
+test('relee, fusiona y reintenta cuando falla una escritura por conflicto', async () => {
   const memoria = new Map();
   globalThis.localStorage = {
     getItem: (clave) => memoria.get(clave) ?? null,

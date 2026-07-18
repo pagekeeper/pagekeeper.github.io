@@ -9,40 +9,16 @@ const cliente = () => new ClienteWebDav({
   clave: 'clave',
 });
 
-test('envía If-Match al actualizar y detecta un conflicto 412', async () => {
-  let headers;
+test('guarda el progreso con un PUT compatible sin cabeceras condicionales', async () => {
+  let peticion;
   globalThis.fetch = async (_url, opciones) => {
-    headers = { ...opciones.headers };
-    return new Response('', { status: 412, statusText: 'Precondition Failed' });
-  };
-
-  await assert.rejects(
-    cliente().escribirProgreso({ version: 2, libros: {} }, '"etag-1"'),
-    (error) => error.conflictoSincronizacion === true,
-  );
-  assert.equal(headers['If-Match'], '"etag-1"');
-});
-
-test('usa If-None-Match al crear el archivo de progreso', async () => {
-  let headers;
-  globalThis.fetch = async (_url, opciones) => {
-    headers = { ...opciones.headers };
-    return new Response('', { status: 201 });
-  };
-
-  await cliente().escribirProgreso({ version: 2, libros: {} }, null, true);
-  assert.equal(headers['If-None-Match'], '*');
-});
-
-test('reintenta sin cabeceras condicionales si el CORS antiguo las bloquea', async () => {
-  const peticiones = [];
-  globalThis.fetch = async (_url, opciones) => {
-    peticiones.push({ ...opciones.headers });
-    if (peticiones.length === 1) throw new TypeError('Failed to fetch');
+    peticion = opciones;
     return new Response(null, { status: 204 });
   };
 
   await cliente().escribirProgreso({ version: 2, libros: {} }, '"etag-1"');
-  assert.equal(peticiones[0]['If-Match'], '"etag-1"');
-  assert.equal('If-Match' in peticiones[1], false);
+  assert.equal(peticion.method, 'PUT');
+  assert.equal(peticion.headers['Content-Type'], 'application/json');
+  assert.equal('If-Match' in peticion.headers, false);
+  assert.equal('If-None-Match' in peticion.headers, false);
 });

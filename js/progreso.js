@@ -380,9 +380,7 @@ async function sincronizarAhora(cliente) {
     // La red se espera antes de leer localStorage para no sobrescribir una
     // página que haya cambiado mientras llegaba la respuesta del servidor.
     const respuestaRemota = await cliente.leerProgreso();
-    const remotoNoExiste = respuestaRemota === null;
     const remotoLeido = respuestaRemota ?? { version: 1, libros: {} };
-    const etag = remotoLeido._etag ?? null;
     const remotoOriginal = JSON.stringify(remotoLeido);
     const remoto = normalizarDatos(remotoLeido);
     const local = normalizarDatos(cargarLocal());
@@ -413,7 +411,7 @@ async function sincronizarAhora(cliente) {
     guardarLocal(local);
     const haySubida = JSON.stringify(remoto) !== remotoOriginal;
     try {
-      if (haySubida) await cliente.escribirProgreso(remoto, etag, remotoNoExiste);
+      if (haySubida) await cliente.escribirProgreso(remoto);
     } catch (error) {
       if (error.conflictoSincronizacion && intento < 3) continue;
       throw error;
@@ -425,8 +423,8 @@ async function sincronizarAhora(cliente) {
   throw new Error('No se pudo sincronizar el progreso tras varios cambios simultáneos.');
 }
 
-// Serializa las sincronizaciones de esta pestaña y reintenta si el ETag
-// revela que otro dispositivo escribió entre nuestro GET y nuestro PUT.
+// Serializa las sincronizaciones de esta pestaña para que dos acciones de la
+// misma aplicación no escriban el archivo remoto a la vez.
 export function sincronizar(cliente) {
   const tarea = colaSincronizacion.catch(() => null).then(() => sincronizarAhora(cliente));
   colaSincronizacion = tarea;
