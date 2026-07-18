@@ -346,14 +346,12 @@ function fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal) {
 export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}) {
   const local = normalizarEntrada(localOriginal);
   const remoto = normalizarEntrada(remotoOriginal);
-  const posicionLocal = !!cambioLocal.posicion || local.posicionActualizada > remoto.posicionActualizada;
+  // La posición más reciente debe ganar también cuando haya un cambio local
+  // pendiente. Dar prioridad incondicional al pendiente hacía que dos
+  // dispositivos conservaran posiciones distintas y se sobrescribieran por
+  // turnos cada vez que sincronizaban.
+  const posicionLocal = local.posicionActualizada > remoto.posicionActualizada;
   const posicion = posicionLocal ? { ...local } : remoto;
-  if (cambioLocal.posicion) {
-    posicion.posicionActualizada = fechaPosterior(
-      local.posicionActualizada,
-      remoto.posicionActualizada,
-    );
-  }
   const reciente = local.actualizado >= remoto.actualizado ? local : remoto;
   const anterior = reciente === local ? remoto : local;
   const resultado = { ...anterior, ...reciente };

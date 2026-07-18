@@ -93,12 +93,12 @@ test('un borrado sincronizado no resucita por una copia antigua', () => {
   assert.equal(resultado.marcadores.find((marcador) => marcador.id === 'm1').borrado, true);
 });
 
-test('un cambio local pendiente prevalece aunque el reloj remoto esté adelantado', () => {
+test('una posición remota más reciente prevalece aunque haya un cambio local pendiente', () => {
   const local = entrada({ pagina: 25, posicionActualizada: '2026-01-01T10:00:00.000Z' });
   const remoto = entrada({ pagina: 90, posicionActualizada: '2099-01-01T10:00:00.000Z' });
   const resultado = fusionarEntradas(local, remoto, { posicion: 'pendiente' });
-  assert.equal(resultado.pagina, 25);
-  assert.ok(resultado.posicionActualizada > remoto.posicionActualizada);
+  assert.equal(resultado.pagina, 90);
+  assert.equal(resultado.posicionActualizada, remoto.posicionActualizada);
 });
 
 test('relee, fusiona y reintenta cuando falla un PUT por ETag', async () => {
@@ -115,7 +115,7 @@ test('relee, fusiona y reintenta cuando falla un PUT por ETag', async () => {
 
   anotarPagina('libro.pdf', 25, 100);
   let remoto = { version: 2, libros: {
-    'libro.pdf': entrada({ pagina: 80, posicionActualizada: '2099-01-01T10:00:00.000Z' }),
+    'libro.pdf': entrada({ pagina: 80, posicionActualizada: '2000-01-01T10:00:00.000Z' }),
   } };
   let lecturas = 0;
   let escrituras = 0;
@@ -132,7 +132,7 @@ test('relee, fusiona y reintenta cuando falla un PUT por ETag', async () => {
       if (escrituras === 1) {
         remoto.libros['libro.pdf'] = entrada({
           pagina: 90,
-          posicionActualizada: '2099-02-01T10:00:00.000Z',
+          posicionActualizada: '2000-02-01T10:00:00.000Z',
         });
         const error = new Error('conflicto');
         error.conflictoSincronizacion = true;
