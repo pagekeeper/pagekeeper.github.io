@@ -404,7 +404,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .historial-navegacion .btn-ir-posicion { display: none; }
 .btn-pagina.tiene-historial { border-color: var(--acento); }
 
-@media (max-width: 600px) {
+@media (max-width: 700px), (pointer: coarse) {
   .barra-lector .historial-navegacion {
     position: fixed; z-index: 45; top: 3.35rem; right: 0.35rem;
     display: none; margin: 0; padding: 0.2rem;
