@@ -105,6 +105,8 @@
       <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage">– / –</button>
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
+      <button id="btn-indice-libro" class="btn-icono oculto" data-icono="list-tree" title="Mostrar el índice" data-i18n-title="showBookIndex"
+        aria-controls="panel-indice-libro" aria-expanded="false"></button>
       <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
       <div id="control-margenes" class="control-margenes oculto">
@@ -134,7 +136,14 @@
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
     <div id="area-lectura">
-      <aside id="panel-busqueda-libro" class="panel-busqueda-libro oculto">
+      <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
+        <div class="cabecera-panel-lector">
+          <h2 data-i18n="bookIndex">Índice del libro</h2>
+          <button type="button" id="cerrar-indice-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
+        </div>
+        <ol id="lista-indice-libro" class="lista-indice-libro"></ol>
+      </aside>
+      <aside id="panel-busqueda-libro" class="panel-flotante-lector panel-busqueda-libro oculto">
         <form id="form-busqueda-libro" class="buscador-form">
           <input id="buscar-en-libro" type="search" placeholder="Palabra o frase"
             data-i18n-placeholder="wordOrPhrase" autocomplete="off">
@@ -252,6 +261,8 @@
           página.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
           porcentaje en EPUB) para saltar directamente.</li>
+          <li><strong>Índice:</strong> si el PDF o EPUB incluye uno, aparece
+          un botón para abrirlo y saltar directamente a cualquier apartado.</li>
           <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
           palabras o frases y lleva a la página o capítulo del resultado.</li>
           <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan

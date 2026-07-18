@@ -23,6 +23,7 @@ const TRAZADOS = {
   'cloud': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
   'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/>',
   'search': '<circle cx="11" cy="11" r="8"/> <path d="m21 21-4.3-4.3"/>',
+  'list-tree': '<path d="M21 12h-8"/> <path d="M21 6H8"/> <path d="M21 18h-8"/> <path d="M3 6h1v4h4"/> <path d="M3 10v4h5"/> <path d="M3 14v4h5"/>',
   'x': '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>',
 };
 

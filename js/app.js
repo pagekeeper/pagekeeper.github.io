@@ -871,6 +871,9 @@ for (const [id, alSoltar] of [
 
 async function abrirEnLector(datos, libro) {
   cerrarBusquedaLibro();
+  cerrarIndiceLibro();
+  $('lista-indice-libro').replaceChildren();
+  $('btn-indice-libro').classList.add('oculto');
   $('buscar-en-libro').value = '';
   $('estado-busqueda-libro').textContent = '';
   $('resultados-busqueda-libro').replaceChildren();
@@ -900,6 +903,7 @@ async function abrirEnLector(datos, libro) {
       avisar(t('continuingPage', { page: avance.pagina }));
     }
   }
+  await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
 }
 
 // Sube el libro local abierto a la carpeta de la nube y lo convierte en un
@@ -1012,6 +1016,47 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 let resultadosBusquedaLibro = [];
 let versionBusquedaLibro = 0;
 
+function cerrarIndiceLibro() {
+  $('panel-indice-libro').classList.add('oculto');
+  $('btn-indice-libro').setAttribute('aria-expanded', 'false');
+}
+
+async function cargarIndiceLibro(lectorActivo, idLibro) {
+  try {
+    const entradas = await lectorActivo.indice();
+    if (libroActual?.id !== idLibro) return;
+    const lista = $('lista-indice-libro');
+    lista.replaceChildren();
+    for (const entrada of entradas) {
+      const li = document.createElement('li');
+      const boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'entrada-indice-libro';
+      boton.style.paddingLeft = `${0.65 + Math.min(entrada.nivel, 6) * 0.85}rem`;
+      const titulo = document.createElement('span');
+      titulo.className = 'titulo-entrada-indice';
+      titulo.textContent = entrada.titulo;
+      boton.append(titulo);
+      if (entrada.numero) {
+        const pagina = document.createElement('span');
+        pagina.className = 'pagina-entrada-indice';
+        pagina.textContent = `${t('page')} ${entrada.numero}`;
+        boton.append(pagina);
+      }
+      boton.addEventListener('click', async () => {
+        const activo = epubAbierto() ? lectorEpub : lector;
+        await activo.irA(entrada.destino);
+        cerrarIndiceLibro();
+      });
+      li.append(boton);
+      lista.append(li);
+    }
+    $('btn-indice-libro').classList.toggle('oculto', entradas.length === 0);
+  } catch {
+    $('btn-indice-libro').classList.add('oculto');
+  }
+}
+
 function cerrarBusquedaLibro() {
   versionBusquedaLibro += 1;
   $('panel-busqueda-libro').classList.add('oculto');
@@ -1019,10 +1064,21 @@ function cerrarBusquedaLibro() {
 
 $('btn-buscar-libro').addEventListener('click', () => {
   const panel = $('panel-busqueda-libro');
+  cerrarIndiceLibro();
   panel.classList.toggle('oculto');
   if (!panel.classList.contains('oculto')) $('buscar-en-libro').focus();
 });
 $('cerrar-busqueda-libro').addEventListener('click', cerrarBusquedaLibro);
+
+$('btn-indice-libro').addEventListener('click', () => {
+  const panel = $('panel-indice-libro');
+  cerrarBusquedaLibro();
+  const abrir = panel.classList.contains('oculto');
+  panel.classList.toggle('oculto', !abrir);
+  $('btn-indice-libro').setAttribute('aria-expanded', String(abrir));
+  if (abrir) panel.querySelector('.entrada-indice-libro')?.focus();
+});
+$('cerrar-indice-libro').addEventListener('click', cerrarIndiceLibro);
 
 $('form-busqueda-libro').addEventListener('submit', async (evento) => {
   evento.preventDefault();
@@ -1069,6 +1125,7 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
 
 $('btn-volver').addEventListener('click', () => {
   cerrarBusquedaLibro();
+  cerrarIndiceLibro();
   clearTimeout(temporizadorSync);
   if (libroActual?.tipo === 'webdav' && cliente) {
     progreso.sincronizar(cliente).catch(() => null);
@@ -1124,7 +1181,14 @@ document.addEventListener('click', (evento) => {
 });
 
 document.addEventListener('keydown', (evento) => {
-  if (evento.key === 'Escape' && !$('panel-margenes').hidden) {
+  if (evento.key !== 'Escape') return;
+  if (!$('panel-indice-libro').classList.contains('oculto')) {
+    cerrarIndiceLibro();
+    $('btn-indice-libro').focus();
+  } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
+    cerrarBusquedaLibro();
+    $('btn-buscar-libro').focus();
+  } else if (!$('panel-margenes').hidden) {
     cerrarPanelMargenes();
     $('btn-margenes').focus();
   }

@@ -103,6 +103,39 @@ export class Lector {
     return resultados;
   }
 
+  // Convierte los marcadores jerárquicos del PDF en una lista navegable.
+  async indice() {
+    if (!this.documento) return [];
+    const esquema = await this.documento.getOutline();
+    if (!esquema?.length) return [];
+
+    const plano = [];
+    const recorrer = (elementos, nivel = 0) => {
+      for (const elemento of elementos ?? []) {
+        plano.push({ titulo: elemento.title?.trim() ?? '', referencia: elemento.dest, nivel });
+        recorrer(elemento.items, nivel + 1);
+      }
+    };
+    recorrer(esquema);
+
+    const resueltos = await Promise.all(plano.map(async (entrada) => {
+      try {
+        const destino = typeof entrada.referencia === 'string'
+          ? await this.documento.getDestination(entrada.referencia)
+          : entrada.referencia;
+        const referenciaPagina = destino?.[0];
+        const indicePagina = Number.isInteger(referenciaPagina)
+          ? referenciaPagina
+          : await this.documento.getPageIndex(referenciaPagina);
+        if (!Number.isInteger(indicePagina) || !entrada.titulo) return null;
+        return { titulo: entrada.titulo, destino: indicePagina + 1, numero: indicePagina + 1, nivel: entrada.nivel };
+      } catch {
+        return null; // algunos PDF contienen marcadores rotos o externos
+      }
+    }));
+    return resueltos.filter(Boolean);
+  }
+
   // ───────────────────────── Montaje según el modo ─────────────────────────
 
   limpiar() {

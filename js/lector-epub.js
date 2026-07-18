@@ -173,6 +173,19 @@ export class LectorEpub {
 
   irA(destino) { return this.vista?.display(destino); }
 
+  indice() {
+    const entradas = [];
+    const recorrer = (elementos, nivel = 0) => {
+      for (const elemento of elementos ?? []) {
+        const titulo = String(elemento.label ?? '').replace(/\s+/g, ' ').trim();
+        if (titulo && elemento.href) entradas.push({ titulo, destino: elemento.href, nivel });
+        recorrer(elemento.subitems, nivel + 1);
+      }
+    };
+    recorrer(this.libro?.navigation?.toc);
+    return entradas;
+  }
+
   async buscar(consulta) {
     if (!this.libro) return [];
     const buscado = normalizarBusqueda(consulta.trim());

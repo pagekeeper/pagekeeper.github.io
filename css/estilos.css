@@ -334,6 +334,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .panel-margenes .btn-secundario { width: 100%; padding: 0.45rem 0.8rem; }
 
 @media (max-width: 600px) {
+  .barra-lector { gap: 0.1rem; padding-left: 0.25rem; padding-right: 0.25rem; }
+  .barra-lector .btn-icono { padding-left: 0.35rem; padding-right: 0.35rem; }
+  .barra-lector .btn-pagina { padding-left: 0.45rem; padding-right: 0.45rem; }
   .panel-margenes { position: fixed; top: 4rem; left: 0.5rem; right: 0.5rem; width: auto; }
   .libro { padding: 0.65rem 0.7rem; }
   .libro .cabecera-libro { align-items: flex-start; }
@@ -368,12 +371,28 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* En modo continuo las zonas de toque laterales estorbarían al scroll. */
 #vista-lector.modo-continuo .zona-toque { display: none; }
 
-.panel-busqueda-libro {
+.panel-flotante-lector {
   position: fixed; z-index: 40; top: 3.75rem; right: 0.6rem;
   width: min(28rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 4.4rem);
   overflow: auto; padding: 0.75rem; border: 1px solid var(--borde);
   border-radius: 0.75rem; background: var(--fondo); color: var(--texto);
   box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+}
+.cabecera-panel-lector { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
+.cabecera-panel-lector h2 { flex: 1; font-size: 1rem; }
+.lista-indice-libro { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+.entrada-indice-libro {
+  width: 100%; display: flex; align-items: baseline; gap: 0.65rem;
+  background: none; border: 1px solid transparent; border-radius: 0.45rem;
+  padding-top: 0.45rem; padding-right: 0.65rem; padding-bottom: 0.45rem;
+  color: var(--texto); font: inherit; text-align: left; cursor: pointer;
+}
+.entrada-indice-libro:hover, .entrada-indice-libro:focus-visible {
+  border-color: var(--acento); background: var(--fondo-tarjeta); outline: none;
+}
+.entrada-indice-libro .titulo-entrada-indice { flex: 1; min-width: 0; line-height: 1.3; }
+.entrada-indice-libro .pagina-entrada-indice {
+  flex: none; color: var(--texto-suave); font-size: 0.75rem; white-space: nowrap;
 }
 .buscador-form { display: flex; align-items: center; gap: 0.4rem; }
 .buscador-form input {
