@@ -1,7 +1,7 @@
 {
-  "name": "Lector PDF",
-  "short_name": "Lector PDF",
-  "description": "Lector de PDF que sincroniza la posición de lectura entre dispositivos mediante tu propia nube (WebDAV/Nextcloud).",
+  "name": "PageKeeper: lector de PDF y EPUB",
+  "short_name": "PageKeeper",
+  "description": "Lector de PDF y EPUB que sincroniza la posición de lectura entre dispositivos mediante tu propia nube (WebDAV/Nextcloud).",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0f172a",

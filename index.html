@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#0f172a">
-  <title>Lector PDF</title>
+  <title>PageKeeper: lector de PDF y EPUB</title>
   <link rel="stylesheet" href="css/estilos.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
@@ -14,7 +14,7 @@
   <!-- ═══════════ BIBLIOTECA ═══════════ -->
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
-      <h1><span class="icono-app" data-icono="book-open"></span>Lector PDF</h1>
+      <h1><span class="icono-app" data-icono="book-open"></span>PageKeeper</h1>
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda"></button>
       <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes"></button>
     </header>
@@ -50,6 +50,17 @@
         biblioteca y se recordará por dónde vas (solo en este dispositivo).</p>
         <ul id="lista-locales" class="lista-libros"></ul>
       </div>
+
+      <footer class="pie">
+        <p><strong>PageKeeper: lector de PDF y EPUB</strong></p>
+        <p>© 2026 Juan José de Haro ·
+        <a href="https://github.com/pagekeeper/pagekeeper.github.io" target="_blank" rel="noopener">código fuente</a>
+        bajo licencia MIT</p>
+        <p>Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a>
+        (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a>
+        (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a>
+        (Apache 2.0) e iconos <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC)</p>
+      </footer>
     </main>
   </section>
 
@@ -140,27 +151,61 @@
     <main class="contenido">
 
       <div class="tarjeta">
-        <h2>¿Qué hace este lector?</h2>
+        <h2>¿Qué hace PageKeeper?</h2>
         <p>Lee tus libros en PDF y EPUB (con fórmulas matemáticas incluidas)
         desde el móvil, la tablet o el ordenador y recuerda por dónde vas.
         Hay dos formas de usarlo:</p>
         <ul class="lista-ayuda">
-          <li><strong>Añadir un libro de tu dispositivo:</strong> funciona al
-          instante, sin cuentas ni ajustes. El libro queda guardado en la
-          biblioteca de ese navegador y se recuerda por dónde vas. Única pega:
-          todo se guarda solo en ese dispositivo.</li>
+          <li><strong>Añadir un libro de tu dispositivo (botón «+»):</strong>
+          funciona al instante, sin cuentas ni ajustes. El libro queda guardado
+          en la biblioteca de ese navegador y se recuerda por dónde vas. Única
+          pega: todo se guarda solo en ese dispositivo.</li>
           <li><strong>Conectar una nube (WebDAV):</strong> tus libros y tu
           posición de lectura se sincronizan entre todos tus dispositivos.
-          Puedes subir libros a la nube y borrarlos desde la propia biblioteca.
           Necesita una configuración previa que se explica más abajo.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>La biblioteca</h2>
+        <ul class="lista-ayuda">
+          <li><strong>Portadas:</strong> se generan solas (la cubierta del
+          EPUB o la primera página del PDF) y muestran el avance de lectura
+          de cada libro.</li>
+          <li><strong>Subir a la nube:</strong> con una nube configurada, el
+          botón de la nube de cada libro local lo copia a tu carpeta remota
+          conservando la página por la que vas; también puedes subir un
+          archivo directamente con el «+» de la sección «En la nube».</li>
+          <li><strong>Borrar:</strong> la papelera de cada libro lo elimina
+          (del servidor si es de la nube, o de este dispositivo si es
+          local).</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Controles del lector</h2>
+        <ul class="lista-ayuda">
+          <li><strong>Modo de lectura:</strong> página a página (como un
+          libro) o páginas continuas con scroll vertical.</li>
+          <li><strong>Zoom:</strong> las lupas amplían el PDF (con zoom puedes
+          arrastrar la página con el ratón o el dedo) o cambian el tamaño de
+          letra del EPUB; el botón ↔ vuelve al ancho automático.</li>
+          <li><strong>Ancho del texto (solo EPUB):</strong> alterna línea
+          media, estrecha o a pantalla completa; útil en pantallas anchas.</li>
+          <li><strong>Modo noche:</strong> el botón de la luna/sol oscurece la
+          página.</li>
+          <li><strong>Ir a un punto:</strong> toca el indicador de página (o
+          porcentaje en EPUB) para saltar directamente.</li>
+          <li>Estas preferencias (modo, zoom, letra, ancho) se recuerdan solo
+          en cada dispositivo.</li>
         </ul>
       </div>
 
       <div class="tarjeta">
         <h2>¿Qué es WebDAV?</h2>
         <p>Es una forma estándar de acceder por internet a los archivos
-        guardados en un servidor, como si fuese una carpeta remota. Este lector
-        lo usa para leer tus PDF y para guardar tu posición de lectura en tu
+        guardados en un servidor, como si fuese una carpeta remota. PageKeeper
+        lo usa para leer tus libros y para guardar tu posición de lectura en tu
         propia nube, de modo que puedas continuar desde otro dispositivo.</p>
       </div>
 
@@ -192,15 +237,15 @@
           datos: la <em>URL de tu carpeta WebDAV</em>, tu <em>usuario</em> y
           una <em>contraseña de aplicación</em>. Con eso ya sincronizas entre
           dispositivos, sin montar nada tú.</li>
-          <li><strong>Que nadie te dé acceso:</strong> usa «Abrir PDF de este
-          dispositivo». Se lee igual de bien; solo pierdes la sincronización
-          automática entre aparatos.</li>
+          <li><strong>Que nadie te dé acceso:</strong> añade tus libros con el
+          «+» de «En este dispositivo». Se lee igual de bien; solo pierdes la
+          sincronización automática entre aparatos.</li>
         </ul>
       </div>
 
       <div class="tarjeta">
         <h2>Tengo o administro un Nextcloud / ownCloud</h2>
-        <p>Para permitir que este lector se conecte:</p>
+        <p>Para permitir que PageKeeper se conecte:</p>
         <ul class="lista-ayuda">
           <li>Instala la app <strong>WebAppPassword</strong> y añade el dominio
           de este lector (<code id="ayuda-dominio">este sitio</code>) a los
@@ -212,6 +257,15 @@
           <code>https://tu-nube.com/remote.php/dav/files/USUARIO/Libros</code>),
           tu usuario y esa contraseña.</li>
         </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Llevar la configuración a otro dispositivo</h2>
+        <p>Una vez configurada tu nube, en <strong>⚙️ Ajustes → «Copiar enlace
+        de configuración»</strong> obtienes un enlace que lo lleva todo (URL,
+        usuario y contraseña). Ábrelo en otro dispositivo y quedará
+        configurado al instante. Compártelo solo por canales privados y
+        bórralo después de usarlo.</p>
       </div>
 
       <div class="tarjeta destacado">

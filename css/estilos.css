@@ -100,6 +100,16 @@ body {
 .tarjeta.destacado { border-color: var(--acento); }
 .tarjeta.destacado h2 { color: var(--acento); }
 
+/* ── Pie de página ── */
+.pie {
+  margin-top: auto; padding: 1.25rem 0 0.5rem;
+  border-top: 1px solid var(--borde);
+  font-size: 0.78rem; color: var(--texto-suave);
+  text-align: center; line-height: 1.7;
+}
+.pie a { color: var(--acento); text-decoration: none; }
+.pie a:hover { text-decoration: underline; }
+
 .estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
 .estado.error { color: var(--peligro); white-space: pre-wrap; }
 .estado.exito { color: #4ade80; }

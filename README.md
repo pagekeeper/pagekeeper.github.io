@@ -1,7 +1,8 @@
-# 📖 Lector PDF
+# 📖 PageKeeper: lector de PDF y EPUB
 
 Lector de libros **PDF y EPUB** pensado para leer desde varios dispositivos
-**continuando siempre en la misma página**. Es una web estática (funciona en GitHub Pages,
+**continuando siempre en la misma página**. Disponible en
+https://pagekeeper.github.io/. Es una web estática (funciona en GitHub Pages,
 sin servidor propio) y cada persona conecta **su propia nube** para guardar los
 libros y sincronizar el progreso de lectura.
 
@@ -112,5 +113,8 @@ con doble clic no funciona porque la app usa módulos ES.)
 
 ## Licencia
 
-Código propio bajo licencia MIT. PDF.js es de Mozilla Foundation, bajo
-licencia Apache 2.0.
+© 2026 Juan José de Haro. Código propio bajo licencia MIT.
+
+Componentes de terceros incluidos en `vendor/`: PDF.js (Mozilla Foundation,
+Apache 2.0), epub.js (FuturePress, BSD), JSZip (MIT), MathJax (Apache 2.0)
+e iconos Lucide (ISC).
