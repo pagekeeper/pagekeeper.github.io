@@ -30,7 +30,8 @@ libros y sincronizar el progreso de lectura.
   autor o progreso; filtrar por pendientes, en lectura y terminados; y marcar
   manualmente cualquier libro como terminado o quitar la etiqueta pulsándola.
   Si se abre de nuevo un libro terminado, la etiqueta desaparece sin reiniciar
-  su progreso.
+  su progreso. Los libros con 0 % leído se consideran pendientes aunque ya se
+  hayan abierto.
 - 📖 **Libro de ejemplo**: cuando la biblioteca está completamente vacía,
   ofrece añadir y abrir una obra incluida en español, catalán o inglés según
   el idioma de la interfaz. Los tres EPUB están disponibles también sin red.

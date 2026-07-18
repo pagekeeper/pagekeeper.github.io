@@ -612,7 +612,7 @@ function crearFilaLibro({
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
   const estadoLectura = lecturaTerminada(avance, porcentaje)
     ? 'terminados'
-    : avance && (avance.cfi || avance.pagina > 0) ? 'leyendo' : 'pendientes';
+    : porcentaje > 0 ? 'leyendo' : 'pendientes';
 
   const elemento = document.createElement('li');
   elemento.dataset.idLibro = id;
