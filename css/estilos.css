@@ -124,14 +124,18 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
   cursor: pointer; text-align: left;
   color: var(--texto); font: inherit;
 }
-.btn-borrar-libro {
+.btn-fila-libro {
   background: none; border: 1px solid transparent; border-radius: 0.75rem;
   color: var(--texto-suave); font-size: 1.05rem; cursor: pointer;
   padding: 0 0.55rem; display: flex; align-items: center;
 }
-.btn-borrar-libro .icono { width: 1.15rem; height: 1.15rem; }
+.btn-fila-libro .icono { width: 1.15rem; height: 1.15rem; }
 .btn-borrar-libro:hover {
   border-color: var(--peligro); color: var(--peligro);
+  background: var(--fondo-tarjeta);
+}
+.btn-subir-libro:hover {
+  border-color: var(--acento); color: var(--acento);
   background: var(--fondo-tarjeta);
 }
 .libro:hover { border-color: var(--acento); }

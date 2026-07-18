@@ -296,7 +296,7 @@ async function cargarBiblioteca() {
 }
 
 // Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
-function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alBorrar }) {
+function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alBorrar }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
 
@@ -324,13 +324,23 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alBorrar }) {
     if (blob) boton.querySelector('.portada').replaceChildren(crearImagenPortada(blob));
   }).catch(() => null);
 
+  elemento.append(boton);
+
+  if (alSubir) {
+    const subir = document.createElement('button');
+    subir.className = 'btn-fila-libro btn-subir-libro';
+    subir.title = `Subir «${titulo}» a la nube`;
+    subir.innerHTML = icono('cloud-upload');
+    subir.addEventListener('click', alSubir);
+    elemento.append(subir);
+  }
+
   const borrar = document.createElement('button');
-  borrar.className = 'btn-borrar-libro';
+  borrar.className = 'btn-fila-libro btn-borrar-libro';
   borrar.title = `Borrar «${titulo}»`;
   borrar.innerHTML = icono('trash-2');
   borrar.addEventListener('click', alBorrar);
-
-  elemento.append(boton, borrar);
+  elemento.append(borrar);
   return elemento;
 }
 
@@ -365,6 +375,8 @@ async function cargarLibrosLocales() {
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
       alAbrir: () => abrirLibroLocal(libro),
+      // Subir a la nube: solo si hay servidor configurado.
+      alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
       alBorrar: () => borrarLibroLocal(libro),
     }));
   }
@@ -417,6 +429,45 @@ async function generarPortadasFaltantes(libros) {
     }
   } finally {
     generandoPortadas = false;
+  }
+}
+
+// Sube un libro de este dispositivo a la carpeta de la nube, conservando
+// el progreso de lectura bajo el identificador de la nube.
+async function subirLibroLocalANube(libro) {
+  if (!cliente) return;
+  let nombre = libro.nombre;
+  if (!/\.(pdf|epub)$/i.test(nombre)) nombre += '.pdf';
+
+  try {
+    if (await cliente.existe(nombre) &&
+        !confirm(`Ya existe «${nombre}» en tu nube. ¿Quieres sobrescribirlo?`)) {
+      return;
+    }
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+    return;
+  }
+
+  mostrarCarga(`Subiendo «${nombre}» a tu nube…`);
+  try {
+    const datos = await almacen.obtenerDatos(libro.id);
+    if (!datos) throw new Error('no se encontró el libro en este dispositivo');
+    await cliente.subir(nombre, datos);
+    asegurarMiniatura(nombre, formatoDe(nombre), datos);
+
+    const avance = progreso.progresoDe(libro.id);
+    if (avance) {
+      progreso.anotarPagina(nombre, avance.pagina, avance.paginas,
+        avance.cfi ? { cfi: avance.cfi } : {});
+    }
+    await progreso.sincronizar(cliente).catch(() => null);
+    avisar(`«${nombre}» subido a tu nube. Ya se sincroniza entre dispositivos.`);
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
   }
 }
 
