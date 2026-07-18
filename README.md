@@ -35,6 +35,10 @@ libros y sincronizar el progreso de lectura.
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
+- 🔗 **Configuración portátil**: desde Ajustes puedes copiar un enlace que
+  lleva la configuración de la nube (URL, usuario y contraseña, codificados
+  en el fragmento `#cfg=…`, que nunca se envía a ningún servidor). Al abrirlo
+  en otro dispositivo, el lector queda configurado automáticamente.
 - 🔒 **Privacidad**: no hay ningún servidor intermedio. El navegador habla
   directamente con tu nube y las credenciales se guardan solo en tu navegador
   (`localStorage`).

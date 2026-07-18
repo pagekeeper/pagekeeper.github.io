@@ -139,6 +139,74 @@ $('enlace-configurar').addEventListener('click', (evento) => {
   abrirAjustes();
 });
 
+// ── Exportar / importar configuración por enlace ──
+// El enlace lleva la configuración en el fragmento (#cfg=…), que nunca se
+// envía al servidor: solo lo lee el lector al abrirse.
+
+function codificarConfig(config) {
+  const bytes = new TextEncoder().encode(JSON.stringify(config));
+  let binario = '';
+  for (const b of bytes) binario += String.fromCharCode(b);
+  return btoa(binario).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/, '');
+}
+
+function decodificarConfig(texto) {
+  const b64 = texto.replaceAll('-', '+').replaceAll('_', '/');
+  const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+$('btn-copiar-config').addEventListener('click', async () => {
+  const resultado = $('resultado-copia');
+  const config = leerFormulario();
+  if (!config.url || !config.usuario) {
+    resultado.className = 'estado error';
+    resultado.textContent = 'Rellena (o guarda) antes la URL y el usuario.';
+    return;
+  }
+  const enlace = `${location.origin}${location.pathname}#cfg=${codificarConfig(config)}`;
+  try {
+    await navigator.clipboard.writeText(enlace);
+    resultado.className = 'estado exito';
+    resultado.textContent = '✓ Enlace copiado. Ábrelo en el otro dispositivo.';
+  } catch {
+    // Sin permiso de portapapeles: se muestra para copiarlo a mano.
+    prompt('Copia el enlace y ábrelo en el otro dispositivo:', enlace);
+    resultado.textContent = '';
+  }
+});
+
+// Cubre también pegar el enlace en una pestaña donde el lector ya está
+// abierto (la navegación no recarga la página, solo cambia el fragmento).
+window.addEventListener('hashchange', () => {
+  if (!location.hash.startsWith('#cfg=')) return;
+  importarConfigDeUrl();
+  crearCliente();
+  mostrarVista('biblioteca');
+  cargarBiblioteca();
+});
+
+function importarConfigDeUrl() {
+  const coincidencia = location.hash.match(/^#cfg=([A-Za-z0-9_-]+)$/);
+  if (!coincidencia) return;
+  // Se limpia la dirección enseguida para que la contraseña no se quede a
+  // la vista ni en el historial.
+  history.replaceState(null, '', location.pathname + location.search);
+  try {
+    const config = decodificarConfig(coincidencia[1]);
+    if (!config?.url || !config?.usuario) throw new Error('incompleta');
+    const actual = cargarConfig();
+    if (actual && JSON.stringify(actual) !== JSON.stringify(config) &&
+        !confirm('Este enlace trae una configuración de nube. ¿Reemplazar la actual?')) {
+      return;
+    }
+    localStorage.setItem(CLAVE_CONFIG, JSON.stringify(config));
+    avisar('Configuración de la nube importada.');
+  } catch {
+    avisar('El enlace de configuración no es válido.', 5000);
+  }
+}
+
 // ───────────────────────── Ayuda ─────────────────────────
 
 function abrirAyuda() {
@@ -645,6 +713,7 @@ if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => null);
 }
 
+importarConfigDeUrl();
 crearCliente();
 mostrarVista('biblioteca');
 cargarBiblioteca();
