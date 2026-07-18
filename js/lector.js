@@ -183,8 +183,10 @@ export class Lector {
     const dpr = window.devicePixelRatio || 1;
     lienzo.width = Math.floor(vista.width * dpr);
     lienzo.height = Math.floor(vista.height * dpr);
+    // Solo se fija el ancho: el alto sigue a la proporción intrínseca del
+    // canvas, así ningún límite de CSS puede deformar la página.
     lienzo.style.width = `${Math.floor(vista.width)}px`;
-    lienzo.style.height = `${Math.floor(vista.height)}px`;
+    lienzo.style.height = 'auto';
 
     await pagina.render({
       canvasContext: lienzo.getContext('2d'),

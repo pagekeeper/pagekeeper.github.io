@@ -188,19 +188,24 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
 #contenedor-epub iframe { border: none; }
 #contenedor-pagina {
   min-height: 100%; display: flex;
-  justify-content: center; align-items: flex-start; padding: 0.5rem;
+  justify-content: flex-start; align-items: flex-start; padding: 0.5rem;
 }
+/* Centrado con margin:auto: si la página es más ancha que la vista, los
+   márgenes se anulan y el scroll horizontal alcanza toda la página. */
+#contenedor-pagina > canvas { margin: 0 auto; }
 #contenedor-pagina.continuo {
-  flex-direction: column; align-items: center; gap: 0.6rem; padding: 0.6rem 0.5rem;
+  /* flex-start + margin:auto en las páginas: se centran cuando caben y
+     permiten scroll horizontal (sin recorte izquierdo) cuando hay zoom. */
+  flex-direction: column; align-items: flex-start; gap: 0.6rem; padding: 0.6rem 0.5rem;
 }
 #contenedor-pagina > canvas {
   box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px; background: white; display: block;
 }
 .pagina-continua {
   background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5);
-  border-radius: 2px; max-width: 100%; overflow: hidden;
+  border-radius: 2px; margin: 0 auto; flex: none;
 }
-.pagina-continua > canvas { display: block; max-width: 100%; }
+.pagina-continua > canvas { display: block; }
 
 .modo-noche #area-lectura canvas { filter: invert(0.93) hue-rotate(180deg); }
 
