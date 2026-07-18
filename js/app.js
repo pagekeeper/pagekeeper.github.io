@@ -296,7 +296,7 @@ async function cargarBiblioteca() {
 }
 
 // Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
-function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alBorrar }) {
+function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alDescargar, alBorrar }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
 
@@ -335,6 +335,15 @@ function crearFilaLibro({ id, titulo, tamano, formato, alAbrir, alSubir, alBorra
     elemento.append(subir);
   }
 
+  if (alDescargar) {
+    const descargar = document.createElement('button');
+    descargar.className = 'btn-fila-libro btn-descargar-libro';
+    descargar.title = `Descargar «${titulo}»`;
+    descargar.innerHTML = icono('download');
+    descargar.addEventListener('click', alDescargar);
+    elemento.append(descargar);
+  }
+
   const borrar = document.createElement('button');
   borrar.className = 'btn-fila-libro btn-borrar-libro';
   borrar.title = `Borrar «${titulo}»`;
@@ -354,6 +363,7 @@ function pintarListaRemota(libros) {
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
       alAbrir: () => abrirLibroRemoto(libro.nombre),
+      alDescargar: () => descargarLibroRemoto(libro.nombre),
       alBorrar: () => borrarLibroRemoto(libro.nombre),
     }));
   }
@@ -377,6 +387,7 @@ async function cargarLibrosLocales() {
       alAbrir: () => abrirLibroLocal(libro),
       // Subir a la nube: solo si hay servidor configurado.
       alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
+      alDescargar: () => descargarLibroLocal(libro),
       alBorrar: () => borrarLibroLocal(libro),
     }));
   }
@@ -429,6 +440,45 @@ async function generarPortadasFaltantes(libros) {
     }
   } finally {
     generandoPortadas = false;
+  }
+}
+
+// ───────────────────────── Descargar libros ─────────────────────────
+
+// Entrega los bytes al usuario como descarga del navegador.
+function entregarDescarga(nombre, datos) {
+  const tipo = /\.epub$/i.test(nombre) ? 'application/epub+zip' : 'application/pdf';
+  const url = URL.createObjectURL(new Blob([datos], { type: tipo }));
+  const enlace = document.createElement('a');
+  enlace.href = url;
+  enlace.download = nombre;
+  enlace.click();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
+}
+
+async function descargarLibroRemoto(nombre) {
+  if (!cliente) return;
+  mostrarCarga(`Descargando «${nombre}»…`);
+  try {
+    const datos = await cliente.descargar(nombre, (recibido, total) => {
+      const pct = Math.round((recibido / total) * 100);
+      $('texto-cargando').textContent = `Descargando «${nombre}»… ${pct}%`;
+    });
+    entregarDescarga(nombre, datos);
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+  }
+}
+
+async function descargarLibroLocal(libro) {
+  try {
+    const datos = await almacen.obtenerDatos(libro.id);
+    if (!datos) throw new Error('el libro ya no está en el almacén de este dispositivo');
+    entregarDescarga(libro.nombre, datos);
+  } catch (error) {
+    avisar(`No se pudo descargar: ${error.message}`, 6000);
   }
 }
 

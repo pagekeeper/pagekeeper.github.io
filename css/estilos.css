@@ -144,7 +144,7 @@ form input:focus { outline: 2px solid var(--acento); border-color: transparent; 
   border-color: var(--peligro); color: var(--peligro);
   background: var(--fondo-tarjeta);
 }
-.btn-subir-libro:hover {
+.btn-subir-libro:hover, .btn-descargar-libro:hover {
   border-color: var(--acento); color: var(--acento);
   background: var(--fondo-tarjeta);
 }
