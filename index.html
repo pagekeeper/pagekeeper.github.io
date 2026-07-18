@@ -103,6 +103,15 @@
       <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca" data-i18n-title="backLibrary"></button>
       <span id="titulo-libro" class="titulo-libro"></span>
       <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage">– / –</button>
+      <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
+        data-i18n-aria-label="historyNavigation">
+        <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
+          title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
+        <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
+          title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
+        <button type="button" id="btn-ir-posicion" class="btn-icono btn-ir-posicion" data-icono="map-pin"
+          title="Ir a una página" data-i18n-title="goPage"></button>
+      </nav>
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
       <button id="btn-indice-libro" class="btn-icono oculto" data-icono="list-tree" title="Mostrar el índice" data-i18n-title="showBookIndex"
@@ -135,13 +144,6 @@
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
     </header>
-    <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
-      data-i18n-aria-label="historyNavigation">
-      <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
-        title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
-      <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
-        title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
-    </nav>
     <div id="area-lectura">
       <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
         <div class="cabecera-panel-lector">
@@ -272,7 +274,8 @@
           un botón para abrirlo y saltar directamente a cualquier apartado.</li>
           <li><strong>Volver tras un salto:</strong> después de usar el índice,
           la búsqueda o el selector de posición aparecen botones para volver
-          atrás o avanzar de nuevo.</li>
+          atrás o avanzar de nuevo. En móvil están dentro del indicador de
+          página o porcentaje.</li>
           <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
           palabras o frases y lleva a la página o capítulo del resultado.</li>
           <li>Estas preferencias (modo, zoom, letra y márgenes) se recuerdan

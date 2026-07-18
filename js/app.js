@@ -1017,6 +1017,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 let resultadosBusquedaLibro = [];
 let versionBusquedaLibro = 0;
 const historialNavegacion = { atras: [], adelante: [] };
+const consultaMovil = window.matchMedia('(max-width: 600px)');
 
 function posicionActualLibro() {
   return epubAbierto() ? lectorEpub.cfi : lector.pagina;
@@ -1025,9 +1026,17 @@ function posicionActualLibro() {
 function actualizarHistorialNavegacion() {
   const hayAtras = historialNavegacion.atras.length > 0;
   const hayAdelante = historialNavegacion.adelante.length > 0;
+  const hayHistorial = hayAtras || hayAdelante;
   $('btn-posicion-anterior').disabled = !hayAtras;
   $('btn-posicion-siguiente').disabled = !hayAdelante;
-  $('historial-navegacion').classList.toggle('oculto', !hayAtras && !hayAdelante);
+  $('historial-navegacion').classList.toggle('oculto', !hayHistorial);
+  $('btn-indicador').classList.toggle('tiene-historial', hayHistorial);
+  $('btn-indicador').title = hayHistorial ? t('pageAndHistory') : t('goPage');
+  if (!hayHistorial) cerrarHistorialMovil();
+}
+
+function cerrarHistorialMovil() {
+  $('historial-navegacion').classList.remove('abierto-movil');
 }
 
 function reiniciarHistorialNavegacion() {
@@ -1076,11 +1085,13 @@ async function moverPorHistorial(origen, destino) {
 
 $('btn-posicion-anterior').addEventListener('click', () => {
   moverPorHistorial(historialNavegacion.atras, historialNavegacion.adelante)
-    .catch((error) => avisar(error.message, 5000));
+    .catch((error) => avisar(error.message, 5000))
+    .finally(cerrarHistorialMovil);
 });
 $('btn-posicion-siguiente').addEventListener('click', () => {
   moverPorHistorial(historialNavegacion.adelante, historialNavegacion.atras)
-    .catch((error) => avisar(error.message, 5000));
+    .catch((error) => avisar(error.message, 5000))
+    .finally(cerrarHistorialMovil);
 });
 
 function cerrarIndiceLibro() {
@@ -1255,7 +1266,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
-  if (!$('panel-indice-libro').classList.contains('oculto')) {
+  if ($('historial-navegacion').classList.contains('abierto-movil')) {
+    cerrarHistorialMovil();
+    $('btn-indicador').focus();
+  } else if (!$('panel-indice-libro').classList.contains('oculto')) {
     cerrarIndiceLibro();
     $('btn-indice-libro').focus();
   } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
@@ -1279,7 +1293,7 @@ $('btn-ancho-auto').addEventListener('click', async () => {
   }
 });
 
-$('btn-indicador').addEventListener('click', () => {
+function pedirPosicionLibro() {
   if (epubAbierto()) {
     if (!lectorEpub.conLocalizaciones) return;
     const respuesta = prompt(t('goPercent'), String(lectorEpub.porcentaje));
@@ -1294,6 +1308,26 @@ $('btn-indicador').addEventListener('click', () => {
   const numero = parseInt(respuesta, 10);
   if (!Number.isNaN(numero)) {
     saltarConHistorial(numero).catch((error) => avisar(error.message, 5000));
+  }
+}
+
+$('btn-indicador').addEventListener('click', () => {
+  const hayHistorial = historialNavegacion.atras.length || historialNavegacion.adelante.length;
+  if (consultaMovil.matches && hayHistorial) {
+    $('historial-navegacion').classList.toggle('abierto-movil');
+    return;
+  }
+  pedirPosicionLibro();
+});
+
+$('btn-ir-posicion').addEventListener('click', () => {
+  cerrarHistorialMovil();
+  pedirPosicionLibro();
+});
+
+document.addEventListener('click', (evento) => {
+  if (!$('historial-navegacion').contains(evento.target) && !$('btn-indicador').contains(evento.target)) {
+    cerrarHistorialMovil();
   }
 });
 

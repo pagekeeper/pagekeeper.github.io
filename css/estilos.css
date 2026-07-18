@@ -395,13 +395,25 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   flex: none; color: var(--texto-suave); font-size: 0.75rem; white-space: nowrap;
 }
 .historial-navegacion {
-  flex: none; display: flex; align-items: center; justify-content: center;
-  gap: 0.15rem; padding: 0.1rem 0.25rem;
-  border-bottom: 1px solid var(--borde); background: var(--fondo);
+  flex: none; display: flex; align-items: center; gap: 0.05rem;
+  margin-left: 0.15rem; padding-left: 0.25rem; border-left: 1px solid var(--borde);
 }
 .historial-navegacion .btn-icono { color: var(--acento); }
 .historial-navegacion .btn-icono:disabled { color: var(--texto-suave); opacity: 0.4; cursor: default; }
 .historial-navegacion .btn-icono:disabled:hover { background: none; }
+.historial-navegacion .btn-ir-posicion { display: none; }
+.btn-pagina.tiene-historial { border-color: var(--acento); }
+
+@media (max-width: 600px) {
+  .barra-lector .historial-navegacion {
+    position: fixed; z-index: 45; top: 3.35rem; right: 0.35rem;
+    display: none; margin: 0; padding: 0.2rem;
+    border: 1px solid var(--borde); border-radius: 0.65rem;
+    background: var(--fondo); box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  .barra-lector .historial-navegacion.abierto-movil { display: flex; }
+  .historial-navegacion .btn-ir-posicion { display: inline-flex; }
+}
 .buscador-form { display: flex; align-items: center; gap: 0.4rem; }
 .buscador-form input {
   background: var(--fondo-tarjeta); border: 1px solid var(--borde);
