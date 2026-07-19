@@ -126,6 +126,7 @@ export class LectorEpub {
     this.tamano = 100;   // tamaño de letra en %
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
+    this.alineacion = 'libro'; // 'libro' | 'izquierda' (sin justificar)
     this.noche = false;
     this.cfi = null;
     this.porcentaje = 0;
@@ -242,6 +243,13 @@ export class LectorEpub {
     if (this.interlineado) {
       reglas.push(`body, p, li, blockquote, dd, dt { line-height: ${this.interlineado} !important; }`);
     }
+    if (this.alineacion === 'izquierda') {
+      // Quita el justificado (evita huecos grandes en pantallas estrechas).
+      // 'start' respeta los idiomas RTL y se dejan en paz los elementos
+      // centrados a propósito (títulos, versos, pies de imagen…).
+      const centrado = ':not([style*="center"], [align="center"], .center, .centered)';
+      reglas.push(`body, p${centrado}, li${centrado}, blockquote${centrado}, dd, dt { text-align: start !important; }`);
+    }
     estilo.textContent = reglas.join('\n');
   }
 
@@ -259,6 +267,11 @@ export class LectorEpub {
   cambiarInterlineado(valor) {
     const numero = Number(valor);
     this.interlineado = Number.isFinite(numero) && numero >= 1 && numero <= 3 ? numero : null;
+    this.aplicarTipografia();
+  }
+
+  cambiarAlineacion(valor) {
+    this.alineacion = valor === 'izquierda' ? 'izquierda' : 'libro';
     this.aplicarTipografia();
   }
 

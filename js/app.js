@@ -15,6 +15,7 @@ const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
+const CLAVE_ALINEACION_EPUB = 'lector.alineacionEpub'; // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
 const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
@@ -80,6 +81,10 @@ function fuenteEpubGuardada() {
 function interlineadoEpubGuardado() {
   const valor = parseFloat(localStorage.getItem(CLAVE_INTERLINEADO_EPUB));
   return valor >= 1 && valor <= 3 ? valor : null;
+}
+
+function alineacionEpubGuardada() {
+  return localStorage.getItem(CLAVE_ALINEACION_EPUB) === 'izquierda' ? 'izquierda' : 'libro';
 }
 
 function zoomPdfGuardado() {
@@ -1953,6 +1958,7 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.tamano = letraEpubGuardada();
       lectorEpub.fuente = fuenteEpubGuardada();
       lectorEpub.interlineado = interlineadoEpubGuardado();
+      lectorEpub.alineacion = alineacionEpubGuardada();
       prepararSeguimientoEpub(avance?.cfi ?? null);
       try {
         await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
@@ -2509,6 +2515,7 @@ function pintarAjustesTexto() {
   $('fuente-epub').value = fuenteEpubGuardada();
   const interlineado = interlineadoEpubGuardado();
   $('interlineado-epub').value = interlineado === null ? 'libro' : String(interlineado);
+  $('alineacion-epub').value = alineacionEpubGuardada();
 }
 
 $('btn-texto').addEventListener('click', () => {
@@ -2536,6 +2543,14 @@ $('interlineado-epub').addEventListener('change', (evento) => {
   reflowEpub();
 });
 
+$('alineacion-epub').addEventListener('change', (evento) => {
+  const valor = evento.target.value;
+  if (valor === 'libro') localStorage.removeItem(CLAVE_ALINEACION_EPUB);
+  else localStorage.setItem(CLAVE_ALINEACION_EPUB, valor);
+  lectorEpub.cambiarAlineacion(valor);
+  reflowEpub();
+});
+
 $('margen-epub').addEventListener('input', (evento) => {
   const valor = Number(evento.target.value);
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
@@ -2546,10 +2561,12 @@ $('btn-restablecer-texto').addEventListener('click', () => {
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
   localStorage.removeItem(CLAVE_FUENTE_EPUB);
   localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
+  localStorage.removeItem(CLAVE_ALINEACION_EPUB);
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
   pintarAjustesTexto();
   lectorEpub.cambiarFuente('libro');
   lectorEpub.cambiarInterlineado(null);
+  lectorEpub.cambiarAlineacion('libro');
   reflowEpub();
 });
 

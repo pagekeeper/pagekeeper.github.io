@@ -101,6 +101,8 @@ const textos = {
     bookFont: 'La del libro', serifFont: 'Con serifa', sansFont: 'Sin serifa',
     lineSpacing: 'Interlineado', bookSpacing: 'El del libro', spacingCompact: 'Compacto',
     spacingNormal: 'Normal', spacingWide: 'Amplio', spacingWider: 'Muy amplio',
+    textAlignment: 'Alineación', bookAlignment: 'La del libro',
+    unjustifiedAlignment: 'Sin justificar',
   },
   ca: {
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
@@ -198,6 +200,8 @@ const textos = {
     bookFont: 'La del llibre', serifFont: 'Amb serifa', sansFont: 'Sense serifa',
     lineSpacing: 'Interlineat', bookSpacing: 'El del llibre', spacingCompact: 'Compacte',
     spacingNormal: 'Normal', spacingWide: 'Ampli', spacingWider: 'Molt ampli',
+    textAlignment: 'Alineació', bookAlignment: 'La del llibre',
+    unjustifiedAlignment: 'Sense justificar',
   },
   en: {
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
@@ -295,6 +299,8 @@ const textos = {
     bookFont: 'Book font', serifFont: 'Serif', sansFont: 'Sans serif',
     lineSpacing: 'Line spacing', bookSpacing: 'Book spacing', spacingCompact: 'Compact',
     spacingNormal: 'Normal', spacingWide: 'Wide', spacingWider: 'Extra wide',
+    textAlignment: 'Alignment', bookAlignment: 'Book alignment',
+    unjustifiedAlignment: 'Unjustified',
   },
 };
 
