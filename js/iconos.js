@@ -39,6 +39,9 @@ const TRAZADOS = {
   'circle-check': '<circle cx="12" cy="12" r="10"/> <path d="m9 12 2 2 4-4"/>',
   'x': '<path d="M18 6 6 18"/> <path d="m6 6 12 12"/>',
   'ellipsis-vertical': '<circle cx="12" cy="12" r="1"/> <circle cx="12" cy="5" r="1"/> <circle cx="12" cy="19" r="1"/>',
+  'list': '<path d="M3 12h.01"/> <path d="M3 18h.01"/> <path d="M3 6h.01"/> <path d="M8 12h13"/> <path d="M8 18h13"/> <path d="M8 6h13"/>',
+  'layout-grid': '<rect width="7" height="7" x="3" y="3" rx="1"/> <rect width="7" height="7" x="14" y="3" rx="1"/> <rect width="7" height="7" x="14" y="14" rx="1"/> <rect width="7" height="7" x="3" y="14" rx="1"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
 };
 
 export function icono(nombre, clase = 'icono') {

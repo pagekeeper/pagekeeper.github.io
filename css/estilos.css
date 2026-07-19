@@ -55,6 +55,14 @@ body {
 .encabezado-seccion > p {
   margin-top: 0.2rem; color: var(--texto-suave); font-size: 0.8rem; line-height: 1.35;
 }
+/* Secciones plegables: la cabecera alterna y el resto del contenido se
+   oculta, salvo cuando hay una búsqueda o un filtro activos. */
+.encabezado-seccion { cursor: pointer; }
+.btn-plegar-seccion .icono { transition: transform 0.15s; }
+.seccion-plegada .btn-plegar-seccion .icono { transform: rotate(-90deg); }
+body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador-arrastre) {
+  display: none;
+}
 .estado-sincronizacion {
   padding: 0.1rem 0.45rem; border: 1px solid; border-radius: 999px;
   font-size: 0.65rem; font-weight: 750; line-height: 1.35;
@@ -195,7 +203,7 @@ body {
 .continuar-leyendo li:not(:first-child) .nombre { font-size: 0.9rem; }
 .continuar-leyendo li:not(:first-child) .barra-progreso { margin-top: 0.2rem; }
 
-.organizacion-biblioteca { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; }
+.organizacion-biblioteca { display: grid; grid-template-columns: 1fr 1fr auto; gap: 0.65rem; }
 .organizacion-biblioteca label {
   display: flex; flex-direction: column; gap: 0.25rem;
   color: var(--texto-suave); font-size: 0.72rem; font-weight: 650;
@@ -206,6 +214,31 @@ body {
   background: var(--fondo-tarjeta); color: var(--texto); font: inherit; font-size: 0.85rem;
 }
 .organizacion-biblioteca select:focus { outline: 2px solid var(--acento); border-color: transparent; }
+.conmutador-vista {
+  display: flex; flex-direction: column; gap: 0.25rem;
+  color: var(--texto-suave); font-size: 0.72rem; font-weight: 650;
+}
+.grupo-vista {
+  display: flex; border: 1px solid var(--borde); border-radius: 0.55rem;
+  overflow: hidden; align-self: start;
+}
+.grupo-vista button {
+  display: flex; align-items: center; justify-content: center;
+  padding: 0.5rem 0.6rem; border: none; background: var(--fondo-tarjeta);
+  color: var(--texto-suave); cursor: pointer;
+}
+.grupo-vista button + button { border-left: 1px solid var(--borde); }
+.grupo-vista button .icono { width: 1.05rem; height: 1.05rem; }
+.grupo-vista button[aria-pressed="true"] {
+  color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 16%, var(--fondo-tarjeta));
+}
+.grupo-vista button:focus-visible { outline: 2px solid var(--acento); outline-offset: -2px; }
+@media (max-width: 430px) {
+  .organizacion-biblioteca { gap: 0.45rem; }
+  .organizacion-biblioteca select { padding: 0.5rem 0.4rem; font-size: 0.8rem; }
+  .grupo-vista button { padding: 0.5rem 0.45rem; }
+}
 
 /* ── Pie de página ── */
 .pie {
@@ -377,6 +410,39 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   margin-top: 0.35rem; overflow: hidden;
 }
 .libro .barra-progreso > div { height: 100%; background: var(--acento); }
+
+/* ── Vista de cuadrícula: fichas verticales de portada grande ── */
+.lista-libros.vista-cuadricula {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(6.4rem, 1fr));
+  gap: 0.6rem; align-items: stretch;
+}
+.vista-cuadricula > li { display: block; }
+.vista-cuadricula .libro {
+  position: relative; height: 100%;
+  flex-direction: column; align-items: stretch; gap: 0.45rem;
+  padding: 0.45rem 0.45rem 0.55rem;
+}
+.vista-cuadricula .libro .portada { width: 100%; height: auto; aspect-ratio: 2 / 3; }
+.vista-cuadricula .libro .portada .icono { width: 2rem; height: 2rem; }
+.vista-cuadricula .libro .autor,
+.vista-cuadricula .libro .detalle,
+.vista-cuadricula .libro .formato,
+.vista-cuadricula .libro .estado-sin-conexion { display: none; }
+.vista-cuadricula .libro .cabecera-libro { align-items: flex-start; }
+.vista-cuadricula .libro .nombre {
+  white-space: normal; font-size: 0.78rem; line-height: 1.3;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+}
+.vista-cuadricula .libro .fila-detalle { margin-top: auto; }
+.vista-cuadricula .libro .barra-progreso { margin-top: 0.1rem; }
+.vista-cuadricula .btn-menu-libro {
+  position: absolute; top: 0.6rem; right: 0.6rem; margin: 0; align-self: auto;
+  min-width: 0; width: 1.9rem; height: 1.9rem; padding: 0; border-radius: 50%;
+  background: rgba(15, 23, 42, 0.72); color: #e2e8f0;
+}
+.vista-cuadricula .btn-menu-libro:hover, .vista-cuadricula .btn-menu-libro:focus-visible {
+  color: var(--acento); background: rgba(15, 23, 42, 0.85);
+}
 
 /* ── Lector ── */
 #vista-lector { background: var(--fondo-lector); height: 100dvh; }

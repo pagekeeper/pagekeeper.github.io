@@ -79,6 +79,15 @@
             <option value="progreso" data-i18n="sortProgress">Progreso</option>
           </select>
         </label>
+        <div class="conmutador-vista">
+          <span id="etiqueta-vista" data-i18n="viewLabel">Vista</span>
+          <div class="grupo-vista" role="group" aria-labelledby="etiqueta-vista">
+            <button type="button" id="btn-vista-lista" data-icono="list"
+              title="Vista de lista" data-i18n-title="viewList" aria-pressed="true"></button>
+            <button type="button" id="btn-vista-cuadricula" data-icono="layout-grid"
+              title="Vista de cuadrícula" data-i18n-title="viewGrid" aria-pressed="false"></button>
+          </div>
+        </div>
       </div>
 
       <div id="zona-remota" class="destino-arrastre oculto">
@@ -95,6 +104,9 @@
           <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube" data-i18n-title="addCloud"></label>
           <input type="file" id="selector-subir-nube" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
           <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar" data-i18n-title="reload"></button>
+          <button id="btn-plegar-nube" class="btn-icono btn-plegar-seccion" data-icono="chevron-down"
+            title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
+            aria-expanded="true" aria-controls="zona-remota"></button>
         </div>
         <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
         <div id="estado-remoto" class="estado"></div>
@@ -113,6 +125,9 @@
           </div>
           <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo" data-i18n-title="addLocal"></label>
           <input type="file" id="selector-archivo" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
+          <button id="btn-plegar-local" class="btn-icono btn-plegar-seccion" data-icono="chevron-down"
+            title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
+            aria-expanded="true" aria-controls="zona-local"></button>
         </div>
         <button type="button" id="aviso-local-vacio" class="carga-local-vacia oculto">
           <span class="icono-carga-local" data-icono="plus"></span>

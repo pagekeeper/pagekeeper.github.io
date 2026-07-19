@@ -17,6 +17,9 @@ const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
+const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
+const CLAVE_PLEGADA_NUBE = 'lector.plegadaNube';   // solo de este dispositivo
+const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 
 const LIBROS_EJEMPLO = {
@@ -833,6 +836,9 @@ function aplicarOrganizacionBiblioteca() {
   const consulta = normalizarBusqueda($('buscar-biblioteca').value.trim());
   const filtro = $('filtro-biblioteca').value;
   const orden = $('orden-biblioteca').value;
+  // Con búsqueda o filtro activos las secciones plegadas se muestran
+  // igualmente: si no, los resultados quedarían invisibles.
+  document.body.classList.toggle('filtrado-biblioteca', Boolean(consulta) || filtro !== 'todos');
   const comparadorTexto = new Intl.Collator(idiomaActual(), { sensitivity: 'base', numeric: true });
 
   for (const lista of [$('lista-libros'), $('lista-locales')]) {
@@ -878,6 +884,48 @@ $('orden-biblioteca').addEventListener('change', (evento) => {
   localStorage.setItem(CLAVE_ORDEN_BIBLIOTECA, evento.target.value);
   aplicarOrganizacionBiblioteca();
 });
+
+// ── Vista de la biblioteca: lista o cuadrícula de portadas ──
+
+function aplicarVistaBiblioteca(vista) {
+  const cuadricula = vista === 'cuadricula';
+  for (const lista of [$('lista-libros'), $('lista-locales')]) {
+    lista.classList.toggle('vista-cuadricula', cuadricula);
+  }
+  $('btn-vista-lista').setAttribute('aria-pressed', String(!cuadricula));
+  $('btn-vista-cuadricula').setAttribute('aria-pressed', String(cuadricula));
+}
+
+aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+for (const [id, vista] of [['btn-vista-lista', 'lista'], ['btn-vista-cuadricula', 'cuadricula']]) {
+  $(id).addEventListener('click', () => {
+    localStorage.setItem(CLAVE_VISTA_BIBLIOTECA, vista);
+    aplicarVistaBiblioteca(vista);
+  });
+}
+
+// ── Secciones plegables: la nube y este dispositivo recuerdan su estado ──
+
+for (const [idZona, idBoton, clave] of [
+  ['zona-remota', 'btn-plegar-nube', CLAVE_PLEGADA_NUBE],
+  ['zona-local', 'btn-plegar-local', CLAVE_PLEGADA_LOCAL],
+]) {
+  const zona = $(idZona);
+  const boton = $(idBoton);
+  const aplicar = (plegada) => {
+    zona.classList.toggle('seccion-plegada', plegada);
+    boton.setAttribute('aria-expanded', String(!plegada));
+  };
+  aplicar(localStorage.getItem(clave) === '1');
+  const alternar = () => {
+    const plegada = !zona.classList.contains('seccion-plegada');
+    if (plegada) localStorage.setItem(clave, '1');
+    else localStorage.removeItem(clave);
+    aplicar(plegada);
+  };
+  boton.addEventListener('click', alternar);
+  zona.querySelector('.encabezado-seccion').addEventListener('click', alternar);
+}
 
 async function alternarTerminado(id, terminado) {
   progreso.marcarTerminado(id, terminado);
