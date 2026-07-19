@@ -620,7 +620,7 @@ function cerrarMenuAcciones() {
   $('menu-libro').classList.add('oculto');
 }
 
-function abrirMenuAcciones(titulo, acciones) {
+function abrirMenuAcciones(titulo, acciones, ancla) {
   $('titulo-menu-libro').textContent = titulo;
   const lista = $('lista-menu-libro');
   lista.replaceChildren();
@@ -639,6 +639,22 @@ function abrirMenuAcciones(titulo, acciones) {
     lista.append(elemento);
   }
   $('menu-libro').classList.remove('oculto');
+
+  // Despliega el menú junto al botón «⋯»: alineado a su borde derecho y por
+  // debajo; si no cabe en la ventana, se ajusta o se abre hacia arriba.
+  const menu = document.querySelector('.menu-libro');
+  const caja = ancla.getBoundingClientRect();
+  const margen = 8;
+  let x = Math.min(caja.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - margen);
+  x = Math.max(margen, x);
+  let y = caja.bottom + 4;
+  const abreArriba = y + menu.offsetHeight > window.innerHeight - margen
+    && caja.top - menu.offsetHeight - 4 > margen;
+  if (abreArriba) y = caja.top - menu.offsetHeight - 4;
+  else y = Math.min(y, Math.max(margen, window.innerHeight - menu.offsetHeight - margen));
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+  menu.classList.toggle('abre-arriba', abreArriba);
   lista.querySelector('button')?.focus();
 }
 
@@ -663,7 +679,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
   menu.addEventListener('click', (evento) => {
     evento.stopPropagation();
     actualizarEtiqueta();
-    abrirMenuAcciones(ficha.querySelector('.nombre').textContent, obtenerAcciones());
+    abrirMenuAcciones(ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu);
   });
   return menu;
 }
