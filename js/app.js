@@ -124,6 +124,12 @@ const lectorEpub = new LectorEpub({
   // Los enlaces internos del EPUB los salta epub.js por su cuenta: aquí solo
   // se apunta la posición de partida para poder volver con el historial.
   alPulsarEnlaceInterno: apuntarEnHistorial,
+  // Los clics sobre el texto del libro ocurren dentro del iframe del
+  // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
+  alPulsarContenido: () => {
+    cerrarPanelTexto();
+    cerrarHistorialMovil();
+  },
 });
 
 function formatoDe(nombre) {

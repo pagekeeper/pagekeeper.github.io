@@ -114,11 +114,12 @@ export function inyectarMathJax(contents) {
 }
 
 export class LectorEpub {
-  constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno }) {
+  constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
+    this.alPulsarContenido = alPulsarContenido;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -185,6 +186,9 @@ export class LectorEpub {
     // Las teclas pulsadas dentro del capítulo (iframe) no llegan al
     // documento principal: se reenvían para mantener los atajos.
     this.vista.on('keydown', (evento) => this.alTeclear?.(evento));
+    // Con los clics pasa lo mismo: se avisa para que la app pueda cerrar
+    // sus paneles flotantes al pulsar sobre el texto del libro.
+    this.vista.on('click', () => this.alPulsarContenido?.());
     return this.vista.display(posicion ?? undefined);
   }
 
