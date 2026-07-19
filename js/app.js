@@ -23,10 +23,21 @@ const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 
+// Un libro de ejemplo por formato e idioma: así quedan representados
+// tanto los EPUB como los PDF.
 const LIBROS_EJEMPLO = {
-  es: { ruta: 'ejemplos/lazarillo-de-tormes-es.epub', nombre: 'Lazarillo de Tormes.epub' },
-  ca: { ruta: 'ejemplos/lauca-del-senyor-esteve-ca.epub', nombre: 'L’auca del senyor Esteve.epub' },
-  en: { ruta: 'ejemplos/alice-in-wonderland-en.epub', nombre: 'Alice’s Adventures in Wonderland.epub' },
+  es: [
+    { ruta: 'ejemplos/lazarillo-de-tormes-es.epub', nombre: 'Lazarillo de Tormes.epub' },
+    { ruta: 'ejemplos/orientaciones-herramientas-digitales-es.pdf', nombre: 'Orientaciones sobre el uso de herramientas digitales.pdf' },
+  ],
+  ca: [
+    { ruta: 'ejemplos/lauca-del-senyor-esteve-ca.epub', nombre: 'L’auca del senyor Esteve.epub' },
+    { ruta: 'ejemplos/competencia-docent-ia-ca.pdf', nombre: 'Competència digital docent en intel·ligència artificial.pdf' },
+  ],
+  en: [
+    { ruta: 'ejemplos/alice-in-wonderland-en.epub', nombre: 'Alice’s Adventures in Wonderland.epub' },
+    { ruta: 'ejemplos/artificial-intelligence-science-education-en.pdf', nombre: 'Artificial Intelligence in Science Education.pdf' },
+  ],
 };
 
 const MARGEN_EPUB_INICIAL = 10;
@@ -380,27 +391,39 @@ function actualizarEstadoSincronizacion(error = null) {
 }
 
 function mostrarLibroEjemplo(mostrar) {
-  $('titulo-libro-ejemplo').textContent = t('sampleBookTitle');
+  const zona = $('botones-libro-ejemplo');
+  zona.replaceChildren();
+  for (const ejemplo of LIBROS_EJEMPLO[idiomaActual()] ?? LIBROS_EJEMPLO.es) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'btn-primario btn-libro-ejemplo';
+    const titulo = ejemplo.nombre.replace(/\.(pdf|epub)$/i, '');
+    boton.innerHTML = '<span class="titulo-ejemplo"></span><span class="formato-ejemplo"></span>';
+    boton.querySelector('.titulo-ejemplo').textContent = titulo;
+    boton.querySelector('.formato-ejemplo').textContent = formatoDe(ejemplo.nombre).toUpperCase();
+    boton.title = titulo;
+    boton.addEventListener('click', () => anadirLibroEjemplo(ejemplo, boton));
+    zona.append(boton);
+  }
   $('libro-ejemplo').classList.toggle('oculto', !mostrar);
 }
 
-$('btn-libro-ejemplo').addEventListener('click', async () => {
-  const ejemplo = LIBROS_EJEMPLO[idiomaActual()] ?? LIBROS_EJEMPLO.es;
-  const boton = $('btn-libro-ejemplo');
+async function anadirLibroEjemplo(ejemplo, boton) {
   boton.disabled = true;
   mostrarCarga(t('loadingSampleBook'));
   try {
     const respuesta = await fetch(ejemplo.ruta);
     if (!respuesta.ok) throw new Error(`${respuesta.status} ${respuesta.statusText}`);
-    const archivo = new File([await respuesta.blob()], ejemplo.nombre, { type: 'application/epub+zip' });
+    const tipo = formatoDe(ejemplo.nombre) === 'pdf' ? 'application/pdf' : 'application/epub+zip';
+    const archivo = new File([await respuesta.blob()], ejemplo.nombre, { type: tipo });
     await guardarArchivosLocales([archivo], true);
   } catch (error) {
-    avisar(t('saveFailed', { title: t('sampleBookTitle'), error: error.message }), 7000);
+    avisar(t('saveFailed', { title: ejemplo.nombre, error: error.message }), 7000);
   } finally {
     boton.disabled = false;
     ocultarCarga();
   }
-});
+}
 
 async function cargarBiblioteca() {
   mostrarLibroEjemplo(false);

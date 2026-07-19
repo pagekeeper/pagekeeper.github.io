@@ -19,8 +19,11 @@ Móvil: viewport 390x844 con `is_mobile=True`; escritorio: 1200x800. `locale='es
 
 ## Conseguir libros en la biblioteca
 
-- **Local**: pulsar `#btn-libro-ejemplo` (añade el Lazarillo y abre el lector);
-  volver con `#btn-volver`. Las filas aparecen en `#lista-locales li[data-id-libro]`.
+- **Local**: pulsar un botón de `#botones-libro-ejemplo` (hay un EPUB y un PDF
+  de ejemplo por idioma; añaden el libro y abren el lector); volver con
+  `#btn-volver`. Las filas aparecen en `#lista-locales li[data-id-libro]`.
+  También vale `page.set_input_files('#selector-archivo', ruta)` con cualquier
+  PDF/EPUB propio.
 - **Nube**: rclone sirve WebDAV pero sin CORS; hace falta el proxy
   `proxy_cors.py` (en esta misma carpeta): proxy HTTP en 8768 → rclone en 8767
   que añade `Access-Control-Allow-*` y responde OPTIONS con 204.
