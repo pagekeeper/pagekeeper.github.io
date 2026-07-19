@@ -603,7 +603,61 @@ async function pintarContinuarLeyendo({
   actualizarVisibilidadBuscadorBiblioteca();
 }
 
-// Crea la fila de un libro: botón principal para abrirlo y papelera para borrarlo.
+// Menú «⋯» compartido: se rellena al abrirse con las acciones del libro o
+// carpeta pulsado, de modo que las fichas solo cargan con un botón.
+function cerrarMenuAcciones() {
+  $('menu-libro').classList.add('oculto');
+}
+
+function abrirMenuAcciones(titulo, acciones) {
+  $('titulo-menu-libro').textContent = titulo;
+  const lista = $('lista-menu-libro');
+  lista.replaceChildren();
+  for (const accion of acciones) {
+    const elemento = document.createElement('li');
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = `item-menu-libro${accion.peligro ? ' item-menu-peligro' : ''}${accion.clase ? ` ${accion.clase}` : ''}`;
+    boton.innerHTML = `${icono(accion.icono)}<span></span>`;
+    boton.querySelector('span').textContent = accion.etiqueta;
+    boton.addEventListener('click', (evento) => {
+      cerrarMenuAcciones();
+      accion.alPulsar(evento);
+    });
+    elemento.append(boton);
+    lista.append(elemento);
+  }
+  $('menu-libro').classList.remove('oculto');
+  lista.querySelector('button')?.focus();
+}
+
+$('menu-libro').addEventListener('click', (evento) => {
+  if (evento.target === $('menu-libro')) cerrarMenuAcciones();
+});
+
+// Botón «⋯» que abre el menú de acciones de una ficha. El título se lee al
+// pulsarlo porque los metadatos pueden sustituir el nombre tras crear la fila.
+function crearBotonMenu(ficha, obtenerAcciones) {
+  const menu = document.createElement('button');
+  menu.type = 'button';
+  menu.className = 'btn-menu-libro';
+  menu.setAttribute('aria-haspopup', 'menu');
+  menu.innerHTML = icono('ellipsis-vertical');
+  const actualizarEtiqueta = () => {
+    const titulo = ficha.querySelector('.nombre').textContent;
+    menu.title = t('bookActions', { title: titulo });
+    menu.setAttribute('aria-label', menu.title);
+  };
+  actualizarEtiqueta();
+  menu.addEventListener('click', (evento) => {
+    evento.stopPropagation();
+    actualizarEtiqueta();
+    abrirMenuAcciones(ficha.querySelector('.nombre').textContent, obtenerAcciones());
+  });
+  return menu;
+}
+
+// Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
   alSinConexion, sinConexion = false, copiaDesactualizada = false, mostrarTerminado = true,
@@ -727,60 +781,26 @@ function crearFilaLibro({
     if (blob) boton.querySelector('.portada').replaceChildren(crearImagenPortada(blob));
   }).catch(() => null);
 
-  elemento.append(boton);
-
-  if (alSubir) {
-    const subir = document.createElement('button');
-    subir.className = 'btn-fila-libro btn-subir-libro';
-    subir.title = t('uploadBook', { title: titulo });
-    subir.innerHTML = icono('cloud-upload');
-    subir.addEventListener('click', alSubir);
-    elemento.append(subir);
-  }
-
-  if (alMover) {
-    const mover = document.createElement('button');
-    mover.className = 'btn-fila-libro btn-mover-libro';
-    mover.title = t('moveBook', { title: titulo });
-    mover.innerHTML = icono('folder-input');
-    mover.addEventListener('click', alMover);
-    elemento.append(mover);
-  }
-
-  if (alDescargar) {
-    const descargar = document.createElement('button');
-    descargar.className = 'btn-fila-libro btn-descargar-libro';
-    descargar.title = t('downloadBook', { title: titulo });
-    descargar.innerHTML = icono('download');
-    descargar.addEventListener('click', alDescargar);
-    elemento.append(descargar);
-  }
-
+  const acciones = [];
+  if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
+  if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
+  if (alDescargar) acciones.push({ icono: 'download', etiqueta: t('actionDownload'), alPulsar: alDescargar });
   if (alSinConexion) {
-    const offline = document.createElement('button');
-    offline.className = 'btn-fila-libro btn-sin-conexion';
-    offline.classList.toggle('disponible', sinConexion && !copiaDesactualizada);
-    offline.classList.toggle('desactualizada', copiaDesactualizada);
-    offline.title = copiaDesactualizada
-      ? t('updateOfflineCopy', { title: titulo })
-      : sinConexion
-        ? t('removeOfflineCopy', { title: titulo })
-        : t('makeAvailableOffline', { title: titulo });
-    offline.innerHTML = icono(copiaDesactualizada
-      ? 'refresh-cw'
-      : sinConexion ? 'cloud-check' : 'cloud-download');
-    offline.addEventListener('click', alSinConexion);
-    elemento.append(offline);
+    acciones.push({
+      icono: copiaDesactualizada ? 'refresh-cw' : sinConexion ? 'cloud-check' : 'cloud-download',
+      etiqueta: t(copiaDesactualizada
+        ? 'actionUpdateOffline'
+        : sinConexion ? 'actionRemoveOffline' : 'actionOffline'),
+      alPulsar: alSinConexion,
+      clase: copiaDesactualizada
+        ? 'item-sin-conexion-desactualizada'
+        : sinConexion ? 'item-sin-conexion-disponible' : '',
+    });
   }
+  if (alBorrar) acciones.push({ icono: 'trash-2', etiqueta: t('actionDelete'), alPulsar: alBorrar, peligro: true });
+  if (acciones.length) boton.append(crearBotonMenu(boton, () => acciones));
 
-  if (alBorrar) {
-    const borrar = document.createElement('button');
-    borrar.className = 'btn-fila-libro btn-borrar-libro';
-    borrar.title = t('deleteBook', { title: titulo });
-    borrar.innerHTML = icono('trash-2');
-    borrar.addEventListener('click', alBorrar);
-    elemento.append(borrar);
-  }
+  elemento.append(boton);
   cargarMetadatosEnFila(elemento, id, titulo);
   return elemento;
 }
@@ -980,28 +1000,39 @@ function pintarRutaNube() {
 function crearFilaCarpeta(nombre, soloLectura = false) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
-  const boton = document.createElement('button');
+  // Es un div con role="button" (no un <button>) para poder alojar dentro
+  // el botón «⋯» del menú: un botón anidado en otro no es HTML válido.
+  const boton = document.createElement('div');
   boton.className = 'libro carpeta';
+  boton.setAttribute('role', 'button');
+  boton.tabIndex = 0;
   boton.title = t('openFolder', { name: nombre });
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
     <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
-  boton.addEventListener('click', () => {
+  const abrir = () => {
     rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
     cargarBiblioteca();
+  };
+  boton.addEventListener('click', abrir);
+  boton.addEventListener('keydown', (evento) => {
+    if (evento.target !== boton) return;
+    if (evento.key !== 'Enter' && evento.key !== ' ') return;
+    evento.preventDefault();
+    abrir();
   });
   hacerDestinoDeLibro(boton, rutaNube ? `${rutaNube}/${nombre}` : nombre);
-  elemento.append(boton);
 
   if (!soloLectura) {
-    const borrar = document.createElement('button');
-    borrar.className = 'btn-fila-libro btn-borrar-libro';
-    borrar.title = t('deleteFolder', { name: nombre });
-    borrar.innerHTML = icono('trash-2');
-    borrar.addEventListener('click', () => borrarCarpetaRemota(nombre));
-    elemento.append(borrar);
+    boton.append(crearBotonMenu(boton, () => [{
+      icono: 'trash-2',
+      etiqueta: t('actionDeleteFolder'),
+      alPulsar: () => borrarCarpetaRemota(nombre),
+      peligro: true,
+    }]));
   }
+  elemento.append(boton);
   return elemento;
 }
 
@@ -2379,6 +2410,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('menu-libro').classList.contains('oculto')) {
+    cerrarMenuAcciones();
+    return;
+  }
   if (!$('dialogo-mover').classList.contains('oculto')) {
     cerrarDialogoMover();
     return;
