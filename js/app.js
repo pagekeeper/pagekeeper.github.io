@@ -20,6 +20,7 @@ const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
 const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
 const CLAVE_PLEGADA_NUBE = 'lector.plegadaNube';   // solo de este dispositivo
 const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
+const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 
 const LIBROS_EJEMPLO = {
@@ -261,6 +262,12 @@ $('enlace-configurar').addEventListener('click', (evento) => {
   evento.preventDefault();
   abrirAjustes();
 });
+// El aviso de «sin servidor» se puede cerrar: quien no usa nube no tiene por
+// qué verlo siempre. La nube sigue accesible desde los ajustes.
+$('btn-cerrar-aviso-config').addEventListener('click', () => {
+  localStorage.setItem(CLAVE_AVISO_CONFIG_CERRADO, '1');
+  $('aviso-sin-config').classList.add('oculto');
+});
 
 // ── Exportar / importar configuración por enlace ──
 // El enlace lleva la configuración en el fragmento (#cfg=…), que nunca se
@@ -402,7 +409,8 @@ async function cargarBiblioteca() {
   $('continuar-leyendo').classList.add('oculto');
 
   const hayConfig = cliente !== null;
-  $('aviso-sin-config').classList.toggle('oculto', hayConfig);
+  $('aviso-sin-config').classList.toggle('oculto',
+    hayConfig || localStorage.getItem(CLAVE_AVISO_CONFIG_CERRADO) === '1');
   $('zona-remota').classList.toggle('oculto', !hayConfig);
   // La sección local solo tiene sentido en la raíz: dentro de una subcarpeta
   // de la nube distraería y sus libros no pertenecen a esa carpeta.

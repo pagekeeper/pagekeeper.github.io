@@ -24,9 +24,13 @@
       <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes" data-i18n-title="settings"></button>
     </header>
     <main class="contenido">
-      <div id="aviso-sin-config" class="tarjeta oculto" data-i18n-html="noConfigHtml">
-        <span>No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.</span>
-        <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
+      <div id="aviso-sin-config" class="tarjeta aviso-cerrable oculto">
+        <button type="button" id="btn-cerrar-aviso-config" class="btn-cerrar-aviso" data-icono="x"
+          title="Cerrar" data-i18n-title="close" aria-label="Cerrar" data-i18n-aria-label="close"></button>
+        <div data-i18n-html="noConfigHtml">
+          <span>No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.</span>
+          <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
+        </div>
       </div>
 
       <section id="libro-ejemplo" class="libro-ejemplo oculto">
