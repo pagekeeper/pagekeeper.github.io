@@ -21,6 +21,7 @@ const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este disposi
 const CLAVE_PLEGADA_NUBE = 'lector.plegadaNube';   // solo de este dispositivo
 const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
+const CLAVE_EJEMPLOS_PRECARGADOS = 'lector.ejemplosPrecargados'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 
 // Un libro de ejemplo por formato e idioma: así quedan representados
@@ -390,7 +391,47 @@ function actualizarEstadoSincronizacion(error = null) {
   estado.title = error ? explicarError(error) : '';
 }
 
+// Primera visita: los ejemplos se cargan solos en la biblioteca. La marca
+// evita resembrarlos cuando el usuario los borra, y también oculta la
+// tarjeta de ejemplo, que queda solo como respaldo si la precarga falló
+// (por ejemplo, un primer arranque sin conexión).
+async function precargarLibrosEjemplo() {
+  if (localStorage.getItem(CLAVE_EJEMPLOS_PRECARGADOS) === '1') return;
+  if (cliente) {
+    // Con nube propia configurada los ejemplos no pintan nada.
+    localStorage.setItem(CLAVE_EJEMPLOS_PRECARGADOS, '1');
+    return;
+  }
+  let locales = [];
+  try {
+    locales = await almacen.listarLibros();
+  } catch {
+    return; // IndexedDB no disponible: nada que precargar
+  }
+  if (locales.length) {
+    // Biblioteca ya en uso: se respeta tal cual.
+    localStorage.setItem(CLAVE_EJEMPLOS_PRECARGADOS, '1');
+    return;
+  }
+  try {
+    for (const ejemplo of LIBROS_EJEMPLO[idiomaActual()] ?? LIBROS_EJEMPLO.es) {
+      const respuesta = await fetch(ejemplo.ruta);
+      if (!respuesta.ok) throw new Error(`${respuesta.status} ${respuesta.statusText}`);
+      const datos = new Uint8Array(await respuesta.arrayBuffer());
+      const libro = {
+        id: `local:${ejemplo.nombre}:${datos.byteLength}`,
+        nombre: ejemplo.nombre,
+        tamano: datos.byteLength,
+      };
+      await almacen.guardarLibro(libro, datos);
+      asegurarMiniatura(libro.id, formatoDe(ejemplo.nombre), datos);
+    }
+    localStorage.setItem(CLAVE_EJEMPLOS_PRECARGADOS, '1');
+  } catch { /* sin conexión: se reintentará en el próximo arranque */ }
+}
+
 function mostrarLibroEjemplo(mostrar) {
+  if (localStorage.getItem(CLAVE_EJEMPLOS_PRECARGADOS) === '1') mostrar = false;
   const zona = $('botones-libro-ejemplo');
   zona.replaceChildren();
   for (const ejemplo of LIBROS_EJEMPLO[idiomaActual()] ?? LIBROS_EJEMPLO.es) {
@@ -2708,4 +2749,4 @@ importarConfigDeUrl();
 crearCliente();
 history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
 mostrarVista('biblioteca');
-cargarBiblioteca();
+precargarLibrosEjemplo().finally(() => cargarBiblioteca());
