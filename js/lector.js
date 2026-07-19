@@ -162,9 +162,17 @@ export class Lector {
   }
 
   async montar() {
-    this.limpiar();
-    if (this.modo === 'continuo') await this.montarContinuo();
-    else await this.montarPagina();
+    // Mientras se remonta (zoom, cambio de modo, resize), el scroll provocado
+    // por vaciar el contenedor no debe redetectar la página: pisaría la
+    // actual con la primera antes de que scrollIntoView la restaure.
+    this.montando = true;
+    try {
+      this.limpiar();
+      if (this.modo === 'continuo') await this.montarContinuo();
+      else await this.montarPagina();
+    } finally {
+      this.montando = false;
+    }
     this.alCambiarPagina?.(this.pagina, this.totalPaginas);
   }
 
@@ -207,8 +215,11 @@ export class Lector {
     for (let n = 1; n <= this.totalPaginas; n++) this.observador.observe(this.paginas[n]);
 
     // Renderiza y desplaza a la página inicial antes de ceder el control.
-    await this.renderContinuo(this.pagina);
-    this.paginas[this.pagina].scrollIntoView({ block: 'start' });
+    // Se captura en una constante: this.pagina podría cambiar durante el await.
+    const destino = this.pagina;
+    await this.renderContinuo(destino);
+    this.paginas[destino].scrollIntoView({ block: 'start' });
+    this.pagina = destino;
   }
 
   // ───────────────────────── Renderizado ─────────────────────────
@@ -339,7 +350,7 @@ export class Lector {
 
   // Determina qué página ocupa la parte superior de la vista y avisa si cambia.
   detectarPaginaVisible() {
-    if (!this.documento || this.modo !== 'continuo') return;
+    if (!this.documento || this.modo !== 'continuo' || this.montando) return;
     const rectArea = this.area.getBoundingClientRect();
     const linea = this.area.clientHeight * 0.25;
     let visible = 1;
