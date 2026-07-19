@@ -114,10 +114,11 @@ export function inyectarMathJax(contents) {
 }
 
 export class LectorEpub {
-  constructor({ contenedor, alCambiarPosicion, alTeclear }) {
+  constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
+    this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -169,6 +170,12 @@ export class LectorEpub {
     });
     this.vista.hooks.content.register(inyectarMathJax);
     this.vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
+    // Los enlaces internos del libro (notas al pie, índice propio) los salta
+    // epub.js por su cuenta; se avisa antes del salto con la posición actual
+    // para que quede apuntada en el historial de navegación.
+    this.vista.hooks.content.register((contents) => {
+      contents.on('linkClicked', () => this.alPulsarEnlaceInterno?.(this.cfi));
+    });
     this.aplicarTemas();
     this.vista.on('relocated', (lugar) => {
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;

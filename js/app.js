@@ -116,6 +116,9 @@ const lectorEpub = new LectorEpub({
   contenedor: $('contenedor-epub'),
   alCambiarPosicion: cuandoCambiaPosicionEpub,
   alTeclear: manejarTecla,
+  // Los enlaces internos del EPUB los salta epub.js por su cuenta: aquí solo
+  // se apunta la posición de partida para poder volver con el historial.
+  alPulsarEnlaceInterno: apuntarEnHistorial,
 });
 
 function formatoDe(nombre) {
@@ -2149,6 +2152,16 @@ function abrirHistorialMovil() {
 
 function reiniciarHistorialNavegacion() {
   historialNavegacion.atras = [];
+  historialNavegacion.adelante = [];
+  actualizarHistorialNavegacion();
+}
+
+// Apunta una posición de partida en el historial sin navegar (el salto ya
+// lo hace otro, como epub.js con los enlaces internos del libro).
+function apuntarEnHistorial(posicion) {
+  if (posicion === null || posicion === undefined) return;
+  historialNavegacion.atras.push(posicion);
+  if (historialNavegacion.atras.length > 50) historialNavegacion.atras.shift();
   historialNavegacion.adelante = [];
   actualizarHistorialNavegacion();
 }

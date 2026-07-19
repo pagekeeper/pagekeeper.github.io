@@ -507,6 +507,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .modo-noche #contenedor-epub { background: var(--fondo-lector); }
 #contenedor-epub iframe { border: none; }
+/* En modo continuo, epub.js ya compensa con scroll la altura de los capítulos
+   que antepone; el anclaje de scroll del navegador la compensaría por segunda
+   vez y los saltos del índice acabarían más adelante del destino. */
+#contenedor-epub .epub-container { overflow-anchor: none; }
 
 /* Selector de márgenes EPUB. Se abre junto al botón de la barra y en móvil
    usa casi todo el ancho para que el deslizador sea cómodo de tocar. */
