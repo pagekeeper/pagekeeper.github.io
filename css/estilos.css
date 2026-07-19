@@ -682,8 +682,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   display: flex; flex-direction: column; gap: 0.4rem;
 }
 .menu-libro h2 {
-  font-size: 0.85rem; font-weight: 650; color: var(--texto-suave);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.85rem; font-weight: 650; color: var(--texto-suave); line-height: 1.35;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .menu-libro ul { list-style: none; display: flex; flex-direction: column; gap: 0.15rem; }
 .item-menu-libro {
