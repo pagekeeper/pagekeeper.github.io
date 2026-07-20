@@ -189,7 +189,9 @@ export class ClienteWebDav {
     }
   }
 
-  async escribirAnotaciones(libro, datos, etag = null, yaExiste = Boolean(etag)) {
+  async escribirAnotaciones(
+    libro, datos, etag = null, yaExiste = Boolean(etag), usarCondicional = true,
+  ) {
     const url = this.urlDe(archivoAnotaciones(libro));
     // If-Match exige un ETag fuerte. Si el servidor no lo expone por CORS o
     // solo entrega uno débil (W/...), se conserva la compatibilidad mediante
@@ -209,7 +211,7 @@ export class ClienteWebDav {
 
     let respuesta;
     try {
-      respuesta = await guardar(true);
+      respuesta = await guardar(usarCondicional);
     } catch (error) {
       // Algunos WebDAV no permiten las cabeceras condicionales mediante CORS.
       if (!(error instanceof TypeError)) throw error;

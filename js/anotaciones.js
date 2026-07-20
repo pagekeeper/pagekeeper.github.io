@@ -155,6 +155,7 @@ async function limpiarPendientesConfirmados(ambito, libro, confirmados) {
 
 async function sincronizarAhora(libro, cliente) {
   const ambito = cliente.base;
+  let firmaCondicionalRechazada = null;
   for (let intento = 0; intento < INTENTOS_SINCRONIZACION; intento++) {
     const respuesta = await cliente.leerAnotaciones(libro);
     // La red se espera antes de leer IndexedDB para no pisar una edición
@@ -169,11 +170,18 @@ async function sincronizarAhora(libro, cliente) {
       return limpiarPendientesConfirmados(ambito, libro, localLeido.pendientes);
     }
     try {
+      const firmaRemota = `${remotoOriginal !== null}\n${respuesta?.etag ?? ''}`;
+      // Hay servidores WebDAV que publican ETag pero rechazan If-Match. Si
+      // tras volver a leer el recurso la misma condición falla de nuevo, ya
+      // no es una edición concurrente: se usa un PUT normal con la fusión
+      // recién calculada, igual que en la sincronización del progreso.
+      const usarCondicional = firmaRemota !== firmaCondicionalRechazada;
       await cliente.escribirAnotaciones(
-        libro, remotoNuevo, respuesta?.etag ?? null, remotoOriginal !== null,
+        libro, remotoNuevo, respuesta?.etag ?? null, remotoOriginal !== null, usarCondicional,
       );
     } catch (error) {
       if (error.conflictoSincronizacion && intento < INTENTOS_SINCRONIZACION - 1) {
+        firmaCondicionalRechazada = `${remotoOriginal !== null}\n${respuesta?.etag ?? ''}`;
         await esperarReintento(intento);
         continue;
       }

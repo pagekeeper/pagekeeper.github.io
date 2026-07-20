@@ -73,6 +73,20 @@ test('no usa un ETag débil en If-Match', async () => {
   assert.equal('If-None-Match' in peticion.headers, false);
 });
 
+test('permite omitir If-Match si el servidor rechaza una condición sin cambios', async () => {
+  let peticion;
+  globalThis.fetch = async (_url, opciones) => {
+    peticion = opciones;
+    return new Response(null, { status: 204 });
+  };
+
+  await cliente().escribirAnotaciones(
+    'libro.pdf', { version: 1, anotaciones: [] }, '"v2"', true, false,
+  );
+  assert.equal('If-Match' in peticion.headers, false);
+  assert.equal('If-None-Match' in peticion.headers, false);
+});
+
 test('mueve el JSON lateral junto al libro y conserva las subcarpetas', async () => {
   const peticiones = [];
   globalThis.fetch = async (url, opciones) => {
