@@ -613,6 +613,21 @@
     </div>
   </div>
 
+  <div id="dialogo-editar-nota" class="dialogo-fondo oculto">
+    <form id="form-editar-nota" class="dialogo dialogo-editar-nota" role="dialog"
+      aria-modal="true" aria-labelledby="titulo-editar-nota">
+      <h2 id="titulo-editar-nota" data-i18n="editNote">Editar nota</h2>
+      <p id="fragmento-editar-nota" class="fragmento-editar-nota"></p>
+      <textarea id="texto-editar-nota" rows="7" maxlength="4000"
+        aria-label="Nota" data-i18n-aria-label="note"></textarea>
+      <div class="fila-botones botones-editar-nota">
+        <button type="button" id="btn-cancelar-editar-nota" class="btn-secundario"
+          data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="btn-primario" data-i18n="save">Guardar</button>
+      </div>
+    </form>
+  </div>
+
   <!-- Menú de acciones de un libro o una carpeta: se despliega junto al botón «⋯» -->
   <div id="menu-libro" class="fondo-menu-libro oculto">
     <div class="menu-libro" role="menu" aria-labelledby="titulo-menu-libro">

@@ -110,6 +110,7 @@ let temporizadorSyncAnotaciones = null;
 let seleccionPendiente = null;
 let anotacionesActuales = [];
 let anotacionMenuId = null;
+let anotacionEditandoId = null;
 
 const lector = new Lector({
   area: $('area-lectura'),
@@ -190,6 +191,7 @@ function registrarVistaLector() {
 function cerrarVistaLector() {
   cerrarMenuLector();
   cerrarMenuNota();
+  cerrarEditorNota();
   ocultarNotaEmergente();
   cerrarPanelAnotaciones();
   cancelarSeleccion();
@@ -2706,16 +2708,46 @@ async function editarAnotacionPorId(id) {
   const anotacion = anotacionesActuales.find((entrada) => entrada.id === id);
   if (!anotacion) return;
   ocultarNotaEmergente();
-  const nota = prompt(t('editNotePrompt'), anotacion.nota ?? '');
-  if (nota === null) return;
-  anotacionesActuales = await anotaciones.actualizar(
-    ambitoAnotacionesActual(), libroActual.id, id,
-    nota.trim() ? { nota: nota.trim().slice(0, 4000) } : { nota: '' },
+  cerrarMenuNota();
+  anotacionEditandoId = id;
+  $('fragmento-editar-nota').textContent = anotacion.texto ?? '';
+  $('texto-editar-nota').value = anotacion.nota ?? '';
+  $('dialogo-editar-nota').classList.remove('oculto');
+  $('texto-editar-nota').focus();
+  $('texto-editar-nota').setSelectionRange(
+    $('texto-editar-nota').value.length,
+    $('texto-editar-nota').value.length,
   );
+}
+
+function cerrarEditorNota() {
+  anotacionEditandoId = null;
+  $('dialogo-editar-nota').classList.add('oculto');
+}
+
+$('form-editar-nota').addEventListener('submit', async (evento) => {
+  evento.preventDefault();
+  const id = anotacionEditandoId;
+  if (!id || !libroActual) return;
+  const nota = $('texto-editar-nota').value.trim().slice(0, 4000);
+  try {
+    anotacionesActuales = await anotaciones.actualizar(
+      ambitoAnotacionesActual(), libroActual.id, id, { nota },
+    );
+  } catch (error) {
+    avisar(error.message, 5000);
+    return;
+  }
+  cerrarEditorNota();
   mostrarResaltados();
   if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones(id);
   planificarSyncAnotaciones();
-}
+});
+
+$('btn-cancelar-editar-nota').addEventListener('click', cerrarEditorNota);
+$('dialogo-editar-nota').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-editar-nota')) cerrarEditorNota();
+});
 
 async function eliminarAnotacionPorId(id) {
   if (!libroActual || !anotacionesActuales.some((entrada) => entrada.id === id)) return;
@@ -2994,6 +3026,10 @@ document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
   if (!$('menu-nota-contextual').classList.contains('oculto')) {
     cerrarMenuNota();
+    return;
+  }
+  if (!$('dialogo-editar-nota').classList.contains('oculto')) {
+    cerrarEditorNota();
     return;
   }
   if (!$('fondo-menu-lector').classList.contains('oculto')) {

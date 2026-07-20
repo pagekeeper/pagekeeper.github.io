@@ -829,6 +829,19 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   display: flex; flex-direction: column; gap: 0.55rem;
 }
 .dialogo h2 { font-size: 1rem; }
+.dialogo-editar-nota { width: min(32rem, 100%); }
+.fragmento-editar-nota {
+  color: var(--texto-suave); font-size: 0.85rem; line-height: 1.35;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;
+  line-clamp: 3; overflow: hidden;
+}
+.dialogo-editar-nota textarea {
+  width: 100%; resize: vertical; min-height: 8rem; max-height: 55dvh;
+  padding: 0.65rem 0.7rem; border: 1px solid var(--borde); border-radius: 0.55rem;
+  background: var(--fondo-tarjeta); color: var(--texto); font: inherit; line-height: 1.4;
+}
+.dialogo-editar-nota textarea:focus { outline: 2px solid var(--acento); border-color: transparent; }
+.botones-editar-nota { justify-content: flex-end; }
 
 /* ── Menú de acciones de un libro o carpeta ── */
 /* Se despliega junto al botón «⋯»; la capa transparente solo captura el
