@@ -13,6 +13,8 @@
 // La posición de lectura se expresa con un CFI (identificador estándar de
 // posición en EPUB) más un porcentaje aproximado del libro.
 
+import { posicionVerticalLibre } from './posicion-notas.js';
+
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
 const ELEMENTOS_ACTIVOS = 'script, iframe, frame, object, embed, applet';
@@ -357,6 +359,7 @@ export class LectorEpub {
     if (!this.vista) return;
     const base = this.contenedor.getBoundingClientRect();
     const pintadas = new Set();
+    const posicionesOcupadas = [];
     for (const contents of this.vista.getContents?.() ?? []) {
       const iframe = contents.document?.defaultView?.frameElement;
       const marco = iframe?.getBoundingClientRect();
@@ -374,7 +377,13 @@ export class LectorEpub {
         boton.textContent = '✎';
         boton.title = this.etiquetaOpcionesNota?.() ?? 'Opciones de la nota';
         boton.setAttribute('aria-label', boton.title);
-        boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
+        const posicionVertical = posicionVerticalLibre(
+          marco.top + rectangulo.top - base.top,
+          posicionesOcupadas,
+          base.height,
+        );
+        posicionesOcupadas.push(posicionVertical);
+        boton.style.top = `${posicionVertical}px`;
         const bordeTexto = bordeDerechoDelBloque(rango, rectangulo);
         boton.style.left = `${Math.min(
           base.width - 36,

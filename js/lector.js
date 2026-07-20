@@ -7,6 +7,7 @@
 //    a la vista, para que los PDF grandes no se atasquen.
 
 import * as pdfjs from '../vendor/pdf.min.js';
+import { posicionVerticalLibre } from './posicion-notas.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
@@ -353,6 +354,7 @@ export class Lector {
     if (!entradas.length) return;
     const capa = document.createElement('div');
     capa.className = 'capa-resaltados';
+    const posicionesOcupadas = [];
     for (const { anotacion, pagina } of entradas) {
       for (const rectangulo of pagina.rectangulos ?? []) {
         const marca = document.createElement('span');
@@ -371,7 +373,13 @@ export class Lector {
         boton.textContent = '✎';
         boton.title = this.etiquetaOpcionesNota?.() ?? 'Opciones de la nota';
         boton.setAttribute('aria-label', boton.title);
-        boton.style.top = `${pagina.rectangulos[0].y * 100}%`;
+        const posicionVertical = posicionVerticalLibre(
+          pagina.rectangulos[0].y * envoltorio.clientHeight,
+          posicionesOcupadas,
+          envoltorio.clientHeight,
+        );
+        posicionesOcupadas.push(posicionVertical);
+        boton.style.top = `${posicionVertical}px`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
           this.alGestionarAnotacion?.(anotacion.id, boton.getBoundingClientRect());
