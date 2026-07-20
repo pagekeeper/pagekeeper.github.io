@@ -42,6 +42,20 @@ export function cargarLibrerias() {
   return promesaLibrerias;
 }
 
+function bordeDerechoDelBloque(rango, rectangulo) {
+  const nodo = rango?.commonAncestorContainer;
+  const elemento = nodo?.nodeType === 1 ? nodo : nodo?.parentElement;
+  const bloque = elemento?.closest(
+    'p, li, blockquote, dd, dt, h1, h2, h3, h4, h5, h6, figcaption, td, th',
+  ) ?? elemento;
+  if (!bloque) return rectangulo.right;
+  const centroY = rectangulo.top + rectangulo.height / 2;
+  const fragmento = [...bloque.getClientRects()].find((rect) =>
+    centroY >= rect.top && centroY <= rect.bottom &&
+    rectangulo.left >= rect.left - 1 && rectangulo.right <= rect.right + 1);
+  return fragmento?.right ?? rectangulo.right;
+}
+
 function crearNonce() {
   const bytes = crypto.getRandomValues(new Uint8Array(16));
   return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
@@ -359,9 +373,10 @@ export class LectorEpub {
         boton.title = this.etiquetaAbrirNota?.() ?? 'Abrir nota';
         boton.setAttribute('aria-label', boton.title);
         boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
+        const bordeTexto = bordeDerechoDelBloque(rango, rectangulo);
         boton.style.left = `${Math.min(
           base.width - 36,
-          Math.max(4, marco.left + rectangulo.right - base.left + 8),
+          Math.max(4, marco.left + bordeTexto - base.left + 8),
         )}px`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
