@@ -667,7 +667,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 
 .boton-nota-epub {
-  position: absolute; z-index: 12; right: 0.25rem;
+  position: absolute; z-index: 12; right: auto;
 }
 
 /* Enlaces del PDF (índices internos, referencias, webs). */

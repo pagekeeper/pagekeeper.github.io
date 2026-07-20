@@ -259,12 +259,11 @@ export class LectorEpub {
           () => this.alPulsarAnotacion?.(anotacion.id),
           esNota ? 'pagekeeper-nota' : 'pagekeeper-resaltado',
           esNota
-            ? { stroke: '#0284c7', 'stroke-opacity': '0.95', 'stroke-width': '2' }
+            ? { fill: '#38bdf8', 'fill-opacity': '0.4', 'mix-blend-mode': 'multiply' }
             : { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
         ];
-        if (esNota) this.vista.annotations.underline(...argumentos);
-        else this.vista.annotations.highlight(...argumentos);
-        this.cfiAplicados.push({ cfi: anotacion.cfi, tipo: esNota ? 'underline' : 'highlight' });
+        this.vista.annotations.highlight(...argumentos);
+        this.cfiAplicados.push({ cfi: anotacion.cfi, tipo: 'highlight' });
       } catch { /* un CFI obsoleto no impide mostrar los demás */ }
     }
     this.programarIconosNotas();
@@ -360,6 +359,10 @@ export class LectorEpub {
         boton.title = this.etiquetaAbrirNota?.() ?? 'Abrir nota';
         boton.setAttribute('aria-label', boton.title);
         boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
+        boton.style.left = `${Math.min(
+          base.width - 36,
+          Math.max(4, marco.left + rectangulo.right - base.left + 8),
+        )}px`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
           this.alPulsarAnotacion?.(anotacion.id);
