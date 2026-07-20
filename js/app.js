@@ -128,7 +128,7 @@ const lectorEpub = new LectorEpub({
   // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
   alPulsarContenido: () => {
     cerrarPanelTexto();
-    cerrarHistorialMovil();
+    cerrarMenuLector();
   },
 });
 
@@ -170,6 +170,7 @@ function registrarVistaLector() {
 }
 
 function cerrarVistaLector() {
+  cerrarMenuLector();
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
@@ -2059,6 +2060,7 @@ function aplicarAparienciaModo(modo) {
   $('btn-modo').title = modo === 'continuo'
     ? t('pageMode')
     : t('scrollMode');
+  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
 $('btn-modo').addEventListener('click', async () => {
@@ -2133,7 +2135,6 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 let resultadosBusquedaLibro = [];
 let versionBusquedaLibro = 0;
 const historialNavegacion = { atras: [], adelante: [] };
-const consultaMovil = window.matchMedia('(max-width: 700px), (pointer: coarse)');
 
 function posicionActualLibro() {
   return epubAbierto() ? lectorEpub.cfi : lector.pagina;
@@ -2143,23 +2144,16 @@ function actualizarHistorialNavegacion() {
   const hayAtras = historialNavegacion.atras.length > 0;
   const hayAdelante = historialNavegacion.adelante.length > 0;
   const hayHistorial = hayAtras || hayAdelante;
-  $('btn-posicion-anterior').disabled = !hayAtras;
-  $('btn-posicion-siguiente').disabled = !hayAdelante;
+  for (const id of ['btn-posicion-anterior', 'btn-posicion-anterior-escritorio']) {
+    $(id).disabled = !hayAtras;
+  }
+  for (const id of ['btn-posicion-siguiente', 'btn-posicion-siguiente-escritorio']) {
+    $(id).disabled = !hayAdelante;
+  }
+  document.querySelector('.grupo-posicion').classList.toggle('tiene-historial', hayHistorial);
   $('historial-navegacion').classList.toggle('oculto', !hayHistorial);
   $('btn-indicador').classList.toggle('tiene-historial', hayHistorial);
   $('btn-indicador').title = hayHistorial ? t('pageAndHistory') : t('goPage');
-  if (!hayHistorial) cerrarHistorialMovil();
-}
-
-function cerrarHistorialMovil() {
-  $('historial-navegacion').classList.remove('abierto-movil');
-  $('btn-indicador').setAttribute('aria-expanded', 'false');
-}
-
-function abrirHistorialMovil() {
-  if (!consultaMovil.matches || $('historial-navegacion').classList.contains('oculto')) return;
-  $('historial-navegacion').classList.add('abierto-movil');
-  $('btn-indicador').setAttribute('aria-expanded', 'true');
 }
 
 function reiniciarHistorialNavegacion() {
@@ -2167,6 +2161,68 @@ function reiniciarHistorialNavegacion() {
   historialNavegacion.adelante = [];
   actualizarHistorialNavegacion();
 }
+
+// En pantallas estrechas las acciones menos frecuentes viven en un menú
+// compacto. Los botones del menú activan los mismos controles de escritorio,
+// de modo que ambos diseños comparten exactamente el mismo comportamiento.
+function actualizarMenuLector() {
+  $('titulo-menu-lector').textContent = libroActual?.titulo ?? '';
+  $('fila-menu-subir').classList.toggle('oculto', $('btn-subir').classList.contains('oculto'));
+  $('fila-menu-indice').classList.toggle('oculto', $('btn-indice-libro').classList.contains('oculto'));
+  $('fila-menu-texto').classList.toggle('oculto', $('control-texto').classList.contains('oculto'));
+
+  const modo = modoActual();
+  $('menu-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text') +
+    `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
+  const noche = document.body.classList.contains('modo-noche');
+  $('menu-noche').innerHTML = icono(noche ? 'sun' : 'moon') +
+    `<span>${t(noche ? 'dayMode' : 'nightMode')}</span>`;
+}
+
+function cerrarMenuLector() {
+  $('fondo-menu-lector').classList.add('oculto');
+  $('btn-menu-lector').setAttribute('aria-expanded', 'false');
+}
+
+function abrirMenuLector() {
+  cerrarBusquedaLibro();
+  cerrarIndiceLibro();
+  cerrarPanelMarcadores();
+  cerrarPanelTexto();
+  actualizarMenuLector();
+  $('fondo-menu-lector').classList.remove('oculto');
+  $('btn-menu-lector').setAttribute('aria-expanded', 'true');
+  $('menu-lector').querySelector('button:not([disabled])')?.focus();
+}
+
+$('btn-menu-lector').addEventListener('click', () => {
+  if ($('fondo-menu-lector').classList.contains('oculto')) abrirMenuLector();
+  else cerrarMenuLector();
+});
+$('fondo-menu-lector').addEventListener('click', (evento) => {
+  if (evento.target === $('fondo-menu-lector')) cerrarMenuLector();
+});
+
+function enlazarAccionMenu(idMenu, idOriginal) {
+  $(idMenu).addEventListener('click', (evento) => {
+    evento.stopPropagation();
+    cerrarMenuLector();
+    // Se ejecuta tras terminar el clic actual para que los manejadores que
+    // cierran paneles al tocar fuera no cierren también el que se va a abrir.
+    queueMicrotask(() => $(idOriginal).click());
+  });
+}
+
+for (const [idMenu, idOriginal] of [
+  ['menu-subir', 'btn-subir'],
+  ['menu-indice', 'btn-indice-libro'],
+  ['menu-modo', 'btn-modo'],
+  ['menu-texto', 'btn-texto'],
+  ['menu-zoom-menos', 'btn-zoom-menos'],
+  ['menu-ancho-auto', 'btn-ancho-auto'],
+  ['menu-zoom-mas', 'btn-zoom-mas'],
+  ['menu-noche', 'btn-noche'],
+]) enlazarAccionMenu(idMenu, idOriginal);
 
 // Apunta una posición de partida en el historial sin navegar (el salto ya
 // lo hace otro, como epub.js con los enlaces internos del libro).
@@ -2199,7 +2255,6 @@ async function saltarConHistorial(destino) {
   } finally {
     actualizarHistorialNavegacion();
   }
-  abrirHistorialMovil();
 }
 
 async function moverPorHistorial(origen, destino) {
@@ -2217,16 +2272,18 @@ async function moverPorHistorial(origen, destino) {
   }
 }
 
-$('btn-posicion-anterior').addEventListener('click', () => {
-  moverPorHistorial(historialNavegacion.atras, historialNavegacion.adelante)
-    .catch((error) => avisar(error.message, 5000))
-    .finally(cerrarHistorialMovil);
-});
-$('btn-posicion-siguiente').addEventListener('click', () => {
-  moverPorHistorial(historialNavegacion.adelante, historialNavegacion.atras)
-    .catch((error) => avisar(error.message, 5000))
-    .finally(cerrarHistorialMovil);
-});
+for (const id of ['btn-posicion-anterior', 'btn-posicion-anterior-escritorio']) {
+  $(id).addEventListener('click', () => {
+    moverPorHistorial(historialNavegacion.atras, historialNavegacion.adelante)
+      .catch((error) => avisar(error.message, 5000));
+  });
+}
+for (const id of ['btn-posicion-siguiente', 'btn-posicion-siguiente-escritorio']) {
+  $(id).addEventListener('click', () => {
+    moverPorHistorial(historialNavegacion.adelante, historialNavegacion.atras)
+      .catch((error) => avisar(error.message, 5000));
+  });
+}
 
 function cerrarIndiceLibro() {
   $('panel-indice-libro').classList.add('oculto');
@@ -2267,6 +2324,7 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
       lista.append(li);
     }
     $('btn-indice-libro').classList.toggle('oculto', entradas.length === 0);
+    if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
   } catch {
     $('btn-indice-libro').classList.add('oculto');
   }
@@ -2582,6 +2640,11 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('fondo-menu-lector').classList.contains('oculto')) {
+    cerrarMenuLector();
+    $('btn-menu-lector').focus();
+    return;
+  }
   if (!$('menu-libro').classList.contains('oculto')) {
     cerrarMenuAcciones();
     return;
@@ -2590,10 +2653,7 @@ document.addEventListener('keydown', (evento) => {
     cerrarDialogoMover();
     return;
   }
-  if ($('historial-navegacion').classList.contains('abierto-movil')) {
-    cerrarHistorialMovil();
-    $('btn-indicador').focus();
-  } else if (!$('panel-indice-libro').classList.contains('oculto')) {
+  if (!$('panel-indice-libro').classList.contains('oculto')) {
     cerrarIndiceLibro();
     $('btn-indice-libro').focus();
   } else if (!$('panel-marcadores').classList.contains('oculto')) {
@@ -2638,31 +2698,13 @@ function pedirPosicionLibro() {
   }
 }
 
-$('btn-indicador').addEventListener('click', () => {
-  const hayHistorial = historialNavegacion.atras.length || historialNavegacion.adelante.length;
-  if (consultaMovil.matches && hayHistorial) {
-    if ($('historial-navegacion').classList.contains('abierto-movil')) cerrarHistorialMovil();
-    else abrirHistorialMovil();
-    return;
-  }
-  pedirPosicionLibro();
-});
-
-$('btn-ir-posicion').addEventListener('click', () => {
-  cerrarHistorialMovil();
-  pedirPosicionLibro();
-});
-
-document.addEventListener('click', (evento) => {
-  if (!$('historial-navegacion').contains(evento.target) && !$('btn-indicador').contains(evento.target)) {
-    cerrarHistorialMovil();
-  }
-});
+$('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
 function pintarIconoNoche() {
   const activo = document.body.classList.contains('modo-noche');
   $('btn-noche').innerHTML = icono(activo ? 'sun' : 'moon');
   $('btn-noche').title = activo ? t('dayMode') : t('nightMode');
+  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
 $('btn-noche').addEventListener('click', () => {

@@ -490,6 +490,38 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
 .btn-pagina:hover { border-color: var(--acento); }
+.grupo-posicion { display: flex; align-items: center; flex: none; }
+.grupo-posicion .historial-movil { display: none; }
+.grupo-posicion .btn-pagina { border-radius: 0.5rem; }
+
+.btn-menu-lector { display: none; }
+.fondo-menu-lector { position: fixed; inset: 0; z-index: 95; }
+.menu-lector {
+  position: absolute; top: max(3.45rem, calc(env(safe-area-inset-top) + 2.9rem)); right: 0.35rem;
+  width: min(19rem, calc(100vw - 0.7rem)); max-height: calc(100dvh - 4rem); overflow: auto;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
+  padding: 0.6rem; box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  animation: despliegue-menu 0.12s ease-out; transform-origin: top right;
+}
+.menu-lector h2 {
+  padding: 0.15rem 0.7rem 0.45rem; color: var(--texto-suave); font-size: 0.85rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.menu-lector ul { list-style: none; display: flex; flex-direction: column; gap: 0.15rem; }
+.item-menu-lector {
+  width: 100%; display: flex; align-items: center; gap: 0.7rem;
+  padding: 0.65rem 0.7rem; color: var(--texto); background: none; border: none;
+  border-radius: 0.55rem; font: inherit; text-align: left; cursor: pointer;
+}
+.item-menu-lector:hover, .item-menu-lector:focus-visible {
+  background: color-mix(in srgb, var(--acento) 12%, transparent); outline: none;
+}
+.item-menu-lector .icono { width: 1.15rem; height: 1.15rem; color: var(--texto-suave); }
+.grupo-zoom-menu {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.7rem;
+  padding: 0.4rem 0.35rem 0.4rem 0.7rem; color: var(--texto); font-size: 0.9rem;
+}
+.grupo-zoom-menu > div { display: flex; align-items: center; gap: 0.15rem; }
 
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
 #area-lectura canvas { cursor: grab; }
@@ -640,18 +672,36 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .historial-navegacion .btn-icono { color: var(--acento); }
 .historial-navegacion .btn-icono:disabled { color: var(--texto-suave); opacity: 0.4; cursor: default; }
 .historial-navegacion .btn-icono:disabled:hover { background: none; }
-.historial-navegacion .btn-ir-posicion { display: none; }
 .btn-pagina.tiene-historial { border-color: var(--acento); }
 
 @media (max-width: 700px), (pointer: coarse) {
-  .barra-lector .historial-navegacion {
-    position: fixed; z-index: 45; top: 3.35rem; right: 0.35rem;
-    display: none; margin: 0; padding: 0.2rem;
-    border: 1px solid var(--borde); border-radius: 0.65rem;
-    background: var(--fondo); box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  .barra-lector .historial-navegacion { display: none !important; }
+  .grupo-posicion.tiene-historial .historial-movil { display: inline-flex; }
+  .grupo-posicion .historial-movil:disabled {
+    color: var(--texto-suave); opacity: 0.4; cursor: default;
   }
-  .barra-lector .historial-navegacion.abierto-movil { display: flex; }
-  .historial-navegacion .btn-ir-posicion { display: inline-flex; }
+  .grupo-posicion .historial-movil:first-child {
+    border: 1px solid var(--borde); border-right: 0; border-radius: 0.5rem 0 0 0.5rem;
+  }
+  .grupo-posicion.tiene-historial .btn-pagina { border-radius: 0; }
+  .grupo-posicion .historial-movil:last-child {
+    border: 1px solid var(--borde); border-left: 0; border-radius: 0 0.5rem 0.5rem 0;
+  }
+  .barra-lector > #btn-subir,
+  .barra-lector > #btn-indice-libro,
+  .barra-lector > #btn-modo,
+  .barra-lector > #btn-zoom-menos,
+  .barra-lector > #btn-ancho-auto,
+  .barra-lector > #btn-zoom-mas,
+  .barra-lector > #btn-noche { display: none !important; }
+  .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }
+  .barra-lector > #control-texto > #btn-texto { display: none; }
+  .barra-lector .btn-menu-lector { display: inline-flex; margin-left: auto; }
+  .barra-lector .separador { display: none; }
+}
+
+@media (max-width: 430px) {
+  .barra-lector .titulo-libro { display: none; }
 }
 .buscador-form { display: flex; align-items: center; gap: 0.4rem; }
 .buscador-form input {

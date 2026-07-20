@@ -166,16 +166,19 @@
     <header class="barra-lector">
       <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca" data-i18n-title="backLibrary"></button>
       <span id="titulo-libro" class="titulo-libro"></span>
-      <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage"
-        aria-controls="historial-navegacion" aria-haspopup="true" aria-expanded="false">– / –</button>
+      <div class="grupo-posicion">
+        <button type="button" id="btn-posicion-anterior" class="btn-icono historial-movil" data-icono="undo-2"
+          title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
+        <button id="btn-indicador" class="btn-pagina" title="Ir a una página" data-i18n-title="goPage">– / –</button>
+        <button type="button" id="btn-posicion-siguiente" class="btn-icono historial-movil" data-icono="redo-2"
+          title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
+      </div>
       <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
         data-i18n-aria-label="historyNavigation">
-        <button type="button" id="btn-posicion-anterior" class="btn-icono" data-icono="undo-2"
+        <button type="button" id="btn-posicion-anterior-escritorio" class="btn-icono" data-icono="undo-2"
           title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
-        <button type="button" id="btn-posicion-siguiente" class="btn-icono" data-icono="redo-2"
+        <button type="button" id="btn-posicion-siguiente-escritorio" class="btn-icono" data-icono="redo-2"
           title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
-        <button type="button" id="btn-ir-posicion" class="btn-icono btn-ir-posicion" data-icono="map-pin"
-          title="Ir a una página" data-i18n-title="goPage"></button>
       </nav>
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
@@ -232,6 +235,39 @@
       <button id="btn-ancho-auto" class="btn-icono" data-icono="move-horizontal" title="Ancho automático" data-i18n-title="autoWidth"></button>
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
+      <button id="btn-menu-lector" class="btn-icono btn-menu-lector" data-icono="ellipsis-vertical"
+        title="Más acciones" data-i18n-title="moreReaderActions" aria-haspopup="menu"
+        aria-controls="fondo-menu-lector" aria-expanded="false"></button>
+      <div id="fondo-menu-lector" class="fondo-menu-lector oculto">
+        <nav id="menu-lector" class="menu-lector" aria-label="Acciones de lectura"
+          data-i18n-aria-label="readerActions">
+          <h2 id="titulo-menu-lector"></h2>
+          <ul>
+            <li id="fila-menu-subir"><button type="button" id="menu-subir" class="item-menu-lector">
+              <span data-icono="cloud-upload"></span><span data-i18n="saveCloud">Guardar en mi nube</span>
+            </button></li>
+            <li id="fila-menu-indice"><button type="button" id="menu-indice" class="item-menu-lector">
+              <span data-icono="list-tree"></span><span data-i18n="showBookIndex">Mostrar el índice</span>
+            </button></li>
+            <li><button type="button" id="menu-modo" class="item-menu-lector"></button></li>
+            <li id="fila-menu-texto"><button type="button" id="menu-texto" class="item-menu-lector">
+              <span data-icono="type"></span><span data-i18n="textSettings">Ajustes de texto</span>
+            </button></li>
+            <li class="grupo-zoom-menu">
+              <span data-i18n="zoom">Zoom</span>
+              <div>
+                <button type="button" id="menu-zoom-menos" class="btn-icono" data-icono="zoom-out"
+                  title="Reducir" data-i18n-title="zoomOut"></button>
+                <button type="button" id="menu-ancho-auto" class="btn-icono" data-icono="move-horizontal"
+                  title="Ancho automático" data-i18n-title="autoWidth"></button>
+                <button type="button" id="menu-zoom-mas" class="btn-icono" data-icono="zoom-in"
+                  title="Ampliar" data-i18n-title="zoomIn"></button>
+              </div>
+            </li>
+            <li><button type="button" id="menu-noche" class="item-menu-lector"></button></li>
+          </ul>
+        </nav>
+      </div>
     </header>
     <div id="area-lectura">
       <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
@@ -417,8 +453,8 @@
           otra pestaña.</li>
           <li><strong>Volver tras un salto:</strong> después de usar el índice,
           la búsqueda o el selector de posición aparecen botones para volver
-          atrás o avanzar de nuevo. En móvil están dentro del indicador de
-          página o porcentaje.</li>
+          atrás o avanzar de nuevo. En móvil quedan integrados a ambos lados
+          del indicador de página o porcentaje.</li>
           <li><strong>Buscar dentro del libro:</strong> la lupa encuentra
           palabras o frases y lleva a la página o capítulo del resultado.</li>
           <li>Estas preferencias (modo, zoom, tamaño y tipo de letra,

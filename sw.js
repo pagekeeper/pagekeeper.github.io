@@ -1,7 +1,7 @@
 // Service worker: guarda en caché la aplicación para que funcione sin
 // conexión. Las peticiones al servidor WebDAV nunca se cachean.
 
-const CACHE = 'pagekeeper-v53';
+const CACHE = 'pagekeeper-v54';
 
 const RECURSOS = [
   '.',
