@@ -121,9 +121,10 @@ const lector = new Lector({
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
+  alEditarAnotacion: (id) => editarAnotacionPorId(id).catch((error) => avisar(error.message, 5000)),
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
-  etiquetaAbrirNota: () => t('openNote'),
+  etiquetaEditarNota: () => t('editNote'),
 });
 
 const lectorEpub = new LectorEpub({
@@ -141,9 +142,10 @@ const lectorEpub = new LectorEpub({
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
+  alEditarAnotacion: (id) => editarAnotacionPorId(id).catch((error) => avisar(error.message, 5000)),
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
-  etiquetaAbrirNota: () => t('openNote'),
+  etiquetaEditarNota: () => t('editNote'),
 });
 
 function formatoDe(nombre) {
@@ -2667,13 +2669,34 @@ function ubicacionAnotacion(anotacion) {
   return '';
 }
 
+async function editarAnotacionPorId(id) {
+  if (!libroActual) return;
+  const anotacion = anotacionesActuales.find((entrada) => entrada.id === id);
+  if (!anotacion) return;
+  ocultarNotaEmergente();
+  const nota = prompt(t('editNotePrompt'), anotacion.nota ?? '');
+  if (nota === null) return;
+  anotacionesActuales = await anotaciones.actualizar(
+    ambitoAnotacionesActual(), libroActual.id, id,
+    nota.trim() ? { nota: nota.trim().slice(0, 4000) } : { nota: '' },
+  );
+  mostrarResaltados();
+  if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones(id);
+  planificarSyncAnotaciones();
+}
+
 function pintarAnotaciones(idEnfocado = null) {
   const lista = $('lista-anotaciones');
   lista.replaceChildren();
-  $('sin-anotaciones').classList.toggle('oculto', anotacionesActuales.length > 0);
-  const ordenadas = [...anotacionesActuales].sort((a, b) =>
+  const consulta = normalizarBusqueda($('buscar-anotaciones').value.trim());
+  const ordenadas = [...anotacionesActuales].filter((anotacion) =>
+    !consulta || normalizarBusqueda(`${anotacion.texto ?? ''} ${anotacion.nota ?? ''}`).includes(consulta))
+    .sort((a, b) =>
     (a.paginas?.[0]?.pagina ?? 0) - (b.paginas?.[0]?.pagina ?? 0) ||
     (a.creado ?? '').localeCompare(b.creado ?? ''));
+  const sinAnotaciones = $('sin-anotaciones');
+  sinAnotaciones.textContent = t(anotacionesActuales.length ? 'noAnnotationResults' : 'noAnnotations');
+  sinAnotaciones.classList.toggle('oculto', ordenadas.length > 0);
   for (const anotacion of ordenadas) {
     const li = document.createElement('li');
     li.className = 'fila-anotacion';
@@ -2706,16 +2729,8 @@ function pintarAnotaciones(idEnfocado = null) {
     editar.className = 'btn-icono';
     editar.title = t('editNote');
     editar.innerHTML = icono('pencil');
-    editar.addEventListener('click', async () => {
-      const nota = prompt(t('notePrompt'), anotacion.nota ?? '');
-      if (nota === null) return;
-      anotacionesActuales = await anotaciones.actualizar(
-        ambitoAnotacionesActual(), libroActual.id, anotacion.id,
-        nota.trim() ? { nota: nota.trim().slice(0, 4000) } : { nota: '' },
-      );
-      mostrarResaltados();
-      pintarAnotaciones(anotacion.id);
-      planificarSyncAnotaciones();
+    editar.addEventListener('click', () => {
+      editarAnotacionPorId(anotacion.id).catch((error) => avisar(error.message, 5000));
     });
 
     const borrar = document.createElement('button');
@@ -2743,6 +2758,7 @@ function abrirPanelAnotaciones(id = null) {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  if (id) $('buscar-anotaciones').value = '';
   pintarAnotaciones(id);
   $('panel-anotaciones').classList.remove('oculto');
   $('btn-anotaciones').setAttribute('aria-expanded', 'true');
@@ -2753,6 +2769,7 @@ $('btn-anotaciones').addEventListener('click', () => {
   else cerrarPanelAnotaciones();
 });
 $('cerrar-anotaciones').addEventListener('click', cerrarPanelAnotaciones);
+$('buscar-anotaciones').addEventListener('input', () => pintarAnotaciones());
 
 function cerrarBusquedaLibro() {
   versionBusquedaLibro += 1;

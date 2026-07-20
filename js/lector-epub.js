@@ -129,7 +129,8 @@ export function inyectarMathJax(contents) {
 
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
-    alSeleccionarTexto, alPulsarAnotacion, alMostrarNota, alOcultarNota, etiquetaAbrirNota }) {
+    alSeleccionarTexto, alPulsarAnotacion, alEditarAnotacion, alMostrarNota, alOcultarNota,
+    etiquetaEditarNota }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
@@ -137,9 +138,10 @@ export class LectorEpub {
     this.alPulsarContenido = alPulsarContenido;
     this.alSeleccionarTexto = alSeleccionarTexto;
     this.alPulsarAnotacion = alPulsarAnotacion;
+    this.alEditarAnotacion = alEditarAnotacion;
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
-    this.etiquetaAbrirNota = etiquetaAbrirNota;
+    this.etiquetaEditarNota = etiquetaEditarNota;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -370,7 +372,7 @@ export class LectorEpub {
         boton.type = 'button';
         boton.className = 'boton-nota-margen boton-nota-epub';
         boton.textContent = '✎';
-        boton.title = this.etiquetaAbrirNota?.() ?? 'Abrir nota';
+        boton.title = this.etiquetaEditarNota?.() ?? 'Editar nota';
         boton.setAttribute('aria-label', boton.title);
         boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
         const bordeTexto = bordeDerechoDelBloque(rango, rectangulo);
@@ -380,7 +382,7 @@ export class LectorEpub {
         )}px`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
-          this.alPulsarAnotacion?.(anotacion.id);
+          this.alEditarAnotacion?.(anotacion.id);
         });
         this.contenedor.append(boton);
         pintadas.add(anotacion.id);

@@ -774,6 +774,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .barra-seleccion .icono { width: 1.05rem; height: 1.05rem; }
 .lista-anotaciones { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+.buscador-anotaciones { margin-bottom: 0.55rem; }
 .fila-anotacion {
   display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
   align-items: center; gap: 0.2rem; border-bottom: 1px solid var(--borde); padding-bottom: 0.4rem;
