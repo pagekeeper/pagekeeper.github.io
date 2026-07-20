@@ -114,12 +114,15 @@ export function inyectarMathJax(contents) {
 }
 
 export class LectorEpub {
-  constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido }) {
+  constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
+    alSeleccionarTexto, alPulsarAnotacion }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
     this.alPulsarContenido = alPulsarContenido;
+    this.alSeleccionarTexto = alSeleccionarTexto;
+    this.alPulsarAnotacion = alPulsarAnotacion;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -132,6 +135,8 @@ export class LectorEpub {
     this.cfi = null;
     this.porcentaje = 0;
     this.conLocalizaciones = false;
+    this.anotaciones = [];
+    this.cfiAplicados = [];
   }
 
   async abrir(datos, cfiInicial = null, modo = 'pagina') {
@@ -156,7 +161,7 @@ export class LectorEpub {
     }).catch(() => null);
   }
 
-  montar(posicion) {
+  async montar(posicion) {
     this.contenedor.replaceChildren();
     const continuo = this.modo === 'continuo';
     this.vista = this.libro.renderTo(this.contenedor, {
@@ -189,7 +194,12 @@ export class LectorEpub {
     // Con los clics pasa lo mismo: se avisa para que la app pueda cerrar
     // sus paneles flotantes al pulsar sobre el texto del libro.
     this.vista.on('click', () => this.alPulsarContenido?.());
-    return this.vista.display(posicion ?? undefined);
+    this.vista.on('selected', (cfi, contents) => {
+      const texto = contents?.window?.getSelection?.().toString().replace(/\s+/g, ' ').trim();
+      if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
+    });
+    await this.vista.display(posicion ?? undefined);
+    this.aplicarAnotaciones();
   }
 
   notificar() {
@@ -215,6 +225,32 @@ export class LectorEpub {
     if (!this.vista) return;
     this.vista.themes.override('color', activo ? '#e2e8f0' : '#1f2937');
     this.vista.themes.override('background', activo ? '#171f2e' : '#ffffff');
+  }
+
+  mostrarAnotaciones(anotaciones) {
+    this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
+    this.aplicarAnotaciones();
+  }
+
+  aplicarAnotaciones() {
+    if (!this.vista?.annotations) return;
+    for (const cfi of this.cfiAplicados) {
+      try { this.vista.annotations.remove(cfi, 'highlight'); } catch { /* ya no existe */ }
+    }
+    this.cfiAplicados = [];
+    for (const anotacion of this.anotaciones) {
+      if (!anotacion.cfi) continue;
+      try {
+        this.vista.annotations.highlight(
+          anotacion.cfi,
+          { id: anotacion.id },
+          () => this.alPulsarAnotacion?.(anotacion.id),
+          'pagekeeper-resaltado',
+          { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
+        );
+        this.cfiAplicados.push(anotacion.cfi);
+      } catch { /* un CFI obsoleto no impide mostrar los demás */ }
+    }
   }
 
   cambiarTamano(delta) {
@@ -292,6 +328,7 @@ export class LectorEpub {
   desmontarVista() {
     const vista = this.vista;
     this.vista = null;
+    this.cfiAplicados = [];
     try { vista?.destroy(); } catch { /* restos de la vista anterior */ }
   }
 
@@ -367,6 +404,7 @@ export class LectorEpub {
     this.desmontarVista();
     try { this.libro?.destroy(); } catch { /* ya destruido */ }
     this.libro = null;
+    this.anotaciones = [];
     this.contenedor.replaceChildren();
   }
 }

@@ -11,11 +11,12 @@ import * as pdfjs from '../vendor/pdf.min.js';
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
 export class Lector {
-  constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno }) {
+  constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto }) {
     this.area = area;             // contenedor con scroll (#area-lectura)
     this.contenedor = contenedor; // donde se colocan las páginas (#contenedor-pagina)
     this.alCambiarPagina = alCambiarPagina;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
+    this.alSeleccionarTexto = alSeleccionarTexto;
 
     this.documento = null;
     this.pagina = 1;
@@ -28,6 +29,7 @@ export class Lector {
     this.observador = null;
     this.tareaRender = null;
     this.pendiente = null;
+    this.anotaciones = [];
 
     let tempResize;
     window.addEventListener('resize', () => {
@@ -41,6 +43,10 @@ export class Lector {
       esperandoFrame = true;
       requestAnimationFrame(() => { esperandoFrame = false; this.detectarPaginaVisible(); });
     }, { passive: true });
+
+    const capturar = () => requestAnimationFrame(() => this.capturarSeleccion());
+    this.area.addEventListener('mouseup', capturar);
+    this.area.addEventListener('touchend', capturar, { passive: true });
   }
 
   get totalPaginas() {
@@ -180,6 +186,7 @@ export class Lector {
     this.lienzo = document.createElement('canvas');
     this.envoltorio = document.createElement('div');
     this.envoltorio.className = 'pagina-pdf';
+    this.envoltorio.dataset.num = String(this.pagina);
     this.envoltorio.append(this.lienzo);
     this.contenedor.append(this.envoltorio);
     await this.renderUnica(this.pagina);
@@ -289,7 +296,7 @@ export class Lector {
   // enlaces del PDF. Los tamaños de la capa de texto dependen de la variable
   // CSS --scale-factor, que debe reflejar la escala del viewport.
   async montarCapas(envoltorio, pagina, vista) {
-    for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces')) capa.remove();
+    for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces, .capa-resaltados')) capa.remove();
     envoltorio.style.setProperty('--scale-factor', String(vista.scale));
 
     const capaTexto = document.createElement('div');
@@ -304,7 +311,79 @@ export class Lector {
     } catch {
       capaTexto.remove(); // sin capa de texto la página sigue siendo legible
     }
+    this.montarResaltados(envoltorio, pagina.pageNumber);
     await this.montarEnlaces(envoltorio, pagina, vista);
+  }
+
+  mostrarAnotaciones(anotaciones) {
+    this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
+    const envoltorios = this.modo === 'continuo'
+      ? this.paginas.filter(Boolean)
+      : (this.envoltorio ? [this.envoltorio] : []);
+    for (const envoltorio of envoltorios) {
+      if (envoltorio.dataset.estado && envoltorio.dataset.estado !== 'listo') continue;
+      envoltorio.querySelector('.capa-resaltados')?.remove();
+      this.montarResaltados(envoltorio, Number(envoltorio.dataset.num));
+    }
+  }
+
+  montarResaltados(envoltorio, numero) {
+    const entradas = this.anotaciones.flatMap((anotacion) =>
+      (anotacion.paginas ?? []).filter((pagina) => pagina.pagina === numero)
+        .map((pagina) => ({ anotacion, pagina })));
+    if (!entradas.length) return;
+    const capa = document.createElement('div');
+    capa.className = 'capa-resaltados';
+    for (const { anotacion, pagina } of entradas) {
+      for (const rectangulo of pagina.rectangulos ?? []) {
+        const marca = document.createElement('span');
+        marca.dataset.anotacion = anotacion.id;
+        marca.style.left = `${rectangulo.x * 100}%`;
+        marca.style.top = `${rectangulo.y * 100}%`;
+        marca.style.width = `${rectangulo.ancho * 100}%`;
+        marca.style.height = `${rectangulo.alto * 100}%`;
+        capa.append(marca);
+      }
+    }
+    // Debajo de la capa de texto para no impedir nuevas selecciones.
+    envoltorio.insertBefore(capa, envoltorio.querySelector('.capa-texto, .capa-enlaces'));
+  }
+
+  capturarSeleccion() {
+    const seleccion = window.getSelection();
+    if (!seleccion || seleccion.isCollapsed || !seleccion.rangeCount) return;
+    const texto = seleccion.toString().replace(/\s+/g, ' ').trim();
+    if (!texto) return;
+    const rango = seleccion.getRangeAt(0);
+    const nodo = rango.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? rango.commonAncestorContainer
+      : rango.commonAncestorContainer.parentElement;
+    if (!nodo || !this.contenedor.contains(nodo)) return;
+
+    const rectangulos = [...rango.getClientRects()].filter((r) => r.width > 1 && r.height > 1);
+    const paginas = [];
+    for (const envoltorio of this.contenedor.querySelectorAll('.pagina-pdf')) {
+      const base = envoltorio.getBoundingClientRect();
+      const enPagina = [];
+      for (const rect of rectangulos) {
+        const izquierda = Math.max(rect.left, base.left);
+        const derecha = Math.min(rect.right, base.right);
+        const arriba = Math.max(rect.top, base.top);
+        const abajo = Math.min(rect.bottom, base.bottom);
+        if (derecha <= izquierda || abajo <= arriba) continue;
+        enPagina.push({
+          x: (izquierda - base.left) / base.width,
+          y: (arriba - base.top) / base.height,
+          ancho: (derecha - izquierda) / base.width,
+          alto: (abajo - arriba) / base.height,
+        });
+      }
+      if (enPagina.length) paginas.push({
+        pagina: Number(envoltorio.dataset.num) || this.pagina,
+        rectangulos: enPagina,
+      });
+    }
+    if (paginas.length) this.alSeleccionarTexto?.({ formato: 'pdf', texto, paginas });
   }
 
   // Vuelve clicables los enlaces del PDF: los externos abren en otra pestaña

@@ -3,6 +3,7 @@ import { Lector } from './lector.js';
 import { LectorEpub } from './lector-epub.js';
 import * as progreso from './progreso.js';
 import * as almacen from './almacen.js';
+import * as anotaciones from './anotaciones.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, idiomaActual } from './i18n.js';
@@ -105,6 +106,9 @@ let cliente = null;        // ClienteWebDav o null si no hay configuración
 let rutaNube = '';         // subcarpeta abierta en la sección de la nube ('' = raíz)
 let libroActual = null;    // { id, titulo, tipo: 'webdav'|'local', formato: 'pdf'|'epub' }
 let temporizadorSync = null;
+let temporizadorSyncAnotaciones = null;
+let seleccionPendiente = null;
+let anotacionesActuales = [];
 
 const lector = new Lector({
   area: $('area-lectura'),
@@ -115,6 +119,7 @@ const lector = new Lector({
   alPulsarEnlaceInterno: (pagina) => {
     saltarConHistorial(pagina).catch((error) => avisar(error.message, 5000));
   },
+  alSeleccionarTexto: manejarSeleccionTexto,
 });
 
 const lectorEpub = new LectorEpub({
@@ -130,6 +135,8 @@ const lectorEpub = new LectorEpub({
     cerrarPanelTexto();
     cerrarMenuLector();
   },
+  alSeleccionarTexto: manejarSeleccionTexto,
+  alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
 });
 
 function formatoDe(nombre) {
@@ -171,12 +178,16 @@ function registrarVistaLector() {
 
 function cerrarVistaLector() {
   cerrarMenuLector();
+  cerrarPanelAnotaciones();
+  cancelarSeleccion();
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
   clearTimeout(temporizadorSync);
+  clearTimeout(temporizadorSyncAnotaciones);
   if (libroActual?.tipo === 'webdav' && cliente) {
     progreso.sincronizar(cliente).catch(() => null);
+    anotaciones.sincronizar(libroActual.id, cliente).catch(() => null);
   }
   lectorEpub.cerrar();
   libroActual = null;
@@ -512,7 +523,10 @@ async function cargarBiblioteca() {
     const [{ carpetas, libros }, copias, errorSincronizacion] = await Promise.all([
       cliente.listar(rutaNube),
       promesaCopias,
-      progreso.sincronizar(cliente).then(() => null).catch((error) => error),
+      Promise.all([
+        progreso.sincronizar(cliente),
+        anotaciones.sincronizarPendientes(cliente),
+      ]).then(() => null).catch((error) => error),
     ]);
     actualizarEstadoSincronizacion(errorSincronizacion);
     if (errorSincronizacion) {
@@ -1258,6 +1272,7 @@ async function borrarCarpetaRemota(nombre) {
     // Limpia el progreso de todos los libros que colgaban de la carpeta.
     await progreso.olvidarPorPrefijo(ruta + '/', cliente).catch(() => null);
     await almacen.borrarCopiasRemotasPorPrefijo(cliente.base, ruta + '/').catch(() => null);
+    await anotaciones.olvidarPorPrefijo(cliente.base, ruta + '/').catch(() => null);
     avisar(t('folderDeleted'));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -1338,7 +1353,19 @@ async function moverLibroA(id, rutaDestino) {
     // Con el progreso al día, el traslado del id es un renombrado local
     // seguido de la limpieza del id antiguo y la subida del nuevo.
     await progreso.sincronizar(cliente).catch(() => null);
+    await anotaciones.sincronizar(id, cliente).catch(() => null);
     await cliente.mover(id, destino, sobrescribir);
+    const anotacionesMovidas = await cliente.moverAnotaciones(id, destino, sobrescribir)
+      .catch(() => false);
+    // Si el origen no tenía JSON lateral y se reemplazó otro libro, se
+    // elimina el lateral antiguo para que sus resaltados no reaparezcan.
+    if (sobrescribir && !anotacionesMovidas) {
+      await cliente.borrarAnotaciones(destino);
+    }
+    if (sobrescribir) await anotaciones.olvidar(cliente.base, destino).catch(() => null);
+    await anotaciones.mover(cliente.base, id, destino).catch(() => null);
+    if (!anotacionesMovidas) await anotaciones.sincronizar(destino, cliente).catch(() => null);
+    await cliente.borrarAnotaciones(id).catch(() => null);
     progreso.renombrar(id, destino);
     await progreso.olvidar(id, cliente).catch(() => null);
     await progreso.sincronizar(cliente).catch(() => null);
@@ -1631,6 +1658,8 @@ async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
         ...(avance.marcadores?.length ? { marcadores: avance.marcadores } : {}),
       });
     }
+    await anotaciones.transferir('local', libro.id, cliente.base, destino).catch(() => null);
+    await anotaciones.sincronizar(destino, cliente).catch(() => null);
     await progreso.sincronizar(cliente).catch(() => null);
     avisar(t('cloudUploaded', { title: nombre }));
   } catch (error) {
@@ -1650,7 +1679,9 @@ async function borrarLibroRemoto(id) {
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     await cliente.borrar(id);
+    await cliente.borrarAnotaciones(id).catch(() => null);
     await almacen.borrarCopiaRemota(cliente.base, id).catch(() => null);
+    await anotaciones.olvidar(cliente.base, id).catch(() => null);
     let limpiezaPendiente = false;
     try {
       await progreso.olvidar(id, cliente);
@@ -1672,6 +1703,7 @@ async function borrarLibroLocal(libro) {
   try {
     await almacen.borrarLibro(libro.id);
     await progreso.olvidar(libro.id).catch(() => null);
+    await anotaciones.olvidar('local', libro.id).catch(() => null);
     avisar(t('localBookDeleted'));
   } catch (error) {
     avisar(`No se pudo borrar: ${error.message}`, 6000);
@@ -1939,6 +1971,9 @@ async function abrirEnLector(datos, libro) {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  cerrarPanelAnotaciones();
+  cancelarSeleccion();
+  anotacionesActuales = [];
   reiniciarHistorialNavegacion();
   $('lista-indice-libro').replaceChildren();
   $('btn-indice-libro').classList.add('oculto');
@@ -1981,6 +2016,7 @@ async function abrirEnLector(datos, libro) {
         avisar(t('continuingPage', { page: avance.pagina }));
       }
     }
+    await cargarAnotacionesLibro();
     await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
     if (lecturaTerminada(avance)) progreso.marcarTerminado(libro.id, false);
     restaurarEnContinuar(libro.id);
@@ -2013,6 +2049,7 @@ async function subirLibroActual() {
 
   mostrarCarga(t('uploading', { title: nombre }));
   try {
+    const idLocal = libroActual.id;
     const datos = await almacen.obtenerDatos(libroActual.id);
     if (!datos) throw new Error('no se encontró el libro en el almacén de este dispositivo');
     await cliente.subir(destino, datos);
@@ -2028,6 +2065,7 @@ async function subirLibroActual() {
     } else {
       progreso.anotarPagina(destino, lector.pagina, lector.totalPaginas, extra);
     }
+    await anotaciones.transferir('local', idLocal, cliente.base, destino).catch(() => null);
 
     libroActual = {
       id: destino,
@@ -2038,6 +2076,7 @@ async function subirLibroActual() {
     $('titulo-libro').textContent = libroActual.titulo;
     $('btn-subir').classList.add('oculto');
     await progreso.sincronizar(cliente).catch(() => null);
+    await anotaciones.sincronizar(destino, cliente).catch(() => null);
     avisar(t('cloudSaved'));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -2188,6 +2227,7 @@ function abrirMenuLector() {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  cerrarPanelAnotaciones();
   cerrarPanelTexto();
   actualizarMenuLector();
   $('fondo-menu-lector').classList.remove('oculto');
@@ -2216,6 +2256,7 @@ function enlazarAccionMenu(idMenu, idOriginal) {
 for (const [idMenu, idOriginal] of [
   ['menu-subir', 'btn-subir'],
   ['menu-indice', 'btn-indice-libro'],
+  ['menu-anotaciones', 'btn-anotaciones'],
   ['menu-modo', 'btn-modo'],
   ['menu-texto', 'btn-texto'],
   ['menu-zoom-menos', 'btn-zoom-menos'],
@@ -2472,12 +2513,210 @@ $('btn-marcadores').addEventListener('click', () => {
   const panel = $('panel-marcadores');
   cerrarIndiceLibro();
   cerrarBusquedaLibro();
+  cerrarPanelAnotaciones();
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
   $('btn-marcadores').setAttribute('aria-expanded', String(abrir));
   if (abrir) pintarMarcadores();
 });
 $('cerrar-marcadores').addEventListener('click', cerrarPanelMarcadores);
+
+// ────────────────── Anotaciones y resaltados ──────────────────
+
+function ambitoAnotacionesActual() {
+  return anotaciones.ambitoDe(libroActual, cliente);
+}
+
+function mostrarResaltados() {
+  if (epubAbierto()) lectorEpub.mostrarAnotaciones(anotacionesActuales);
+  else lector.mostrarAnotaciones(anotacionesActuales);
+}
+
+async function cargarAnotacionesLibro() {
+  if (!libroActual) return;
+  const id = libroActual.id;
+  const ambito = ambitoAnotacionesActual();
+  anotacionesActuales = await anotaciones.listar(ambito, id).catch(() => []);
+  if (libroActual?.id !== id) return;
+  mostrarResaltados();
+  if (libroActual.tipo === 'webdav' && cliente) {
+    await anotaciones.sincronizar(id, cliente).catch(() => null);
+    if (libroActual?.id !== id) return;
+    anotacionesActuales = await anotaciones.listar(ambito, id).catch(() => anotacionesActuales);
+    mostrarResaltados();
+  }
+}
+
+function planificarSyncAnotaciones() {
+  if (libroActual?.tipo !== 'webdav' || !cliente) return;
+  const id = libroActual.id;
+  clearTimeout(temporizadorSyncAnotaciones);
+  temporizadorSyncAnotaciones = setTimeout(() => {
+    anotaciones.sincronizar(id, cliente).catch(() => null);
+  }, 1200);
+}
+
+async function sincronizarAlRecuperarConexion() {
+  if (!cliente) return;
+  const clienteEnUso = cliente;
+  const libroEnUso = libroActual?.tipo === 'webdav' ? libroActual.id : null;
+
+  // Reintenta primero todos los cambios que quedaron pendientes sin conexión.
+  await Promise.all([
+    progreso.sincronizar(clienteEnUso),
+    anotaciones.sincronizarPendientes(clienteEnUso),
+  ]);
+  if (cliente !== clienteEnUso || !libroEnUso || libroActual?.id !== libroEnUso) return;
+
+  // El libro abierto también se consulta aunque no tenga cambios propios:
+  // así aparecen las anotaciones creadas en otro dispositivo al volver la red.
+  await anotaciones.sincronizar(libroEnUso, clienteEnUso);
+  if (cliente !== clienteEnUso || libroActual?.id !== libroEnUso) return;
+  anotacionesActuales = await anotaciones.listar(clienteEnUso.base, libroEnUso);
+  mostrarResaltados();
+  if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
+}
+
+function manejarSeleccionTexto(seleccion) {
+  if (!libroActual || !seleccion?.texto) return;
+  seleccionPendiente = seleccion;
+  $('barra-seleccion').classList.remove('oculto');
+}
+
+function limpiarSeleccionNativa() {
+  window.getSelection()?.removeAllRanges();
+  for (const contents of lectorEpub.vista?.getContents?.() ?? []) {
+    contents.window?.getSelection?.().removeAllRanges();
+  }
+}
+
+function cancelarSeleccion() {
+  seleccionPendiente = null;
+  $('barra-seleccion').classList.add('oculto');
+  limpiarSeleccionNativa();
+}
+
+async function guardarSeleccionComoAnotacion(nota = '') {
+  if (!libroActual || !seleccionPendiente) return;
+  const seleccion = seleccionPendiente;
+  const ambito = ambitoAnotacionesActual();
+  anotacionesActuales = await anotaciones.crear(ambito, libroActual.id, {
+    ...seleccion,
+    ...(nota.trim() ? { nota: nota.trim().slice(0, 4000) } : {}),
+  });
+  cancelarSeleccion();
+  mostrarResaltados();
+  pintarAnotaciones();
+  planificarSyncAnotaciones();
+  avisar(t('annotationAdded'));
+}
+
+$('btn-resaltar-seleccion').addEventListener('click', () => {
+  guardarSeleccionComoAnotacion().catch((error) => avisar(error.message, 5000));
+});
+$('btn-nota-seleccion').addEventListener('click', () => {
+  const nota = prompt(t('notePrompt'), '');
+  if (nota === null) return;
+  guardarSeleccionComoAnotacion(nota).catch((error) => avisar(error.message, 5000));
+});
+$('btn-cancelar-seleccion').addEventListener('click', cancelarSeleccion);
+
+function cerrarPanelAnotaciones() {
+  $('panel-anotaciones').classList.add('oculto');
+  $('btn-anotaciones').setAttribute('aria-expanded', 'false');
+}
+
+function ubicacionAnotacion(anotacion) {
+  const pagina = anotacion.paginas?.[0]?.pagina;
+  if (pagina) return `${t('page')} ${pagina}`;
+  if (anotacion.cfi) return t('chapter');
+  return '';
+}
+
+function pintarAnotaciones(idEnfocado = null) {
+  const lista = $('lista-anotaciones');
+  lista.replaceChildren();
+  $('sin-anotaciones').classList.toggle('oculto', anotacionesActuales.length > 0);
+  const ordenadas = [...anotacionesActuales].sort((a, b) =>
+    (a.paginas?.[0]?.pagina ?? 0) - (b.paginas?.[0]?.pagina ?? 0) ||
+    (a.creado ?? '').localeCompare(b.creado ?? ''));
+  for (const anotacion of ordenadas) {
+    const li = document.createElement('li');
+    li.className = 'fila-anotacion';
+    li.dataset.id = anotacion.id;
+    const ir = document.createElement('button');
+    ir.type = 'button';
+    ir.className = 'ir-anotacion';
+    const texto = document.createElement('span');
+    texto.className = 'texto-anotacion';
+    texto.textContent = anotacion.texto;
+    ir.append(texto);
+    if (anotacion.nota) {
+      const nota = document.createElement('span');
+      nota.className = 'nota-anotacion';
+      nota.textContent = anotacion.nota;
+      ir.append(nota);
+    }
+    const ubicacion = document.createElement('span');
+    ubicacion.className = 'ubicacion-anotacion';
+    ubicacion.textContent = ubicacionAnotacion(anotacion);
+    ir.append(ubicacion);
+    ir.addEventListener('click', async () => {
+      const destino = anotacion.cfi ?? anotacion.paginas?.[0]?.pagina;
+      if (destino !== undefined) await saltarConHistorial(destino).catch((error) => avisar(error.message, 5000));
+      cerrarPanelAnotaciones();
+    });
+
+    const editar = document.createElement('button');
+    editar.type = 'button';
+    editar.className = 'btn-icono';
+    editar.title = t('editNote');
+    editar.innerHTML = icono('pencil');
+    editar.addEventListener('click', async () => {
+      const nota = prompt(t('notePrompt'), anotacion.nota ?? '');
+      if (nota === null) return;
+      anotacionesActuales = await anotaciones.actualizar(
+        ambitoAnotacionesActual(), libroActual.id, anotacion.id,
+        nota.trim() ? { nota: nota.trim().slice(0, 4000) } : { nota: '' },
+      );
+      pintarAnotaciones(anotacion.id);
+      planificarSyncAnotaciones();
+    });
+
+    const borrar = document.createElement('button');
+    borrar.type = 'button';
+    borrar.className = 'btn-icono';
+    borrar.title = t('deleteAnnotation');
+    borrar.innerHTML = icono('trash-2');
+    borrar.addEventListener('click', async () => {
+      anotacionesActuales = await anotaciones.eliminar(
+        ambitoAnotacionesActual(), libroActual.id, anotacion.id,
+      );
+      mostrarResaltados();
+      pintarAnotaciones();
+      planificarSyncAnotaciones();
+      avisar(t('annotationDeleted'));
+    });
+    li.append(ir, editar, borrar);
+    lista.append(li);
+  }
+  if (idEnfocado) lista.querySelector(`[data-id="${CSS.escape(idEnfocado)}"] .ir-anotacion`)?.focus();
+}
+
+function abrirPanelAnotaciones(id = null) {
+  cerrarBusquedaLibro();
+  cerrarIndiceLibro();
+  cerrarPanelMarcadores();
+  pintarAnotaciones(id);
+  $('panel-anotaciones').classList.remove('oculto');
+  $('btn-anotaciones').setAttribute('aria-expanded', 'true');
+}
+
+$('btn-anotaciones').addEventListener('click', () => {
+  if ($('panel-anotaciones').classList.contains('oculto')) abrirPanelAnotaciones();
+  else cerrarPanelAnotaciones();
+});
+$('cerrar-anotaciones').addEventListener('click', cerrarPanelAnotaciones);
 
 function cerrarBusquedaLibro() {
   versionBusquedaLibro += 1;
@@ -2488,6 +2727,7 @@ $('btn-buscar-libro').addEventListener('click', () => {
   const panel = $('panel-busqueda-libro');
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  cerrarPanelAnotaciones();
   panel.classList.toggle('oculto');
   if (!panel.classList.contains('oculto')) $('buscar-en-libro').focus();
 });
@@ -2497,6 +2737,7 @@ $('btn-indice-libro').addEventListener('click', () => {
   const panel = $('panel-indice-libro');
   cerrarBusquedaLibro();
   cerrarPanelMarcadores();
+  cerrarPanelAnotaciones();
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
   $('btn-indice-libro').setAttribute('aria-expanded', String(abrir));
@@ -2659,6 +2900,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-marcadores').classList.contains('oculto')) {
     cerrarPanelMarcadores();
     $('btn-marcadores').focus();
+  } else if (!$('panel-anotaciones').classList.contains('oculto')) {
+    cerrarPanelAnotaciones();
+    $('btn-anotaciones').focus();
   } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
     cerrarBusquedaLibro();
     $('btn-buscar-libro').focus();
@@ -2811,6 +3055,7 @@ document.addEventListener('idioma-cambiado', () => {
   pintarIconoNoche();
   if (!libroActual) cargarBiblioteca();
   else if (!$('panel-marcadores').classList.contains('oculto')) pintarMarcadores();
+  else if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
 });
 iniciarIdioma();
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
@@ -2822,6 +3067,12 @@ aplicarAparienciaModo(modoActual());
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => null);
 }
+
+window.addEventListener('online', () => {
+  sincronizarAlRecuperarConexion()
+    .then(() => actualizarEstadoSincronizacion())
+    .catch((error) => actualizarEstadoSincronizacion(error));
+});
 
 importarConfigDeUrl();
 crearCliente();

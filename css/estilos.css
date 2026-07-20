@@ -629,6 +629,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .capa-texto span.markedContent { top: 0; height: 0; }
 .capa-texto ::selection { background: rgba(14, 165, 233, 0.4); }
 
+.capa-resaltados { position: absolute; inset: 0; pointer-events: none; }
+.capa-resaltados span {
+  position: absolute; border-radius: 2px;
+  background: rgba(250, 204, 21, 0.42); mix-blend-mode: multiply;
+}
+.modo-noche .capa-resaltados span { background: rgba(56, 189, 248, 0.42); mix-blend-mode: screen; }
+
 /* Enlaces del PDF (índices internos, referencias, webs). */
 .capa-enlaces { position: absolute; inset: 0; pointer-events: none; }
 .capa-enlaces a { position: absolute; pointer-events: auto; border-radius: 2px; }
@@ -689,6 +696,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   }
   .barra-lector > #btn-subir,
   .barra-lector > #btn-indice-libro,
+  .barra-lector > #btn-anotaciones,
   .barra-lector > #btn-modo,
   .barra-lector > #btn-zoom-menos,
   .barra-lector > #btn-ancho-auto,
@@ -718,6 +726,33 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .resultado-busqueda:hover { border-color: var(--acento); }
 .resultado-busqueda strong { display: block; color: var(--acento); margin-bottom: 0.15rem; }
 .resultado-busqueda span { color: var(--texto-suave); font-size: 0.82rem; line-height: 1.35; }
+
+.barra-seleccion {
+  position: fixed; z-index: 70; left: 50%; bottom: max(0.75rem, env(safe-area-inset-bottom));
+  transform: translateX(-50%); display: flex; align-items: center; gap: 0.4rem;
+  max-width: calc(100vw - 1rem); padding: 0.45rem;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+}
+.barra-seleccion .btn-primario, .barra-seleccion .btn-secundario {
+  display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;
+  padding: 0.55rem 0.7rem;
+}
+.barra-seleccion .icono { width: 1.05rem; height: 1.05rem; }
+.lista-anotaciones { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+.fila-anotacion {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center; gap: 0.2rem; border-bottom: 1px solid var(--borde); padding-bottom: 0.4rem;
+}
+.ir-anotacion {
+  min-width: 0; padding: 0.45rem 0.55rem; border: 0; border-radius: 0.45rem;
+  background: none; color: var(--texto); text-align: left; cursor: pointer;
+}
+.ir-anotacion:hover, .ir-anotacion:focus-visible { background: var(--fondo-tarjeta); outline: none; }
+.texto-anotacion, .nota-anotacion { display: block; overflow: hidden; text-overflow: ellipsis; }
+.texto-anotacion { white-space: nowrap; font-size: 0.9rem; }
+.nota-anotacion { color: var(--acento); font-size: 0.8rem; white-space: nowrap; margin-top: 0.15rem; }
+.ubicacion-anotacion { color: var(--texto-suave); font-size: 0.75rem; }
 
 /* ── Subcarpetas de la nube ── */
 .ruta-carpeta {

@@ -2,11 +2,11 @@
 //
 // Los PDF abiertos desde el dispositivo se guardan aquí para que aparezcan
 // en la biblioteca y puedan reabrirse sin volver a elegir el archivo.
-// Se usan seis almacenes: los cuatro originales y dos para las copias de
-// libros WebDAV que el usuario marca como disponibles sin conexión.
+// Se usan siete almacenes: los cuatro originales, dos para las copias de
+// libros WebDAV y uno para las anotaciones locales y su cola de sincronización.
 
 const NOMBRE_BD = 'lector-pdf';
-const VERSION = 4;
+const VERSION = 5;
 
 function abrirBd() {
   return new Promise((resolver, rechazar) => {
@@ -22,6 +22,10 @@ function abrirBd() {
         copias.createIndex('servidor', 'servidor');
       }
       if (!bd.objectStoreNames.contains('datos-remotos')) bd.createObjectStore('datos-remotos');
+      if (!bd.objectStoreNames.contains('anotaciones')) {
+        const anotaciones = bd.createObjectStore('anotaciones', { keyPath: ['ambito', 'libro'] });
+        anotaciones.createIndex('ambito', 'ambito');
+      }
     };
     solicitud.onsuccess = () => resolver(solicitud.result);
     solicitud.onerror = () => rechazar(solicitud.error);
@@ -124,6 +128,77 @@ export async function borrarLibro(id) {
       tx.oncomplete = resolver;
       tx.onerror = () => rechazar(tx.error);
     });
+  } finally {
+    bd.close();
+  }
+}
+
+// ── Anotaciones y resaltados ──
+
+export async function obtenerAnotaciones(ambito, libro) {
+  const bd = await abrirBd();
+  try {
+    return await esperar(
+      bd.transaction('anotaciones').objectStore('anotaciones').get([ambito, libro]),
+    ) ?? null;
+  } finally {
+    bd.close();
+  }
+}
+
+export async function guardarAnotaciones(documento) {
+  const bd = await abrirBd();
+  try {
+    await esperar(
+      bd.transaction('anotaciones', 'readwrite').objectStore('anotaciones').put(documento),
+    );
+  } finally {
+    bd.close();
+  }
+}
+
+export async function listarDocumentosAnotaciones(ambito) {
+  const bd = await abrirBd();
+  try {
+    return await esperar(
+      bd.transaction('anotaciones').objectStore('anotaciones').index('ambito').getAll(ambito),
+    );
+  } finally {
+    bd.close();
+  }
+}
+
+export async function borrarAnotaciones(ambito, libro) {
+  const bd = await abrirBd();
+  try {
+    await esperar(
+      bd.transaction('anotaciones', 'readwrite').objectStore('anotaciones').delete([ambito, libro]),
+    );
+  } finally {
+    bd.close();
+  }
+}
+
+export async function moverAnotaciones(ambito, libroViejo, libroNuevo) {
+  const documento = await obtenerAnotaciones(ambito, libroViejo);
+  if (!documento) return false;
+  await guardarAnotaciones({ ...documento, libro: libroNuevo });
+  await borrarAnotaciones(ambito, libroViejo);
+  return true;
+}
+
+export async function borrarAnotacionesPorPrefijo(ambito, prefijo) {
+  const bd = await abrirBd();
+  try {
+    const documentos = await esperar(
+      bd.transaction('anotaciones').objectStore('anotaciones').index('ambito').getAll(ambito),
+    );
+    const tx = bd.transaction('anotaciones', 'readwrite');
+    const destino = tx.objectStore('anotaciones');
+    for (const documento of documentos) {
+      if (documento.libro.startsWith(prefijo)) destino.delete([ambito, documento.libro]);
+    }
+    await esperarTransaccion(tx);
   } finally {
     bd.close();
   }

@@ -4,6 +4,10 @@
 
 const ARCHIVO_PROGRESO = 'lector-progreso.json';
 
+function archivoAnotaciones(libro) {
+  return `${libro}.pagekeeper.json`;
+}
+
 // Basic Auth admite bytes UTF-8; btoa solo acepta latin1, así que
 // convertimos primero la cadena a bytes.
 function base64Utf8(texto) {
@@ -170,6 +174,64 @@ export class ClienteWebDav {
       body: JSON.stringify(datos, null, 2),
     });
     if (!respuesta.ok) throw await this.errorDe(respuesta, 'guardar el progreso');
+  }
+
+  async leerAnotaciones(libro) {
+    const respuesta = await fetch(this.urlDe(archivoAnotaciones(libro)), {
+      headers: { ...this.cabeceras, 'Cache-Control': 'no-cache' },
+    });
+    if (respuesta.status === 404) return { datos: null, etag: null };
+    if (!respuesta.ok) throw await this.errorDe(respuesta, 'leer las anotaciones');
+    try {
+      return { datos: await respuesta.json(), etag: respuesta.headers.get('ETag') };
+    } catch {
+      return { datos: { version: 1, libro, anotaciones: [] }, etag: respuesta.headers.get('ETag') };
+    }
+  }
+
+  async escribirAnotaciones(libro, datos, etag = null) {
+    const url = this.urlDe(archivoAnotaciones(libro));
+    const guardar = (condicional = true) => fetch(url, {
+      method: 'PUT',
+      headers: {
+        ...this.cabeceras,
+        'Content-Type': 'application/json',
+        ...(condicional ? (etag ? { 'If-Match': etag } : { 'If-None-Match': '*' }) : {}),
+      },
+      body: JSON.stringify(datos, null, 2),
+    });
+
+    let respuesta;
+    try {
+      respuesta = await guardar(true);
+    } catch (error) {
+      // Algunos WebDAV no permiten las cabeceras condicionales mediante CORS.
+      if (!(error instanceof TypeError)) throw error;
+      respuesta = await guardar(false);
+    }
+    if ([400, 405, 501].includes(respuesta.status)) respuesta = await guardar(false);
+    if (respuesta.status === 409 || respuesta.status === 412) {
+      const error = new Error('Las anotaciones cambiaron en otro dispositivo.');
+      error.conflictoSincronizacion = true;
+      throw error;
+    }
+    if (!respuesta.ok) throw await this.errorDe(respuesta, 'guardar las anotaciones');
+  }
+
+  async moverAnotaciones(origen, destino, sobrescribir = false) {
+    const archivoOrigen = archivoAnotaciones(origen);
+    if (!await this.existe(archivoOrigen)) return false;
+    await this.mover(archivoOrigen, archivoAnotaciones(destino), sobrescribir);
+    return true;
+  }
+
+  async borrarAnotaciones(libro) {
+    const respuesta = await fetch(this.urlDe(archivoAnotaciones(libro)), {
+      method: 'DELETE', headers: this.cabeceras,
+    });
+    if (respuesta.status !== 404 && !respuesta.ok) {
+      throw await this.errorDe(respuesta, 'borrar las anotaciones');
+    }
   }
 
   async errorDe(respuesta, accion) {

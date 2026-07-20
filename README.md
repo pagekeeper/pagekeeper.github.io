@@ -59,6 +59,9 @@ libros y sincronizar el progreso de lectura.
 - 🔖 **Marcadores**: guarda las posiciones que quieras de cada libro y vuelve
   a ellas desde un panel. En los libros de la nube se sincronizan entre
   dispositivos junto con la posición de lectura.
+- 📝 **Resaltados y notas**: selecciona texto en PDF o EPUB para resaltarlo
+  o añadir una nota. Funcionan sin conexión; en los libros WebDAV se fusionan
+  y sincronizan entre dispositivos mediante un JSON lateral por libro.
 - ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.
@@ -145,6 +148,9 @@ node --test
 - La posición y cada marcador se fusionan por separado. Los marcadores tienen
   identificadores estables y los borrados dejan una marca interna para que una
   copia antigua no los haga reaparecer.
+- Los resaltados y las notas se guardan primero en IndexedDB. Cada libro de la
+  nube usa un archivo lateral `<nombre>.pagekeeper.json`; cada anotación se
+  fusiona por separado y los borrados también dejan una marca interna.
 - Los cambios pendientes de este navegador prevalecen durante la siguiente
   sincronización aunque su reloj esté desajustado. Cuando WebDAV expone un
   `ETag`, el guardado usa `If-Match` y vuelve a leer y fusionar si otro
