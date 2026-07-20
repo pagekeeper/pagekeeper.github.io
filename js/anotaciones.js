@@ -7,6 +7,7 @@ import * as almacen from './almacen.js';
 const VERSION = 1;
 const AMBITO_LOCAL = 'local';
 const FECHA_CERO = '1970-01-01T00:00:00.000Z';
+const INTENTOS_SINCRONIZACION = 8;
 const colas = new Map();
 
 function uuid() {
@@ -17,6 +18,15 @@ function ahoraPosterior(...fechas) {
   const maxima = fechas.filter(Boolean).sort().at(-1) ?? FECHA_CERO;
   const ms = Date.parse(maxima);
   return new Date(Math.max(Date.now(), Number.isFinite(ms) ? ms + 1 : 0)).toISOString();
+}
+
+function esperarReintento(intento) {
+  // Dos dispositivos que escriben a la vez no deben reintentarlo de nuevo
+  // en el mismo instante. El componente aleatorio rompe ese ciclo y la
+  // espera creciente reduce la presión sobre WebDAV.
+  const base = Math.min(100 * (2 ** intento), 1600);
+  const variacion = Math.floor(Math.random() * 180);
+  return new Promise((resolver) => setTimeout(resolver, base + variacion));
 }
 
 function normalizar(documento, ambito, libro) {
@@ -66,6 +76,12 @@ export function fusionarDocumentos(localOriginal, remotoOriginal, ambito, libro)
     } else if (mia && suya) anotaciones.push(masReciente(mia, suya));
     else anotaciones.push(mia ?? suya);
   }
+  // El orden no puede depender de qué dispositivo aportó primero cada
+  // elemento: dos órdenes distintos producirían JSON diferentes y ambos
+  // navegadores se lo sobrescribirían mutuamente en cada sincronización.
+  anotaciones.sort((a, b) =>
+    (a.creado ?? a.actualizado ?? '').localeCompare(b.creado ?? b.actualizado ?? '') ||
+    a.id.localeCompare(b.id));
   return { ...local, anotaciones };
 }
 
@@ -139,7 +155,7 @@ async function limpiarPendientesConfirmados(ambito, libro, confirmados) {
 
 async function sincronizarAhora(libro, cliente) {
   const ambito = cliente.base;
-  for (let intento = 0; intento < 4; intento++) {
+  for (let intento = 0; intento < INTENTOS_SINCRONIZACION; intento++) {
     const respuesta = await cliente.leerAnotaciones(libro);
     // La red se espera antes de leer IndexedDB para no pisar una edición
     // hecha mientras llegaba la respuesta del servidor.
@@ -153,9 +169,14 @@ async function sincronizarAhora(libro, cliente) {
       return limpiarPendientesConfirmados(ambito, libro, localLeido.pendientes);
     }
     try {
-      await cliente.escribirAnotaciones(libro, remotoNuevo, respuesta?.etag ?? null);
+      await cliente.escribirAnotaciones(
+        libro, remotoNuevo, respuesta?.etag ?? null, remotoOriginal !== null,
+      );
     } catch (error) {
-      if (error.conflictoSincronizacion && intento < 3) continue;
+      if (error.conflictoSincronizacion && intento < INTENTOS_SINCRONIZACION - 1) {
+        await esperarReintento(intento);
+        continue;
+      }
       throw error;
     }
 

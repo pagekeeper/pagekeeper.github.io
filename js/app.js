@@ -2679,6 +2679,7 @@ function pintarAnotaciones(idEnfocado = null) {
         ambitoAnotacionesActual(), libroActual.id, anotacion.id,
         nota.trim() ? { nota: nota.trim().slice(0, 4000) } : { nota: '' },
       );
+      mostrarResaltados();
       pintarAnotaciones(anotacion.id);
       planificarSyncAnotaciones();
     });

@@ -45,6 +45,34 @@ test('detecta un conflicto al crear simultáneamente un archivo de anotaciones',
   );
 });
 
+test('actualiza un JSON existente aunque WebDAV no exponga su ETag por CORS', async () => {
+  let peticion;
+  globalThis.fetch = async (_url, opciones) => {
+    peticion = opciones;
+    return new Response(null, { status: 204 });
+  };
+
+  await cliente().escribirAnotaciones(
+    'libro.epub', { version: 1, anotaciones: [] }, null, true,
+  );
+  assert.equal('If-Match' in peticion.headers, false);
+  assert.equal('If-None-Match' in peticion.headers, false);
+});
+
+test('no usa un ETag débil en If-Match', async () => {
+  let peticion;
+  globalThis.fetch = async (_url, opciones) => {
+    peticion = opciones;
+    return new Response(null, { status: 204 });
+  };
+
+  await cliente().escribirAnotaciones(
+    'libro.pdf', { version: 1, anotaciones: [] }, 'W/"v2"', true,
+  );
+  assert.equal('If-Match' in peticion.headers, false);
+  assert.equal('If-None-Match' in peticion.headers, false);
+});
+
 test('mueve el JSON lateral junto al libro y conserva las subcarpetas', async () => {
   const peticiones = [];
   globalThis.fetch = async (url, opciones) => {

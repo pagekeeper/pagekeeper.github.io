@@ -189,14 +189,20 @@ export class ClienteWebDav {
     }
   }
 
-  async escribirAnotaciones(libro, datos, etag = null) {
+  async escribirAnotaciones(libro, datos, etag = null, yaExiste = Boolean(etag)) {
     const url = this.urlDe(archivoAnotaciones(libro));
+    // If-Match exige un ETag fuerte. Si el servidor no lo expone por CORS o
+    // solo entrega uno débil (W/...), se conserva la compatibilidad mediante
+    // un PUT normal para archivos existentes. If-None-Match sigue protegiendo
+    // la creación simultánea de un lateral que aún no existe.
+    const etagFuerte = etag && !/^W\//i.test(etag) ? etag : null;
     const guardar = (condicional = true) => fetch(url, {
       method: 'PUT',
       headers: {
         ...this.cabeceras,
         'Content-Type': 'application/json',
-        ...(condicional ? (etag ? { 'If-Match': etag } : { 'If-None-Match': '*' }) : {}),
+        ...(condicional && etagFuerte ? { 'If-Match': etagFuerte } : {}),
+        ...(condicional && !etagFuerte && !yaExiste ? { 'If-None-Match': '*' } : {}),
       },
       body: JSON.stringify(datos, null, 2),
     });

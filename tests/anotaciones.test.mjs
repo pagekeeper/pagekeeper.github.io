@@ -12,6 +12,15 @@ test('conserva anotaciones creadas simultáneamente en dos dispositivos', () => 
   assert.deepEqual(fusionado.anotaciones.map((a) => a.id).sort(), ['local', 'remota']);
 });
 
+test('produce el mismo orden aunque cada dispositivo las tenga ordenadas de forma distinta', () => {
+  const una = { id: 'a', texto: 'Uno', creado: '2026-01-01T10:00:00.000Z', actualizado: '2026-01-01T10:00:00.000Z' };
+  const otra = { id: 'b', texto: 'Dos', creado: '2026-01-01T10:01:00.000Z', actualizado: '2026-01-01T10:01:00.000Z' };
+  const desdeA = fusionarDocumentos(documento([una, otra]), documento([otra, una]), 'servidor', 'libro.epub');
+  const desdeB = fusionarDocumentos(documento([otra, una]), documento([una, otra]), 'servidor', 'libro.epub');
+  assert.deepEqual(desdeA.anotaciones, desdeB.anotaciones);
+  assert.deepEqual(desdeA.anotaciones.map((a) => a.id), ['a', 'b']);
+});
+
 test('un cambio local pendiente prevalece aunque el reloj remoto esté adelantado', () => {
   const local = documento(
     [{ id: 'a', texto: 'Local', actualizado: '2026-01-01T10:00:00.000Z' }],

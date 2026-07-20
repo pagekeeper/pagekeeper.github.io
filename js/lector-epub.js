@@ -241,12 +241,15 @@ export class LectorEpub {
     for (const anotacion of this.anotaciones) {
       if (!anotacion.cfi) continue;
       try {
+        const esNota = Boolean(anotacion.nota);
         this.vista.annotations.highlight(
           anotacion.cfi,
           { id: anotacion.id },
           () => this.alPulsarAnotacion?.(anotacion.id),
-          'pagekeeper-resaltado',
-          { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
+          esNota ? 'pagekeeper-nota' : 'pagekeeper-resaltado',
+          esNota
+            ? { fill: '#38bdf8', 'fill-opacity': '0.4', 'mix-blend-mode': 'multiply' }
+            : { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
         );
         this.cfiAplicados.push(anotacion.cfi);
       } catch { /* un CFI obsoleto no impide mostrar los demás */ }

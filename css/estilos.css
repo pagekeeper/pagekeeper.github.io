@@ -634,7 +634,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   position: absolute; border-radius: 2px;
   background: rgba(250, 204, 21, 0.42); mix-blend-mode: multiply;
 }
-.modo-noche .capa-resaltados span { background: rgba(56, 189, 248, 0.42); mix-blend-mode: screen; }
+.capa-resaltados span.nota {
+  background: rgba(56, 189, 248, 0.34);
+  border-bottom: 2px solid rgba(2, 132, 199, 0.8);
+}
+.modo-noche .capa-resaltados span {
+  background: rgba(250, 204, 21, 0.46); mix-blend-mode: screen;
+}
+.modo-noche .capa-resaltados span.nota {
+  background: rgba(56, 189, 248, 0.42);
+  border-bottom-color: rgba(125, 211, 252, 0.9);
+}
 
 /* Enlaces del PDF (índices internos, referencias, webs). */
 .capa-enlaces { position: absolute; inset: 0; pointer-events: none; }
