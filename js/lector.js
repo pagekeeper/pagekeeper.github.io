@@ -11,12 +11,17 @@ import * as pdfjs from '../vendor/pdf.min.js';
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
 export class Lector {
-  constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto }) {
+  constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
+    alPulsarAnotacion, alMostrarNota, alOcultarNota, etiquetaAbrirNota }) {
     this.area = area;             // contenedor con scroll (#area-lectura)
     this.contenedor = contenedor; // donde se colocan las páginas (#contenedor-pagina)
     this.alCambiarPagina = alCambiarPagina;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
     this.alSeleccionarTexto = alSeleccionarTexto;
+    this.alPulsarAnotacion = alPulsarAnotacion;
+    this.alMostrarNota = alMostrarNota;
+    this.alOcultarNota = alOcultarNota;
+    this.etiquetaAbrirNota = etiquetaAbrirNota;
 
     this.documento = null;
     this.pagina = 1;
@@ -30,6 +35,7 @@ export class Lector {
     this.tareaRender = null;
     this.pendiente = null;
     this.anotaciones = [];
+    this.notaBajoPuntero = null;
 
     let tempResize;
     window.addEventListener('resize', () => {
@@ -39,6 +45,7 @@ export class Lector {
 
     let esperandoFrame = false;
     this.area.addEventListener('scroll', () => {
+      this.ocultarNotaHover();
       if (this.modo !== 'continuo' || esperandoFrame) return;
       esperandoFrame = true;
       requestAnimationFrame(() => { esperandoFrame = false; this.detectarPaginaVisible(); });
@@ -47,6 +54,16 @@ export class Lector {
     const capturar = () => requestAnimationFrame(() => this.capturarSeleccion());
     this.area.addEventListener('mouseup', capturar);
     this.area.addEventListener('touchend', capturar, { passive: true });
+
+    let frameHover = null;
+    this.area.addEventListener('pointermove', (evento) => {
+      if (evento.pointerType !== 'mouse') return;
+      cancelAnimationFrame(frameHover);
+      frameHover = requestAnimationFrame(() => {
+        this.detectarNotaHover(evento.clientX, evento.clientY);
+      });
+    }, { passive: true });
+    this.area.addEventListener('pointerleave', () => this.ocultarNotaHover());
   }
 
   get totalPaginas() {
@@ -316,6 +333,7 @@ export class Lector {
   }
 
   mostrarAnotaciones(anotaciones) {
+    this.ocultarNotaHover();
     this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
     const envoltorios = this.modo === 'continuo'
       ? this.paginas.filter(Boolean)
@@ -345,9 +363,44 @@ export class Lector {
         marca.style.height = `${rectangulo.alto * 100}%`;
         capa.append(marca);
       }
+      if (anotacion.nota && pagina.rectangulos?.length) {
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'boton-nota-margen';
+        boton.textContent = '✎';
+        boton.title = this.etiquetaAbrirNota?.() ?? 'Abrir nota';
+        boton.setAttribute('aria-label', boton.title);
+        boton.style.top = `${pagina.rectangulos[0].y * 100}%`;
+        boton.addEventListener('click', (evento) => {
+          evento.stopPropagation();
+          this.alPulsarAnotacion?.(anotacion.id);
+        });
+        capa.append(boton);
+      }
     }
     // Debajo de la capa de texto para no impedir nuevas selecciones.
     envoltorio.insertBefore(capa, envoltorio.querySelector('.capa-texto, .capa-enlaces'));
+  }
+
+  detectarNotaHover(x, y) {
+    for (const marca of this.contenedor.querySelectorAll('.capa-resaltados span.nota')) {
+      const rectangulo = marca.getBoundingClientRect();
+      if (x < rectangulo.left || x > rectangulo.right || y < rectangulo.top || y > rectangulo.bottom) continue;
+      const anotacion = this.anotaciones.find((entrada) => entrada.id === marca.dataset.anotacion);
+      if (!anotacion?.nota) break;
+      if (this.notaBajoPuntero !== anotacion.id) {
+        this.notaBajoPuntero = anotacion.id;
+        this.alMostrarNota?.(anotacion, rectangulo);
+      }
+      return;
+    }
+    this.ocultarNotaHover();
+  }
+
+  ocultarNotaHover() {
+    if (this.notaBajoPuntero === null) return;
+    this.notaBajoPuntero = null;
+    this.alOcultarNota?.();
   }
 
   capturarSeleccion() {

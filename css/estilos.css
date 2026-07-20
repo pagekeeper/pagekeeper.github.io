@@ -629,7 +629,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .capa-texto span.markedContent { top: 0; height: 0; }
 .capa-texto ::selection { background: rgba(14, 165, 233, 0.4); }
 
-.capa-resaltados { position: absolute; inset: 0; pointer-events: none; }
+.capa-resaltados { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
 .capa-resaltados span {
   position: absolute; border-radius: 2px;
   background: rgba(250, 204, 21, 0.42); mix-blend-mode: multiply;
@@ -645,9 +645,33 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: rgba(56, 189, 248, 0.42);
   border-bottom-color: rgba(125, 211, 252, 0.9);
 }
+.boton-nota-margen {
+  position: absolute; right: 0.3rem; transform: translateY(-15%);
+  width: 2rem; height: 2rem; padding: 0; pointer-events: auto;
+  display: grid; place-items: center; border: 1px solid rgba(2, 132, 199, 0.75);
+  border-radius: 50%; background: #e0f2fe; color: #0369a1;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3); font: 700 1rem/1 serif; cursor: pointer;
+}
+.boton-nota-margen:hover, .boton-nota-margen:focus-visible {
+  background: #38bdf8; color: #082f49; outline: 2px solid #ffffff;
+}
+.modo-noche .boton-nota-margen { background: #0c4a6e; color: #bae6fd; }
+
+.ventana-nota {
+  position: fixed; z-index: 80; width: max-content; max-width: min(22rem, calc(100vw - 1rem));
+  max-height: min(16rem, calc(100dvh - 1rem)); overflow: hidden; pointer-events: none;
+  padding: 0.65rem 0.75rem; border: 1px solid rgba(14, 165, 233, 0.7);
+  border-radius: 0.6rem; background: var(--fondo); color: var(--texto);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4); white-space: pre-wrap;
+  overflow-wrap: anywhere; font-size: 0.9rem; line-height: 1.4;
+}
+
+.boton-nota-epub {
+  position: absolute; z-index: 12; right: 0.25rem;
+}
 
 /* Enlaces del PDF (índices internos, referencias, webs). */
-.capa-enlaces { position: absolute; inset: 0; pointer-events: none; }
+.capa-enlaces { position: absolute; z-index: 3; inset: 0; pointer-events: none; }
 .capa-enlaces a { position: absolute; pointer-events: auto; border-radius: 2px; }
 .capa-enlaces a:hover, .capa-enlaces a:focus-visible {
   background: rgba(14, 165, 233, 0.15);

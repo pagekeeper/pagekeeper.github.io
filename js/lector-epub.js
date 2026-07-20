@@ -115,7 +115,7 @@ export function inyectarMathJax(contents) {
 
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
-    alSeleccionarTexto, alPulsarAnotacion }) {
+    alSeleccionarTexto, alPulsarAnotacion, alMostrarNota, alOcultarNota, etiquetaAbrirNota }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
@@ -123,6 +123,9 @@ export class LectorEpub {
     this.alPulsarContenido = alPulsarContenido;
     this.alSeleccionarTexto = alSeleccionarTexto;
     this.alPulsarAnotacion = alPulsarAnotacion;
+    this.alMostrarNota = alMostrarNota;
+    this.alOcultarNota = alOcultarNota;
+    this.etiquetaAbrirNota = etiquetaAbrirNota;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -137,6 +140,8 @@ export class LectorEpub {
     this.conLocalizaciones = false;
     this.anotaciones = [];
     this.cfiAplicados = [];
+    this.rangosNotas = new WeakMap();
+    this.notaBajoPuntero = null;
   }
 
   async abrir(datos, cfiInicial = null, modo = 'pagina') {
@@ -177,6 +182,7 @@ export class LectorEpub {
     });
     this.vista.hooks.content.register(inyectarMathJax);
     this.vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
+    this.vista.hooks.content.register((contents) => this.registrarInteraccionesNotas(contents));
     // Los enlaces internos del libro (notas al pie, índice propio) los salta
     // epub.js por su cuenta; se avisa antes del salto con la posición actual
     // para que quede apuntada en el historial de navegación.
@@ -187,7 +193,10 @@ export class LectorEpub {
     this.vista.on('relocated', (lugar) => {
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
       this.notificar();
+      this.ocultarNotaHover();
+      this.programarIconosNotas();
     });
+    this.vista.on('resized', () => this.programarIconosNotas());
     // Las teclas pulsadas dentro del capítulo (iframe) no llegan al
     // documento principal: se reenvían para mantener los atajos.
     this.vista.on('keydown', (evento) => this.alTeclear?.(evento));
@@ -228,37 +237,143 @@ export class LectorEpub {
   }
 
   mostrarAnotaciones(anotaciones) {
+    this.ocultarNotaHover();
     this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
+    this.rangosNotas = new WeakMap();
     this.aplicarAnotaciones();
   }
 
   aplicarAnotaciones() {
     if (!this.vista?.annotations) return;
-    for (const cfi of this.cfiAplicados) {
-      try { this.vista.annotations.remove(cfi, 'highlight'); } catch { /* ya no existe */ }
+    for (const { cfi, tipo } of this.cfiAplicados) {
+      try { this.vista.annotations.remove(cfi, tipo); } catch { /* ya no existe */ }
     }
     this.cfiAplicados = [];
     for (const anotacion of this.anotaciones) {
       if (!anotacion.cfi) continue;
       try {
         const esNota = Boolean(anotacion.nota);
-        this.vista.annotations.highlight(
+        const argumentos = [
           anotacion.cfi,
           { id: anotacion.id },
           () => this.alPulsarAnotacion?.(anotacion.id),
           esNota ? 'pagekeeper-nota' : 'pagekeeper-resaltado',
           esNota
-            ? { fill: '#38bdf8', 'fill-opacity': '0.4', 'mix-blend-mode': 'multiply' }
+            ? { stroke: '#0284c7', 'stroke-opacity': '0.95', 'stroke-width': '2' }
             : { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
-        );
-        this.cfiAplicados.push(anotacion.cfi);
+        ];
+        if (esNota) this.vista.annotations.underline(...argumentos);
+        else this.vista.annotations.highlight(...argumentos);
+        this.cfiAplicados.push({ cfi: anotacion.cfi, tipo: esNota ? 'underline' : 'highlight' });
       } catch { /* un CFI obsoleto no impide mostrar los demás */ }
+    }
+    this.programarIconosNotas();
+  }
+
+  registrarInteraccionesNotas(contents) {
+    const doc = contents?.document;
+    if (!doc) return;
+    let frameHover = null;
+    doc.addEventListener('mousemove', (evento) => {
+      cancelAnimationFrame(frameHover);
+      frameHover = requestAnimationFrame(() => this.detectarNotaHover(evento, contents));
+    }, { passive: true });
+    doc.addEventListener('mouseleave', () => this.ocultarNotaHover());
+    contents.window?.addEventListener('scroll', () => {
+      this.ocultarNotaHover();
+      this.programarIconosNotas();
+    }, { passive: true });
+  }
+
+  rangoNota(contents, anotacion) {
+    let rangos = this.rangosNotas.get(contents);
+    if (!rangos) {
+      rangos = new Map();
+      this.rangosNotas.set(contents, rangos);
+    }
+    if (rangos.has(anotacion.id)) return rangos.get(anotacion.id);
+    let rango = null;
+    try {
+      rango = contents.range?.(anotacion.cfi) ??
+        new window.ePub.CFI(anotacion.cfi).toRange(contents.document);
+    } catch { /* el CFI pertenece a otro capítulo */ }
+    rangos.set(anotacion.id, rango);
+    return rango;
+  }
+
+  detectarNotaHover(evento, contents) {
+    const marco = contents.document?.defaultView?.frameElement?.getBoundingClientRect();
+    if (!marco) return this.ocultarNotaHover();
+    for (const anotacion of this.anotaciones) {
+      if (!anotacion.nota || !anotacion.cfi) continue;
+      const rango = this.rangoNota(contents, anotacion);
+      if (!rango) continue;
+      for (const rectangulo of rango.getClientRects()) {
+        if (evento.clientX < rectangulo.left || evento.clientX > rectangulo.right ||
+            evento.clientY < rectangulo.top || evento.clientY > rectangulo.bottom) continue;
+        if (this.notaBajoPuntero !== anotacion.id) {
+          this.notaBajoPuntero = anotacion.id;
+          this.alMostrarNota?.(anotacion, {
+            left: marco.left + rectangulo.left,
+            right: marco.left + rectangulo.right,
+            top: marco.top + rectangulo.top,
+            bottom: marco.top + rectangulo.bottom,
+          });
+        }
+        return;
+      }
+    }
+    this.ocultarNotaHover();
+  }
+
+  ocultarNotaHover() {
+    if (this.notaBajoPuntero === null) return;
+    this.notaBajoPuntero = null;
+    this.alOcultarNota?.();
+  }
+
+  programarIconosNotas() {
+    cancelAnimationFrame(this.frameIconosNotas);
+    this.frameIconosNotas = requestAnimationFrame(() => this.pintarIconosNotas());
+  }
+
+  pintarIconosNotas() {
+    for (const boton of this.contenedor.querySelectorAll('.boton-nota-epub')) boton.remove();
+    if (!this.vista) return;
+    const base = this.contenedor.getBoundingClientRect();
+    const pintadas = new Set();
+    for (const contents of this.vista.getContents?.() ?? []) {
+      const iframe = contents.document?.defaultView?.frameElement;
+      const marco = iframe?.getBoundingClientRect();
+      if (!marco) continue;
+      for (const anotacion of this.anotaciones) {
+        if (!anotacion.nota || pintadas.has(anotacion.id)) continue;
+        const rango = this.rangoNota(contents, anotacion);
+        const rectangulo = rango && [...rango.getClientRects()].find((rect) =>
+          marco.top + rect.bottom > base.top && marco.top + rect.top < base.bottom &&
+          marco.left + rect.right > base.left && marco.left + rect.left < base.right);
+        if (!rectangulo) continue;
+        const boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'boton-nota-margen boton-nota-epub';
+        boton.textContent = '✎';
+        boton.title = this.etiquetaAbrirNota?.() ?? 'Abrir nota';
+        boton.setAttribute('aria-label', boton.title);
+        boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
+        boton.addEventListener('click', (evento) => {
+          evento.stopPropagation();
+          this.alPulsarAnotacion?.(anotacion.id);
+        });
+        this.contenedor.append(boton);
+        pintadas.add(anotacion.id);
+      }
     }
   }
 
   cambiarTamano(delta) {
     this.tamano = Math.min(300, Math.max(60, this.tamano + delta));
     this.vista?.themes.fontSize(this.tamano + '%');
+    this.programarIconosNotas();
   }
 
   // ───────────── Ajustes tipográficos (fuente e interlineado) ─────────────
@@ -300,6 +415,7 @@ export class LectorEpub {
     for (const contents of this.vista?.getContents() ?? []) {
       this.inyectarTipografia(contents);
     }
+    this.programarIconosNotas();
   }
 
   cambiarFuente(fuente) {
@@ -331,7 +447,11 @@ export class LectorEpub {
   desmontarVista() {
     const vista = this.vista;
     this.vista = null;
+    cancelAnimationFrame(this.frameIconosNotas);
+    this.ocultarNotaHover();
+    for (const boton of this.contenedor.querySelectorAll('.boton-nota-epub')) boton.remove();
     this.cfiAplicados = [];
+    this.rangosNotas = new WeakMap();
     try { vista?.destroy(); } catch { /* restos de la vista anterior */ }
   }
 

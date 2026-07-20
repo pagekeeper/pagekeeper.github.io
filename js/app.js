@@ -120,6 +120,10 @@ const lector = new Lector({
     saltarConHistorial(pagina).catch((error) => avisar(error.message, 5000));
   },
   alSeleccionarTexto: manejarSeleccionTexto,
+  alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
+  alMostrarNota: mostrarNotaEmergente,
+  alOcultarNota: ocultarNotaEmergente,
+  etiquetaAbrirNota: () => t('openNote'),
 });
 
 const lectorEpub = new LectorEpub({
@@ -137,6 +141,9 @@ const lectorEpub = new LectorEpub({
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
+  alMostrarNota: mostrarNotaEmergente,
+  alOcultarNota: ocultarNotaEmergente,
+  etiquetaAbrirNota: () => t('openNote'),
 });
 
 function formatoDe(nombre) {
@@ -178,6 +185,7 @@ function registrarVistaLector() {
 
 function cerrarVistaLector() {
   cerrarMenuLector();
+  ocultarNotaEmergente();
   cerrarPanelAnotaciones();
   cancelarSeleccion();
   cerrarBusquedaLibro();
@@ -2523,6 +2531,32 @@ $('cerrar-marcadores').addEventListener('click', cerrarPanelMarcadores);
 
 // ────────────────── Anotaciones y resaltados ──────────────────
 
+function mostrarNotaEmergente(anotacion, rectangulo) {
+  if (!anotacion?.nota || !rectangulo) return;
+  const ventana = $('ventana-nota');
+  ventana.textContent = anotacion.nota;
+  ventana.classList.remove('oculto');
+  ventana.style.left = '0';
+  ventana.style.top = '0';
+
+  const margen = 8;
+  const ancho = ventana.offsetWidth;
+  const alto = ventana.offsetHeight;
+  const izquierda = Math.min(
+    window.innerWidth - ancho - margen,
+    Math.max(margen, rectangulo.left),
+  );
+  let arriba = rectangulo.top - alto - margen;
+  if (arriba < margen) arriba = rectangulo.bottom + margen;
+  arriba = Math.min(window.innerHeight - alto - margen, Math.max(margen, arriba));
+  ventana.style.left = `${izquierda}px`;
+  ventana.style.top = `${arriba}px`;
+}
+
+function ocultarNotaEmergente() {
+  $('ventana-nota').classList.add('oculto');
+}
+
 function ambitoAnotacionesActual() {
   return anotaciones.ambitoDe(libroActual, cliente);
 }
@@ -2705,6 +2739,7 @@ function pintarAnotaciones(idEnfocado = null) {
 }
 
 function abrirPanelAnotaciones(id = null) {
+  ocultarNotaEmergente();
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
