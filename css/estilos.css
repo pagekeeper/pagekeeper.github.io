@@ -666,6 +666,14 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   overflow-wrap: anywhere; font-size: 0.9rem; line-height: 1.4;
 }
 
+.menu-nota-contextual {
+  position: fixed; z-index: 85; width: 11.5rem; padding: 0.35rem;
+  border: 1px solid var(--borde); border-radius: 0.65rem;
+  background: var(--fondo); color: var(--texto);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.menu-nota-contextual .item-menu-lector { padding: 0.55rem 0.65rem; }
+
 .boton-nota-epub {
   position: absolute; z-index: 12; right: auto;
 }

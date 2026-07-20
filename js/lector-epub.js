@@ -129,8 +129,8 @@ export function inyectarMathJax(contents) {
 
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
-    alSeleccionarTexto, alPulsarAnotacion, alEditarAnotacion, alMostrarNota, alOcultarNota,
-    etiquetaEditarNota }) {
+    alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
+    etiquetaOpcionesNota }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
@@ -138,10 +138,10 @@ export class LectorEpub {
     this.alPulsarContenido = alPulsarContenido;
     this.alSeleccionarTexto = alSeleccionarTexto;
     this.alPulsarAnotacion = alPulsarAnotacion;
-    this.alEditarAnotacion = alEditarAnotacion;
+    this.alGestionarAnotacion = alGestionarAnotacion;
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
-    this.etiquetaEditarNota = etiquetaEditarNota;
+    this.etiquetaOpcionesNota = etiquetaOpcionesNota;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -372,7 +372,7 @@ export class LectorEpub {
         boton.type = 'button';
         boton.className = 'boton-nota-margen boton-nota-epub';
         boton.textContent = '✎';
-        boton.title = this.etiquetaEditarNota?.() ?? 'Editar nota';
+        boton.title = this.etiquetaOpcionesNota?.() ?? 'Opciones de la nota';
         boton.setAttribute('aria-label', boton.title);
         boton.style.top = `${marco.top + rectangulo.top - base.top}px`;
         const bordeTexto = bordeDerechoDelBloque(rango, rectangulo);
@@ -382,7 +382,7 @@ export class LectorEpub {
         )}px`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
-          this.alEditarAnotacion?.(anotacion.id);
+          this.alGestionarAnotacion?.(anotacion.id, boton.getBoundingClientRect());
         });
         this.contenedor.append(boton);
         pintadas.add(anotacion.id);

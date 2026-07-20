@@ -12,17 +12,17 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', imp
 
 export class Lector {
   constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
-    alPulsarAnotacion, alEditarAnotacion, alMostrarNota, alOcultarNota, etiquetaEditarNota }) {
+    alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota, etiquetaOpcionesNota }) {
     this.area = area;             // contenedor con scroll (#area-lectura)
     this.contenedor = contenedor; // donde se colocan las páginas (#contenedor-pagina)
     this.alCambiarPagina = alCambiarPagina;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
     this.alSeleccionarTexto = alSeleccionarTexto;
     this.alPulsarAnotacion = alPulsarAnotacion;
-    this.alEditarAnotacion = alEditarAnotacion;
+    this.alGestionarAnotacion = alGestionarAnotacion;
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
-    this.etiquetaEditarNota = etiquetaEditarNota;
+    this.etiquetaOpcionesNota = etiquetaOpcionesNota;
 
     this.documento = null;
     this.pagina = 1;
@@ -369,12 +369,12 @@ export class Lector {
         boton.type = 'button';
         boton.className = 'boton-nota-margen';
         boton.textContent = '✎';
-        boton.title = this.etiquetaEditarNota?.() ?? 'Editar nota';
+        boton.title = this.etiquetaOpcionesNota?.() ?? 'Opciones de la nota';
         boton.setAttribute('aria-label', boton.title);
         boton.style.top = `${pagina.rectangulos[0].y * 100}%`;
         boton.addEventListener('click', (evento) => {
           evento.stopPropagation();
-          this.alEditarAnotacion?.(anotacion.id);
+          this.alGestionarAnotacion?.(anotacion.id, boton.getBoundingClientRect());
         });
         capa.append(boton);
       }

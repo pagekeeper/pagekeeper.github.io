@@ -109,6 +109,7 @@ let temporizadorSync = null;
 let temporizadorSyncAnotaciones = null;
 let seleccionPendiente = null;
 let anotacionesActuales = [];
+let anotacionMenuId = null;
 
 const lector = new Lector({
   area: $('area-lectura'),
@@ -121,10 +122,10 @@ const lector = new Lector({
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
-  alEditarAnotacion: (id) => editarAnotacionPorId(id).catch((error) => avisar(error.message, 5000)),
+  alGestionarAnotacion: abrirMenuNota,
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
-  etiquetaEditarNota: () => t('editNote'),
+  etiquetaOpcionesNota: () => t('noteActions'),
 });
 
 const lectorEpub = new LectorEpub({
@@ -139,13 +140,14 @@ const lectorEpub = new LectorEpub({
   alPulsarContenido: () => {
     cerrarPanelTexto();
     cerrarMenuLector();
+    cerrarMenuNota();
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
-  alEditarAnotacion: (id) => editarAnotacionPorId(id).catch((error) => avisar(error.message, 5000)),
+  alGestionarAnotacion: abrirMenuNota,
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
-  etiquetaEditarNota: () => t('editNote'),
+  etiquetaOpcionesNota: () => t('noteActions'),
 });
 
 function formatoDe(nombre) {
@@ -187,6 +189,7 @@ function registrarVistaLector() {
 
 function cerrarVistaLector() {
   cerrarMenuLector();
+  cerrarMenuNota();
   ocultarNotaEmergente();
   cerrarPanelAnotaciones();
   cancelarSeleccion();
@@ -2535,6 +2538,7 @@ $('cerrar-marcadores').addEventListener('click', cerrarPanelMarcadores);
 
 function mostrarNotaEmergente(anotacion, rectangulo) {
   if (!anotacion?.nota || !rectangulo) return;
+  if (!$('menu-nota-contextual').classList.contains('oculto')) return;
   const ventana = $('ventana-nota');
   ventana.textContent = anotacion.nota;
   ventana.classList.remove('oculto');
@@ -2557,6 +2561,34 @@ function mostrarNotaEmergente(anotacion, rectangulo) {
 
 function ocultarNotaEmergente() {
   $('ventana-nota').classList.add('oculto');
+}
+
+function cerrarMenuNota() {
+  anotacionMenuId = null;
+  $('menu-nota-contextual').classList.add('oculto');
+}
+
+function abrirMenuNota(id, rectangulo) {
+  const anotacion = anotacionesActuales.find((entrada) => entrada.id === id && entrada.nota);
+  if (!anotacion || !rectangulo) return;
+  ocultarNotaEmergente();
+  anotacionMenuId = id;
+  const menu = $('menu-nota-contextual');
+  menu.classList.remove('oculto');
+  menu.style.left = '0';
+  menu.style.top = '0';
+  const margen = 8;
+  const ancho = menu.offsetWidth;
+  const alto = menu.offsetHeight;
+  const izquierda = Math.min(
+    window.innerWidth - ancho - margen,
+    Math.max(margen, rectangulo.right - ancho),
+  );
+  let arriba = rectangulo.bottom + 6;
+  if (arriba + alto > window.innerHeight - margen) arriba = rectangulo.top - alto - 6;
+  menu.style.left = `${izquierda}px`;
+  menu.style.top = `${Math.max(margen, arriba)}px`;
+  $('accion-editar-nota').focus();
 }
 
 function ambitoAnotacionesActual() {
@@ -2685,6 +2717,37 @@ async function editarAnotacionPorId(id) {
   planificarSyncAnotaciones();
 }
 
+async function eliminarAnotacionPorId(id) {
+  if (!libroActual || !anotacionesActuales.some((entrada) => entrada.id === id)) return;
+  if (!confirm(t('deleteAnnotationConfirm'))) return;
+  anotacionesActuales = await anotaciones.eliminar(
+    ambitoAnotacionesActual(), libroActual.id, id,
+  );
+  mostrarResaltados();
+  if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
+  planificarSyncAnotaciones();
+  avisar(t('annotationDeleted'));
+}
+
+$('accion-editar-nota').addEventListener('click', () => {
+  const id = anotacionMenuId;
+  cerrarMenuNota();
+  if (id) editarAnotacionPorId(id).catch((error) => avisar(error.message, 5000));
+});
+
+$('accion-eliminar-nota').addEventListener('click', () => {
+  const id = anotacionMenuId;
+  cerrarMenuNota();
+  if (id) eliminarAnotacionPorId(id).catch((error) => avisar(error.message, 5000));
+});
+
+document.addEventListener('pointerdown', (evento) => {
+  const menu = $('menu-nota-contextual');
+  if (menu.classList.contains('oculto') || menu.contains(evento.target) ||
+      evento.target.closest?.('.boton-nota-margen')) return;
+  cerrarMenuNota();
+});
+
 function pintarAnotaciones(idEnfocado = null) {
   const lista = $('lista-anotaciones');
   lista.replaceChildren();
@@ -2738,14 +2801,8 @@ function pintarAnotaciones(idEnfocado = null) {
     borrar.className = 'btn-icono';
     borrar.title = t('deleteAnnotation');
     borrar.innerHTML = icono('trash-2');
-    borrar.addEventListener('click', async () => {
-      anotacionesActuales = await anotaciones.eliminar(
-        ambitoAnotacionesActual(), libroActual.id, anotacion.id,
-      );
-      mostrarResaltados();
-      pintarAnotaciones();
-      planificarSyncAnotaciones();
-      avisar(t('annotationDeleted'));
+    borrar.addEventListener('click', () => {
+      eliminarAnotacionPorId(anotacion.id).catch((error) => avisar(error.message, 5000));
     });
     li.append(ir, editar, borrar);
     lista.append(li);
@@ -2755,6 +2812,7 @@ function pintarAnotaciones(idEnfocado = null) {
 
 function abrirPanelAnotaciones(id = null) {
   ocultarNotaEmergente();
+  cerrarMenuNota();
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
@@ -2934,6 +2992,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('menu-nota-contextual').classList.contains('oculto')) {
+    cerrarMenuNota();
+    return;
+  }
   if (!$('fondo-menu-lector').classList.contains('oculto')) {
     cerrarMenuLector();
     $('btn-menu-lector').focus();
