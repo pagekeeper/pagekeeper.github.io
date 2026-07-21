@@ -18,6 +18,7 @@ const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositi
 const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este dispositivo
 const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
+const CLAVE_AVISO_INMERSIVO = 'lector.avisoInmersivo'; // solo de este dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
@@ -183,11 +184,14 @@ const lectorEpub = new LectorEpub({
   // se apunta la posición de partida para poder volver con el historial.
   alPulsarEnlaceInterno: apuntarEnHistorial,
   // Los clics sobre el texto del libro ocurren dentro del iframe del
-  // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
-  alPulsarContenido: () => {
+  // capítulo y no llegan al documento: cierran aquí los paneles flotantes
+  // y alternan el modo inmersivo como un toque en el centro de la página.
+  alPulsarContenido: (evento) => {
     cerrarPanelTexto();
+    cerrarPanelTts();
     cerrarMenuLector();
     cerrarMenuNota();
+    toqueCentroLector(evento?.target);
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
@@ -237,6 +241,7 @@ function registrarVistaLector() {
 function cerrarVistaLector() {
   detenerLecturaVoz();
   cerrarPanelTts();
+  salirModoInmersivo();
   cerrarMenuLector();
   cerrarMenuNota();
   cerrarEditorNota();
@@ -2056,6 +2061,7 @@ async function abrirEnLector(datos, libro) {
   reiniciarRitmo();
   detenerLecturaVoz();
   cerrarPanelTts();
+  salirModoInmersivo();
   cerrarPanelTexto();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
@@ -2340,6 +2346,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 // ───────────────────────── Controles del lector ─────────────────────────
 
 let resultadosBusquedaLibro = [];
+let consultaBusquedaLibro = '';
 let versionBusquedaLibro = 0;
 const historialNavegacion = { atras: [], adelante: [] };
 
@@ -3141,6 +3148,7 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
   try {
     const esEpub = epubAbierto();
     const activo = esEpub ? lectorEpub : lector;
+    consultaBusquedaLibro = consulta;
     resultadosBusquedaLibro = await activo.buscar(consulta);
     if (version !== versionBusquedaLibro) return;
     estado.textContent = resultadosBusquedaLibro.length
@@ -3162,6 +3170,9 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
         const elegido = resultadosBusquedaLibro[indice];
         try {
           await saltarConHistorial(elegido.destino);
+          // Marca unos segundos la aparición para localizarla de un vistazo.
+          if (epubAbierto()) lectorEpub.destacarBusqueda(elegido.cfi);
+          else lector.destacarBusqueda(consultaBusquedaLibro);
           cerrarBusquedaLibro();
         } catch (error) {
           avisar(error.message, 5000);
@@ -3477,6 +3488,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-tts').hidden) {
     cerrarPanelTts();
     $('btn-tts').focus();
+  } else if (!$('vista-lector').classList.contains('oculto') &&
+      $('vista-lector').classList.contains('inmersivo')) {
+    alternarBarraLector();
   }
 });
 
@@ -3545,6 +3559,123 @@ function manejarTecla(evento) {
 }
 document.addEventListener('keydown', manejarTecla);
 
+// ───────────────────────── Modo inmersivo ─────────────────────────
+// Un toque en el centro de la página oculta la barra superior para leer a
+// pantalla completa; otro toque la recupera.
+
+let temporizadorToqueCentro = null;
+
+function haySeleccionActiva() {
+  const principal = window.getSelection();
+  if (principal && !principal.isCollapsed) return true;
+  for (const contents of lectorEpub.vista?.getContents?.() ?? []) {
+    const seleccion = contents.window?.getSelection?.();
+    if (seleccion && !seleccion.isCollapsed) return true;
+  }
+  return false;
+}
+
+function alternarBarraLector() {
+  const inmersivo = $('vista-lector').classList.toggle('inmersivo');
+  if (epubAbierto()) reflowEpub();
+  if (inmersivo && localStorage.getItem(CLAVE_AVISO_INMERSIVO) !== '1') {
+    localStorage.setItem(CLAVE_AVISO_INMERSIVO, '1');
+    avisar(t('immersiveHint'), 4000);
+  }
+}
+
+function salirModoInmersivo() {
+  $('vista-lector').classList.remove('inmersivo');
+}
+
+function toqueCentroLector(objetivo) {
+  if (seleccionPendiente || haySeleccionActiva()) return;
+  if (Date.now() - ultimoPellizco < 600) return;
+  if (objetivo?.closest?.('a, button, input, select, textarea, .panel-flotante-lector, ' +
+      '.barra-seleccion, .menu-nota-contextual, .barra-lector')) return;
+  // Se espera un instante por si el toque forma parte de un doble clic de
+  // selección de palabra: en ese caso no debe alternar la barra.
+  clearTimeout(temporizadorToqueCentro);
+  temporizadorToqueCentro = setTimeout(() => {
+    if (seleccionPendiente || haySeleccionActiva()) return;
+    alternarBarraLector();
+  }, 280);
+}
+
+$('area-lectura').addEventListener('click', (evento) => {
+  if (evento.detail > 1) {
+    clearTimeout(temporizadorToqueCentro);
+    return;
+  }
+  toqueCentroLector(evento.target);
+});
+$('area-lectura').addEventListener('dblclick', () => clearTimeout(temporizadorToqueCentro));
+
+// ─────────────── Pellizco para el zoom del PDF (táctil) ───────────────
+// Mientras dura el gesto se aplica una escala visual barata; al soltar se
+// re-renderiza el PDF con el zoom definitivo y se recoloca el scroll para
+// que el punto pellizcado siga bajo los dedos.
+
+let pellizco = null;
+let ultimoPellizco = 0;
+
+function distanciaToques(toques) {
+  return Math.hypot(
+    toques[0].clientX - toques[1].clientX,
+    toques[0].clientY - toques[1].clientY,
+  );
+}
+
+$('area-lectura').addEventListener('touchstart', (evento) => {
+  if (evento.touches.length !== 2 || epubAbierto() || !lector.documento) return;
+  const area = $('area-lectura');
+  const rect = area.getBoundingClientRect();
+  pellizco = {
+    inicial: distanciaToques(evento.touches),
+    zoom: lector.zoom,
+    factor: 1,
+    centroX: (evento.touches[0].clientX + evento.touches[1].clientX) / 2 - rect.left,
+    centroY: (evento.touches[0].clientY + evento.touches[1].clientY) / 2 - rect.top,
+    scrollLeft: area.scrollLeft,
+    scrollTop: area.scrollTop,
+  };
+  ultimoPellizco = Date.now();
+}, { passive: true });
+
+$('area-lectura').addEventListener('touchmove', (evento) => {
+  if (!pellizco || evento.touches.length !== 2) return;
+  evento.preventDefault(); // el gesto es nuestro: sin zoom nativo ni scroll
+  const bruto = distanciaToques(evento.touches) / pellizco.inicial;
+  pellizco.factor = Math.min(4 / pellizco.zoom, Math.max(0.5 / pellizco.zoom, bruto));
+  const contenedor = $('contenedor-pagina');
+  contenedor.style.transformOrigin =
+    `${pellizco.scrollLeft + pellizco.centroX}px ${pellizco.scrollTop + pellizco.centroY}px`;
+  contenedor.style.transform = `scale(${pellizco.factor})`;
+}, { passive: false });
+
+async function terminarPellizco() {
+  if (!pellizco) return;
+  const { factor, centroX, centroY, scrollLeft, scrollTop } = pellizco;
+  pellizco = null;
+  ultimoPellizco = Date.now();
+  const contenedor = $('contenedor-pagina');
+  contenedor.style.transform = '';
+  contenedor.style.transformOrigin = '';
+  if (Math.abs(factor - 1) < 0.03) return;
+  await lector.cambiarZoom(factor);
+  localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
+  const area = $('area-lectura');
+  area.scrollLeft = (scrollLeft + centroX) * factor - centroX;
+  area.scrollTop = (scrollTop + centroY) * factor - centroY;
+}
+
+$('area-lectura').addEventListener('touchend', (evento) => {
+  if (pellizco && evento.touches.length < 2) terminarPellizco().catch(() => null);
+}, { passive: true });
+$('area-lectura').addEventListener('touchcancel', () => {
+  terminarPellizco().catch(() => null);
+}, { passive: true });
+
 // Deslizar el dedo para pasar página.
 let toqueX = null, toqueY = null;
 $('area-lectura').addEventListener('touchstart', (evento) => {
@@ -3553,6 +3684,8 @@ $('area-lectura').addEventListener('touchstart', (evento) => {
 }, { passive: true });
 $('area-lectura').addEventListener('touchend', (evento) => {
   if (toqueX === null) return;
+  // Un pellizco (dos dedos) no debe rematar en un paso de página.
+  if (pellizco || Date.now() - ultimoPellizco < 600) { toqueX = toqueY = null; return; }
   const dx = evento.changedTouches[0].clientX - toqueX;
   const dy = evento.changedTouches[0].clientY - toqueY;
   toqueX = toqueY = null;

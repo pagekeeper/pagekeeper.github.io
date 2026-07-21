@@ -74,8 +74,11 @@ libros y sincronizar el progreso de lectura.
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.
 - 🔎 **Dos buscadores**: filtra la biblioteca por título, autor, formato y
-  metadatos, y encuentra palabras o frases dentro del PDF o EPUB con acceso
-  directo a la página o capítulo correspondiente.
+  metadatos, y encuentra palabras o frases dentro del PDF o EPUB con salto
+  al punto exacto del resultado, que queda resaltado unos segundos.
+- 🖥️ **Modo inmersivo**: un toque en el centro de la página oculta la barra
+  para leer a pantalla completa; otro toque la recupera. En pantalla táctil
+  el PDF también se amplía pellizcando con dos dedos.
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.

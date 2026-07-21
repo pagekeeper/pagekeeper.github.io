@@ -533,7 +533,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .grupo-zoom-menu > div { display: flex; align-items: center; gap: 0.15rem; }
 
-#area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
+/* touch-action reserva el pellizco de dos dedos para el zoom del PDF
+   (sin él, el navegador ampliaría toda la interfaz). */
+#area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; touch-action: pan-x pan-y; }
+
+/* Modo inmersivo: un toque en el centro oculta la barra; otro la recupera. */
+#vista-lector.inmersivo .barra-lector { display: none; }
 #area-lectura canvas { cursor: grab; }
 #area-lectura.arrastrando, #area-lectura.arrastrando canvas,
 #area-lectura.arrastrando .capa-texto { cursor: grabbing; }
@@ -732,6 +737,20 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 .boton-nota-epub {
   position: absolute; z-index: 12; right: auto;
+}
+
+/* Marca temporal de la aparición encontrada por la búsqueda. */
+.capa-busqueda { position: absolute; z-index: 4; inset: 0; pointer-events: none; }
+.capa-busqueda span {
+  position: absolute; border-radius: 2px;
+  background: rgba(14, 165, 233, 0.35); outline: 2px solid rgba(14, 165, 233, 0.75);
+  animation: pulso-busqueda 2.6s ease forwards;
+}
+.modo-noche .capa-busqueda span { mix-blend-mode: screen; }
+@keyframes pulso-busqueda {
+  0% { opacity: 0; }
+  12%, 65% { opacity: 1; }
+  100% { opacity: 0; }
 }
 
 /* Enlaces del PDF (índices internos, referencias, webs). */

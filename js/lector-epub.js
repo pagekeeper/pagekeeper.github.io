@@ -230,9 +230,9 @@ export class LectorEpub {
     // Las teclas pulsadas dentro del capítulo (iframe) no llegan al
     // documento principal: se reenvían para mantener los atajos.
     this.vista.on('keydown', (evento) => this.alTeclear?.(evento));
-    // Con los clics pasa lo mismo: se avisa para que la app pueda cerrar
-    // sus paneles flotantes al pulsar sobre el texto del libro.
-    this.vista.on('click', () => this.alPulsarContenido?.());
+    // Con los clics pasa lo mismo: se avisa (con el evento) para que la app
+    // pueda cerrar sus paneles o alternar el modo inmersivo.
+    this.vista.on('click', (evento) => this.alPulsarContenido?.(evento));
     this.vista.on('selected', (cfi, contents) => {
       const texto = contents?.window?.getSelection?.().toString().replace(/\s+/g, ' ').trim();
       if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
@@ -591,14 +591,27 @@ export class LectorEpub {
       if (seccion.linear === 'no' || resultados.length >= 200) continue;
       try {
         await seccion.load(this.libro.load.bind(this.libro));
-        const texto = (seccion.document?.body?.textContent ?? '').replace(/\s+/g, ' ').trim();
-        const minusculas = normalizarBusqueda(texto);
+        const cuerpo = seccion.document?.body;
+        if (!cuerpo) continue;
+        const { visible, normal, origen } = plegarTexto(cuerpo);
         let posicion = 0;
-        while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
+        while ((posicion = normal.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
+          // El CFI exacto de la aparición permite saltar a ella (y no solo
+          // al capítulo) y resaltarla al llegar.
+          let cfi = null;
+          try {
+            const inicio = origen[posicion];
+            const fin = origen[posicion + buscado.length - 1];
+            const rango = seccion.document.createRange();
+            rango.setStart(inicio.nodo, inicio.indice);
+            rango.setEnd(fin.nodo, Math.min(fin.indice + 1, fin.nodo.textContent.length));
+            cfi = seccion.cfiFromRange(rango);
+          } catch { /* sin CFI se salta al capítulo, como antes */ }
           resultados.push({
-            destino: seccion.href,
+            destino: cfi ?? seccion.href,
+            cfi,
             numero: seccion.index + 1,
-            fragmento: fragmentoBusqueda(texto, posicion, buscado.length),
+            fragmento: fragmentoBusqueda(visible, posicion, buscado.length),
           });
           posicion += Math.max(1, buscado.length);
         }
@@ -607,6 +620,20 @@ export class LectorEpub {
       }
     }
     return resultados;
+  }
+
+  // Resalta unos segundos la aparición encontrada por la búsqueda.
+  destacarBusqueda(cfi) {
+    if (!cfi || !this.vista?.annotations) return;
+    try {
+      this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-busqueda',
+        { fill: '#0ea5e9', 'fill-opacity': '0.35', 'mix-blend-mode': 'multiply' });
+    } catch {
+      return; // un CFI que ya no casa con el capítulo no debe romper el salto
+    }
+    setTimeout(() => {
+      try { this.vista?.annotations.remove(cfi, 'highlight'); } catch { /* ya no está */ }
+    }, 2600);
   }
 
   cerrar() {
@@ -626,4 +653,36 @@ function fragmentoBusqueda(texto, posicion, longitud) {
 
 function normalizarBusqueda(texto) {
   return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+}
+
+// Pliega el texto del cap\u00edtulo (espacios colapsados, sin acentos) apuntando
+// de qu\u00e9 nodo y posici\u00f3n sale cada car\u00e1cter: 'visible' conserva el texto
+// original para los fragmentos y 'normal' es la versi\u00f3n donde se busca.
+function plegarTexto(raiz) {
+  const caminante = raiz.ownerDocument.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  let visible = '';
+  let normal = '';
+  const origen = [];
+  let enEspacio = true;
+  for (let nodo = caminante.nextNode(); nodo; nodo = caminante.nextNode()) {
+    const texto = nodo.textContent;
+    for (let indice = 0; indice < texto.length; indice++) {
+      const caracter = texto[indice];
+      if (/\s/.test(caracter)) {
+        if (!enEspacio) {
+          visible += ' ';
+          normal += ' ';
+          origen.push({ nodo, indice });
+          enEspacio = true;
+        }
+        continue;
+      }
+      const plano = normalizarBusqueda(caracter);
+      visible += caracter;
+      normal += plano.length === 1 ? plano : caracter.toLocaleLowerCase()[0];
+      origen.push({ nodo, indice });
+      enEspacio = false;
+    }
+  }
+  return { visible, normal, origen };
 }

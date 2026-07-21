@@ -167,6 +167,39 @@ export class Lector {
     return resultados;
   }
 
+  // Marca unos segundos las apariciones del término buscado sobre las
+  // páginas visibles, para localizarlo de un vistazo tras el salto.
+  destacarBusqueda(termino) {
+    const buscado = normalizarBusqueda(String(termino ?? '').trim());
+    if (!buscado) return;
+    const envoltorios = this.modo === 'continuo'
+      ? [this.paginas[this.pagina]].filter(Boolean)
+      : this.envoltorios;
+    for (const envoltorio of envoltorios) {
+      envoltorio.querySelector('.capa-busqueda')?.remove();
+      const capaTexto = envoltorio.querySelector('.capa-texto');
+      if (!capaTexto) continue;
+      const rangos = rangosDeTermino(capaTexto, buscado);
+      if (!rangos.length) continue;
+      const capa = document.createElement('div');
+      capa.className = 'capa-busqueda';
+      const base = envoltorio.getBoundingClientRect();
+      for (const rango of rangos.slice(0, 40)) {
+        for (const rect of rango.getClientRects()) {
+          if (rect.width < 1 || rect.height < 1) continue;
+          const marca = document.createElement('span');
+          marca.style.left = `${((rect.left - base.left) / base.width) * 100}%`;
+          marca.style.top = `${((rect.top - base.top) / base.height) * 100}%`;
+          marca.style.width = `${(rect.width / base.width) * 100}%`;
+          marca.style.height = `${(rect.height / base.height) * 100}%`;
+          capa.append(marca);
+        }
+      }
+      envoltorio.append(capa);
+      setTimeout(() => capa.remove(), 2600);
+    }
+  }
+
   // Convierte los marcadores jerárquicos del PDF en una lista navegable.
   async indice() {
     if (!this.documento) return [];
@@ -565,4 +598,52 @@ function fragmentoBusqueda(texto, posicion, longitud) {
 
 function normalizarBusqueda(texto) {
   return texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
+}
+
+// Recorre el texto de la capa y lo pliega igual que en buscar() (espacios
+// colapsados, sin acentos), apuntando de qu\u00e9 nodo y posici\u00f3n sale cada
+// car\u00e1cter. Devuelve un Range del documento por cada aparici\u00f3n del t\u00e9rmino.
+function rangosDeTermino(raiz, buscado) {
+  const caminante = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT);
+  let plegado = '';
+  const origen = []; // por car\u00e1cter plegado: nodo y posici\u00f3n de procedencia
+  let enEspacio = true;
+  for (let nodo = caminante.nextNode(); nodo; nodo = caminante.nextNode()) {
+    const texto = nodo.textContent;
+    for (let indice = 0; indice < texto.length; indice++) {
+      const caracter = texto[indice];
+      if (/\s/.test(caracter)) {
+        if (!enEspacio) {
+          plegado += ' ';
+          origen.push({ nodo, indice });
+          enEspacio = true;
+        }
+        continue;
+      }
+      const normal = normalizarBusqueda(caracter);
+      plegado += normal.length === 1 ? normal : caracter.toLocaleLowerCase()[0];
+      origen.push({ nodo, indice });
+      enEspacio = false;
+    }
+    // Los tramos del PDF suelen cortar por l\u00edneas sin espacio final.
+    if (!enEspacio) {
+      plegado += ' ';
+      origen.push({ nodo, indice: texto.length - 1 });
+      enEspacio = true;
+    }
+  }
+  const rangos = [];
+  let posicion = 0;
+  while ((posicion = plegado.indexOf(buscado, posicion)) !== -1) {
+    const inicio = origen[posicion];
+    const fin = origen[posicion + buscado.length - 1];
+    try {
+      const rango = document.createRange();
+      rango.setStart(inicio.nodo, inicio.indice);
+      rango.setEnd(fin.nodo, Math.min(fin.indice + 1, fin.nodo.textContent.length));
+      rangos.push(rango);
+    } catch { /* plegado desalineado por un car\u00e1cter ex\u00f3tico: se omite */ }
+    posicion += Math.max(1, buscado.length);
+  }
+  return rangos;
 }
