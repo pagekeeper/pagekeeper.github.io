@@ -47,7 +47,9 @@ libros y sincronizar el progreso de lectura.
   descarga en ZIP tanto la biblioteca del dispositivo como, por separado,
   toda la biblioteca WebDAV con sus subcarpetas. Conserva progreso, marcadores
   y anotaciones, y permite restaurar cada copia en otro navegador o servidor.
-  Las credenciales WebDAV no se incluyen.
+  Las credenciales WebDAV no se incluyen en esos ZIP. Desde Ajustes se pueden
+  guardar y restaurar por separado en un archivo de configuración que incluye
+  la URL, el usuario y la contraseña de aplicación.
 - ☁️ **Subir a la nube**: con una nube configurada puedes subir un PDF
   directamente desde la biblioteca (botón ➕) o, si ya lo estás leyendo en
   local, copiarlo a la nube con un toque conservando la página actual.

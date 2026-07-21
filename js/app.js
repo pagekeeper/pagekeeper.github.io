@@ -10,7 +10,8 @@ import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
-  carpetasRemotasDeLibros,
+  carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
+  validarConfigNube,
 } from './copia-local.js';
 
 const CLAVE_CONFIG = 'lector.config';
@@ -471,8 +472,7 @@ function importarConfigDeUrl() {
   // la vista ni en el historial.
   history.replaceState(null, '', location.pathname + location.search);
   try {
-    const config = decodificarConfig(coincidencia[1]);
-    if (!config?.url || !config?.usuario) throw new Error('incompleta');
+    const config = validarConfigNube(decodificarConfig(coincidencia[1]));
     const actual = cargarConfig();
     if (actual && JSON.stringify(actual) !== JSON.stringify(config) &&
         !confirm(t('replaceConfigConfirm'))) {
@@ -484,6 +484,54 @@ function importarConfigDeUrl() {
     avisar(t('invalidConfigLink'), 5000);
   }
 }
+
+// ── Exportar / importar configuración por archivo ──
+// El archivo contiene la contraseña de aplicación en texto legible. Se crea
+// solo por una acción explícita y la interfaz advierte que debe guardarse en
+// un lugar privado.
+
+$('btn-descargar-config').addEventListener('click', () => {
+  const resultado = $('resultado-copia');
+  try {
+    const copia = crearCopiaConfigNube(leerFormulario());
+    const fecha = new Date().toISOString().slice(0, 10);
+    entregarDescarga(
+      `pagekeeper-configuracion-${fecha}.json`,
+      JSON.stringify(copia, null, 2),
+      'application/json',
+    );
+    resultado.className = 'estado exito';
+    resultado.textContent = t('configFileSaved');
+  } catch {
+    resultado.className = 'estado error';
+    resultado.textContent = t('copyLinkFirst');
+  }
+});
+
+$('selector-importar-config').addEventListener('change', async (evento) => {
+  const resultado = $('resultado-copia');
+  const archivo = evento.target.files?.[0];
+  evento.target.value = '';
+  if (!archivo) return;
+  try {
+    const config = validarCopiaConfigNube(JSON.parse(await archivo.text()));
+    const actual = cargarConfig();
+    if (actual && JSON.stringify(actual) !== JSON.stringify(config) &&
+        !confirm(t('replaceConfigConfirm'))) {
+      return;
+    }
+    localStorage.setItem(CLAVE_CONFIG, JSON.stringify(config));
+    $('campo-url').value = config.url;
+    $('campo-usuario').value = config.usuario;
+    $('campo-clave').value = config.clave;
+    crearCliente();
+    resultado.className = 'estado exito';
+    resultado.textContent = t('cloudConfigImported');
+  } catch {
+    resultado.className = 'estado error';
+    resultado.textContent = t('invalidConfigFile');
+  }
+});
 
 // ───────────────────── Copia de la biblioteca local ─────────────────────
 

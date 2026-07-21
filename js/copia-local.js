@@ -3,6 +3,40 @@
 
 export const FORMATO_COPIA_LOCAL = 'pagekeeper-local-backup';
 export const VERSION_COPIA_LOCAL = 2;
+export const FORMATO_CONFIG_NUBE = 'pagekeeper-cloud-config';
+export const VERSION_CONFIG_NUBE = 1;
+
+export function validarConfigNube(config) {
+  if (!objeto(config) || typeof config.url !== 'string' || !config.url.trim() ||
+      config.url.length > 10000 || typeof config.usuario !== 'string' ||
+      !config.usuario.trim() || config.usuario.length > 1000 ||
+      (config.clave !== undefined &&
+       (typeof config.clave !== 'string' || config.clave.length > 10000))) {
+    throw new Error('INVALID_CLOUD_CONFIG');
+  }
+  return {
+    url: config.url.trim(),
+    usuario: config.usuario.trim(),
+    clave: config.clave ?? '',
+  };
+}
+
+export function crearCopiaConfigNube(config, creado) {
+  return {
+    formato: FORMATO_CONFIG_NUBE,
+    version: VERSION_CONFIG_NUBE,
+    creado: creado ?? new Date().toISOString(),
+    config: validarConfigNube(config),
+  };
+}
+
+export function validarCopiaConfigNube(copia) {
+  if (!objeto(copia) || copia.formato !== FORMATO_CONFIG_NUBE ||
+      copia.version !== VERSION_CONFIG_NUBE) {
+    throw new Error('INVALID_CLOUD_CONFIG');
+  }
+  return validarConfigNube(copia.config);
+}
 
 export function crearManifiestoCopia({
   libros, progreso, anotaciones, preferencias, creado, origen = 'local',

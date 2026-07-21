@@ -3,7 +3,25 @@ import assert from 'node:assert/strict';
 import {
   FORMATO_COPIA_LOCAL, crearManifiestoCopia, validarManifiestoCopia,
   fusionarProgresoRestaurado, carpetasRemotasDeLibros,
+  FORMATO_CONFIG_NUBE, crearCopiaConfigNube, validarCopiaConfigNube,
 } from '../js/copia-local.js';
+
+test('exporta y valida la configuración WebDAV incluida la contraseña', () => {
+  const copia = crearCopiaConfigNube({
+    url: ' https://nube.example/dav/Libros ', usuario: ' juanjo ', clave: 'secreta',
+  }, '2026-07-21T00:00:00.000Z');
+  assert.equal(copia.formato, FORMATO_CONFIG_NUBE);
+  assert.deepEqual(validarCopiaConfigNube(copia), {
+    url: 'https://nube.example/dav/Libros', usuario: 'juanjo', clave: 'secreta',
+  });
+});
+
+test('rechaza archivos de configuración ajenos o incompletos', () => {
+  assert.throws(() => validarCopiaConfigNube({ formato: 'otro', version: 1, config: {} }));
+  assert.throws(() => validarCopiaConfigNube({
+    formato: FORMATO_CONFIG_NUBE, version: 1, config: { url: 'https://nube.example' },
+  }));
+});
 
 test('crea un manifiesto con rutas internas estables para PDF y EPUB', () => {
   const manifiesto = crearManifiestoCopia({
