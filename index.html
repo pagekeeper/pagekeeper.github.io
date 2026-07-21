@@ -173,6 +173,8 @@
         <button type="button" id="btn-posicion-siguiente" class="btn-icono historial-movil" data-icono="redo-2"
           title="Avanzar a la posición siguiente" data-i18n-title="forwardPosition"></button>
       </div>
+      <span id="tiempo-restante" class="tiempo-restante oculto"
+        title="Tiempo de lectura restante estimado" data-i18n-title="timeLeft"></span>
       <nav id="historial-navegacion" class="historial-navegacion oculto" aria-label="Historial de navegación"
         data-i18n-aria-label="historyNavigation">
         <button type="button" id="btn-posicion-anterior-escritorio" class="btn-icono" data-icono="undo-2"
@@ -190,6 +192,10 @@
         data-i18n-title="annotations" aria-controls="panel-anotaciones" aria-expanded="false"></button>
       <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
+      <button id="btn-doble" class="btn-icono" data-icono="columns-2" title="Ver dos páginas juntas"
+        data-i18n-title="twoPages" aria-pressed="false"></button>
+      <button id="btn-rotar" class="btn-icono oculto" data-icono="rotate-cw" title="Girar la página"
+        data-i18n-title="rotatePage"></button>
       <div id="control-texto" class="control-margenes oculto">
         <button id="btn-texto" class="btn-icono" data-icono="type"
           title="Ajustes de texto" data-i18n-title="textSettings" aria-label="Ajustes de texto"
@@ -255,6 +261,10 @@
               <span data-icono="highlighter"></span><span data-i18n="annotations">Anotaciones</span>
             </button></li>
             <li><button type="button" id="menu-modo" class="item-menu-lector"></button></li>
+            <li id="fila-menu-doble"><button type="button" id="menu-doble" class="item-menu-lector"></button></li>
+            <li id="fila-menu-rotar"><button type="button" id="menu-rotar" class="item-menu-lector">
+              <span data-icono="rotate-cw"></span><span data-i18n="rotatePage">Girar la página</span>
+            </button></li>
             <li id="fila-menu-texto"><button type="button" id="menu-texto" class="item-menu-lector">
               <span data-icono="type"></span><span data-i18n="textSettings">Ajustes de texto</span>
             </button></li>
@@ -270,6 +280,9 @@
               </div>
             </li>
             <li><button type="button" id="menu-noche" class="item-menu-lector"></button></li>
+            <li id="fila-menu-tiempo" class="fila-tiempo-menu oculto">
+              <span data-icono="clock"></span><span id="tiempo-restante-menu"></span>
+            </li>
           </ul>
         </nav>
       </div>
@@ -470,6 +483,16 @@
         <ul class="lista-ayuda">
           <li><strong>Modo de lectura:</strong> página a página (como un
           libro) o páginas continuas con scroll vertical.</li>
+          <li><strong>Dos páginas juntas:</strong> en modo página a página,
+          el botón de las dos columnas muestra las páginas de dos en dos
+          (ideal en pantallas anchas); otro toque vuelve a una sola página.</li>
+          <li><strong>Girar la página (solo PDF):</strong> el botón de girar
+          rota el documento 90° cada vez, útil para escaneos torcidos o
+          apaisados. El giro se recuerda para cada libro en este
+          dispositivo.</li>
+          <li><strong>Tiempo restante:</strong> tras unos minutos de lectura
+          aparece una estimación del tiempo que falta para terminar el
+          libro, calculada con tu ritmo real en este dispositivo.</li>
           <li><strong>Zoom:</strong> las lupas amplían el PDF (con zoom puedes
           arrastrar la página con el ratón o el dedo) o cambian el tamaño de
           letra del EPUB; el botón ↔ vuelve al ancho automático.</li>

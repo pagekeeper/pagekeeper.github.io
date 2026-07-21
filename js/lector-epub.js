@@ -148,6 +148,7 @@ export class LectorEpub {
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
     this.modo = 'pagina';
+    this.doble = false;  // dos páginas juntas cuando la pantalla es ancha
     this.tamano = 100;   // tamaño de letra en %
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
@@ -195,7 +196,9 @@ export class LectorEpub {
       // contenedor (fullsize:false); el gestor por defecto delega en el
       // scroll de la página, que aquí no existe porque el contenedor es fijo.
       ...(continuo ? { manager: 'continuous', fullsize: false } : {}),
-      spread: 'none',
+      // 'auto' reparte el capítulo en dos columnas cuando el área es ancha;
+      // en pantallas estrechas epub.js vuelve solo a una página.
+      spread: this.doble && !continuo ? 'auto' : 'none',
       allowScriptedContent: true,
     });
     this.vista.hooks.content.register(inyectarMathJax);
@@ -466,6 +469,15 @@ export class LectorEpub {
   async cambiarModo(modo) {
     if (modo === this.modo || !this.libro) return;
     this.modo = modo;
+    this.desmontarVista();
+    await this.montar(this.cfi);
+  }
+
+  async cambiarDoble(activo) {
+    activo = Boolean(activo);
+    if (activo === this.doble) return;
+    this.doble = activo;
+    if (!this.libro) return;
     this.desmontarVista();
     await this.montar(this.cfi);
   }

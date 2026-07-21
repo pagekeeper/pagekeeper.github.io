@@ -11,6 +11,9 @@ import { t, iniciarIdioma, idiomaActual } from './i18n.js';
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
 const CLAVE_MODO = 'lector.modo';
+const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
+const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
+const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositivo
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
@@ -96,6 +99,31 @@ function zoomPdfGuardado() {
 function letraEpubGuardada() {
   const valor = parseInt(localStorage.getItem(CLAVE_LETRA_EPUB), 10);
   return valor >= 60 && valor <= 300 ? valor : 100;
+}
+
+function dobleGuardado() {
+  return localStorage.getItem(CLAVE_DOBLE) === '1';
+}
+
+function leerMapaLocal(clave) {
+  try {
+    const mapa = JSON.parse(localStorage.getItem(clave));
+    return mapa && typeof mapa === 'object' ? mapa : {};
+  } catch {
+    return {};
+  }
+}
+
+function rotacionPdfDe(id) {
+  const valor = leerMapaLocal(CLAVE_ROTACION_PDF)[id];
+  return [90, 180, 270].includes(valor) ? valor : 0;
+}
+
+function guardarRotacionPdf(id, grados) {
+  const mapa = leerMapaLocal(CLAVE_ROTACION_PDF);
+  if (grados) mapa[id] = grados;
+  else delete mapa[id];
+  localStorage.setItem(CLAVE_ROTACION_PDF, JSON.stringify(mapa));
 }
 
 const $ = (id) => document.getElementById(id);
@@ -2003,6 +2031,9 @@ async function abrirEnLector(datos, libro) {
   $('contenedor-pagina').classList.toggle('oculto', esEpub);
   $('contenedor-epub').classList.toggle('oculto', !esEpub);
   $('control-texto').classList.toggle('oculto', !esEpub);
+  $('btn-rotar').classList.toggle('oculto', esEpub);
+  aplicarAparienciaDoble();
+  reiniciarRitmo();
   cerrarPanelTexto();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
@@ -2016,6 +2047,7 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.fuente = fuenteEpubGuardada();
       lectorEpub.interlineado = interlineadoEpubGuardado();
       lectorEpub.alineacion = alineacionEpubGuardada();
+      lectorEpub.doble = dobleGuardado();
       prepararSeguimientoEpub(avance?.cfi ?? null);
       try {
         await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
@@ -2026,6 +2058,8 @@ async function abrirEnLector(datos, libro) {
       if (avance?.cfi) avisar(t('continuing'));
     } else {
       lectorEpub.cerrar();
+      lector.rotacion = rotacionPdfDe(libro.id);
+      lector.doble = dobleGuardado();
       await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado());
       if (avance && avance.pagina > 1) {
         avisar(t('continuingPage', { page: avance.pagina }));
@@ -2033,6 +2067,7 @@ async function abrirEnLector(datos, libro) {
     }
     await cargarAnotacionesLibro();
     await cargarIndiceLibro(esEpub ? lectorEpub : lector, libro.id);
+    pintarTiempoRestante();
     if (lecturaTerminada(avance)) progreso.marcarTerminado(libro.id, false);
     restaurarEnContinuar(libro.id);
     continuarExpandido = false;
@@ -2114,7 +2149,14 @@ function aplicarAparienciaModo(modo) {
   $('btn-modo').title = modo === 'continuo'
     ? t('pageMode')
     : t('scrollMode');
+  // La vista doble solo actúa pasando página: en continuo se oculta el botón.
+  $('btn-doble').classList.toggle('oculto', modo === 'continuo');
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
+}
+
+function aplicarAparienciaDoble(activo = dobleGuardado()) {
+  $('btn-doble').setAttribute('aria-pressed', String(activo));
+  $('btn-doble').title = t(activo ? 'onePage' : 'twoPages');
 }
 
 $('btn-modo').addEventListener('click', async () => {
@@ -2123,6 +2165,20 @@ $('btn-modo').addEventListener('click', async () => {
   aplicarAparienciaModo(nuevo);
   if (epubAbierto()) await lectorEpub.cambiarModo(nuevo);
   else await lector.cambiarModo(nuevo);
+});
+
+$('btn-doble').addEventListener('click', async () => {
+  const activo = !dobleGuardado();
+  localStorage.setItem(CLAVE_DOBLE, activo ? '1' : '0');
+  aplicarAparienciaDoble(activo);
+  if (epubAbierto()) await lectorEpub.cambiarDoble(activo);
+  else await lector.cambiarDoble(activo);
+});
+
+$('btn-rotar').addEventListener('click', async () => {
+  if (epubAbierto() || !libroActual) return;
+  await lector.rotar();
+  guardarRotacionPdf(libroActual.id, lector.rotacion);
 });
 
 // ───────────────────────── Progreso y sincronización ─────────────────────────
@@ -2152,10 +2208,69 @@ function planificarSincronizacion() {
   }, 3000);
 }
 
+// ───────────── Tiempo de lectura restante estimado ─────────────
+// Se mide el ritmo real de lectura en este dispositivo: segundos acumulados
+// por unidad avanzada (páginas en PDF, puntos de porcentaje en EPUB). Las
+// pausas largas y los saltos grandes no cuentan como lectura.
+const ritmoSesion = { marca: null, unidad: null };
+
+function reiniciarRitmo() {
+  ritmoSesion.marca = null;
+  ritmoSesion.unidad = null;
+}
+
+function anotarRitmo(unidad) {
+  const ahora = Date.now();
+  const { marca, unidad: anterior } = ritmoSesion;
+  ritmoSesion.marca = ahora;
+  ritmoSesion.unidad = unidad;
+  if (marca === null || !libroActual) return;
+  const segundos = (ahora - marca) / 1000;
+  const avance = unidad - anterior;
+  if (segundos < 3 || segundos > 300 || avance < 0 || avance > 4) return;
+  const mapa = leerMapaLocal(CLAVE_RITMO);
+  const entrada = mapa[libroActual.id] ?? { s: 0, u: 0 };
+  entrada.s += segundos;
+  entrada.u += avance;
+  entrada.t = ahora;
+  mapa[libroActual.id] = entrada;
+  // Se conservan solo los 100 libros con lectura más reciente.
+  const ids = Object.keys(mapa);
+  if (ids.length > 100) {
+    ids.sort((a, b) => (mapa[a].t ?? 0) - (mapa[b].t ?? 0));
+    for (const id of ids.slice(0, ids.length - 100)) delete mapa[id];
+  }
+  localStorage.setItem(CLAVE_RITMO, JSON.stringify(mapa));
+}
+
+function tiempoRestanteEstimado() {
+  if (!libroActual) return '';
+  const entrada = leerMapaLocal(CLAVE_RITMO)[libroActual.id];
+  // Hasta acumular unos minutos de lectura real la estimación no es fiable.
+  if (!entrada || entrada.u < 3 || entrada.s < 120) return '';
+  const restante = epubAbierto()
+    ? (lectorEpub.conLocalizaciones ? Math.max(0, 100 - lectorEpub.porcentaje) : null)
+    : Math.max(0, lector.totalPaginas - lector.pagina);
+  if (restante === null) return '';
+  const minutos = Math.round(((entrada.s / entrada.u) * restante) / 60);
+  if (minutos < 1) return t('timeLessMinute');
+  if (minutos >= 60) return t('timeHoursMinutes', { h: Math.floor(minutos / 60), m: minutos % 60 });
+  return t('timeMinutes', { m: minutos });
+}
+
+function pintarTiempoRestante() {
+  const texto = tiempoRestanteEstimado();
+  $('tiempo-restante').textContent = texto ? `≈ ${texto}` : '';
+  $('tiempo-restante').classList.toggle('oculto', !texto);
+}
+
 function cuandoCambiaPagina(pagina, total) {
-  $('btn-indicador').textContent = `${pagina} / ${total}`;
+  const visible = lector.enDoble() && pagina < total ? `${pagina}-${pagina + 1}` : String(pagina);
+  $('btn-indicador').textContent = `${visible} / ${total}`;
   if (!libroActual) return;
   progreso.anotarPagina(libroActual.id, pagina, total);
+  anotarRitmo(pagina);
+  pintarTiempoRestante();
   planificarSincronizacion();
 }
 
@@ -2165,6 +2280,10 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
     return;
+  }
+  if (conLocalizaciones) {
+    anotarRitmo(porcentaje);
+    pintarTiempoRestante();
   }
   if (cfi === cfiEpubGuardado) {
     // Si el usuario se movió antes de que terminara el cálculo del porcentaje,
@@ -2224,13 +2343,20 @@ function actualizarMenuLector() {
   $('fila-menu-subir').classList.toggle('oculto', $('btn-subir').classList.contains('oculto'));
   $('fila-menu-indice').classList.toggle('oculto', $('btn-indice-libro').classList.contains('oculto'));
   $('fila-menu-texto').classList.toggle('oculto', $('control-texto').classList.contains('oculto'));
+  $('fila-menu-rotar').classList.toggle('oculto', $('btn-rotar').classList.contains('oculto'));
+  $('fila-menu-doble').classList.toggle('oculto', $('btn-doble').classList.contains('oculto'));
 
   const modo = modoActual();
   $('menu-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text') +
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
+  $('menu-doble').innerHTML = icono('columns-2') +
+    `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
   const noche = document.body.classList.contains('modo-noche');
   $('menu-noche').innerHTML = icono(noche ? 'sun' : 'moon') +
     `<span>${t(noche ? 'dayMode' : 'nightMode')}</span>`;
+  const tiempo = tiempoRestanteEstimado();
+  $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
+  $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
 }
 
 function cerrarMenuLector() {
@@ -2273,6 +2399,8 @@ for (const [idMenu, idOriginal] of [
   ['menu-indice', 'btn-indice-libro'],
   ['menu-anotaciones', 'btn-anotaciones'],
   ['menu-modo', 'btn-modo'],
+  ['menu-doble', 'btn-doble'],
+  ['menu-rotar', 'btn-rotar'],
   ['menu-texto', 'btn-texto'],
   ['menu-zoom-menos', 'btn-zoom-menos'],
   ['menu-ancho-auto', 'btn-ancho-auto'],
@@ -3203,6 +3331,8 @@ pintarIconos();
 document.addEventListener('idioma-cambiado', () => {
   aplicarMargenEpub();
   aplicarAparienciaModo(modoActual());
+  aplicarAparienciaDoble();
+  pintarTiempoRestante();
   pintarIconoNoche();
   if (!libroActual) cargarBiblioteca();
   else if (!$('panel-marcadores').classList.contains('oculto')) pintarMarcadores();

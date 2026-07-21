@@ -44,6 +44,9 @@ const TRAZADOS = {
   'list': '<path d="M3 12h.01"/> <path d="M3 18h.01"/> <path d="M3 6h.01"/> <path d="M8 12h13"/> <path d="M8 18h13"/> <path d="M8 6h13"/>',
   'layout-grid': '<rect width="7" height="7" x="3" y="3" rx="1"/> <rect width="7" height="7" x="14" y="3" rx="1"/> <rect width="7" height="7" x="14" y="14" rx="1"/> <rect width="7" height="7" x="3" y="14" rx="1"/>',
   'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  'rotate-cw': '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/> <path d="M21 3v5h-5"/>',
+  'columns-2': '<rect width="18" height="18" x="3" y="3" rx="2"/> <path d="M12 3v18"/>',
+  'clock': '<circle cx="12" cy="12" r="10"/> <polyline points="12 6 12 12 16 14"/>',
 };
 
 export function icono(nombre, clase = 'icono') {

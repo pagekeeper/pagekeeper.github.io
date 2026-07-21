@@ -71,6 +71,14 @@ libros y sincronizar el progreso de lectura.
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.
+- 📖 **Dos páginas juntas**: en modo página a página se pueden ver las
+  páginas de dos en dos, como un libro abierto (ideal en pantallas anchas).
+  En EPUB el texto se reparte en dos columnas cuando el área es ancha.
+- 🔄 **Girar el PDF**: rota el documento 90° cada vez, para escaneos
+  torcidos o apaisados. El giro se recuerda por libro en cada dispositivo.
+- ⏱️ **Tiempo restante estimado**: tras unos minutos de lectura, la barra
+  muestra cuánto falta para terminar el libro según tu ritmo real de
+  lectura (medido y guardado solo en el dispositivo).
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o

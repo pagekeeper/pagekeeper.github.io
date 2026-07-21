@@ -29,9 +29,10 @@ export class Lector {
     this.pagina = 1;
     this.zoom = 1; // multiplicador sobre "ajustar al ancho"
     this.modo = 'pagina';
+    this.rotacion = 0; // giro extra en grados (0, 90, 180, 270)
+    this.doble = false; // dos páginas juntas (solo en modo página)
 
-    this.lienzo = null;    // canvas único (modo página)
-    this.envoltorio = null; // página única: canvas + capas de texto y enlaces
+    this.envoltorios = []; // página(s) visibles: canvas + capas (modo página)
     this.paginas = [];     // envoltorios por número de página (modo continuo)
     this.observador = null;
     this.tareaRender = null;
@@ -72,6 +73,30 @@ export class Lector {
     return this.documento?.numPages ?? 0;
   }
 
+  // La vista doble solo tiene sentido pasando página; en continuo las
+  // páginas siguen apiladas de una en una.
+  enDoble() {
+    return this.doble && this.modo === 'pagina';
+  }
+
+  // En vista doble los pares son fijos (1-2, 3-4…): la página de la
+  // izquierda es siempre impar.
+  inicioPar(numero) {
+    return this.enDoble() ? numero - ((numero - 1) % 2) : numero;
+  }
+
+  // Ancho disponible para una página, descontando el hueco entre las dos
+  // de la vista doble.
+  anchoPagina() {
+    const total = this.area.clientWidth - 16;
+    return this.enDoble() ? Math.floor((total - 12) / 2) : total;
+  }
+
+  // Giro total de una página: el que trae el propio PDF más el del usuario.
+  rotacionDe(pagina) {
+    return (pagina.rotate + this.rotacion) % 360;
+  }
+
   async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1) {
     if (this.documento) { try { await this.documento.destroy(); } catch { /* ignorar */ } }
     this.documento = await pdfjs.getDocument({ data: datos }).promise;
@@ -92,9 +117,21 @@ export class Lector {
     if (this.documento) await this.montar();
   }
 
+  async rotar() {
+    this.rotacion = (this.rotacion + 90) % 360;
+    if (this.documento) await this.montar();
+  }
+
+  async cambiarDoble(activo) {
+    activo = Boolean(activo);
+    if (activo === this.doble) return;
+    this.doble = activo;
+    if (this.documento) await this.montar();
+  }
+
   async irA(numero) {
     if (!this.documento) return;
-    this.pagina = Math.min(Math.max(1, numero), this.totalPaginas);
+    this.pagina = this.inicioPar(Math.min(Math.max(1, numero), this.totalPaginas));
     if (this.modo === 'continuo') {
       const envoltorio = this.paginas[this.pagina];
       if (envoltorio) {
@@ -108,8 +145,8 @@ export class Lector {
     this.alCambiarPagina?.(this.pagina, this.totalPaginas);
   }
 
-  anterior() { return this.irA(this.pagina - 1); }
-  siguiente() { return this.irA(this.pagina + 1); }
+  anterior() { return this.irA(this.pagina - (this.enDoble() ? 2 : 1)); }
+  siguiente() { return this.irA(this.pagina + (this.enDoble() ? 2 : 1)); }
 
   async buscar(consulta) {
     if (!this.documento) return [];
@@ -181,8 +218,7 @@ export class Lector {
     this.contenedor.replaceChildren();
     this.contenedor.classList.remove('continuo');
     this.paginas = [];
-    this.lienzo = null;
-    this.envoltorio = null;
+    this.envoltorios = [];
     this.pendiente = null;
   }
 
@@ -202,12 +238,17 @@ export class Lector {
   }
 
   async montarPagina() {
-    this.lienzo = document.createElement('canvas');
-    this.envoltorio = document.createElement('div');
-    this.envoltorio.className = 'pagina-pdf';
-    this.envoltorio.dataset.num = String(this.pagina);
-    this.envoltorio.append(this.lienzo);
-    this.contenedor.append(this.envoltorio);
+    this.pagina = this.inicioPar(this.pagina);
+    const par = document.createElement('div');
+    par.className = 'par-paginas';
+    for (let i = 0; i < (this.enDoble() ? 2 : 1); i++) {
+      const envoltorio = document.createElement('div');
+      envoltorio.className = 'pagina-pdf';
+      envoltorio.append(document.createElement('canvas'));
+      par.append(envoltorio);
+      this.envoltorios.push(envoltorio);
+    }
+    this.contenedor.append(par);
     await this.renderUnica(this.pagina);
     this.area.scrollTop = 0;
   }
@@ -218,10 +259,11 @@ export class Lector {
     // Tamaño de referencia (a partir de la primera página) para los huecos
     // reservados de las páginas aún no renderizadas.
     const primera = await this.documento.getPage(1);
-    const ancho = this.area.clientWidth - 16;
-    const base = primera.getViewport({ scale: 1 });
+    const ancho = this.anchoPagina();
+    const rotacion = this.rotacionDe(primera);
+    const base = primera.getViewport({ scale: 1, rotation: rotacion });
     const escala = (ancho / base.width) * this.zoom;
-    const vista = primera.getViewport({ scale: escala });
+    const vista = primera.getViewport({ scale: escala, rotation: rotacion });
 
     for (let n = 1; n <= this.totalPaginas; n++) {
       const envoltorio = document.createElement('div');
@@ -250,18 +292,23 @@ export class Lector {
 
   // ───────────────────────── Renderizado ─────────────────────────
 
-  // Modo página: un único canvas; el último renderizado solicitado gana.
+  // Modo página: canvas fijos (uno o dos); el último renderizado solicitado gana.
   async renderUnica(numero) {
     this.pendiente = numero;
     if (this.tareaRender) return;
     while (this.pendiente !== null) {
-      const n = this.pendiente;
+      const n = this.inicioPar(this.pendiente);
       this.pendiente = null;
       this.tareaRender = (async () => {
-        const { pagina, vista } = await this.pintar(n, this.lienzo);
-        // Las capas solo se montan para el último render solicitado.
-        if (this.pendiente === null && this.envoltorio) {
-          await this.montarCapas(this.envoltorio, pagina, vista);
+        for (let i = 0; i < this.envoltorios.length; i++) {
+          const envoltorio = this.envoltorios[i];
+          // En vista doble la última página impar se muestra sola.
+          if (n + i > this.totalPaginas) { envoltorio.classList.add('oculto'); continue; }
+          envoltorio.classList.remove('oculto');
+          envoltorio.dataset.num = String(n + i);
+          const { pagina, vista } = await this.pintar(n + i, envoltorio.querySelector('canvas'));
+          // Las capas solo se montan para el último render solicitado.
+          if (this.pendiente === null) await this.montarCapas(envoltorio, pagina, vista);
         }
       })();
       await this.tareaRender.catch(() => {});
@@ -288,10 +335,11 @@ export class Lector {
 
   async pintar(numero, lienzo) {
     const pagina = await this.documento.getPage(numero);
-    const anchoDisponible = this.area.clientWidth - 16;
-    const base = pagina.getViewport({ scale: 1 });
+    const anchoDisponible = this.anchoPagina();
+    const rotacion = this.rotacionDe(pagina);
+    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
     const escala = (anchoDisponible / base.width) * this.zoom;
-    const vista = pagina.getViewport({ scale: escala });
+    const vista = pagina.getViewport({ scale: escala, rotation: rotacion });
 
     const dpr = window.devicePixelRatio || 1;
     lienzo.width = Math.floor(vista.width * dpr);
@@ -339,7 +387,7 @@ export class Lector {
     this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
     const envoltorios = this.modo === 'continuo'
       ? this.paginas.filter(Boolean)
-      : (this.envoltorio ? [this.envoltorio] : []);
+      : this.envoltorios.filter((envoltorio) => !envoltorio.classList.contains('oculto'));
     for (const envoltorio of envoltorios) {
       if (envoltorio.dataset.estado && envoltorio.dataset.estado !== 'listo') continue;
       envoltorio.querySelector('.capa-resaltados')?.remove();
