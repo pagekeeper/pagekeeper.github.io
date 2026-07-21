@@ -62,6 +62,9 @@ libros y sincronizar el progreso de lectura.
 - 📝 **Resaltados y notas**: selecciona texto en PDF o EPUB para resaltarlo
   o añadir una nota. Funcionan sin conexión; en los libros WebDAV se fusionan
   y sincronizan entre dispositivos mediante un JSON lateral por libro.
+- 📤 **Exportar anotaciones**: descarga todos los resaltados y notas de un
+  libro en un archivo Markdown, con la página o posición de cada uno, listo
+  para llevar a tus apuntes u Obsidian.
 - ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.

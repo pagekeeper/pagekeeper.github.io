@@ -1614,8 +1614,8 @@ async function descargarCopiaRemota(id) {
 }
 
 // Entrega los bytes al usuario como descarga del navegador.
-function entregarDescarga(nombre, datos) {
-  const tipo = /\.epub$/i.test(nombre) ? 'application/epub+zip' : 'application/pdf';
+function entregarDescarga(nombre, datos, tipo) {
+  tipo ??= /\.epub$/i.test(nombre) ? 'application/epub+zip' : 'application/pdf';
   const url = URL.createObjectURL(new Blob([datos], { type: tipo }));
   const enlace = document.createElement('a');
   enlace.href = url;
@@ -2908,15 +2908,21 @@ document.addEventListener('pointerdown', (evento) => {
   cerrarMenuNota();
 });
 
+// Orden de lectura: por página en PDF y por fecha de creación en EPUB (los
+// CFI no se pueden comparar como texto plano).
+function anotacionesOrdenadas() {
+  return [...anotacionesActuales].sort((a, b) =>
+    (a.paginas?.[0]?.pagina ?? 0) - (b.paginas?.[0]?.pagina ?? 0) ||
+    (a.creado ?? '').localeCompare(b.creado ?? ''));
+}
+
 function pintarAnotaciones(idEnfocado = null) {
   const lista = $('lista-anotaciones');
   lista.replaceChildren();
   const consulta = normalizarBusqueda($('buscar-anotaciones').value.trim());
-  const ordenadas = [...anotacionesActuales].filter((anotacion) =>
-    !consulta || normalizarBusqueda(`${anotacion.texto ?? ''} ${anotacion.nota ?? ''}`).includes(consulta))
-    .sort((a, b) =>
-    (a.paginas?.[0]?.pagina ?? 0) - (b.paginas?.[0]?.pagina ?? 0) ||
-    (a.creado ?? '').localeCompare(b.creado ?? ''));
+  const ordenadas = anotacionesOrdenadas().filter((anotacion) =>
+    !consulta || normalizarBusqueda(`${anotacion.texto ?? ''} ${anotacion.nota ?? ''}`).includes(consulta));
+  $('btn-exportar-anotaciones').classList.toggle('oculto', !anotacionesActuales.length);
   const sinAnotaciones = $('sin-anotaciones');
   sinAnotaciones.textContent = t(anotacionesActuales.length ? 'noAnnotationResults' : 'noAnnotations');
   sinAnotaciones.classList.toggle('oculto', ordenadas.length > 0);
@@ -2969,6 +2975,53 @@ function pintarAnotaciones(idEnfocado = null) {
   }
   if (idEnfocado) lista.querySelector(`[data-id="${CSS.escape(idEnfocado)}"] .ir-anotacion`)?.focus();
 }
+
+// Ubicación legible de una anotación en el archivo exportado: página en PDF
+// y porcentaje aproximado del libro en EPUB (cuando hay localizaciones).
+function ubicacionExportacion(anotacion) {
+  const pagina = anotacion.paginas?.[0]?.pagina;
+  if (pagina) return `${t('page')} ${pagina}`;
+  if (anotacion.cfi && epubAbierto() && lectorEpub.conLocalizaciones) {
+    try {
+      const pct = Math.round(lectorEpub.libro.locations.percentageFromCfi(anotacion.cfi) * 100);
+      if (Number.isFinite(pct)) return `≈ ${pct} %`;
+    } catch { /* CFI fuera de las localizaciones: se omite la ubicación */ }
+  }
+  return '';
+}
+
+function markdownAnotaciones() {
+  const fecha = new Date().toLocaleDateString(idiomaActual(),
+    { year: 'numeric', month: 'long', day: 'numeric' });
+  const lineas = [
+    `# ${t('exportHeader', { title: libroActual.titulo })}`,
+    '',
+    `${t('exportSource')} · ${fecha}`,
+    '',
+  ];
+  for (const anotacion of anotacionesOrdenadas()) {
+    lineas.push('---', '');
+    const cita = (anotacion.texto ?? '').trim();
+    if (cita) {
+      for (const linea of cita.split('\n')) lineas.push(`> ${linea}`);
+      lineas.push('');
+    }
+    if (anotacion.nota) lineas.push(`**${t('note')}:** ${anotacion.nota.trim()}`, '');
+    const ubicacion = ubicacionExportacion(anotacion);
+    if (ubicacion) lineas.push(`*${ubicacion}*`, '');
+  }
+  return lineas.join('\n');
+}
+
+function exportarAnotaciones() {
+  if (!libroActual || !anotacionesActuales.length) return;
+  const titulo = libroActual.titulo.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
+  const nombre = `${titulo || 'libro'} - ${t('annotations').toLowerCase()}.md`;
+  entregarDescarga(nombre, markdownAnotaciones(), 'text/markdown');
+  avisar(t('annotationsExported'));
+}
+
+$('btn-exportar-anotaciones').addEventListener('click', exportarAnotaciones);
 
 function abrirPanelAnotaciones(id = null) {
   ocultarNotaEmergente();
