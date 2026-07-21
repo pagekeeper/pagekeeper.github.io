@@ -7,6 +7,7 @@ import * as anotaciones from './anotaciones.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, idiomaActual } from './i18n.js';
+import { LectorVoz } from './tts.js';
 
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
@@ -14,6 +15,8 @@ const CLAVE_MODO = 'lector.modo';
 const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
 const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
 const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositivo
+const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este dispositivo
+const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
@@ -217,6 +220,8 @@ function registrarVistaLector() {
 }
 
 function cerrarVistaLector() {
+  detenerLecturaVoz();
+  cerrarPanelTts();
   cerrarMenuLector();
   cerrarMenuNota();
   cerrarEditorNota();
@@ -2034,6 +2039,8 @@ async function abrirEnLector(datos, libro) {
   $('btn-rotar').classList.toggle('oculto', esEpub);
   aplicarAparienciaDoble();
   reiniciarRitmo();
+  detenerLecturaVoz();
+  cerrarPanelTts();
   cerrarPanelTexto();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
@@ -2271,6 +2278,10 @@ function cuandoCambiaPagina(pagina, total) {
   progreso.anotarPagina(libroActual.id, pagina, total);
   anotarRitmo(pagina);
   pintarTiempoRestante();
+  // Navegar a mano mientras suena la lectura en voz alta la detiene; los
+  // avances del propio TTS y los remontados (zoom, resize) no.
+  if (ttsAvanzando) ttsUltimaPosicion = pagina;
+  else if (vozLectura.estado !== 'parado' && pagina !== ttsUltimaPosicion) vozLectura.detener();
   planificarSincronizacion();
 }
 
@@ -2280,6 +2291,14 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
     return;
+  }
+  if (ttsAvanzando) {
+    // epub.js reubica varias veces tras mostrar un capítulo (afina el CFI):
+    // mientras dura la ventana de avance se acepta cada reubicación como
+    // parte del salto; la bandera la limpia el temporizador del avance.
+    ttsUltimaPosicion = cfi;
+  } else if (vozLectura.estado !== 'parado' && cfi !== ttsUltimaPosicion) {
+    vozLectura.detener();
   }
   if (conLocalizaciones) {
     anotarRitmo(porcentaje);
@@ -2370,6 +2389,7 @@ function abrirMenuLector() {
   cerrarPanelMarcadores();
   cerrarPanelAnotaciones();
   cerrarPanelTexto();
+  cerrarPanelTts();
   actualizarMenuLector();
   $('fondo-menu-lector').classList.remove('oculto');
   $('btn-menu-lector').setAttribute('aria-expanded', 'true');
@@ -2398,6 +2418,7 @@ for (const [idMenu, idOriginal] of [
   ['menu-subir', 'btn-subir'],
   ['menu-indice', 'btn-indice-libro'],
   ['menu-anotaciones', 'btn-anotaciones'],
+  ['menu-tts', 'btn-tts'],
   ['menu-modo', 'btn-modo'],
   ['menu-doble', 'btn-doble'],
   ['menu-rotar', 'btn-rotar'],
@@ -3203,6 +3224,179 @@ document.addEventListener('click', (evento) => {
   if (!$('control-texto').contains(evento.target)) cerrarPanelTexto();
 });
 
+// ───────────────────────── Lectura en voz alta ─────────────────────────
+
+let ttsAvanzando = false;      // el propio TTS está pasando de página o capítulo
+let ttsUltimaPosicion = null;  // posición que el TTS está leyendo
+
+function velocidadTtsGuardada() {
+  const valor = parseFloat(localStorage.getItem(CLAVE_VELOCIDAD_TTS));
+  return valor >= 0.5 && valor <= 3 ? valor : 1;
+}
+
+function idiomaLibroActual() {
+  if (epubAbierto()) {
+    const lang = lectorEpub.libro?.packaging?.metadata?.language;
+    if (lang) return String(lang).toLowerCase().split(/[-_]/)[0];
+  }
+  return idiomaActual();
+}
+
+async function textoPaginasPdf() {
+  const numeros = [lector.pagina];
+  if (lector.enDoble() && lector.pagina + 1 <= lector.totalPaginas) numeros.push(lector.pagina + 1);
+  const partes = [];
+  for (const numero of numeros) {
+    const pagina = await lector.documento.getPage(numero);
+    const contenido = await pagina.getTextContent();
+    partes.push(contenido.items.map((item) => item.str).join(' '));
+  }
+  return partes.join(' ');
+}
+
+async function avanzarLecturaVoz() {
+  ttsAvanzando = true;
+  try {
+    if (epubAbierto()) {
+      const hay = await lectorEpub.avanzarCapitulo();
+      // La bandera la limpia el evento relocated al llegar el CFI definitivo;
+      // el temporizador es el respaldo por si ese evento no llega.
+      setTimeout(() => { ttsAvanzando = false; }, 3000);
+      return hay;
+    }
+    const paso = lector.enDoble() ? 2 : 1;
+    if (lector.pagina + paso > lector.totalPaginas) return false;
+    await lector.siguiente();
+    return true;
+  } finally {
+    if (!epubAbierto()) ttsAvanzando = false;
+  }
+}
+
+const vozLectura = new LectorVoz({
+  obtenerTexto: () => (epubAbierto()
+    ? Promise.resolve(lectorEpub.textoDesdePosicion())
+    : textoPaginasPdf()),
+  avanzar: avanzarLecturaVoz,
+  alCambiarEstado: () => pintarEstadoVoz(),
+  alFallo: (clave) => avisar(t(clave), 6000),
+});
+
+function detenerLecturaVoz() {
+  if (vozLectura.estado !== 'parado') vozLectura.detener();
+}
+
+function pintarEstadoVoz() {
+  const estado = vozLectura.estado;
+  const activo = estado !== 'parado';
+  $('btn-tts').setAttribute('aria-pressed', String(activo));
+  const etiqueta = estado === 'leyendo' ? 'ttsPause' : (estado === 'pausado' ? 'ttsResume' : 'ttsPlay');
+  $('btn-tts-leer').innerHTML =
+    icono(estado === 'leyendo' ? 'pause' : 'play') + `<span>${t(etiqueta)}</span>`;
+  $('btn-tts-detener').disabled = !activo;
+  $('btn-tts-detener').innerHTML = icono('square') + `<span>${t('ttsStop')}</span>`;
+}
+
+function pintarVocesTts() {
+  const selector = $('voz-tts');
+  const idioma = idiomaLibroActual();
+  const voces = [...vozLectura.voces()].sort((a, b) => {
+    const aCoincide = a.lang?.toLowerCase().startsWith(idioma) ? 0 : 1;
+    const bCoincide = b.lang?.toLowerCase().startsWith(idioma) ? 0 : 1;
+    return aCoincide - bCoincide || (a.lang ?? '').localeCompare(b.lang ?? '') ||
+      a.name.localeCompare(b.name);
+  });
+  selector.replaceChildren();
+  const automatica = document.createElement('option');
+  automatica.value = '';
+  automatica.textContent = t('ttsAutoVoice');
+  selector.append(automatica);
+  for (const voz of voces) {
+    const opcion = document.createElement('option');
+    opcion.value = voz.voiceURI;
+    opcion.textContent = `${voz.name} (${voz.lang})`;
+    selector.append(opcion);
+  }
+  const guardada = leerMapaLocal(CLAVE_VOZ_TTS)[idioma] ?? '';
+  selector.value = voces.some((voz) => voz.voiceURI === guardada) ? guardada : '';
+}
+
+function aplicarAjustesVoz() {
+  const idioma = idiomaLibroActual();
+  const uri = leerMapaLocal(CLAVE_VOZ_TTS)[idioma] ?? '';
+  vozLectura.voz = vozLectura.voces().find((voz) => voz.voiceURI === uri) ?? null;
+  vozLectura.idioma = idioma;
+  vozLectura.velocidad = velocidadTtsGuardada();
+}
+
+function empezarLecturaVoz() {
+  aplicarAjustesVoz();
+  ttsUltimaPosicion = posicionActualLibro();
+  vozLectura.iniciar().catch(() => vozLectura.detener());
+}
+
+function cerrarPanelTts() {
+  $('panel-tts').hidden = true;
+  $('btn-tts').setAttribute('aria-expanded', 'false');
+}
+
+$('btn-tts').addEventListener('click', () => {
+  if (!vozLectura.disponible()) {
+    avisar(t('ttsNoSupport'), 6000);
+    return;
+  }
+  const abrir = $('panel-tts').hidden;
+  cerrarPanelTexto();
+  $('panel-tts').hidden = !abrir;
+  $('btn-tts').setAttribute('aria-expanded', String(abrir));
+  if (abrir) {
+    pintarVocesTts();
+    pintarEstadoVoz();
+    $('velocidad-tts').value = String(velocidadTtsGuardada());
+    $('btn-tts-leer').focus();
+  }
+});
+
+// Algunos navegadores cargan la lista de voces en diferido.
+window.speechSynthesis?.addEventListener?.('voiceschanged', () => {
+  if (!$('panel-tts').hidden) pintarVocesTts();
+});
+
+$('btn-tts-leer').addEventListener('click', () => {
+  if (vozLectura.estado === 'leyendo') vozLectura.pausar();
+  else if (vozLectura.estado === 'pausado') vozLectura.reanudar();
+  else empezarLecturaVoz();
+});
+
+$('btn-tts-detener').addEventListener('click', detenerLecturaVoz);
+
+$('voz-tts').addEventListener('change', (evento) => {
+  const mapa = leerMapaLocal(CLAVE_VOZ_TTS);
+  if (evento.target.value) mapa[idiomaLibroActual()] = evento.target.value;
+  else delete mapa[idiomaLibroActual()];
+  localStorage.setItem(CLAVE_VOZ_TTS, JSON.stringify(mapa));
+  // Si estaba leyendo, se reinicia desde la posición actual para escuchar
+  // la voz nueva al momento.
+  if (vozLectura.estado !== 'parado') empezarLecturaVoz();
+  else aplicarAjustesVoz();
+});
+
+$('velocidad-tts').addEventListener('change', (evento) => {
+  localStorage.setItem(CLAVE_VELOCIDAD_TTS, evento.target.value);
+  if (vozLectura.estado !== 'parado') empezarLecturaVoz();
+  else aplicarAjustesVoz();
+});
+
+document.addEventListener('click', (evento) => {
+  // El botón de leer/pausar se repinta al cambiar de estado y su contenido
+  // original queda desconectado antes de que el clic llegue aquí: se usa la
+  // ruta del evento, fijada en el momento del despacho, y no el target.
+  const ruta = evento.composedPath?.() ?? [];
+  if (!ruta.includes($('control-tts')) && !$('control-tts').contains(evento.target)) {
+    cerrarPanelTts();
+  }
+});
+
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
   if (!$('menu-nota-contextual').classList.contains('oculto')) {
@@ -3241,6 +3435,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-texto').hidden) {
     cerrarPanelTexto();
     $('btn-texto').focus();
+  } else if (!$('panel-tts').hidden) {
+    cerrarPanelTts();
+    $('btn-tts').focus();
   }
 });
 
@@ -3386,6 +3583,7 @@ document.addEventListener('idioma-cambiado', () => {
   aplicarAparienciaModo(modoActual());
   aplicarAparienciaDoble();
   pintarTiempoRestante();
+  pintarEstadoVoz();
   pintarIconoNoche();
   if (!libroActual) cargarBiblioteca();
   else if (!$('panel-marcadores').classList.contains('oculto')) pintarMarcadores();

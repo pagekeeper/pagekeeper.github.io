@@ -47,6 +47,10 @@ const TRAZADOS = {
   'rotate-cw': '<path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/> <path d="M21 3v5h-5"/>',
   'columns-2': '<rect width="18" height="18" x="3" y="3" rx="2"/> <path d="M12 3v18"/>',
   'clock': '<circle cx="12" cy="12" r="10"/> <polyline points="12 6 12 12 16 14"/>',
+  'volume-2': '<path d="M11 4.702a.705.705 0 0 0-1.203-.498L6.413 7.587A1.4 1.4 0 0 1 5.416 8H3a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h2.416a1.4 1.4 0 0 1 .997.413l3.383 3.384A.705.705 0 0 0 11 19.298z"/> <path d="M16 9a5 5 0 0 1 0 6"/> <path d="M19.364 18.364a9 9 0 0 0 0-12.728"/>',
+  'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
+  'pause': '<rect x="14" y="4" width="4" height="16" rx="1"/> <rect x="6" y="4" width="4" height="16" rx="1"/>',
+  'square': '<rect width="18" height="18" x="3" y="3" rx="2"/>',
 };
 
 export function icono(nombre, clase = 'icono') {

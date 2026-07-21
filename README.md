@@ -65,6 +65,9 @@ libros y sincronizar el progreso de lectura.
 - 📤 **Exportar anotaciones**: descarga todos los resaltados y notas de un
   libro en un archivo Markdown, con la página o posición de cada uno, listo
   para llevar a tus apuntes u Obsidian.
+- 🔊 **Lectura en voz alta**: lee el libro con la voz del navegador (sin
+  servicios externos), empezando en la página actual y pasando de página o
+  capítulo automáticamente, con pausa, elección de voz y velocidad.
 - ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.

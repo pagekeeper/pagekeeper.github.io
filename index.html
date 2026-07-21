@@ -191,6 +191,32 @@
       <button id="btn-anotaciones" class="btn-icono" data-icono="highlighter" title="Anotaciones"
         data-i18n-title="annotations" aria-controls="panel-anotaciones" aria-expanded="false"></button>
       <button id="btn-buscar-libro" class="btn-icono" data-icono="search" title="Buscar dentro del libro" data-i18n-title="searchBook"></button>
+      <div id="control-tts" class="control-margenes">
+        <button id="btn-tts" class="btn-icono" data-icono="volume-2"
+          title="Lectura en voz alta" data-i18n-title="readAloud" aria-label="Lectura en voz alta"
+          data-i18n-aria-label="readAloud" aria-haspopup="dialog" aria-expanded="false"
+          aria-pressed="false"></button>
+        <div id="panel-tts" class="panel-margenes" role="dialog"
+          aria-label="Lectura en voz alta" data-i18n-aria-label="readAloud" hidden>
+          <div class="botones-tts">
+            <button type="button" id="btn-tts-leer" class="btn-primario"></button>
+            <button type="button" id="btn-tts-detener" class="btn-secundario" disabled></button>
+          </div>
+          <label class="campo-texto-epub"><span data-i18n="ttsVoice">Voz</span>
+            <select id="voz-tts"></select>
+          </label>
+          <label class="campo-texto-epub"><span data-i18n="ttsSpeed">Velocidad</span>
+            <select id="velocidad-tts">
+              <option value="0.75">0,75×</option>
+              <option value="1" selected>1×</option>
+              <option value="1.25">1,25×</option>
+              <option value="1.5">1,5×</option>
+              <option value="2">2×</option>
+            </select>
+          </label>
+          <p class="ayuda" data-i18n="ttsHelp">La lectura empieza en la página actual y pasa de página sola.</p>
+        </div>
+      </div>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
       <button id="btn-doble" class="btn-icono" data-icono="columns-2" title="Ver dos páginas juntas"
         data-i18n-title="twoPages" aria-pressed="false"></button>
@@ -259,6 +285,9 @@
             </button></li>
             <li><button type="button" id="menu-anotaciones" class="item-menu-lector">
               <span data-icono="highlighter"></span><span data-i18n="annotations">Anotaciones</span>
+            </button></li>
+            <li><button type="button" id="menu-tts" class="item-menu-lector">
+              <span data-icono="volume-2"></span><span data-i18n="readAloud">Lectura en voz alta</span>
             </button></li>
             <li><button type="button" id="menu-modo" class="item-menu-lector"></button></li>
             <li id="fila-menu-doble"><button type="button" id="menu-doble" class="item-menu-lector"></button></li>
@@ -520,6 +549,11 @@
           panel de anotaciones guarda todos los resaltados y notas del libro
           en un archivo Markdown (.md), con su página o posición, listo para
           tus apuntes o aplicaciones como Obsidian.</li>
+          <li><strong>Lectura en voz alta:</strong> el botón del altavoz lee
+          el libro con la voz del navegador, empezando en la página actual y
+          pasando de página o capítulo automáticamente. Puedes pausar,
+          elegir la voz y ajustar la velocidad; pasar de página a mano
+          detiene la lectura. En los PDF escaneados sin texto no funciona.</li>
           <li><strong>Texto y enlaces del PDF:</strong> puedes seleccionar y
           copiar texto, y los enlaces del propio PDF funcionan: los internos
           (índice, referencias) saltan a su página y los externos se abren en

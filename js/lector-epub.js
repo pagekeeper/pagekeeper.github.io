@@ -510,6 +510,42 @@ export class LectorEpub {
   siguiente() { this.vista?.next(); }
   anterior() { this.vista?.prev(); }
 
+  // ───────────── Apoyo a la lectura en voz alta ─────────────
+
+  // Texto desde la posición visible hasta el final del capítulo actual.
+  // Con varios capítulos montados a la vez se busca el que corresponde a la
+  // sección de la posición actual, no el primero de la lista.
+  textoDesdePosicion() {
+    const indice = this.vista?.currentLocation()?.start?.index;
+    const contenidos = this.vista?.getContents?.() ?? [];
+    const contents = contenidos.find((c) => c.sectionIndex === indice) ?? contenidos[0];
+    const doc = contents?.document;
+    if (!doc?.body) return '';
+    const total = doc.createRange();
+    total.selectNodeContents(doc.body);
+    if (this.cfi) {
+      try {
+        const inicio = contents.range(this.cfi) ??
+          new window.ePub.CFI(this.cfi).toRange(doc);
+        if (inicio) total.setStart(inicio.startContainer, inicio.startOffset);
+      } catch { /* CFI de otro capítulo: se lee el capítulo completo */ }
+    }
+    return total.toString().replace(/\s+/g, ' ').trim();
+  }
+
+  // Salta al principio del siguiente capítulo lineal; false si no hay más.
+  async avanzarCapitulo() {
+    const actual = this.vista?.currentLocation()?.start?.index ?? -1;
+    const secciones = this.libro?.spine?.spineItems ?? [];
+    for (let i = actual + 1; i < secciones.length; i++) {
+      if (secciones[i].linear !== 'no' && secciones[i].href) {
+        await this.vista.display(secciones[i].href);
+        return true;
+      }
+    }
+    return false;
+  }
+
   irA(destino) { return this.vista?.display(destino); }
 
   indice() {

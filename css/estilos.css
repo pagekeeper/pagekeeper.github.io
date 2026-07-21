@@ -589,6 +589,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .panel-margenes .ayuda { margin: 0.75rem 0; }
 .panel-margenes .btn-secundario { width: 100%; padding: 0.45rem 0.8rem; }
 
+/* Panel de lectura en voz alta: mismos estilos que el panel de texto, más
+   la pareja de botones leer/detener. */
+.botones-tts { display: flex; gap: 0.5rem; margin-bottom: 0.8rem; }
+.botones-tts button {
+  flex: 1; display: flex; align-items: center; justify-content: center;
+  gap: 0.45rem; padding: 0.5rem 0.6rem; white-space: nowrap;
+}
+.botones-tts .icono { width: 1rem; height: 1rem; flex: none; }
+.panel-margenes .botones-tts .btn-secundario { width: auto; }
+#voz-tts { max-width: 12rem; }
+
 @media (max-width: 600px) {
   .barra-lector { gap: 0.1rem; padding-left: 0.25rem; padding-right: 0.25rem; }
   .barra-lector .btn-icono { padding-left: 0.35rem; padding-right: 0.35rem; }
@@ -764,6 +775,8 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   .barra-lector > .tiempo-restante { display: none !important; }
   .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }
   .barra-lector > #control-texto > #btn-texto { display: none; }
+  .barra-lector > #control-tts { width: 0; overflow: visible; }
+  .barra-lector > #control-tts > #btn-tts { display: none; }
   .barra-lector .btn-menu-lector { display: inline-flex; margin-left: auto; }
   .barra-lector .separador { display: none; }
 }
