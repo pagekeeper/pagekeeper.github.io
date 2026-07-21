@@ -20,6 +20,8 @@
           <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option>
         </select>
       </label>
+      <button id="btn-archivos" class="btn-icono" data-icono="folder-input"
+        title="Importar y exportar" data-i18n-title="importExport"></button>
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
       <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes" data-i18n-title="settings"></button>
     </header>
@@ -442,18 +444,53 @@
         <div id="resultado-copia" class="estado"></div>
       </div>
 
+    </main>
+  </section>
+
+  <!-- ═══════════ IMPORTAR Y EXPORTAR ═══════════ -->
+  <section id="vista-archivos" class="vista oculto">
+    <header class="cabecera">
+      <button id="btn-cerrar-archivos" class="btn-icono" data-icono="arrow-left"
+        title="Volver" data-i18n-title="back"></button>
+      <h1 data-i18n="importExport">Importar y exportar</h1>
+    </header>
+    <main class="contenido">
       <div class="tarjeta">
-        <h2 data-i18n="localBackup">Copia de la biblioteca local</h2>
+        <h2 data-i18n="addBooks">Añadir libros</h2>
+        <p class="ayuda" data-i18n="addBooksHelp">Añade PDF o EPUB al dispositivo o súbelos a la carpeta de la nube que tengas abierta.</p>
+        <div class="fila-botones">
+          <label for="selector-archivo" class="btn-secundario" data-i18n="addToDevice">Añadir al dispositivo</label>
+          <label id="accion-subir-desde-archivos" for="selector-subir-nube" class="btn-secundario"
+            data-i18n="uploadToCloud">Subir a la nube</label>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="localBackup">Biblioteca de este dispositivo</h2>
         <p class="ayuda" data-i18n="localBackupHelp">Guarda en un ZIP los libros de «En este dispositivo», su progreso, marcadores, anotaciones y preferencias. No incluye la configuración ni la contraseña de la nube.</p>
         <div class="fila-botones">
           <button type="button" id="btn-exportar-biblioteca" class="btn-secundario"
             data-i18n="exportLocalBackup">Crear copia</button>
           <label for="selector-restaurar-biblioteca" class="btn-secundario"
-            data-i18n="restoreLocalBackup">Restaurar copia</label>
+            data-i18n="restoreLocalBackup">Restaurar en el dispositivo</label>
           <input type="file" id="selector-restaurar-biblioteca"
             accept=".zip,application/zip,application/x-zip-compressed" hidden>
         </div>
         <div id="resultado-copia-biblioteca" class="estado"></div>
+      </div>
+
+      <div id="tarjeta-copia-nube" class="tarjeta">
+        <h2 data-i18n="cloudBackup">Biblioteca de la nube</h2>
+        <p class="ayuda" data-i18n="cloudBackupHelp">Guarda en un ZIP todos los PDF y EPUB de la carpeta WebDAV y sus subcarpetas, junto con el progreso, los marcadores y las anotaciones.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-exportar-nube" class="btn-secundario"
+            data-i18n="exportCloudBackup">Crear copia de la nube</button>
+          <label id="accion-restaurar-nube" for="selector-restaurar-nube" class="btn-secundario"
+            data-i18n="restoreCloudBackup">Restaurar en la nube</label>
+          <input type="file" id="selector-restaurar-nube"
+            accept=".zip,application/zip,application/x-zip-compressed" hidden>
+        </div>
+        <div id="resultado-copia-nube" class="estado"></div>
       </div>
     </main>
   </section>
@@ -528,11 +565,12 @@
           <li><strong>Borrar:</strong> la papelera de cada libro lo elimina
           (del servidor si es de la nube, o de este dispositivo si es
           local).</li>
-          <li><strong>Copia de la biblioteca local:</strong> desde Ajustes
-          puedes descargar un ZIP con todos los libros de «En este
-          dispositivo», su progreso, marcadores, anotaciones y preferencias,
-          y restaurarlo más adelante. La copia no contiene la configuración
-          ni la contraseña WebDAV.</li>
+          <li><strong>Importar y exportar:</strong> el botón de la carpeta con
+          flecha de la cabecera abre una pantalla desde la que puedes añadir
+          libros y descargar o restaurar copias ZIP. Hay una copia para los
+          libros de «En este dispositivo» y otra para toda la biblioteca
+          WebDAV, incluidas sus subcarpetas. Ambas conservan el progreso, los
+          marcadores y las anotaciones; ninguna contiene la contraseña.</li>
         </ul>
       </div>
 

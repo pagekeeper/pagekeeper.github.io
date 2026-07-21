@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   FORMATO_COPIA_LOCAL, crearManifiestoCopia, validarManifiestoCopia,
-  fusionarProgresoRestaurado,
+  fusionarProgresoRestaurado, carpetasRemotasDeLibros,
 } from '../js/copia-local.js';
 
 test('crea un manifiesto con rutas internas estables para PDF y EPUB', () => {
@@ -15,10 +15,31 @@ test('crea un manifiesto con rutas internas estables para PDF y EPUB', () => {
     progreso: { version: 2, libros: {} }, anotaciones: [], preferencias: {},
   });
   assert.equal(manifiesto.formato, FORMATO_COPIA_LOCAL);
+  assert.equal(manifiesto.origen, 'local');
   assert.deepEqual(manifiesto.libros.map((libro) => libro.archivo), [
     'libros/0.pdf', 'libros/1.epub',
   ]);
   assert.doesNotThrow(() => validarManifiestoCopia(manifiesto));
+});
+
+test('ordena las subcarpetas WebDAV de padres a hijos sin duplicarlas', () => {
+  assert.deepEqual(carpetasRemotasDeLibros([
+    { id: 'Curso/Tema 2/libro.pdf' },
+    { id: 'Curso/Tema 1/otro.epub' },
+    { id: 'Curso/Tema 2/segundo.pdf' },
+    { id: 'raiz.pdf' },
+  ]), ['Curso', 'Curso/Tema 1', 'Curso/Tema 2']);
+});
+
+test('admite copias WebDAV con subcarpetas y rechaza rutas inseguras', () => {
+  const manifiesto = crearManifiestoCopia({
+    origen: 'webdav',
+    libros: [{ id: 'Novelas/uno.pdf', nombre: 'uno.pdf', tamano: 3 }],
+    progreso: { version: 2, libros: {} }, anotaciones: [], preferencias: {},
+  });
+  assert.equal(validarManifiestoCopia(manifiesto).origen, 'webdav');
+  manifiesto.libros[0].id = '../uno.pdf';
+  assert.throws(() => validarManifiestoCopia(manifiesto));
 });
 
 test('rechaza manifiestos ajenos, duplicados o con rutas peligrosas', () => {

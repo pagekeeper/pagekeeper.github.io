@@ -43,10 +43,11 @@ libros y sincronizar el progreso de lectura.
   sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
   en la sección «En este dispositivo» y se reabren sin volver a elegir el
   archivo (la posición solo se recuerda en ese navegador).
-- 💾 **Copia y restauración local**: desde Ajustes descarga un ZIP con los
-  libros del dispositivo, su progreso, marcadores, anotaciones y preferencias,
-  y puede restaurarlo después o llevarlo a otro navegador. Las credenciales
-  WebDAV no se incluyen en la copia.
+- 💾 **Copias portables de la biblioteca**: la pantalla «Importar y exportar»
+  descarga en ZIP tanto la biblioteca del dispositivo como, por separado,
+  toda la biblioteca WebDAV con sus subcarpetas. Conserva progreso, marcadores
+  y anotaciones, y permite restaurar cada copia en otro navegador o servidor.
+  Las credenciales WebDAV no se incluyen.
 - ☁️ **Subir a la nube**: con una nube configurada puedes subir un PDF
   directamente desde la biblioteca (botón ➕) o, si ya lo estás leyendo en
   local, copiarlo a la nube con un toque conservando la página actual.

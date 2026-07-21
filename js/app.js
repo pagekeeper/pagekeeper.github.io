@@ -10,6 +10,7 @@ import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
+  carpetasRemotasDeLibros,
 } from './copia-local.js';
 
 const CLAVE_CONFIG = 'lector.config';
@@ -346,6 +347,7 @@ function crearCliente() {
   const config = cargarConfig();
   cliente = config ? new ClienteWebDav(config) : null;
   rutaNube = '';
+  actualizarAccionesArchivos();
 }
 
 function abrirAjustes() {
@@ -485,6 +487,34 @@ function importarConfigDeUrl() {
 
 // ───────────────────── Copia de la biblioteca local ─────────────────────
 
+function actualizarAccionesArchivos() {
+  const disponible = Boolean(cliente);
+  $('btn-exportar-nube').disabled = !disponible;
+  for (const id of ['accion-restaurar-nube', 'accion-subir-desde-archivos']) {
+    $(id).classList.toggle('accion-deshabilitada', !disponible);
+    $(id).setAttribute('aria-disabled', String(!disponible));
+  }
+}
+
+function abrirArchivos() {
+  actualizarAccionesArchivos();
+  $('resultado-copia-biblioteca').textContent = '';
+  $('resultado-copia-nube').textContent = cliente ? '' : t('cloudBackupNeedsConfig');
+  $('resultado-copia-nube').className = `estado${cliente ? '' : ' error'}`;
+  mostrarVista('archivos');
+}
+
+$('btn-archivos').addEventListener('click', abrirArchivos);
+$('btn-cerrar-archivos').addEventListener('click', () => {
+  mostrarVista('biblioteca');
+  cargarBiblioteca();
+});
+for (const id of ['accion-restaurar-nube', 'accion-subir-desde-archivos']) {
+  $(id).addEventListener('click', (evento) => {
+    if (!cliente) evento.preventDefault();
+  });
+}
+
 function preferenciasParaCopia(ids) {
   const preferencias = {};
   for (const clave of CLAVES_PREFERENCIAS_COPIA) {
@@ -502,6 +532,53 @@ function preferenciasParaCopia(ids) {
     } catch { delete preferencias[clave]; }
   }
   return preferencias;
+}
+
+async function generarZipCopia(manifiesto, libros, nombre, textoCarga) {
+  await cargarZip();
+  const zip = new window.JSZip();
+  zip.file('pagekeeper.json', JSON.stringify(manifiesto, null, 2));
+  libros.forEach((libro, indice) => {
+    zip.file(manifiesto.libros[indice].archivo, libro.datos, { compression: 'STORE' });
+  });
+  const archivo = await zip.generateAsync({ type: 'blob', compression: 'STORE' }, (avance) => {
+    $('texto-cargando').textContent = `${textoCarga} ${Math.round(avance.percent)} %`;
+  });
+  entregarDescarga(nombre, archivo, 'application/zip');
+}
+
+async function leerZipCopia(archivo, origenEsperado) {
+  await cargarZip();
+  const zip = await window.JSZip.loadAsync(archivo);
+  const entradaManifiesto = zip.file('pagekeeper.json');
+  if (!entradaManifiesto) throw new Error('INVALID_BACKUP');
+  const validada = validarManifiestoCopia(JSON.parse(await entradaManifiesto.async('string')));
+  if (validada.origen !== origenEsperado) throw new Error('WRONG_BACKUP_TYPE');
+  const libros = [];
+  for (const info of validada.manifiesto.libros) {
+    const entrada = zip.file(info.archivo);
+    if (!entrada) throw new Error('INVALID_BACKUP');
+    const datos = await entrada.async('uint8array');
+    if (datos.byteLength !== info.tamano) throw new Error('INVALID_BACKUP');
+    const { archivo: _archivo, ...resto } = info;
+    libros.push({ ...resto, datos });
+  }
+  return { ...validada, libros };
+}
+
+function aplicarPreferenciasCopia(preferencias = {}) {
+  for (const [clave, valor] of Object.entries(preferencias)) {
+    if (CLAVES_PREFERENCIAS_COPIA.includes(clave) && typeof valor === 'string' && valor.length < 1000000) {
+      localStorage.setItem(clave, valor);
+    }
+  }
+  const idioma = localStorage.getItem('lector.idioma');
+  if (idioma) aplicarIdioma(idioma);
+  document.body.classList.toggle('modo-noche', localStorage.getItem(CLAVE_NOCHE) === '1');
+  pintarIconoNoche();
+  $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
+  $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
+  aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
 }
 
 async function exportarBibliotecaLocal() {
@@ -529,17 +606,10 @@ async function exportarBibliotecaLocal() {
       anotaciones: documentos.filter((documento) => ids.has(documento.libro)),
       preferencias,
     });
-    await cargarZip();
-    const zip = new window.JSZip();
-    zip.file('pagekeeper.json', JSON.stringify(manifiesto, null, 2));
-    libros.forEach((libro, indice) => {
-      zip.file(manifiesto.libros[indice].archivo, libro.datos, { compression: 'STORE' });
-    });
-    const archivo = await zip.generateAsync({ type: 'blob', compression: 'STORE' }, (avance) => {
-      $('texto-cargando').textContent = `${t('creatingBackup')} ${Math.round(avance.percent)} %`;
-    });
     const fecha = new Date().toISOString().slice(0, 10);
-    entregarDescarga(`pagekeeper-biblioteca-${fecha}.zip`, archivo, 'application/zip');
+    await generarZipCopia(
+      manifiesto, libros, `pagekeeper-dispositivo-${fecha}.zip`, t('creatingBackup'),
+    );
     estado.textContent = t('backupCreated', { count: libros.length });
     estado.className = 'estado exito';
   } catch (error) {
@@ -555,21 +625,7 @@ async function restaurarBibliotecaLocal(archivo) {
   if (!confirm(t('restoreBackupConfirm'))) return;
   mostrarCarga(t('restoringBackup'));
   try {
-    await cargarZip();
-    const zip = await window.JSZip.loadAsync(archivo);
-    const entradaManifiesto = zip.file('pagekeeper.json');
-    if (!entradaManifiesto) throw new Error('INVALID_BACKUP');
-    const manifiesto = JSON.parse(await entradaManifiesto.async('string'));
-    const { ids } = validarManifiestoCopia(manifiesto);
-    const libros = [];
-    for (const info of manifiesto.libros) {
-      const entrada = zip.file(info.archivo);
-      if (!entrada) throw new Error('INVALID_BACKUP');
-      const datos = await entrada.async('uint8array');
-      if (datos.byteLength !== info.tamano) throw new Error('INVALID_BACKUP');
-      libros.push({ ...info, datos });
-      delete libros.at(-1).archivo;
-    }
+    const { manifiesto, ids, libros } = await leerZipCopia(archivo, 'local');
     const documentos = (manifiesto.anotaciones ?? [])
       .filter((documento) => documento && documento.ambito === 'local' && ids.has(documento.libro))
       .map((documento) => ({ ...documento, ambito: 'local' }));
@@ -577,25 +633,15 @@ async function restaurarBibliotecaLocal(archivo) {
     progreso.guardarLocal(fusionarProgresoRestaurado(
       progreso.cargarLocal(), manifiesto.progreso, ids,
     ));
-    for (const [clave, valor] of Object.entries(manifiesto.preferencias ?? {})) {
-      if (CLAVES_PREFERENCIAS_COPIA.includes(clave) && typeof valor === 'string' && valor.length < 1000000) {
-        localStorage.setItem(clave, valor);
-      }
-    }
-    const idioma = localStorage.getItem('lector.idioma');
-    if (idioma) aplicarIdioma(idioma);
-    document.body.classList.toggle('modo-noche', localStorage.getItem(CLAVE_NOCHE) === '1');
-    pintarIconoNoche();
-    $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
-    $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
-    aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+    aplicarPreferenciasCopia(manifiesto.preferencias);
     await cargarLibrosLocales();
     await pintarContinuarLeyendo();
     aplicarOrganizacionBiblioteca();
     estado.textContent = t('backupRestored', { count: libros.length });
     estado.className = 'estado exito';
   } catch (error) {
-    const detalle = error.message === 'INVALID_BACKUP' ? t('invalidBackup') : error.message;
+    const detalle = error.message === 'INVALID_BACKUP' ? t('invalidBackup')
+      : error.message === 'WRONG_BACKUP_TYPE' ? t('wrongLocalBackup') : error.message;
     estado.textContent = t('restoreFailed', { error: detalle });
     estado.className = 'estado error';
   } finally {
@@ -608,6 +654,134 @@ $('selector-restaurar-biblioteca').addEventListener('change', (evento) => {
   const archivo = evento.target.files?.[0];
   evento.target.value = '';
   if (archivo) restaurarBibliotecaLocal(archivo);
+});
+
+async function listarLibrosRemotosRecursivamente(ruta = '', resultado = []) {
+  const { carpetas, libros } = await cliente.listar(ruta);
+  for (const libro of libros) {
+    resultado.push({
+      ...libro,
+      id: ruta ? `${ruta}/${libro.nombre}` : libro.nombre,
+    });
+  }
+  for (const carpeta of carpetas) {
+    const subruta = ruta ? `${ruta}/${carpeta.nombre}` : carpeta.nombre;
+    await listarLibrosRemotosRecursivamente(subruta, resultado);
+  }
+  return resultado;
+}
+
+async function exportarBibliotecaNube() {
+  if (!cliente) return;
+  const estado = $('resultado-copia-nube');
+  mostrarCarga(t('readingCloudLibrary'));
+  try {
+    await progreso.sincronizar(cliente);
+    await anotaciones.sincronizarPendientes(cliente);
+    const infoLibros = await listarLibrosRemotosRecursivamente();
+    if (!infoLibros.length) {
+      estado.textContent = t('noCloudBooksBackup');
+      estado.className = 'estado error';
+      return;
+    }
+    const libros = [];
+    const documentos = [];
+    for (let indice = 0; indice < infoLibros.length; indice++) {
+      const info = infoLibros[indice];
+      $('texto-cargando').textContent = t('backingUpCloudBook', {
+        current: indice + 1, total: infoLibros.length, title: info.nombre,
+      });
+      const datos = await cliente.descargar(info.id);
+      libros.push({ ...info, tamano: datos.byteLength, datos });
+      const lateral = await cliente.leerAnotaciones(info.id);
+      if (lateral?.datos) documentos.push({ ...lateral.datos, libro: info.id });
+    }
+    const ids = new Set(libros.map((libro) => libro.id));
+    const remoto = await cliente.leerProgreso() ?? { version: 2, libros: {} };
+    const progresoRemoto = {
+      version: remoto.version ?? 2,
+      libros: Object.fromEntries(
+        Object.entries(remoto.libros ?? {}).filter(([id]) => ids.has(id)),
+      ),
+    };
+    const manifiesto = crearManifiestoCopia({
+      origen: 'webdav', libros, progreso: progresoRemoto, anotaciones: documentos,
+      preferencias: preferenciasParaCopia(ids),
+    });
+    const fecha = new Date().toISOString().slice(0, 10);
+    await generarZipCopia(
+      manifiesto, libros, `pagekeeper-nube-${fecha}.zip`, t('creatingBackup'),
+    );
+    estado.textContent = t('cloudBackupCreated', { count: libros.length });
+    estado.className = 'estado exito';
+  } catch (error) {
+    estado.textContent = t('backupFailed', { error: explicarError(error) });
+    estado.className = 'estado error';
+  } finally {
+    ocultarCarga();
+  }
+}
+
+async function restaurarBibliotecaNube(archivo) {
+  const estado = $('resultado-copia-nube');
+  if (!cliente || !confirm(t('restoreCloudConfirm'))) return;
+  mostrarCarga(t('restoringCloudBackup'));
+  try {
+    const { manifiesto, ids, libros } = await leerZipCopia(archivo, 'webdav');
+    for (const carpeta of carpetasRemotasDeLibros(libros)) {
+      if (!await cliente.existe(carpeta)) await cliente.crearCarpeta(carpeta);
+    }
+    for (let indice = 0; indice < libros.length; indice++) {
+      const libro = libros[indice];
+      $('texto-cargando').textContent = t('restoringCloudBook', {
+        current: indice + 1, total: libros.length, title: libro.nombre,
+      });
+      await cliente.subir(libro.id, libro.datos);
+    }
+    const remotoActual = await cliente.leerProgreso() ?? { version: 2, libros: {} };
+    const progresoRestaurado = fusionarProgresoRestaurado(
+      remotoActual, manifiesto.progreso, ids,
+    );
+    await cliente.escribirProgreso(progresoRestaurado);
+    progreso.guardarLocal(fusionarProgresoRestaurado(
+      progreso.cargarLocal(), manifiesto.progreso, ids,
+    ));
+    const documentos = (manifiesto.anotaciones ?? []).filter((documento) =>
+      documento && ids.has(documento.libro) && Array.isArray(documento.anotaciones));
+    for (const documento of documentos) {
+      const actual = await cliente.leerAnotaciones(documento.libro);
+      const remoto = {
+        version: documento.version ?? 1,
+        libro: documento.libro,
+        anotaciones: documento.anotaciones,
+      };
+      await cliente.escribirAnotaciones(
+        documento.libro, remoto, actual.etag, actual.datos !== null,
+      );
+      await almacen.guardarAnotaciones({
+        ...remoto, ambito: cliente.base, pendientes: {},
+      });
+    }
+    aplicarPreferenciasCopia(manifiesto.preferencias);
+    rutaNube = '';
+    await cargarBiblioteca();
+    estado.textContent = t('cloudBackupRestored', { count: libros.length });
+    estado.className = 'estado exito';
+  } catch (error) {
+    const detalle = error.message === 'INVALID_BACKUP' ? t('invalidBackup')
+      : error.message === 'WRONG_BACKUP_TYPE' ? t('wrongCloudBackup') : explicarError(error);
+    estado.textContent = t('restoreFailed', { error: detalle });
+    estado.className = 'estado error';
+  } finally {
+    ocultarCarga();
+  }
+}
+
+$('btn-exportar-nube').addEventListener('click', exportarBibliotecaNube);
+$('selector-restaurar-nube').addEventListener('change', (evento) => {
+  const archivo = evento.target.files?.[0];
+  evento.target.value = '';
+  if (archivo) restaurarBibliotecaNube(archivo);
 });
 
 // ───────────────────────── Ayuda ─────────────────────────
