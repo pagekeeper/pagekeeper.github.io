@@ -925,6 +925,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .dialogo-editar-nota textarea:focus { outline: 2px solid var(--acento); border-color: transparent; }
 .botones-editar-nota { justify-content: flex-end; }
+.dialogo-contrasena-pdf input {
+  width: 100%; margin-top: 0.3rem; padding: 0.6rem 0.7rem;
+  border: 1px solid var(--borde); border-radius: 0.5rem;
+  background: var(--fondo-tarjeta); color: var(--texto); font: inherit;
+}
+.dialogo-contrasena-pdf input:focus { outline: 2px solid var(--acento); border-color: transparent; }
+.botones-dialogo { justify-content: flex-end; }
 
 /* ── Menú de acciones de un libro o carpeta ── */
 /* Se despliega junto al botón «⋯»; la capa transparente solo captura el

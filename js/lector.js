@@ -13,7 +13,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', imp
 
 export class Lector {
   constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
-    alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota, etiquetaOpcionesNota }) {
+    alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota, etiquetaOpcionesNota,
+    solicitarContrasena }) {
     this.area = area;             // contenedor con scroll (#area-lectura)
     this.contenedor = contenedor; // donde se colocan las páginas (#contenedor-pagina)
     this.alCambiarPagina = alCambiarPagina;
@@ -24,6 +25,7 @@ export class Lector {
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
     this.etiquetaOpcionesNota = etiquetaOpcionesNota;
+    this.solicitarContrasena = solicitarContrasena;
 
     this.documento = null;
     this.pagina = 1;
@@ -99,7 +101,27 @@ export class Lector {
 
   async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1) {
     if (this.documento) { try { await this.documento.destroy(); } catch { /* ignorar */ } }
-    this.documento = await pdfjs.getDocument({ data: datos }).promise;
+    const tarea = pdfjs.getDocument({ data: datos });
+    let cancelada = false;
+    tarea.onPassword = (actualizar, motivo) => {
+      const incorrecta = motivo === pdfjs.PasswordResponses.INCORRECT_PASSWORD;
+      Promise.resolve(this.solicitarContrasena?.(incorrecta)).then((clave) => {
+        if (clave === null || clave === undefined) {
+          cancelada = true;
+          tarea.destroy();
+        } else actualizar(clave);
+      });
+    };
+    try {
+      this.documento = await tarea.promise;
+    } catch (error) {
+      if (cancelada) {
+        const cancelacion = new Error('PDF_PASSWORD_CANCELLED');
+        cancelacion.code = 'PDF_PASSWORD_CANCELLED';
+        throw cancelacion;
+      }
+      throw error;
+    }
     this.modo = modo;
     this.zoom = Math.min(4, Math.max(0.5, zoom));
     this.pagina = Math.min(Math.max(1, paginaInicial), this.documento.numPages);

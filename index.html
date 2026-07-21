@@ -441,6 +441,20 @@
         </div>
         <div id="resultado-copia" class="estado"></div>
       </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="localBackup">Copia de la biblioteca local</h2>
+        <p class="ayuda" data-i18n="localBackupHelp">Guarda en un ZIP los libros de «En este dispositivo», su progreso, marcadores, anotaciones y preferencias. No incluye la configuración ni la contraseña de la nube.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-exportar-biblioteca" class="btn-secundario"
+            data-i18n="exportLocalBackup">Crear copia</button>
+          <label for="selector-restaurar-biblioteca" class="btn-secundario"
+            data-i18n="restoreLocalBackup">Restaurar copia</label>
+          <input type="file" id="selector-restaurar-biblioteca"
+            accept=".zip,application/zip,application/x-zip-compressed" hidden>
+        </div>
+        <div id="resultado-copia-biblioteca" class="estado"></div>
+      </div>
     </main>
   </section>
 
@@ -514,6 +528,11 @@
           <li><strong>Borrar:</strong> la papelera de cada libro lo elimina
           (del servidor si es de la nube, o de este dispositivo si es
           local).</li>
+          <li><strong>Copia de la biblioteca local:</strong> desde Ajustes
+          puedes descargar un ZIP con todos los libros de «En este
+          dispositivo», su progreso, marcadores, anotaciones y preferencias,
+          y restaurarlo más adelante. La copia no contiene la configuración
+          ni la contraseña WebDAV.</li>
         </ul>
       </div>
 
@@ -572,6 +591,9 @@
           copiar texto, y los enlaces del propio PDF funcionan: los internos
           (índice, referencias) saltan a su página y los externos se abren en
           otra pestaña.</li>
+          <li><strong>PDF protegidos:</strong> si un PDF está cifrado,
+          PageKeeper solicita su contraseña para abrirlo. La contraseña no se
+          guarda.</li>
           <li><strong>Volver tras un salto:</strong> después de usar el índice,
           la búsqueda o el selector de posición aparecen botones para volver
           atrás o avanzar de nuevo. En móvil quedan integrados a ambos lados
@@ -713,6 +735,23 @@
         <button type="button" id="btn-cancelar-editar-nota" class="btn-secundario"
           data-i18n="cancel">Cancelar</button>
         <button type="submit" class="btn-primario" data-i18n="save">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="dialogo-contrasena-pdf" class="dialogo-fondo oculto">
+    <form id="form-contrasena-pdf" class="dialogo dialogo-contrasena-pdf" role="dialog"
+      aria-modal="true" aria-labelledby="titulo-contrasena-pdf">
+      <h2 id="titulo-contrasena-pdf" data-i18n="pdfPasswordTitle">PDF protegido</h2>
+      <p data-i18n="pdfPasswordHelp">Introduce la contraseña para abrir este PDF. No se guardará.</p>
+      <p id="error-contrasena-pdf" class="estado error oculto" data-i18n="pdfPasswordIncorrect">La contraseña no es correcta.</p>
+      <label><span data-i18n="pdfPassword">Contraseña del PDF</span>
+        <input type="password" id="campo-contrasena-pdf" autocomplete="off" required>
+      </label>
+      <div class="fila-botones botones-dialogo">
+        <button type="button" id="btn-cancelar-contrasena-pdf" class="btn-secundario"
+          data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="btn-primario" data-i18n="open">Abrir</button>
       </div>
     </form>
   </div>

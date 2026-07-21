@@ -1,7 +1,7 @@
 // Service worker: guarda en caché la aplicación para que funcione sin
 // conexión. Las peticiones al servidor WebDAV nunca se cachean.
 
-const CACHE = 'pagekeeper-v69';
+const CACHE = 'pagekeeper-v70';
 
 const RECURSOS = [
   '.',
@@ -19,6 +19,7 @@ const RECURSOS = [
   'js/posicion-notas.js',
   'js/portadas.js',
   'js/tts.js',
+  'js/copia-local.js',
   'vendor/pdf.min.js',
   'vendor/pdf.worker.min.js',
   'vendor/jszip.min.js',

@@ -1,13 +1,16 @@
 import { ClienteWebDav, explicarError } from './webdav.js';
 import { Lector } from './lector.js';
-import { LectorEpub } from './lector-epub.js';
+import { LectorEpub, cargarZip } from './lector-epub.js';
 import * as progreso from './progreso.js';
 import * as almacen from './almacen.js';
 import * as anotaciones from './anotaciones.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
-import { t, iniciarIdioma, idiomaActual } from './i18n.js';
+import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
 import { LectorVoz } from './tts.js';
+import {
+  crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
+} from './copia-local.js';
 
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche';
@@ -47,6 +50,16 @@ const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
 const CLAVE_EJEMPLOS_PRECARGADOS = 'lector.ejemplosPrecargados'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
+
+// Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
+// configuración y la contraseña WebDAV, así como las colas de sincronización.
+const CLAVES_PREFERENCIAS_COPIA = [
+  'lector.idioma', CLAVE_NOCHE, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
+  CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
+  CLAVE_ZOOM_PDF, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
+  CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
+  CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA, CLAVE_PLEGADA_LOCAL,
+];
 
 // Un libro de ejemplo por formato e idioma: así quedan representados
 // tanto los EPUB como los PDF.
@@ -158,6 +171,32 @@ let seleccionPendiente = null;
 let anotacionesActuales = [];
 let anotacionMenuId = null;
 let anotacionEditandoId = null;
+let resolverContrasenaPdf = null;
+
+function solicitarContrasenaPdf(incorrecta = false) {
+  $('error-contrasena-pdf').classList.toggle('oculto', !incorrecta);
+  $('campo-contrasena-pdf').value = '';
+  $('dialogo-contrasena-pdf').classList.remove('oculto');
+  requestAnimationFrame(() => $('campo-contrasena-pdf').focus());
+  return new Promise((resolver) => { resolverContrasenaPdf = resolver; });
+}
+
+function responderContrasenaPdf(clave) {
+  if (!resolverContrasenaPdf) return;
+  const resolver = resolverContrasenaPdf;
+  resolverContrasenaPdf = null;
+  $('dialogo-contrasena-pdf').classList.add('oculto');
+  resolver(clave);
+}
+
+$('form-contrasena-pdf').addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  responderContrasenaPdf($('campo-contrasena-pdf').value);
+});
+$('btn-cancelar-contrasena-pdf').addEventListener('click', () => responderContrasenaPdf(null));
+$('dialogo-contrasena-pdf').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-contrasena-pdf')) responderContrasenaPdf(null);
+});
 
 const lector = new Lector({
   area: $('area-lectura'),
@@ -174,6 +213,7 @@ const lector = new Lector({
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
   etiquetaOpcionesNota: () => t('noteActions'),
+  solicitarContrasena: solicitarContrasenaPdf,
 });
 
 const lectorEpub = new LectorEpub({
@@ -442,6 +482,133 @@ function importarConfigDeUrl() {
     avisar(t('invalidConfigLink'), 5000);
   }
 }
+
+// ───────────────────── Copia de la biblioteca local ─────────────────────
+
+function preferenciasParaCopia(ids) {
+  const preferencias = {};
+  for (const clave of CLAVES_PREFERENCIAS_COPIA) {
+    const valor = localStorage.getItem(clave);
+    if (valor !== null) preferencias[clave] = valor;
+  }
+  // Estos dos mapas pueden contener también ids de la nube: la copia local
+  // solo debe revelar y restaurar las entradas de los libros incluidos.
+  for (const clave of [CLAVE_ROTACION_PDF, CLAVE_RITMO]) {
+    try {
+      const mapa = JSON.parse(preferencias[clave]);
+      preferencias[clave] = JSON.stringify(Object.fromEntries(
+        Object.entries(mapa).filter(([id]) => ids.has(id)),
+      ));
+    } catch { delete preferencias[clave]; }
+  }
+  return preferencias;
+}
+
+async function exportarBibliotecaLocal() {
+  const estado = $('resultado-copia-biblioteca');
+  mostrarCarga(t('creatingBackup'));
+  try {
+    const { libros, anotaciones: documentos } = await almacen.exportarBibliotecaLocal();
+    if (!libros.length) {
+      estado.textContent = t('noLocalBooksBackup');
+      estado.className = 'estado error';
+      return;
+    }
+    const ids = new Set(libros.map((libro) => libro.id));
+    const datosProgreso = progreso.cargarLocal();
+    const progresoLocal = {
+      version: datosProgreso.version,
+      libros: Object.fromEntries(
+        Object.entries(datosProgreso.libros ?? {}).filter(([id]) => ids.has(id)),
+      ),
+    };
+    const preferencias = preferenciasParaCopia(ids);
+    const manifiesto = crearManifiestoCopia({
+      libros,
+      progreso: progresoLocal,
+      anotaciones: documentos.filter((documento) => ids.has(documento.libro)),
+      preferencias,
+    });
+    await cargarZip();
+    const zip = new window.JSZip();
+    zip.file('pagekeeper.json', JSON.stringify(manifiesto, null, 2));
+    libros.forEach((libro, indice) => {
+      zip.file(manifiesto.libros[indice].archivo, libro.datos, { compression: 'STORE' });
+    });
+    const archivo = await zip.generateAsync({ type: 'blob', compression: 'STORE' }, (avance) => {
+      $('texto-cargando').textContent = `${t('creatingBackup')} ${Math.round(avance.percent)} %`;
+    });
+    const fecha = new Date().toISOString().slice(0, 10);
+    entregarDescarga(`pagekeeper-biblioteca-${fecha}.zip`, archivo, 'application/zip');
+    estado.textContent = t('backupCreated', { count: libros.length });
+    estado.className = 'estado exito';
+  } catch (error) {
+    estado.textContent = t('backupFailed', { error: error.message });
+    estado.className = 'estado error';
+  } finally {
+    ocultarCarga();
+  }
+}
+
+async function restaurarBibliotecaLocal(archivo) {
+  const estado = $('resultado-copia-biblioteca');
+  if (!confirm(t('restoreBackupConfirm'))) return;
+  mostrarCarga(t('restoringBackup'));
+  try {
+    await cargarZip();
+    const zip = await window.JSZip.loadAsync(archivo);
+    const entradaManifiesto = zip.file('pagekeeper.json');
+    if (!entradaManifiesto) throw new Error('INVALID_BACKUP');
+    const manifiesto = JSON.parse(await entradaManifiesto.async('string'));
+    const { ids } = validarManifiestoCopia(manifiesto);
+    const libros = [];
+    for (const info of manifiesto.libros) {
+      const entrada = zip.file(info.archivo);
+      if (!entrada) throw new Error('INVALID_BACKUP');
+      const datos = await entrada.async('uint8array');
+      if (datos.byteLength !== info.tamano) throw new Error('INVALID_BACKUP');
+      libros.push({ ...info, datos });
+      delete libros.at(-1).archivo;
+    }
+    const documentos = (manifiesto.anotaciones ?? [])
+      .filter((documento) => documento && documento.ambito === 'local' && ids.has(documento.libro))
+      .map((documento) => ({ ...documento, ambito: 'local' }));
+    await almacen.restaurarBibliotecaLocal(libros, documentos);
+    progreso.guardarLocal(fusionarProgresoRestaurado(
+      progreso.cargarLocal(), manifiesto.progreso, ids,
+    ));
+    for (const [clave, valor] of Object.entries(manifiesto.preferencias ?? {})) {
+      if (CLAVES_PREFERENCIAS_COPIA.includes(clave) && typeof valor === 'string' && valor.length < 1000000) {
+        localStorage.setItem(clave, valor);
+      }
+    }
+    const idioma = localStorage.getItem('lector.idioma');
+    if (idioma) aplicarIdioma(idioma);
+    document.body.classList.toggle('modo-noche', localStorage.getItem(CLAVE_NOCHE) === '1');
+    pintarIconoNoche();
+    $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
+    $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
+    aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+    await cargarLibrosLocales();
+    await pintarContinuarLeyendo();
+    aplicarOrganizacionBiblioteca();
+    estado.textContent = t('backupRestored', { count: libros.length });
+    estado.className = 'estado exito';
+  } catch (error) {
+    const detalle = error.message === 'INVALID_BACKUP' ? t('invalidBackup') : error.message;
+    estado.textContent = t('restoreFailed', { error: detalle });
+    estado.className = 'estado error';
+  } finally {
+    ocultarCarga();
+  }
+}
+
+$('btn-exportar-biblioteca').addEventListener('click', exportarBibliotecaLocal);
+$('selector-restaurar-biblioteca').addEventListener('change', (evento) => {
+  const archivo = evento.target.files?.[0];
+  evento.target.value = '';
+  if (archivo) restaurarBibliotecaLocal(archivo);
+});
 
 // ───────────────────────── Ayuda ─────────────────────────
 
@@ -1833,7 +2000,7 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
     if (desdeCopia) avisar(t('openedOfflineCopy'), 5000);
     else if (falloActualizacion) avisar(t('offlineUpdateFailed'), 5000);
   } catch (error) {
-    avisar(explicarError(error), 6000);
+    if (error.code !== 'PDF_PASSWORD_CANCELLED') avisar(explicarError(error), 6000);
   } finally {
     ocultarCarga();
   }
@@ -1853,7 +2020,9 @@ async function abrirLibroLocal(libro) {
       formato: formatoDe(libro.nombre),
     });
   } catch (error) {
-    avisar(`No se pudo abrir el libro: ${error.message}`, 6000);
+    if (error.code !== 'PDF_PASSWORD_CANCELLED') {
+      avisar(t('openFailed', { error: error.message }), 6000);
+    }
   } finally {
     ocultarCarga();
   }

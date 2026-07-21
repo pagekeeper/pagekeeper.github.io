@@ -35,6 +35,7 @@ const FUENTES = {
   sans: '-apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
 };
 
+let promesaZip = null;
 let promesaLibrerias = null;
 
 function cargarScript(ruta) {
@@ -47,8 +48,13 @@ function cargarScript(ruta) {
   });
 }
 
+export function cargarZip() {
+  promesaZip ??= window.JSZip ? Promise.resolve() : cargarScript('vendor/jszip.min.js');
+  return promesaZip;
+}
+
 export function cargarLibrerias() {
-  promesaLibrerias ??= cargarScript('vendor/jszip.min.js')
+  promesaLibrerias ??= cargarZip()
     .then(() => cargarScript('vendor/epub.min.js'));
   return promesaLibrerias;
 }

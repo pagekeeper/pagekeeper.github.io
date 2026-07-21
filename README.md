@@ -43,6 +43,10 @@ libros y sincronizar el progreso de lectura.
   sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
   en la sección «En este dispositivo» y se reabren sin volver a elegir el
   archivo (la posición solo se recuerda en ese navegador).
+- 💾 **Copia y restauración local**: desde Ajustes descarga un ZIP con los
+  libros del dispositivo, su progreso, marcadores, anotaciones y preferencias,
+  y puede restaurarlo después o llevarlo a otro navegador. Las credenciales
+  WebDAV no se incluyen en la copia.
 - ☁️ **Subir a la nube**: con una nube configurada puedes subir un PDF
   directamente desde la biblioteca (botón ➕) o, si ya lo estás leyendo en
   local, copiarlo a la nube con un toque conservando la página actual.
@@ -73,6 +77,8 @@ libros y sincronizar el progreso de lectura.
 - ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.
+- 🔑 **PDF protegidos**: solicita la contraseña al abrir un PDF cifrado y la
+  utiliza solo durante esa apertura, sin guardarla.
 - 🔎 **Dos buscadores**: filtra la biblioteca por título, autor, formato y
   metadatos, y encuentra palabras o frases dentro del PDF o EPUB con salto
   al punto exacto del resultado, que queda resaltado unos segundos.

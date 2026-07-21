@@ -82,12 +82,50 @@ export function bibliotecaDeCopias(copias, ruta = '') {
   };
 }
 
-export async function guardarLibro({ id, nombre, tamano }, datos) {
+export async function guardarLibro({ id, nombre, tamano, anadido }, datos) {
   const bd = await abrirBd();
   try {
     const tx = bd.transaction(['libros', 'datos'], 'readwrite');
-    tx.objectStore('libros').put({ id, nombre, tamano, anadido: new Date().toISOString() });
+    tx.objectStore('libros').put({ id, nombre, tamano, anadido: anadido ?? new Date().toISOString() });
     tx.objectStore('datos').put(new Blob([datos], { type: tipoLibro(nombre) }), id);
+    await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
+// Datos originales de la biblioteca local para crear una copia portable. Las
+// portadas y los metadatos no se incluyen: son derivados y se regeneran al
+// restaurar, evitando inflar innecesariamente el archivo.
+export async function exportarBibliotecaLocal() {
+  const [libros, anotaciones] = await Promise.all([
+    listarLibros(), listarDocumentosAnotaciones('local'),
+  ]);
+  const resultado = (await Promise.all(libros.map(async (libro) => {
+    const datos = await obtenerDatos(libro.id);
+    return datos ? { ...libro, datos } : null;
+  }))).filter(Boolean);
+  return { libros: resultado, anotaciones };
+}
+
+// Restaura todos los registros de IndexedDB en una sola transacción. Los
+// libros ajenos a la copia se conservan y los que tengan el mismo id se
+// reemplazan, junto con sus anotaciones.
+export async function restaurarBibliotecaLocal(libros, documentos = []) {
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction(
+      ['libros', 'datos', 'portadas', 'metadatos', 'anotaciones'], 'readwrite',
+    );
+    for (const libro of libros) {
+      const { datos, ...info } = libro;
+      tx.objectStore('libros').put(info);
+      tx.objectStore('datos').put(new Blob([datos], { type: tipoLibro(info.nombre) }), info.id);
+      tx.objectStore('portadas').delete(info.id);
+      tx.objectStore('metadatos').delete(info.id);
+      tx.objectStore('anotaciones').delete(['local', info.id]);
+    }
+    for (const documento of documentos) tx.objectStore('anotaciones').put(documento);
     await esperarTransaccion(tx);
   } finally {
     bd.close();
