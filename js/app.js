@@ -17,6 +17,21 @@ const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este disp
 const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositivo
 const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este dispositivo
 const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
+const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
+
+const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
+
+function colorResaltadoGuardado() {
+  const valor = localStorage.getItem(CLAVE_COLOR_RESALTADO);
+  return COLORES_RESALTADO.includes(valor) ? valor : 'amarillo';
+}
+
+// Color efectivo de una anotación: las anteriores a la paleta no llevan el
+// campo y conservan su aspecto histórico (amarillo, o azul si tienen nota).
+function colorDeAnotacion(anotacion) {
+  if (COLORES_RESALTADO.includes(anotacion?.color)) return anotacion.color;
+  return anotacion?.nota ? 'azul' : 'amarillo';
+}
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
@@ -2815,12 +2830,13 @@ function cancelarSeleccion() {
   limpiarSeleccionNativa();
 }
 
-async function guardarSeleccionComoAnotacion(nota = '') {
+async function guardarSeleccionComoAnotacion(nota = '', color = colorResaltadoGuardado()) {
   if (!libroActual || !seleccionPendiente) return;
   const seleccion = seleccionPendiente;
   const ambito = ambitoAnotacionesActual();
   anotacionesActuales = await anotaciones.crear(ambito, libroActual.id, {
     ...seleccion,
+    color: COLORES_RESALTADO.includes(color) ? color : 'amarillo',
     ...(nota.trim() ? { nota: nota.trim().slice(0, 4000) } : {}),
   });
   cancelarSeleccion();
@@ -2830,9 +2846,13 @@ async function guardarSeleccionComoAnotacion(nota = '') {
   avisar(t('annotationAdded'));
 }
 
-$('btn-resaltar-seleccion').addEventListener('click', () => {
-  guardarSeleccionComoAnotacion().catch((error) => avisar(error.message, 5000));
-});
+for (const boton of document.querySelectorAll('#barra-seleccion .punto-color')) {
+  boton.addEventListener('click', () => {
+    localStorage.setItem(CLAVE_COLOR_RESALTADO, boton.dataset.color);
+    guardarSeleccionComoAnotacion('', boton.dataset.color)
+      .catch((error) => avisar(error.message, 5000));
+  });
+}
 $('btn-nota-seleccion').addEventListener('click', () => {
   const nota = prompt(t('notePrompt'), '');
   if (nota === null) return;
@@ -2852,6 +2872,21 @@ function ubicacionAnotacion(anotacion) {
   return '';
 }
 
+function marcarColorEditor(color) {
+  for (const boton of document.querySelectorAll('#colores-editar-nota .punto-color')) {
+    boton.setAttribute('aria-pressed', String(boton.dataset.color === color));
+  }
+}
+
+function colorElegidoEditor() {
+  return document.querySelector('#colores-editar-nota .punto-color[aria-pressed="true"]')
+    ?.dataset.color ?? 'amarillo';
+}
+
+for (const boton of document.querySelectorAll('#colores-editar-nota .punto-color')) {
+  boton.addEventListener('click', () => marcarColorEditor(boton.dataset.color));
+}
+
 async function editarAnotacionPorId(id) {
   if (!libroActual) return;
   const anotacion = anotacionesActuales.find((entrada) => entrada.id === id);
@@ -2861,6 +2896,7 @@ async function editarAnotacionPorId(id) {
   anotacionEditandoId = id;
   $('fragmento-editar-nota').textContent = anotacion.texto ?? '';
   $('texto-editar-nota').value = anotacion.nota ?? '';
+  marcarColorEditor(colorDeAnotacion(anotacion));
   $('dialogo-editar-nota').classList.remove('oculto');
   $('texto-editar-nota').focus();
   $('texto-editar-nota').setSelectionRange(
@@ -2881,7 +2917,7 @@ $('form-editar-nota').addEventListener('submit', async (evento) => {
   const nota = $('texto-editar-nota').value.trim().slice(0, 4000);
   try {
     anotacionesActuales = await anotaciones.actualizar(
-      ambitoAnotacionesActual(), libroActual.id, id, { nota },
+      ambitoAnotacionesActual(), libroActual.id, id, { nota, color: colorElegidoEditor() },
     );
   } catch (error) {
     avisar(error.message, 5000);
@@ -2966,7 +3002,10 @@ function pintarAnotaciones(idEnfocado = null) {
     }
     const ubicacion = document.createElement('span');
     ubicacion.className = 'ubicacion-anotacion';
-    ubicacion.textContent = ubicacionAnotacion(anotacion);
+    const punto = document.createElement('span');
+    punto.className = 'punto-color-mini';
+    punto.dataset.color = colorDeAnotacion(anotacion);
+    ubicacion.append(punto, document.createTextNode(ubicacionAnotacion(anotacion)));
     ir.append(ubicacion);
     ir.addEventListener('click', async () => {
       const destino = anotacion.cfi ?? anotacion.paginas?.[0]?.pagina;

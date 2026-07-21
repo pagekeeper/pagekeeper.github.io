@@ -655,22 +655,52 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .capa-texto span.markedContent { top: 0; height: 0; }
 .capa-texto ::selection { background: rgba(14, 165, 233, 0.4); }
 
+/* La paleta se aplica con la variable --tinte (componentes RGB); los
+   resaltados antiguos sin color conservan el amarillo, y las notas el azul. */
 .capa-resaltados { position: absolute; z-index: 2; inset: 0; pointer-events: none; }
 .capa-resaltados span {
+  --tinte: 250, 204, 21;
   position: absolute; border-radius: 2px;
-  background: rgba(250, 204, 21, 0.42); mix-blend-mode: multiply;
+  background: rgba(var(--tinte), 0.42); mix-blend-mode: multiply;
 }
 .capa-resaltados span.nota {
-  background: rgba(56, 189, 248, 0.34);
-  border-bottom: 2px solid rgba(2, 132, 199, 0.8);
+  --tinte: 56, 189, 248;
+  background: rgba(var(--tinte), 0.34);
+  border-bottom: 2px solid rgba(var(--tinte), 0.9);
 }
+.capa-resaltados span[data-color="amarillo"] { --tinte: 250, 204, 21; }
+.capa-resaltados span[data-color="verde"] { --tinte: 74, 222, 128; }
+.capa-resaltados span[data-color="azul"] { --tinte: 56, 189, 248; }
+.capa-resaltados span[data-color="rosa"] { --tinte: 244, 114, 182; }
 .modo-noche .capa-resaltados span {
-  background: rgba(250, 204, 21, 0.46); mix-blend-mode: screen;
+  background: rgba(var(--tinte), 0.46); mix-blend-mode: screen;
 }
 .modo-noche .capa-resaltados span.nota {
-  background: rgba(56, 189, 248, 0.42);
-  border-bottom-color: rgba(125, 211, 252, 0.9);
+  background: rgba(var(--tinte), 0.42);
+  border-bottom-color: rgba(var(--tinte), 0.95);
 }
+
+/* Puntos de la paleta: grandes para elegir, pequeños como indicador. */
+.colores-seleccion { display: flex; align-items: center; gap: 0.45rem; }
+.punto-color {
+  width: 1.7rem; height: 1.7rem; padding: 0; flex: none; cursor: pointer;
+  border: 2px solid rgba(0, 0, 0, 0.25); border-radius: 50%;
+}
+.punto-color:hover, .punto-color:focus-visible {
+  outline: 2px solid var(--acento); outline-offset: 2px;
+}
+.punto-color[aria-pressed="true"] {
+  outline: 3px solid var(--acento); outline-offset: 2px;
+}
+.punto-color-mini {
+  width: 0.7rem; height: 0.7rem; flex: none; display: inline-block;
+  border-radius: 50%; vertical-align: -0.05rem;
+}
+.punto-color[data-color="amarillo"], .punto-color-mini[data-color="amarillo"] { background: #facc15; }
+.punto-color[data-color="verde"], .punto-color-mini[data-color="verde"] { background: #4ade80; }
+.punto-color[data-color="azul"], .punto-color-mini[data-color="azul"] { background: #38bdf8; }
+.punto-color[data-color="rosa"], .punto-color-mini[data-color="rosa"] { background: #f472b6; }
+.colores-editar { margin-bottom: 0.75rem; }
 .boton-nota-margen {
   position: absolute; right: 0.3rem; transform: translateY(-15%);
   width: 2rem; height: 2rem; padding: 0; pointer-events: auto;
@@ -826,7 +856,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .texto-anotacion, .nota-anotacion { display: block; overflow: hidden; text-overflow: ellipsis; }
 .texto-anotacion { white-space: nowrap; font-size: 0.9rem; }
 .nota-anotacion { color: var(--acento); font-size: 0.8rem; white-space: nowrap; margin-top: 0.15rem; }
-.ubicacion-anotacion { color: var(--texto-suave); font-size: 0.75rem; }
+.ubicacion-anotacion {
+  display: flex; align-items: center; gap: 0.35rem;
+  color: var(--texto-suave); font-size: 0.75rem;
+}
 
 /* ── Subcarpetas de la nube ── */
 .ruta-carpeta {

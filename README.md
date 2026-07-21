@@ -60,8 +60,10 @@ libros y sincronizar el progreso de lectura.
   a ellas desde un panel. En los libros de la nube se sincronizan entre
   dispositivos junto con la posición de lectura.
 - 📝 **Resaltados y notas**: selecciona texto en PDF o EPUB para resaltarlo
-  o añadir una nota. Funcionan sin conexión; en los libros WebDAV se fusionan
-  y sincronizan entre dispositivos mediante un JSON lateral por libro.
+  en uno de los cuatro colores (amarillo, verde, azul o rosa) o añadir una
+  nota; el color se puede cambiar después. Funcionan sin conexión; en los
+  libros WebDAV se fusionan y sincronizan entre dispositivos mediante un
+  JSON lateral por libro.
 - 📤 **Exportar anotaciones**: descarga todos los resaltados y notas de un
   libro en un archivo Markdown, con la página o posición de cada uno, listo
   para llevar a tus apuntes u Obsidian.

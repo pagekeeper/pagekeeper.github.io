@@ -407,6 +407,7 @@ export class Lector {
       for (const rectangulo of pagina.rectangulos ?? []) {
         const marca = document.createElement('span');
         marca.className = anotacion.nota ? 'nota' : 'resaltado';
+        if (anotacion.color) marca.dataset.color = anotacion.color;
         marca.dataset.anotacion = anotacion.id;
         marca.style.left = `${rectangulo.x * 100}%`;
         marca.style.top = `${rectangulo.y * 100}%`;

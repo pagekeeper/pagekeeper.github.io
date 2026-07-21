@@ -373,9 +373,17 @@
       <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente" data-i18n-title="next"></button>
       <div id="barra-seleccion" class="barra-seleccion oculto" role="toolbar"
         aria-label="Acciones para el texto seleccionado" data-i18n-aria-label="selectionActions">
-        <button type="button" id="btn-resaltar-seleccion" class="btn-primario">
-          <span data-icono="highlighter"></span><span data-i18n="highlight">Resaltar</span>
-        </button>
+        <div class="colores-seleccion" role="group" aria-label="Color del resaltado"
+          data-i18n-aria-label="highlightColor">
+          <button type="button" class="punto-color" data-color="amarillo"
+            title="Resaltar en amarillo" data-i18n-title="highlightYellow"></button>
+          <button type="button" class="punto-color" data-color="verde"
+            title="Resaltar en verde" data-i18n-title="highlightGreen"></button>
+          <button type="button" class="punto-color" data-color="azul"
+            title="Resaltar en azul" data-i18n-title="highlightBlue"></button>
+          <button type="button" class="punto-color" data-color="rosa"
+            title="Resaltar en rosa" data-i18n-title="highlightPink"></button>
+        </div>
         <button type="button" id="btn-nota-seleccion" class="btn-secundario">
           <span data-icono="message-square-text"></span><span data-i18n="addNote">Añadir nota</span>
         </button>
@@ -542,9 +550,11 @@
           la nube, los marcadores se sincronizan entre dispositivos junto con
           la posición de lectura.</li>
           <li><strong>Resaltados y notas:</strong> selecciona texto del PDF o
-          EPUB y elige si quieres resaltarlo o añadir una nota. El botón del
-          rotulador muestra todas las anotaciones del libro. En los libros de
-          la nube se sincronizan también cuando trabajas sin conexión.</li>
+          EPUB y elige un color de resaltado (amarillo, verde, azul o rosa) o
+          añade una nota. El color se puede cambiar después al editar la
+          anotación. El botón del rotulador muestra todas las anotaciones del
+          libro. En los libros de la nube se sincronizan también cuando
+          trabajas sin conexión.</li>
           <li><strong>Exportar anotaciones:</strong> el botón de descarga del
           panel de anotaciones guarda todos los resaltados y notas del libro
           en un archivo Markdown (.md), con su página o posición, listo para
@@ -681,6 +691,17 @@
       aria-modal="true" aria-labelledby="titulo-editar-nota">
       <h2 id="titulo-editar-nota" data-i18n="editNote">Editar nota</h2>
       <p id="fragmento-editar-nota" class="fragmento-editar-nota"></p>
+      <div id="colores-editar-nota" class="colores-seleccion colores-editar" role="group"
+        aria-label="Color del resaltado" data-i18n-aria-label="highlightColor">
+        <button type="button" class="punto-color" data-color="amarillo" aria-pressed="false"
+          title="Resaltar en amarillo" data-i18n-title="highlightYellow"></button>
+        <button type="button" class="punto-color" data-color="verde" aria-pressed="false"
+          title="Resaltar en verde" data-i18n-title="highlightGreen"></button>
+        <button type="button" class="punto-color" data-color="azul" aria-pressed="false"
+          title="Resaltar en azul" data-i18n-title="highlightBlue"></button>
+        <button type="button" class="punto-color" data-color="rosa" aria-pressed="false"
+          title="Resaltar en rosa" data-i18n-title="highlightPink"></button>
+      </div>
       <textarea id="texto-editar-nota" rows="7" maxlength="4000"
         aria-label="Nota" data-i18n-aria-label="note"></textarea>
       <div class="fila-botones botones-editar-nota">

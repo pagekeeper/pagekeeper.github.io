@@ -20,6 +20,15 @@ const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url
 const ELEMENTOS_ACTIVOS = 'script, iframe, frame, object, embed, applet';
 const ATRIBUTOS_URL = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data']);
 
+// Rellenos de la paleta de resaltado. Las anotaciones sin color (anteriores
+// a la paleta) conservan su aspecto histórico: amarillo, o azul con nota.
+const RELLENOS_RESALTADO = {
+  amarillo: '#facc15',
+  verde: '#4ade80',
+  azul: '#38bdf8',
+  rosa: '#f472b6',
+};
+
 // Pilas de fuentes de los ajustes tipográficos ('libro' = sin forzar nada).
 const FUENTES = {
   serif: 'Georgia, "Times New Roman", serif',
@@ -274,14 +283,14 @@ export class LectorEpub {
       if (!anotacion.cfi) continue;
       try {
         const esNota = Boolean(anotacion.nota);
+        const relleno = RELLENOS_RESALTADO[anotacion.color] ??
+          (esNota ? RELLENOS_RESALTADO.azul : RELLENOS_RESALTADO.amarillo);
         const argumentos = [
           anotacion.cfi,
           { id: anotacion.id },
           () => this.alPulsarAnotacion?.(anotacion.id),
           esNota ? 'pagekeeper-nota' : 'pagekeeper-resaltado',
-          esNota
-            ? { fill: '#38bdf8', 'fill-opacity': '0.4', 'mix-blend-mode': 'multiply' }
-            : { fill: '#facc15', 'fill-opacity': '0.42', 'mix-blend-mode': 'multiply' },
+          { fill: relleno, 'fill-opacity': esNota ? '0.4' : '0.42', 'mix-blend-mode': 'multiply' },
         ];
         this.vista.annotations.highlight(...argumentos);
         this.cfiAplicados.push({ cfi: anotacion.cfi, tipo: 'highlight' });
