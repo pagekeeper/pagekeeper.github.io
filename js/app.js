@@ -2059,11 +2059,12 @@ async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
     avisar(t('unsupportedFiles'));
     return;
   }
+  const abiertoDirectamente = abrirSiEsUno && validos.length === 1;
   let guardados = 0;
   try {
     for (const archivo of validos) {
       try {
-        await guardarArchivoLocal(archivo, abrirSiEsUno && validos.length === 1);
+        await guardarArchivoLocal(archivo, abiertoDirectamente);
         guardados += 1;
       } catch (error) {
         avisar(t('saveFailed', { title: archivo.name, error: error.message }), 6000);
@@ -2072,9 +2073,12 @@ async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
   } finally {
     ocultarCarga();
   }
-  if (!(abrirSiEsUno && validos.length === 1)) {
-    await cargarLibrosLocales();
-    if (guardados) avisar(t(guardados === 1 ? 'localAddedOne' : 'localAddedMany', { count: guardados }));
+  // Aunque un único archivo se abra inmediatamente, se repinta la lista que
+  // queda detrás del lector. Así el libro ya está presente al volver incluso
+  // si la navegación del historial no provoca una recarga completa.
+  await cargarLibrosLocales();
+  if (!abiertoDirectamente && guardados) {
+    avisar(t(guardados === 1 ? 'localAddedOne' : 'localAddedMany', { count: guardados }));
   }
 }
 
