@@ -17,6 +17,9 @@ const TRAZADOS = {
   'file-text': '<path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/> <path d="M14 2v5a1 1 0 0 0 1 1h5"/> <path d="M10 9H8"/> <path d="M16 13H8"/> <path d="M16 17H8"/>',
   'zoom-in': '<circle cx="11" cy="11" r="8"/> <line x1="21" x2="16.65" y1="21" y2="16.65"/> <line x1="11" x2="11" y1="8" y2="14"/> <line x1="8" x2="14" y1="11" y2="11"/>',
   'move-horizontal': '<path d="m18 8 4 4-4 4"/> <path d="M2 12h20"/> <path d="m6 8-4 4 4 4"/>',
+  // Variante propia del 'panel-left' de Lucide, con las líneas del contenido
+  // dentro: el botón abre la barra lateral con el índice o las miniaturas.
+  'panel-left-text': '<rect width="18" height="18" x="3" y="3" rx="2"/> <path d="M9 3v18"/> <path d="M12 8h5"/> <path d="M12 12h5"/> <path d="M12 16h5"/>',
   'crop': '<path d="M6 2v14a2 2 0 0 0 2 2h14"/> <path d="M18 22V8a2 2 0 0 0-2-2H2"/>',
   'maximize': '<path d="M8 3H5a2 2 0 0 0-2 2v3"/> <path d="M16 3h3a2 2 0 0 1 2 2v3"/> <path d="M8 21H5a2 2 0 0 1-2-2v-3"/> <path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
   'fold-horizontal': '<path d="M2 12h6"/> <path d="M22 12h-6"/> <path d="M12 2v2"/> <path d="M12 8v2"/> <path d="M12 14v2"/> <path d="M12 20v2"/> <path d="m19 9-3 3 3 3"/> <path d="m5 15 3-3-3-3"/>',

@@ -3042,7 +3042,15 @@ function cerrarIndiceSiFlota() {
 
 function cerrarIndiceLibro() {
   $('panel-indice-libro').classList.add('oculto');
-  $('btn-indice-libro').setAttribute('aria-expanded', 'false');
+  marcarBotonIndice(false);
+}
+
+// El botón se queda pulsado mientras el panel (o la barra lateral) está a la
+// vista, para que se vea de un vistazo que la lectura está estrechada.
+function marcarBotonIndice(abierto) {
+  $('btn-indice-libro').setAttribute('aria-expanded', String(abierto));
+  $('btn-indice-libro').setAttribute('aria-pressed', String(abierto));
+  $('menu-indice').setAttribute('aria-pressed', String(abierto));
 }
 
 // ── Panel de navegación: índice y miniaturas ──
@@ -3803,7 +3811,7 @@ $('btn-indice-libro').addEventListener('click', () => {
   cerrarPanelAnotaciones();
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
-  $('btn-indice-libro').setAttribute('aria-expanded', String(abrir));
+  marcarBotonIndice(abrir);
   if (!abrir) return;
   if (pestanaPanel === 'miniaturas') {
     prepararMiniaturas();
