@@ -802,18 +802,37 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    demás paneles siguen flotando (position: fixed) y no entran en la rejilla. */
 @media (min-width: 64rem) {
   #vista-lector {
-    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr;
+    display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto 1fr;
   }
   #vista-lector > .barra-lector { grid-column: 1 / -1; }
-  #vista-lector > #area-lectura { grid-column: 2; grid-row: 2; }
+  #vista-lector > #area-lectura { grid-column: 3; grid-row: 2; }
   #panel-indice-libro {
     position: static; grid-column: 1; grid-row: 2;
-    width: 19rem; max-height: none; min-height: 0;
-    border-width: 0 1px 0 0; border-radius: 0; box-shadow: none;
+    width: var(--ancho-indice, 19rem); max-height: none; min-height: 0;
+    border-width: 0; border-radius: 0; box-shadow: none;
   }
+  /* Tirador para cambiar el ancho del panel, entre este y la lectura. */
+  #tirador-indice {
+    display: block; grid-column: 2; grid-row: 2;
+    width: 0.4rem; border-inline: 1px solid var(--borde);
+    background: transparent; cursor: col-resize; touch-action: none;
+  }
+  #tirador-indice:hover, #tirador-indice:focus-visible,
+  #tirador-indice.arrastrando { background: var(--acento); outline: none; }
   /* Sin barra de herramientas (modo inmersivo) el panel sube a la primera fila. */
-  #vista-lector.inmersivo #panel-indice-libro { grid-row: 1 / -1; }
-  #vista-lector.inmersivo > #area-lectura { grid-row: 1 / -1; }
+  #vista-lector.inmersivo :is(#panel-indice-libro, #tirador-indice, > #area-lectura) {
+    grid-row: 1 / -1;
+  }
+}
+
+/* En pantalla estrecha el panel flota y no hay nada que redimensionar. */
+.tirador-panel { display: none; }
+
+/* Las zonas de toque van fijas a la ventana, así que con la barra lateral
+   desplegada la de «página anterior» caería encima del panel y se tragaría
+   los clics del índice, de las miniaturas y del tirador. */
+@media (min-width: 64rem) {
+  #vista-lector.con-barra-lateral .zona-izq { left: calc(var(--ancho-indice, 19rem) + 0.4rem); }
 }
 
 .cabecera-panel-lector { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
@@ -836,7 +855,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   display: flex; flex-direction: column; align-items: center; gap: 0.9rem;
 }
 .miniatura-pagina {
-  width: min(11rem, 100%);
+  width: min(20rem, 100%);
   display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
   padding: 0.25rem; border: 1px solid transparent; border-radius: 0.45rem;
   background: none; color: var(--texto-suave); font: inherit; font-size: 0.78rem;

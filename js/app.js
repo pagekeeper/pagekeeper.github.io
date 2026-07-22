@@ -47,6 +47,7 @@ function colorDeAnotacion(anotacion) {
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_AJUSTE_PDF = 'lector.ajustePdf'; // ancho, página o zoom personalizado
 const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
+const CLAVE_ANCHO_INDICE = 'lector.anchoIndice'; // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
@@ -66,7 +67,7 @@ const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 const CLAVES_PREFERENCIAS_COPIA = [
   'lector.idioma', CLAVE_NOCHE, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
-  CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
+  CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA, CLAVE_PLEGADA_LOCAL,
 ];
@@ -3051,7 +3052,82 @@ function marcarBotonIndice(abierto) {
   $('btn-indice-libro').setAttribute('aria-expanded', String(abierto));
   $('btn-indice-libro').setAttribute('aria-pressed', String(abierto));
   $('menu-indice').setAttribute('aria-pressed', String(abierto));
+  // El tirador solo tiene sentido con la barra lateral desplegada.
+  $('tirador-indice').classList.toggle('oculto', !abierto);
+  $('vista-lector').classList.toggle('con-barra-lateral', abierto);
 }
+
+// ── Ancho de la barra lateral ──
+//
+// Se guarda en píxeles porque lo que importa es cuánto sitio le queda a la
+// lectura en esta pantalla, no cuánto mide en función del tamaño de letra.
+const ANCHO_INDICE_MINIMO = 200;
+const ANCHO_INDICE_POR_DEFECTO = 304; // los 19rem del diseño
+
+function anchoIndiceMaximo() {
+  return Math.max(ANCHO_INDICE_MINIMO, Math.round(window.innerWidth * 0.5));
+}
+
+function aplicarAnchoIndice(ancho) {
+  const limitado = Math.min(anchoIndiceMaximo(), Math.max(ANCHO_INDICE_MINIMO, Math.round(ancho)));
+  document.documentElement.style.setProperty('--ancho-indice', `${limitado}px`);
+  const tirador = $('tirador-indice');
+  tirador.setAttribute('aria-valuenow', String(limitado));
+  tirador.setAttribute('aria-valuemin', String(ANCHO_INDICE_MINIMO));
+  tirador.setAttribute('aria-valuemax', String(anchoIndiceMaximo()));
+  return limitado;
+}
+
+function guardarAnchoIndice(ancho) {
+  localStorage.setItem(CLAVE_ANCHO_INDICE, String(aplicarAnchoIndice(ancho)));
+  // Con otro ancho toca redibujar: una miniatura estirada se ve borrosa.
+  if (Math.abs(medirAnchoMiniatura() - anchoMiniatura) > 24) reiniciarMiniaturas();
+}
+
+function anchoIndiceGuardado() {
+  const valor = parseInt(localStorage.getItem(CLAVE_ANCHO_INDICE), 10);
+  return Number.isFinite(valor) ? valor : ANCHO_INDICE_POR_DEFECTO;
+}
+
+aplicarAnchoIndice(anchoIndiceGuardado());
+
+$('tirador-indice').addEventListener('pointerdown', (evento) => {
+  evento.preventDefault();
+  const tirador = $('tirador-indice');
+  const izquierda = $('panel-indice-libro').getBoundingClientRect().left;
+  tirador.setPointerCapture(evento.pointerId);
+  tirador.classList.add('arrastrando');
+  const mover = (mueve) => aplicarAnchoIndice(mueve.clientX - izquierda);
+  const soltar = () => {
+    tirador.classList.remove('arrastrando');
+    tirador.removeEventListener('pointermove', mover);
+    tirador.removeEventListener('pointerup', soltar);
+    tirador.removeEventListener('pointercancel', soltar);
+    guardarAnchoIndice(parseFloat(
+      getComputedStyle(document.documentElement).getPropertyValue('--ancho-indice')));
+  };
+  tirador.addEventListener('pointermove', mover);
+  tirador.addEventListener('pointerup', soltar);
+  tirador.addEventListener('pointercancel', soltar);
+});
+
+// Con el teclado: flechas para ajustar y doble clic (o Inicio) para volver al
+// ancho de partida.
+$('tirador-indice').addEventListener('keydown', (evento) => {
+  const paso = evento.shiftKey ? 48 : 16;
+  const actual = $('panel-indice-libro').getBoundingClientRect().width;
+  if (evento.key === 'ArrowLeft') guardarAnchoIndice(actual - paso);
+  else if (evento.key === 'ArrowRight') guardarAnchoIndice(actual + paso);
+  else if (evento.key === 'Home') guardarAnchoIndice(ANCHO_INDICE_POR_DEFECTO);
+  else return;
+  evento.preventDefault();
+});
+
+$('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(ANCHO_INDICE_POR_DEFECTO));
+
+// Al estrechar la ventana, el panel no puede quedarse con más de media pantalla.
+window.addEventListener('resize', () => aplicarAnchoIndice(
+  parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ancho-indice'))));
 
 // ── Panel de navegación: índice y miniaturas ──
 //
@@ -3138,7 +3214,17 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
 // entran en la vista, soltando los que se alejan: un PDF largo no puede tener
 // cientos de miniaturas en memoria.
 const MAXIMO_MINIATURAS = 40;
-const ANCHO_MINIATURA = 176; // 11rem: el ancho de una miniatura por fila
+// Las miniaturas siguen al ancho del panel, con un tope para no dibujar más
+// píxeles de los que se van a ver.
+const ANCHO_MINIATURA_MINIMO = 140;
+const ANCHO_MINIATURA_MAXIMO = 320;
+let anchoMiniatura = ANCHO_MINIATURA_MINIMO;
+
+function medirAnchoMiniatura() {
+  const disponible = $('rejilla-miniaturas').clientWidth || ANCHO_MINIATURA_MINIMO;
+  return Math.round(Math.min(ANCHO_MINIATURA_MAXIMO,
+    Math.max(ANCHO_MINIATURA_MINIMO, disponible)));
+}
 let observadorMiniaturas = null;
 let miniaturasMontadas = 0;
 
@@ -3155,6 +3241,7 @@ function reiniciarMiniaturas() {
 function prepararMiniaturas() {
   const rejilla = $('rejilla-miniaturas');
   if (!conMiniaturas() || rejilla.childElementCount) return;
+  anchoMiniatura = medirAnchoMiniatura();
   for (let numero = 1; numero <= lector.totalPaginas; numero++) {
     const boton = document.createElement('button');
     boton.type = 'button';
@@ -3190,7 +3277,7 @@ async function pintarMiniatura(boton) {
   if (boton.dataset.estado) return; // en curso o ya dibujada
   boton.dataset.estado = 'pintando';
   try {
-    const lienzo = await lector.miniatura(Number(boton.dataset.pagina), ANCHO_MINIATURA);
+    const lienzo = await lector.miniatura(Number(boton.dataset.pagina), anchoMiniatura);
     boton.querySelector('.hoja').replaceChildren(lienzo);
     boton.dataset.estado = 'lista';
     miniaturasMontadas += 1;

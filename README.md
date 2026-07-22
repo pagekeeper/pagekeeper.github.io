@@ -94,8 +94,9 @@ libros y sincronizar el progreso de lectura.
   índice (lo habitual en los escaneados), el panel se abre directamente en las
   miniaturas. En pantallas anchas de escritorio es una barra lateral a la
   izquierda que estrecha el documento en vez de taparlo y se queda abierta
-  mientras navegas; en móvil y tablet sigue siendo un panel flotante que se
-  cierra al saltar.
+  mientras navegas; su ancho se ajusta arrastrando el borde (o con las flechas
+  del teclado) y se recuerda en cada dispositivo. En móvil y tablet sigue
+  siendo un panel flotante que se cierra al saltar.
 - 🖥️ **Modo inmersivo**: un toque en el centro de la página oculta la barra
   para leer a pantalla completa; otro toque la recupera. En pantalla táctil
   el PDF también se amplía pellizcando con dos dedos.
