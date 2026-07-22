@@ -66,11 +66,17 @@ export class Lector {
     this.anotaciones = [];
     this.notaBajoPuntero = null;
 
+    // Se vigila el área, no la ventana: también cambia de tamaño al abrir o
+    // cerrar la barra lateral del índice. Se compara con la medida del último
+    // montaje para no repintar por avisos que no cambian nada.
     let tempResize;
-    window.addEventListener('resize', () => {
+    this.medidaMontada = '';
+    new ResizeObserver(() => {
       clearTimeout(tempResize);
-      tempResize = setTimeout(() => { if (this.documento) this.montar(); }, 200);
-    });
+      tempResize = setTimeout(() => {
+        if (this.documento && this.medidaArea() !== this.medidaMontada) this.montar();
+      }, 200);
+    }).observe(this.area);
 
     let esperandoFrame = false;
     this.area.addEventListener('scroll', () => {
@@ -431,7 +437,12 @@ export class Lector {
     this.pendiente = null;
   }
 
+  medidaArea() {
+    return `${this.area.clientWidth}x${this.area.clientHeight}`;
+  }
+
   async montar() {
+    this.medidaMontada = this.medidaArea();
     // Mientras se remonta (zoom, cambio de modo, resize), el scroll provocado
     // por vaciar el contenedor no debe redetectar la página: pisaría la
     // actual con la primera antes de que scrollIntoView la restaure.

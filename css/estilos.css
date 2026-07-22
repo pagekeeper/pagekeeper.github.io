@@ -795,6 +795,27 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   border-radius: 0.75rem; background: var(--fondo); color: var(--texto);
   box-shadow: 0 10px 32px rgba(0,0,0,0.5);
 }
+/* En pantallas anchas el índice deja de flotar y pasa a ser una barra lateral
+   que estrecha el documento en vez de taparlo, como en los visores de PDF de
+   escritorio. La vista del lector se convierte en una rejilla: la barra de
+   herramientas arriba, el panel a la izquierda y la lectura a la derecha. Los
+   demás paneles siguen flotando (position: fixed) y no entran en la rejilla. */
+@media (min-width: 64rem) {
+  #vista-lector {
+    display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto 1fr;
+  }
+  #vista-lector > .barra-lector { grid-column: 1 / -1; }
+  #vista-lector > #area-lectura { grid-column: 2; grid-row: 2; }
+  #panel-indice-libro {
+    position: static; grid-column: 1; grid-row: 2;
+    width: 19rem; max-height: none; min-height: 0;
+    border-width: 0 1px 0 0; border-radius: 0; box-shadow: none;
+  }
+  /* Sin barra de herramientas (modo inmersivo) el panel sube a la primera fila. */
+  #vista-lector.inmersivo #panel-indice-libro { grid-row: 1 / -1; }
+  #vista-lector.inmersivo > #area-lectura { grid-row: 1 / -1; }
+}
+
 .cabecera-panel-lector { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.55rem; }
 .cabecera-panel-lector h2 { flex: 1; font-size: 1rem; }
 .lista-indice-libro { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }

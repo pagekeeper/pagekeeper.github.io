@@ -2920,7 +2920,7 @@ function cerrarMenuLector() {
 
 function abrirMenuLector() {
   cerrarBusquedaLibro();
-  cerrarIndiceLibro();
+  cerrarIndiceSiFlota();
   cerrarPanelMarcadores();
   cerrarPanelAnotaciones();
   cerrarPanelTexto();
@@ -3027,6 +3027,17 @@ for (const id of ['btn-posicion-siguiente', 'btn-posicion-siguiente-escritorio']
   });
 }
 
+// Como barra lateral (pantallas anchas) el índice es un panel de navegación,
+// no un diálogo: se queda abierto al saltar a un capítulo o al abrir otro
+// panel. Flotando sobre la lectura, en cambio, estorba y se cierra.
+function indiceFlotante() {
+  return getComputedStyle($('panel-indice-libro')).position !== 'static';
+}
+
+function cerrarIndiceSiFlota() {
+  if (indiceFlotante()) cerrarIndiceLibro();
+}
+
 function cerrarIndiceLibro() {
   $('panel-indice-libro').classList.add('oculto');
   $('btn-indice-libro').setAttribute('aria-expanded', 'false');
@@ -3057,7 +3068,7 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
       boton.addEventListener('click', async () => {
         try {
           await saltarConHistorial(entrada.destino);
-          cerrarIndiceLibro();
+          cerrarIndiceSiFlota();
         } catch (error) {
           avisar(error.message, 5000);
         }
@@ -3212,7 +3223,7 @@ $('form-anadir-marcador').addEventListener('submit', (evento) => {
 
 $('btn-marcadores').addEventListener('click', () => {
   const panel = $('panel-marcadores');
-  cerrarIndiceLibro();
+  cerrarIndiceSiFlota();
   cerrarBusquedaLibro();
   cerrarPanelAnotaciones();
   const abrir = panel.classList.contains('oculto');
@@ -3609,7 +3620,7 @@ function abrirPanelAnotaciones(id = null) {
   ocultarNotaEmergente();
   cerrarMenuNota();
   cerrarBusquedaLibro();
-  cerrarIndiceLibro();
+  cerrarIndiceSiFlota();
   cerrarPanelMarcadores();
   if (id) $('buscar-anotaciones').value = '';
   pintarAnotaciones(id);
@@ -3633,7 +3644,7 @@ function cerrarBusquedaLibro() {
 
 $('btn-buscar-libro').addEventListener('click', () => {
   const panel = $('panel-busqueda-libro');
-  cerrarIndiceLibro();
+  cerrarIndiceSiFlota();
   cerrarPanelMarcadores();
   cerrarPanelAnotaciones();
   panel.classList.toggle('oculto');

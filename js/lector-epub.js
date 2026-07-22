@@ -176,6 +176,21 @@ export class LectorEpub {
     this.cfiAplicados = [];
     this.rangosNotas = new WeakMap();
     this.notaBajoPuntero = null;
+
+    // epub.js solo se entera de los cambios de tamaño de la ventana; al abrir
+    // o cerrar la barra lateral cambia el contenedor, así que se le avisa.
+    let tempResize;
+    let medida = '';
+    new ResizeObserver(() => {
+      clearTimeout(tempResize);
+      tempResize = setTimeout(() => {
+        const nueva = `${this.contenedor.clientWidth}x${this.contenedor.clientHeight}`;
+        if (!this.vista || nueva === medida) return;
+        medida = nueva;
+        try { this.vista.resize(); } catch { /* vista a medio montar */ }
+        this.programarIconosNotas();
+      }, 200);
+    }).observe(this.contenedor);
   }
 
   // 'localizaciones' es el reparto del libro calculado en una sesión anterior
