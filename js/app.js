@@ -3138,7 +3138,7 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
 // entran en la vista, soltando los que se alejan: un PDF largo no puede tener
 // cientos de miniaturas en memoria.
 const MAXIMO_MINIATURAS = 40;
-const ANCHO_MINIATURA = 150;
+const ANCHO_MINIATURA = 176; // 11rem: el ancho de una miniatura por fila
 let observadorMiniaturas = null;
 let miniaturasMontadas = 0;
 

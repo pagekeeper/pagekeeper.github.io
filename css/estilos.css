@@ -830,13 +830,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   border-color: rgba(14, 165, 233, 0.5); color: var(--texto);
 }
 
-/* Miniaturas algo más grandes y bien separadas: con poco hueco entre columnas
-   dos páginas contiguas se leen como un pliego, que no es lo que son. */
+/* Una miniatura por fila, como en los visores de PDF de escritorio: en dos
+   columnas, dos páginas contiguas se leen como un pliego, que no es lo que son. */
 .rejilla-miniaturas {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(7.5rem, 1fr));
-  gap: 1rem 1.4rem;
+  display: flex; flex-direction: column; align-items: center; gap: 0.9rem;
 }
 .miniatura-pagina {
+  width: min(11rem, 100%);
   display: flex; flex-direction: column; align-items: center; gap: 0.2rem;
   padding: 0.25rem; border: 1px solid transparent; border-radius: 0.45rem;
   background: none; color: var(--texto-suave); font: inherit; font-size: 0.78rem;
