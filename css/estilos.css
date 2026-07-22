@@ -415,6 +415,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .libro .formato-pdf { color: #fb7185; }
 .libro .formato-epub { color: #2dd4bf; }
+.libro .formato.sin-texto { color: #fbbf24; }
 .libro .autor {
   color: var(--texto-suave); font-size: 0.78rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -925,6 +926,8 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   display: flex; flex-direction: column; gap: 0.55rem;
 }
 .dialogo h2 { font-size: 1rem; }
+.pasos-ocr { margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.dialogo-pdf-sin-texto .fila-botones { justify-content: flex-end; }
 .dialogo-editar-nota { width: min(32rem, 100%); }
 .fragmento-editar-nota {
   color: var(--texto-suave); font-size: 0.85rem; line-height: 1.35;

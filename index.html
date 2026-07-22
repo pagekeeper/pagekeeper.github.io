@@ -805,6 +805,26 @@
     </form>
   </div>
 
+  <div id="dialogo-pdf-sin-texto" class="dialogo-fondo oculto">
+    <div class="dialogo dialogo-pdf-sin-texto" role="dialog" aria-modal="true"
+      aria-labelledby="titulo-pdf-sin-texto">
+      <h2 id="titulo-pdf-sin-texto" data-i18n="pdfNoTextTitle">PDF sin texto seleccionable</h2>
+      <p data-i18n="pdfNoTextHelp">Este documento parece estar escaneado. La búsqueda, la selección y la lectura en voz alta no funcionarán correctamente.</p>
+      <ol class="pasos-ocr">
+        <li data-i18n="pdfNoTextStep1">Descarga el PDF desde el menú del libro.</li>
+        <li data-i18n="pdfNoTextStep2">Ábrelo en Scribe OCR y genera una copia PDF con texto.</li>
+        <li data-i18n="pdfNoTextStep3">Descarga esa copia y vuelve a subirla a PageKeeper.</li>
+      </ol>
+      <p class="ayuda" data-i18n="pdfNoTextPrivacy">PageKeeper no enviará el documento: tendrás que seleccionarlo tú en la herramienta externa.</p>
+      <div class="fila-botones botones-dialogo">
+        <button type="button" id="btn-cerrar-pdf-sin-texto" class="btn-secundario"
+          data-i18n="understood">Entendido</button>
+        <a id="enlace-scribe-ocr" class="btn-primario" href="https://scribeocr.com/" target="_blank"
+          rel="noopener" data-i18n="openScribeOcr">Abrir Scribe OCR</a>
+      </div>
+    </div>
+  </div>
+
   <!-- Menú de acciones de un libro o una carpeta: se despliega junto al botón «⋯» -->
   <div id="menu-libro" class="fondo-menu-libro oculto">
     <div class="menu-libro" role="menu" aria-labelledby="titulo-menu-libro">

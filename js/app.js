@@ -8,6 +8,7 @@ import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
 import { LectorVoz } from './tts.js';
+import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
   carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
@@ -24,6 +25,7 @@ const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este disposit
 const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
 const CLAVE_AVISO_INMERSIVO = 'lector.avisoInmersivo'; // solo de este dispositivo
+const CLAVE_PDF_SIN_TEXTO = 'lector.pdfSinTexto'; // por libro y dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
@@ -206,6 +208,51 @@ $('dialogo-contrasena-pdf').addEventListener('click', (evento) => {
   if (evento.target === $('dialogo-contrasena-pdf')) responderContrasenaPdf(null);
 });
 
+function cerrarAvisoPdfSinTexto() {
+  $('dialogo-pdf-sin-texto').classList.add('oculto');
+}
+
+function claveAvisoPdfSinTexto(libro) {
+  const ambito = libro.tipo === 'webdav' ? cliente?.base ?? 'webdav' : 'local';
+  return `${ambito}|${libro.id}`;
+}
+
+function pdfSinTextoConocido(libro) {
+  const estado = leerMapaLocal(CLAVE_PDF_SIN_TEXTO)[claveAvisoPdfSinTexto(libro)];
+  if (estado === true) return true; // compatibilidad con el primer formato interno
+  if (!estado?.sinTexto) return false;
+  return !libro.tamano || !estado.tamano || Number(libro.tamano) === Number(estado.tamano);
+}
+
+async function comprobarTextoPdf(libro, documento) {
+  const avisos = leerMapaLocal(CLAVE_PDF_SIN_TEXTO);
+  const clave = claveAvisoPdfSinTexto(libro);
+  const anterior = avisos[clave];
+  if (anterior?.sinTexto && anterior.tamano && Number(anterior.tamano) === Number(libro.tamano)) return;
+
+  const tieneTexto = await contieneTextoUtil(documento);
+  // La comprobación continúa en segundo plano: no debe avisar si entretanto
+  // se cerró el lector o se abrió otro libro.
+  if (libroActual?.id !== libro.id || lector.documento !== documento) return;
+  if (tieneTexto) {
+    if (anterior) {
+      delete avisos[clave];
+      localStorage.setItem(CLAVE_PDF_SIN_TEXTO, JSON.stringify(avisos));
+    }
+    return;
+  }
+  avisos[clave] = { sinTexto: true, tamano: libro.tamano ?? null };
+  localStorage.setItem(CLAVE_PDF_SIN_TEXTO, JSON.stringify(avisos));
+  $('dialogo-pdf-sin-texto').classList.remove('oculto');
+  requestAnimationFrame(() => $('btn-cerrar-pdf-sin-texto').focus());
+}
+
+$('btn-cerrar-pdf-sin-texto').addEventListener('click', cerrarAvisoPdfSinTexto);
+$('enlace-scribe-ocr').addEventListener('click', cerrarAvisoPdfSinTexto);
+$('dialogo-pdf-sin-texto').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-pdf-sin-texto')) cerrarAvisoPdfSinTexto();
+});
+
 const lector = new Lector({
   area: $('area-lectura'),
   contenedor: $('contenedor-pagina'),
@@ -281,9 +328,13 @@ function mostrarVista(nombre) {
 
 const ESTADO_VISTA = 'pagekeeperVista';
 
+function registrarVista(nombre) {
+  if (history.state?.[ESTADO_VISTA] === nombre) return;
+  history.pushState({ [ESTADO_VISTA]: nombre }, '');
+}
+
 function registrarVistaLector() {
-  if (history.state?.[ESTADO_VISTA] === 'lector') return;
-  history.pushState({ [ESTADO_VISTA]: 'lector' }, '');
+  registrarVista('lector');
 }
 
 function cerrarVistaLector() {
@@ -293,6 +344,7 @@ function cerrarVistaLector() {
   cerrarMenuLector();
   cerrarMenuNota();
   cerrarEditorNota();
+  cerrarAvisoPdfSinTexto();
   ocultarNotaEmergente();
   cerrarPanelAnotaciones();
   cancelarSeleccion();
@@ -315,11 +367,20 @@ function cerrarVistaLector() {
 // vuelve a la biblioteca; una entrada antigua del lector no intenta reabrir
 // datos que ya no están en memoria al avanzar de nuevo.
 window.addEventListener('popstate', () => {
+  const destino = history.state?.[ESTADO_VISTA] ?? 'biblioteca';
   if (libroActual || !$('vista-lector').classList.contains('oculto')) {
     cerrarVistaLector();
+    return;
   }
-  if (history.state?.[ESTADO_VISTA] === 'lector') {
+  if (destino === 'lector') {
     history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
+    mostrarVista('biblioteca');
+    cargarBiblioteca();
+  } else if (destino === 'ayuda') {
+    abrirAyuda(false);
+  } else {
+    mostrarVista('biblioteca');
+    cargarBiblioteca();
   }
 });
 
@@ -840,16 +901,20 @@ $('selector-restaurar-nube').addEventListener('change', (evento) => {
 
 // ───────────────────────── Ayuda ─────────────────────────
 
-function abrirAyuda() {
+function abrirAyuda(registrar = true) {
   const dominio = location.origin;
   for (const id of ['ayuda-dominio', 'ayuda-dominio-ia']) $(id).textContent = dominio;
   mostrarVista('ayuda');
+  if (registrar) registrarVista('ayuda');
 }
 
 $('btn-ayuda').addEventListener('click', abrirAyuda);
 $('btn-cerrar-ayuda').addEventListener('click', () => {
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  if (history.state?.[ESTADO_VISTA] === 'ayuda') history.back();
+  else {
+    mostrarVista('biblioteca');
+    cargarBiblioteca();
+  }
 });
 for (const id of ['enlace-ayuda-aviso', 'enlace-ayuda-ajustes']) {
   $(id).addEventListener('click', (evento) => {
@@ -1146,6 +1211,9 @@ async function pintarContinuarLeyendo({
       titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano,
       formato: formatoDe(nombre),
+      sinTexto: formatoDe(nombre) === 'pdf' && pdfSinTextoConocido({
+        tipo: reciente.id.startsWith('local:') ? 'local' : 'webdav', id: reciente.id, tamano,
+      }),
       alAbrir,
       mostrarTerminado: false,
     });
@@ -1244,6 +1312,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
   alSinConexion, sinConexion = false, copiaDesactualizada = false, mostrarTerminado = true,
+  sinTexto = false,
 }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
@@ -1289,7 +1358,12 @@ function crearFilaLibro({
   const nombreLibro = boton.querySelector('.nombre');
   nombreLibro.textContent = titulo;
   nombreLibro.title = titulo;
-  boton.querySelector('.formato').textContent = formato.toUpperCase();
+  const etiquetaFormato = boton.querySelector('.formato');
+  etiquetaFormato.textContent = sinTexto
+    ? `${formato.toUpperCase()} · ${t('pdfNoTextBadge')}`
+    : formato.toUpperCase();
+  etiquetaFormato.classList.toggle('sin-texto', sinTexto);
+  if (sinTexto) etiquetaFormato.title = t('pdfNoTextTitle');
   const estadoSinConexion = boton.querySelector('.estado-sin-conexion');
   if (sinConexion) {
     estadoSinConexion.textContent = t(copiaDesactualizada ? 'offlineOutdated' : 'availableOffline');
@@ -1679,6 +1753,9 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
+      sinTexto: formatoDe(libro.nombre) === 'pdf' && pdfSinTextoConocido({
+        tipo: 'webdav', id, tamano: libro.tamano,
+      }),
       alAbrir: () => abrirLibroRemoto(id, libro),
       alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
       alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
@@ -1898,6 +1975,9 @@ async function cargarLibrosLocales() {
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
+      sinTexto: formatoDe(libro.nombre) === 'pdf' && pdfSinTextoConocido({
+        tipo: 'local', id: libro.id, tamano: libro.tamano,
+      }),
       alAbrir: () => abrirLibroLocal(libro),
       // Subir a la nube: solo si hay servidor configurado.
       alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
@@ -2224,6 +2304,7 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
       titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
       tipo: 'webdav',
       formato: formatoDe(nombre),
+      tamano: datos.byteLength,
     });
     if (desdeCopia) avisar(t('openedOfflineCopy'), 5000);
     else if (falloActualizacion) avisar(t('offlineUpdateFailed'), 5000);
@@ -2246,6 +2327,7 @@ async function abrirLibroLocal(libro) {
       tipo: 'local',
       nombre: libro.nombre,
       formato: formatoDe(libro.nombre),
+      tamano: datos.byteLength,
     });
   } catch (error) {
     if (error.code !== 'PDF_PASSWORD_CANCELLED') {
@@ -2277,6 +2359,7 @@ async function guardarArchivoLocal(archivo, abrirDespues = false) {
       tipo: 'local',
       nombre: archivo.name,
       formato: formatoDe(archivo.name),
+      tamano: datos.byteLength,
     });
   }
 }
@@ -2492,6 +2575,7 @@ async function abrirEnLector(datos, libro) {
       lector.doble = dobleGuardado();
       await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado(), ajustePdfGuardado());
       aplicarAparienciaAjustePdf();
+      setTimeout(() => comprobarTextoPdf(libro, lector.documento).catch(() => null), 800);
       if (avance && avance.pagina > 1) {
         avisar(t('continuingPage', { page: avance.pagina }));
       }
@@ -3856,6 +3940,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('dialogo-pdf-sin-texto').classList.contains('oculto')) {
+    cerrarAvisoPdfSinTexto();
+    return;
+  }
   if (!$('menu-nota-contextual').classList.contains('oculto')) {
     cerrarMenuNota();
     return;

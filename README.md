@@ -82,6 +82,9 @@ libros y sincronizar el progreso de lectura.
   su página y los externos se abren en otra pestaña.
 - 🔑 **PDF protegidos**: solicita la contraseña al abrir un PDF cifrado y la
   utiliza solo durante esa apertura, sin guardarla.
+- 🖨️ **PDF escaneados**: si un documento no contiene texto seleccionable,
+  lo marca en la biblioteca, avisa una vez y explica cómo preparar una copia
+  con OCR en una herramienta externa para descargarla y volver a subirla.
 - 🔎 **Dos buscadores**: filtra la biblioteca por título, autor, formato y
   metadatos, y encuentra palabras o frases dentro del PDF o EPUB con salto
   al punto exacto del resultado, que queda resaltado unos segundos.
