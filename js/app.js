@@ -46,6 +46,7 @@ function colorDeAnotacion(anotacion) {
 }
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_AJUSTE_PDF = 'lector.ajustePdf'; // ancho, página o zoom personalizado
+const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
@@ -65,7 +66,7 @@ const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 const CLAVES_PREFERENCIAS_COPIA = [
   'lector.idioma', CLAVE_NOCHE, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
-  CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
+  CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA, CLAVE_PLEGADA_LOCAL,
 ];
@@ -145,6 +146,10 @@ function ajustePdfGuardado() {
 function letraEpubGuardada() {
   const valor = parseInt(localStorage.getItem(CLAVE_LETRA_EPUB), 10);
   return valor >= 60 && valor <= 300 ? valor : 100;
+}
+
+function recorteGuardado() {
+  return localStorage.getItem(CLAVE_RECORTE_PDF) === '1';
 }
 
 function dobleGuardado() {
@@ -2548,6 +2553,7 @@ async function abrirEnLector(datos, libro) {
   $('control-texto').classList.toggle('oculto', !esEpub);
   $('btn-rotar').classList.toggle('oculto', esEpub);
   $('btn-pagina-completa').classList.toggle('oculto', esEpub);
+  $('btn-recorte').classList.toggle('oculto', esEpub);
   aplicarAparienciaDoble();
   reiniciarRitmo();
   detenerLecturaVoz();
@@ -2590,7 +2596,8 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.cerrar();
       lector.rotacion = rotacionPdfDe(libro.id);
       lector.doble = dobleGuardado();
-      await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado(), ajustePdfGuardado());
+      await lector.abrir(datos, avance?.pagina ?? 1, modoActual(), zoomPdfGuardado(),
+        ajustePdfGuardado(), recorteGuardado());
       aplicarAparienciaAjustePdf();
       setTimeout(() => comprobarTextoPdf(libro, lector.documento).catch(() => null), 800);
       if (avance && avance.pagina > 1) {
@@ -2891,6 +2898,7 @@ function actualizarMenuLector() {
   $('fila-menu-rotar').classList.toggle('oculto', $('btn-rotar').classList.contains('oculto'));
   $('fila-menu-doble').classList.toggle('oculto', $('btn-doble').classList.contains('oculto'));
   $('menu-pagina-completa').classList.toggle('oculto', $('btn-pagina-completa').classList.contains('oculto'));
+  $('fila-menu-recorte').classList.toggle('oculto', $('btn-recorte').classList.contains('oculto'));
 
   const modo = modoActual();
   $('menu-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text') +
@@ -2953,6 +2961,7 @@ for (const [idMenu, idOriginal] of [
   ['menu-zoom-menos', 'btn-zoom-menos'],
   ['menu-ancho-auto', 'btn-ancho-auto'],
   ['menu-pagina-completa', 'btn-pagina-completa'],
+  ['menu-recorte', 'btn-recorte'],
   ['menu-zoom-mas', 'btn-zoom-mas'],
   ['menu-noche', 'btn-noche'],
 ]) enlazarAccionMenu(idMenu, idOriginal);
@@ -4038,6 +4047,7 @@ function aplicarAparienciaAjustePdf() {
   for (const id of ['btn-pagina-completa', 'menu-pagina-completa']) {
     $(id).setAttribute('aria-pressed', String(esPdf && lector.ajuste === 'pagina'));
   }
+  $('btn-recorte').setAttribute('aria-pressed', String(esPdf && lector.recorte));
 }
 
 // Ajustes automáticos del PDF. En EPUB el control de ancho conserva su
@@ -4052,6 +4062,22 @@ $('btn-ancho-auto').addEventListener('click', async () => {
     localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
     aplicarAparienciaAjustePdf();
   }
+});
+
+// Recorta los márgenes en blanco del PDF: analiza el documento la primera vez
+// y avisa si no hay nada que recortar, para que el botón no parezca roto.
+$('btn-recorte').addEventListener('click', async () => {
+  if (epubAbierto()) return;
+  const activar = !lector.recorte;
+  $('btn-recorte').disabled = true;
+  try {
+    await lector.cambiarRecorte(activar);
+  } finally {
+    $('btn-recorte').disabled = false;
+  }
+  localStorage.setItem(CLAVE_RECORTE_PDF, lector.recorte ? '1' : '0');
+  aplicarAparienciaAjustePdf();
+  if (activar && !lector.recorteComun) avisar(t('noMarginsToCrop'));
 });
 
 $('btn-pagina-completa').addEventListener('click', async () => {

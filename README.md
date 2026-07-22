@@ -106,6 +106,11 @@ libros y sincronizar el progreso de lectura.
   adapta si aceleras o si llegas a un tramo más denso.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
+- ✂️ **Recortar los márgenes**: el botón ✂ analiza el documento, detecta el
+  blanco que rodea al texto y lo quita, de modo que en móvil la letra se ve
+  bastante más grande. Cada página se comprueba por separado antes de
+  pintarla, así que las portadas y las láminas a toda página siguen viéndose
+  enteras. La preferencia se recuerda en cada dispositivo.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o

@@ -8,6 +8,9 @@
 
 import * as pdfjs from '../vendor/pdf.min.js';
 import { posicionVerticalLibre } from './posicion-notas.js';
+import {
+  cajaDeContenido, cajaRepresentativa, unir, conAire, ajustarRecorte, paginasAMuestrear,
+} from './recorte.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
@@ -23,6 +26,9 @@ const MARGEN_LIBERACION = 1000;
 // vista doble), las vecinas adelantadas y unas pocas recién visitadas, para
 // que ir y volver no vuelva a pintar nada.
 const MAXIMO_PAGINAS_PREPARADAS = 8;
+// Ancho al que se dibuja cada página para buscarle los márgenes: basta con
+// distinguir dónde hay tinta, y así analizar el documento cuesta muy poco.
+const ANCHO_ANALISIS = 200;
 
 export class Lector {
   constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
@@ -47,6 +53,9 @@ export class Lector {
     this.modo = 'pagina';
     this.rotacion = 0; // giro extra en grados (0, 90, 180, 270)
     this.doble = false; // dos páginas juntas (solo en modo página)
+    this.recorte = false;         // recortar los márgenes en blanco
+    this.recorteComun = null;     // caja típica del documento (fracciones de página)
+    this.recortesPagina = new Map(); // número → su caja, unida con la común
 
     this.envoltorios = []; // página(s) visibles: canvas + capas (modo página)
     this.paginas = [];     // envoltorios por número de página (modo continuo)
@@ -111,15 +120,82 @@ export class Lector {
 
   // Escala base para encajar la página. En el ajuste completo se toma la
   // menor de las escalas disponibles en ambos ejes, de modo que nunca haga
-  // falta desplazar la página para verla entera.
-  escalaPara(pagina) {
+  // falta desplazar la página para verla entera. Con los márgenes recortados
+  // lo que tiene que encajar es la parte visible, no la página entera.
+  escalaPara(pagina, recorte = this.recorteDe(pagina.pageNumber)) {
     const rotacion = this.rotacionDe(pagina);
     const base = pagina.getViewport({ scale: 1, rotation: rotacion });
-    const escalaAncho = this.anchoPagina() / base.width;
+    const visible = recorte ?? { ancho: 1, alto: 1 };
+    const escalaAncho = this.anchoPagina() / (base.width * visible.ancho);
     if (this.ajuste !== 'pagina') return { base, escala: escalaAncho * this.zoom };
     const altoDisponible = Math.max(1, this.area.clientHeight - 16);
-    const escalaPagina = Math.min(escalaAncho, altoDisponible / base.height);
+    const escalaPagina = Math.min(escalaAncho, altoDisponible / (base.height * visible.alto));
     return { base, escala: escalaPagina * this.zoom };
+  }
+
+  // Recorte ya conocido de una página, o null si se ve entera. Es lo que usan
+  // las capas y las anotaciones, que se montan cuando la página ya está pintada.
+  recorteDe(numero) {
+    if (!this.recorte) return null;
+    return this.recortesPagina.get(numero) ?? this.recorteComun ?? null;
+  }
+
+  // Recorte definitivo de una página: la caja típica del documento ampliada
+  // con lo que esa página tenga fuera (una lámina a sangre, una tabla ancha),
+  // de modo que el recorte nunca se come nada.
+  async recorteDePagina(pagina) {
+    if (!this.recorte) return null;
+    const numero = pagina.pageNumber;
+    if (this.recortesPagina.has(numero)) return this.recortesPagina.get(numero);
+    const propia = await this.cajaDe(pagina).catch(() => null);
+    // Aquí no se aplican las reglas de ajustarRecorte: si esta página ocupa
+    // toda la hoja, lo correcto es no recortarla, no volver a la caja común.
+    const recorte = unir([this.recorteComun, conAire(propia)]) ?? this.recorteComun;
+    this.recortesPagina.set(numero, recorte);
+    return recorte;
+  }
+
+  // Dibuja la página muy pequeña sobre blanco y devuelve dónde tiene contenido.
+  async cajaDe(pagina) {
+    const rotacion = this.rotacionDe(pagina);
+    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
+    const vista = pagina.getViewport({ scale: ANCHO_ANALISIS / base.width, rotation: rotacion });
+    const lienzo = document.createElement('canvas');
+    lienzo.width = Math.max(1, Math.floor(vista.width));
+    lienzo.height = Math.max(1, Math.floor(vista.height));
+    const contexto = lienzo.getContext('2d', { willReadFrequently: true });
+    // El PDF puede no pintar fondo: el blanco lo pone el lector.
+    contexto.fillStyle = '#ffffff';
+    contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+    await pagina.render({ canvasContext: contexto, viewport: vista }).promise;
+    const imagen = contexto.getImageData(0, 0, lienzo.width, lienzo.height);
+    const caja = cajaDeContenido(imagen.data, lienzo.width, lienzo.height);
+    lienzo.width = 0;
+    lienzo.height = 0;
+    return caja;
+  }
+
+  // Analiza unas cuantas páginas repartidas por el documento y se queda con el
+  // rectángulo que contiene el contenido de todas ellas: así todas las páginas
+  // se recortan igual y la caja de lectura no baila de una a otra.
+  async calcularRecorte() {
+    if (!this.documento) return null;
+    const cajas = [];
+    for (const numero of paginasAMuestrear(this.totalPaginas)) {
+      try {
+        cajas.push(await this.cajaDe(await this.documento.getPage(numero)));
+      } catch { /* una página ilegible no debe impedir el recorte */ }
+    }
+    return ajustarRecorte(cajaRepresentativa(cajas));
+  }
+
+  async cambiarRecorte(activo) {
+    activo = Boolean(activo);
+    if (activo === this.recorte) return;
+    this.recorte = activo;
+    if (!this.documento) return;
+    if (activo && !this.recorteComun) this.recorteComun = await this.calcularRecorte();
+    await this.montar();
   }
 
   // Giro total de una página: el que trae el propio PDF más el del usuario.
@@ -127,7 +203,8 @@ export class Lector {
     return (pagina.rotate + this.rotacion) % 360;
   }
 
-  async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1, ajuste = 'ancho') {
+  async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1, ajuste = 'ancho',
+    recorte = false) {
     if (this.documento) { try { await this.documento.destroy(); } catch { /* ignorar */ } }
     const tarea = pdfjs.getDocument({ data: datos });
     let cancelada = false;
@@ -154,6 +231,9 @@ export class Lector {
     this.zoom = Math.min(4, Math.max(0.1, zoom));
     this.ajuste = ['ancho', 'pagina', 'personalizado'].includes(ajuste) ? ajuste : 'ancho';
     this.pagina = Math.min(Math.max(1, paginaInicial), this.documento.numPages);
+    this.recorte = Boolean(recorte);
+    this.recorteComun = this.recorte ? await this.calcularRecorte() : null;
+    this.recortesPagina.clear();
     await this.montar();
   }
 
@@ -170,8 +250,12 @@ export class Lector {
       const pagina = await this.documento.getPage(this.pagina);
       const rotacion = this.rotacionDe(pagina);
       const base = pagina.getViewport({ scale: 1, rotation: rotacion });
-      const escalaAncho = this.anchoPagina() / base.width;
-      const escalaPagina = Math.min(escalaAncho, Math.max(1, this.area.clientHeight - 16) / base.height);
+      const visible = this.recorteDe(this.pagina) ?? { ancho: 1, alto: 1 };
+      const escalaAncho = this.anchoPagina() / (base.width * visible.ancho);
+      const escalaPagina = Math.min(
+        escalaAncho,
+        Math.max(1, this.area.clientHeight - 16) / (base.height * visible.alto),
+      );
       this.zoom *= escalaPagina / escalaAncho;
     }
     this.ajuste = 'personalizado';
@@ -188,7 +272,11 @@ export class Lector {
 
   async rotar() {
     this.rotacion = (this.rotacion + 90) % 360;
-    if (this.documento) await this.montar();
+    if (!this.documento) return;
+    // El recorte se mide sobre la página ya girada: hay que rehacerlo.
+    this.recortesPagina.clear();
+    if (this.recorte) this.recorteComun = await this.calcularRecorte();
+    await this.montar();
   }
 
   async cambiarDoble(activo) {
@@ -428,7 +516,7 @@ export class Lector {
           if (n + i > this.totalPaginas) { envoltorio.classList.add('oculto'); continue; }
           envoltorio.classList.remove('oculto');
           envoltorio.dataset.num = String(n + i);
-          const { pagina, vista, lienzo } = await this.preparar(n + i);
+          const { pagina, vista, lienzo, desplazamiento } = await this.preparar(n + i);
           const anterior = envoltorio.querySelector('canvas');
           if (anterior !== lienzo) {
             // Las capas de la página que se va no deben quedar sobre la nueva.
@@ -437,7 +525,7 @@ export class Lector {
             else envoltorio.prepend(lienzo);
           }
           // Las capas solo se montan para el último render solicitado.
-          if (this.pendiente === null) await this.montarCapas(envoltorio, pagina, vista);
+          if (this.pendiente === null) await this.montarCapas(envoltorio, pagina, vista, desplazamiento);
         }
         if (this.pendiente === null) this.prepararVecinas(n);
       })();
@@ -453,7 +541,8 @@ export class Lector {
     let preparada = this.preparadas.get(numero);
     if (!preparada) {
       const lienzo = document.createElement('canvas');
-      preparada = this.pintar(numero, lienzo).then(({ pagina, vista }) => ({ pagina, vista, lienzo }));
+      preparada = this.pintar(numero, lienzo)
+        .then(({ pagina, vista, desplazamiento }) => ({ pagina, vista, lienzo, desplazamiento }));
       preparada.catch(() => this.preparadas.delete(numero));
       this.preparadas.set(numero, preparada);
     }
@@ -488,10 +577,13 @@ export class Lector {
     envoltorio.dataset.estado = 'render';
     const lienzo = document.createElement('canvas');
     try {
-      const { pagina, vista } = await this.pintar(numero, lienzo);
-      envoltorio.style.height = ''; // ajusta al alto real de la página
+      const { pagina, vista, desplazamiento } = await this.pintar(numero, lienzo);
+      // El hueco reservado se estimó con la primera página: al pintar la real
+      // manda su tamaño (importa con páginas desiguales y con el recorte).
+      envoltorio.style.height = '';
+      envoltorio.style.width = '';
       envoltorio.replaceChildren(lienzo);
-      await this.montarCapas(envoltorio, pagina, vista);
+      await this.montarCapas(envoltorio, pagina, vista, desplazamiento);
       envoltorio.dataset.estado = 'listo';
       this.podarPaginas();
     } catch {
@@ -524,6 +616,7 @@ export class Lector {
   liberarPagina(numero) {
     const envoltorio = this.paginas[numero];
     if (envoltorio?.dataset.estado !== 'listo') return;
+    envoltorio.style.width = `${envoltorio.offsetWidth}px`;
     envoltorio.style.height = `${envoltorio.offsetHeight}px`;
     // Vaciar el canvas antes de descartarlo libera su memoria de inmediato en
     // los navegadores que no la devuelven hasta pasar el recolector.
@@ -536,23 +629,32 @@ export class Lector {
   async pintar(numero, lienzo) {
     const pagina = await this.documento.getPage(numero);
     const rotacion = this.rotacionDe(pagina);
-    const { escala } = this.escalaPara(pagina);
+    const recorte = await this.recorteDePagina(pagina);
+    const { escala } = this.escalaPara(pagina, recorte);
     const vista = pagina.getViewport({ scale: escala, rotation: rotacion });
 
+    // Con los márgenes recortados el canvas es solo el trozo visible y la
+    // página se dibuja desplazada, de modo que el sobrante queda fuera.
+    const desplazamiento = recorte
+      ? { x: vista.width * recorte.x, y: vista.height * recorte.y }
+      : { x: 0, y: 0 };
+    const ancho = recorte ? vista.width * recorte.ancho : vista.width;
+    const alto = recorte ? vista.height * recorte.alto : vista.height;
+
     const dpr = window.devicePixelRatio || 1;
-    lienzo.width = Math.floor(vista.width * dpr);
-    lienzo.height = Math.floor(vista.height * dpr);
+    lienzo.width = Math.floor(ancho * dpr);
+    lienzo.height = Math.floor(alto * dpr);
     // Solo se fija el ancho: el alto sigue a la proporción intrínseca del
     // canvas, así ningún límite de CSS puede deformar la página.
-    lienzo.style.width = `${Math.floor(vista.width)}px`;
+    lienzo.style.width = `${Math.floor(ancho)}px`;
     lienzo.style.height = 'auto';
 
     await pagina.render({
       canvasContext: lienzo.getContext('2d'),
       viewport: vista,
-      transform: dpr !== 1 ? [dpr, 0, 0, dpr, 0, 0] : null,
+      transform: [dpr, 0, 0, dpr, -desplazamiento.x * dpr, -desplazamiento.y * dpr],
     }).promise;
-    return { pagina, vista };
+    return { pagina, vista, desplazamiento };
   }
 
   // ─────────────── Capas de texto y enlaces sobre el canvas ───────────────
@@ -560,12 +662,13 @@ export class Lector {
   // Superpone al canvas el texto seleccionable (TextLayer de PDF.js) y los
   // enlaces del PDF. Los tamaños de la capa de texto dependen de la variable
   // CSS --scale-factor, que debe reflejar la escala del viewport.
-  async montarCapas(envoltorio, pagina, vista) {
+  async montarCapas(envoltorio, pagina, vista, desplazamiento = { x: 0, y: 0 }) {
     for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces, .capa-resaltados')) capa.remove();
     envoltorio.style.setProperty('--scale-factor', String(vista.scale));
 
     const capaTexto = document.createElement('div');
     capaTexto.className = 'capa-texto';
+    this.colocarCapa(capaTexto, vista, desplazamiento);
     envoltorio.append(capaTexto);
     try {
       await new pdfjs.TextLayer({
@@ -577,7 +680,18 @@ export class Lector {
       capaTexto.remove(); // sin capa de texto la página sigue siendo legible
     }
     this.montarResaltados(envoltorio, pagina.pageNumber);
-    await this.montarEnlaces(envoltorio, pagina, vista);
+    await this.montarEnlaces(envoltorio, pagina, vista, desplazamiento);
+  }
+
+  // El texto y los enlaces vienen en coordenadas de la página entera. Cuando
+  // está recortada, su capa se coloca donde caería la esquina de la página,
+  // fuera del envoltorio, para que todo siga cuadrando con el canvas.
+  colocarCapa(capa, vista, desplazamiento) {
+    if (!desplazamiento.x && !desplazamiento.y) return;
+    capa.style.left = `${-desplazamiento.x}px`;
+    capa.style.top = `${-desplazamiento.y}px`;
+    capa.style.width = `${vista.width}px`;
+    capa.style.height = `${vista.height}px`;
   }
 
   mostrarAnotaciones(anotaciones) {
@@ -595,15 +709,20 @@ export class Lector {
   }
 
   montarResaltados(envoltorio, numero) {
+    const recorte = this.recorteDe(numero);
     const entradas = this.anotaciones.flatMap((anotacion) =>
       (anotacion.paginas ?? []).filter((pagina) => pagina.pagina === numero)
-        .map((pagina) => ({ anotacion, pagina })));
+        .map((pagina) => ({
+          anotacion,
+          pagina,
+          rectangulos: (pagina.rectangulos ?? []).map((rect) => enElRecorte(rect, recorte)),
+        })));
     if (!entradas.length) return;
     const capa = document.createElement('div');
     capa.className = 'capa-resaltados';
     const posicionesOcupadas = [];
-    for (const { anotacion, pagina } of entradas) {
-      for (const rectangulo of pagina.rectangulos ?? []) {
+    for (const { anotacion, rectangulos } of entradas) {
+      for (const rectangulo of rectangulos) {
         const marca = document.createElement('span');
         marca.className = anotacion.nota ? 'nota' : 'resaltado';
         if (anotacion.color) marca.dataset.color = anotacion.color;
@@ -614,7 +733,7 @@ export class Lector {
         marca.style.height = `${rectangulo.alto * 100}%`;
         capa.append(marca);
       }
-      if (anotacion.nota && pagina.rectangulos?.length) {
+      if (anotacion.nota && rectangulos.length) {
         const boton = document.createElement('button');
         boton.type = 'button';
         boton.className = 'boton-nota-margen';
@@ -622,7 +741,7 @@ export class Lector {
         boton.title = this.etiquetaOpcionesNota?.() ?? 'Opciones de la nota';
         boton.setAttribute('aria-label', boton.title);
         const posicionVertical = posicionVerticalLibre(
-          pagina.rectangulos[0].y * envoltorio.clientHeight,
+          rectangulos[0].y * envoltorio.clientHeight,
           posicionesOcupadas,
           envoltorio.clientHeight,
         );
@@ -672,6 +791,9 @@ export class Lector {
     if (!nodo || !this.contenedor.contains(nodo)) return;
 
     const rectangulos = [...rango.getClientRects()].filter((r) => r.width > 1 && r.height > 1);
+    // Los resaltados se guardan siempre respecto a la página entera, para que
+    // sigan donde toca con los márgenes recortados o sin recortar (y en otro
+    // dispositivo, donde puede estar al revés).
     const paginas = [];
     for (const envoltorio of this.contenedor.querySelectorAll('.pagina-pdf')) {
       const base = envoltorio.getBoundingClientRect();
@@ -682,12 +804,12 @@ export class Lector {
         const arriba = Math.max(rect.top, base.top);
         const abajo = Math.min(rect.bottom, base.bottom);
         if (derecha <= izquierda || abajo <= arriba) continue;
-        enPagina.push({
+        enPagina.push(enLaPagina({
           x: (izquierda - base.left) / base.width,
           y: (arriba - base.top) / base.height,
           ancho: (derecha - izquierda) / base.width,
           alto: (abajo - arriba) / base.height,
-        });
+        }, this.recorteDe(Number(envoltorio.dataset.num) || this.pagina)));
       }
       if (enPagina.length) paginas.push({
         pagina: Number(envoltorio.dataset.num) || this.pagina,
@@ -699,7 +821,7 @@ export class Lector {
 
   // Vuelve clicables los enlaces del PDF: los externos abren en otra pestaña
   // y los internos saltan a su página a través de alPulsarEnlaceInterno.
-  async montarEnlaces(envoltorio, pagina, vista) {
+  async montarEnlaces(envoltorio, pagina, vista, desplazamiento = { x: 0, y: 0 }) {
     let anotaciones = [];
     try {
       anotaciones = await pagina.getAnnotations({ intent: 'display' });
@@ -712,6 +834,7 @@ export class Lector {
 
     const capa = document.createElement('div');
     capa.className = 'capa-enlaces';
+    this.colocarCapa(capa, vista, desplazamiento);
     for (const anotacion of enlaces) {
       const [x1, y1, x2, y2] = pdfjs.Util.normalizeRect(
         vista.convertToViewportRectangle(anotacion.rect));
@@ -754,6 +877,29 @@ export class Lector {
       this.alCambiarPagina?.(this.pagina, this.totalPaginas);
     }
   }
+}
+
+// Un rectángulo guardado (fracciones de la página entera) pasa a fracciones
+// de lo que se ve, que es lo que ocupa el envoltorio cuando hay recorte.
+function enElRecorte(rectangulo, recorte) {
+  if (!recorte) return rectangulo;
+  return {
+    x: (rectangulo.x - recorte.x) / recorte.ancho,
+    y: (rectangulo.y - recorte.y) / recorte.alto,
+    ancho: rectangulo.ancho / recorte.ancho,
+    alto: rectangulo.alto / recorte.alto,
+  };
+}
+
+// El camino inverso: de lo que se ve a la página entera.
+function enLaPagina(rectangulo, recorte) {
+  if (!recorte) return rectangulo;
+  return {
+    x: recorte.x + rectangulo.x * recorte.ancho,
+    y: recorte.y + rectangulo.y * recorte.alto,
+    ancho: rectangulo.ancho * recorte.ancho,
+    alto: rectangulo.alto * recorte.alto,
+  };
 }
 
 function fragmentoBusqueda(texto, posicion, longitud) {

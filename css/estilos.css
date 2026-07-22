@@ -647,7 +647,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    Centrado con margin:auto: si la página es más ancha que la vista, los
    márgenes se anulan y el scroll horizontal alcanza toda la página. */
 .pagina-pdf {
-  position: relative; margin: 0 auto; flex: none;
+  /* overflow: clip recorta el texto y los enlaces de los márgenes cuando la
+     página se muestra recortada; sus capas se salen del recuadro a propósito. */
+  position: relative; margin: 0 auto; flex: none; overflow: clip;
   background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px;
 }
 /* En modo página las páginas (una o dos, según la vista doble) van dentro
