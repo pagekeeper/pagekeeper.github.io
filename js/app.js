@@ -10,6 +10,10 @@ import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import {
+  muestraValida, acumularRitmo, minutosRestantes,
+  SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
+} from './ritmo.js';
+import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
   carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
   validarConfigNube,
@@ -2755,11 +2759,10 @@ function anotarRitmo(unidad) {
   if (marca === null || !libroActual) return;
   const segundos = (ahora - marca) / 1000;
   const avance = unidad - anterior;
-  if (segundos < 3 || segundos > 300 || avance < 0 || avance > 4) return;
+  if (!muestraValida(segundos, avance)) return;
   const mapa = leerMapaLocal(CLAVE_RITMO);
-  const entrada = mapa[libroActual.id] ?? { s: 0, u: 0 };
-  entrada.s += segundos;
-  entrada.u += avance;
+  const semivida = epubAbierto() ? SEMIVIDA_PORCENTAJE : SEMIVIDA_PAGINAS;
+  const entrada = acumularRitmo(mapa[libroActual.id], segundos, avance, semivida);
   entrada.t = ahora;
   mapa[libroActual.id] = entrada;
   // Se conservan solo los 100 libros con lectura más reciente.
@@ -2774,13 +2777,13 @@ function anotarRitmo(unidad) {
 function tiempoRestanteEstimado() {
   if (!libroActual) return '';
   const entrada = leerMapaLocal(CLAVE_RITMO)[libroActual.id];
-  // Hasta acumular unos minutos de lectura real la estimación no es fiable.
-  if (!entrada || entrada.u < 3 || entrada.s < 120) return '';
   const restante = epubAbierto()
     ? (lectorEpub.conLocalizaciones ? Math.max(0, 100 - lectorEpub.porcentaje) : null)
     : Math.max(0, lector.totalPaginas - lector.pagina);
   if (restante === null) return '';
-  const minutos = Math.round(((entrada.s / entrada.u) * restante) / 60);
+  // Hasta acumular unos minutos de lectura real la estimación no es fiable.
+  const minutos = minutosRestantes(entrada, restante);
+  if (minutos === null) return '';
   if (minutos < 1) return t('timeLessMinute');
   if (minutos >= 60) return t('timeHoursMinutes', { h: Math.floor(minutos / 60), m: minutos % 60 });
   return t('timeMinutes', { m: minutos });

@@ -101,7 +101,9 @@ libros y sincronizar el progreso de lectura.
   torcidos o apaisados. El giro se recuerda por libro en cada dispositivo.
 - ⏱️ **Tiempo restante estimado**: tras unos minutos de lectura, la barra
   muestra cuánto falta para terminar el libro según tu ritmo real de
-  lectura (medido y guardado solo en el dispositivo).
+  lectura (medido y guardado solo en el dispositivo). La estimación sigue el
+  ritmo reciente: lo leído hace mucho va pesando cada vez menos, así que se
+  adapta si aceleras o si llegas a un tramo más denso.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
