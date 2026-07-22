@@ -2,11 +2,12 @@
 //
 // Los PDF abiertos desde el dispositivo se guardan aquí para que aparezcan
 // en la biblioteca y puedan reabrirse sin volver a elegir el archivo.
-// Se usan siete almacenes: los cuatro originales, dos para las copias de
-// libros WebDAV y uno para las anotaciones locales y su cola de sincronización.
+// Se usan ocho almacenes: los cuatro originales, dos para las copias de
+// libros WebDAV, uno para las anotaciones locales y su cola de sincronización
+// y otro para las localizaciones ya calculadas de cada EPUB.
 
 const NOMBRE_BD = 'lector-pdf';
-const VERSION = 5;
+const VERSION = 6;
 
 function abrirBd() {
   return new Promise((resolver, rechazar) => {
@@ -26,6 +27,7 @@ function abrirBd() {
         const anotaciones = bd.createObjectStore('anotaciones', { keyPath: ['ambito', 'libro'] });
         anotaciones.createIndex('ambito', 'ambito');
       }
+      if (!bd.objectStoreNames.contains('localizaciones')) bd.createObjectStore('localizaciones');
     };
     solicitud.onsuccess = () => resolver(solicitud.result);
     solicitud.onerror = () => rechazar(solicitud.error);
@@ -157,11 +159,14 @@ export async function obtenerDatos(id) {
 export async function borrarLibro(id) {
   const bd = await abrirBd();
   try {
-    const tx = bd.transaction(['libros', 'datos', 'portadas', 'metadatos'], 'readwrite');
+    const tx = bd.transaction(
+      ['libros', 'datos', 'portadas', 'metadatos', 'localizaciones'], 'readwrite',
+    );
     tx.objectStore('libros').delete(id);
     tx.objectStore('datos').delete(id);
     tx.objectStore('portadas').delete(id);
     tx.objectStore('metadatos').delete(id);
+    tx.objectStore('localizaciones').delete(`local|${id}`);
     await new Promise((resolver, rechazar) => {
       tx.oncomplete = resolver;
       tx.onerror = () => rechazar(tx.error);
@@ -237,6 +242,36 @@ export async function borrarAnotacionesPorPrefijo(ambito, prefijo) {
       if (documento.libro.startsWith(prefijo)) destino.delete([ambito, documento.libro]);
     }
     await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
+// ── Localizaciones de los EPUB ──
+//
+// Repartir un EPUB en 1000 puntos (lo que da el porcentaje del libro y el
+// salto por porcentaje) cuesta segundos en libros grandes. El resultado se
+// guarda por libro junto al tamaño del archivo: si el archivo cambia, el
+// tamaño ya no coincide y se vuelve a calcular.
+
+export async function guardarLocalizaciones(clave, tamano, datos) {
+  const bd = await abrirBd();
+  try {
+    await esperar(bd.transaction('localizaciones', 'readwrite')
+      .objectStore('localizaciones').put({ tamano, datos }, clave));
+  } finally {
+    bd.close();
+  }
+}
+
+export async function obtenerLocalizaciones(clave, tamano) {
+  const bd = await abrirBd();
+  try {
+    const registro = await esperar(
+      bd.transaction('localizaciones').objectStore('localizaciones').get(clave),
+    );
+    if (!registro || (tamano && registro.tamano !== tamano)) return null;
+    return registro.datos;
   } finally {
     bd.close();
   }
@@ -366,9 +401,10 @@ export async function listarCopiasRemotas(servidor) {
 export async function borrarCopiaRemota(servidor, id) {
   const bd = await abrirBd();
   try {
-    const tx = bd.transaction(['copias-remotas', 'datos-remotos'], 'readwrite');
+    const tx = bd.transaction(['copias-remotas', 'datos-remotos', 'localizaciones'], 'readwrite');
     tx.objectStore('copias-remotas').delete([servidor, id]);
     tx.objectStore('datos-remotos').delete([servidor, id]);
+    tx.objectStore('localizaciones').delete(`${servidor}|${id}`);
     await esperarTransaccion(tx);
   } finally {
     bd.close();

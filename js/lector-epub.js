@@ -178,7 +178,11 @@ export class LectorEpub {
     this.notaBajoPuntero = null;
   }
 
-  async abrir(datos, cfiInicial = null, modo = 'pagina') {
+  // 'localizaciones' es el reparto del libro calculado en una sesión anterior
+  // (lo que devolvió alGuardarLocalizaciones); reutilizarlo evita repetir un
+  // cálculo de varios segundos cada vez que se abre el libro.
+  async abrir(datos, cfiInicial = null, modo = 'pagina',
+    { localizaciones = null, alGuardarLocalizaciones = null } = {}) {
     await cargarLibrerias();
     this.cerrar();
     this.modo = modo;
@@ -189,14 +193,25 @@ export class LectorEpub {
     this.libro = window.ePub(datos.buffer ?? datos);
     await this.libro.ready;
     this.libro.spine.hooks.content.register(sanitizarDocumentoEpub);
+    if (localizaciones) {
+      try {
+        const cargadas = this.libro.locations.load(localizaciones);
+        this.conLocalizaciones = Array.isArray(cargadas) && cargadas.length > 1;
+      } catch { /* caché ilegible: se recalcula abajo */ }
+    }
     await this.montar(cfiInicial);
 
     // Las localizaciones permiten calcular el % del libro; se generan en
     // segundo plano porque en libros grandes tardan unos segundos.
+    if (this.conLocalizaciones) {
+      this.notificar();
+      return;
+    }
     this.libro.locations.generate(1000).then(() => {
       if (!this.libro) return;
       this.conLocalizaciones = true;
       this.notificar();
+      try { alGuardarLocalizaciones?.(this.libro.locations.save()); } catch { /* sin caché */ }
     }).catch(() => null);
   }
 

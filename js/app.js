@@ -212,13 +212,15 @@ function cerrarAvisoPdfSinTexto() {
   $('dialogo-pdf-sin-texto').classList.add('oculto');
 }
 
-function claveAvisoPdfSinTexto(libro) {
+// Identifica un libro incluyendo de dónde viene: el mismo nombre puede existir
+// en el dispositivo y en varias nubes.
+function claveLibro(libro) {
   const ambito = libro.tipo === 'webdav' ? cliente?.base ?? 'webdav' : 'local';
   return `${ambito}|${libro.id}`;
 }
 
 function pdfSinTextoConocido(libro) {
-  const estado = leerMapaLocal(CLAVE_PDF_SIN_TEXTO)[claveAvisoPdfSinTexto(libro)];
+  const estado = leerMapaLocal(CLAVE_PDF_SIN_TEXTO)[claveLibro(libro)];
   if (estado === true) return true; // compatibilidad con el primer formato interno
   if (!estado?.sinTexto) return false;
   return !libro.tamano || !estado.tamano || Number(libro.tamano) === Number(estado.tamano);
@@ -226,7 +228,7 @@ function pdfSinTextoConocido(libro) {
 
 async function comprobarTextoPdf(libro, documento) {
   const avisos = leerMapaLocal(CLAVE_PDF_SIN_TEXTO);
-  const clave = claveAvisoPdfSinTexto(libro);
+  const clave = claveLibro(libro);
   const anterior = avisos[clave];
   if (anterior?.sinTexto && anterior.tamano && Number(anterior.tamano) === Number(libro.tamano)) return;
 
@@ -2562,8 +2564,19 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.alineacion = alineacionEpubGuardada();
       lectorEpub.doble = dobleGuardado();
       prepararSeguimientoEpub(avance?.cfi ?? null);
+      // El reparto del libro en localizaciones se reaprovecha entre sesiones:
+      // sin él no hay porcentaje ni salto por porcentaje hasta que termina de
+      // calcularse, y en libros grandes eso son varios segundos cada vez.
+      const clave = claveLibro(libro);
+      const guardadas = await almacen.obtenerLocalizaciones(clave, datos.byteLength)
+        .catch(() => null);
       try {
-        await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual());
+        await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual(), {
+          localizaciones: guardadas,
+          alGuardarLocalizaciones: (json) => {
+            almacen.guardarLocalizaciones(clave, datos.byteLength, json).catch(() => null);
+          },
+        });
       } finally {
         restaurandoPosicionEpub = false;
       }
