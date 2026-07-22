@@ -540,6 +540,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   padding: 0.4rem 0.35rem 0.4rem 0.7rem; color: var(--texto); font-size: 0.9rem;
 }
 .grupo-zoom-menu > div { display: flex; align-items: center; gap: 0.15rem; }
+.grupo-zoom-menu .btn-icono[aria-pressed="true"] {
+  color: var(--acento); background: var(--fondo-tarjeta);
+}
 
 /* touch-action reserva el pellizco de dos dedos para el zoom del PDF
    (sin él, el navegador ampliaría toda la interfaz). */
@@ -633,6 +636,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   min-height: 100%; display: flex;
   justify-content: flex-start; align-items: flex-start; padding: 0.5rem;
 }
+#contenedor-pagina.ajuste-pagina { align-items: center; }
 #contenedor-pagina.continuo {
   /* flex-start + margin:auto en las páginas: se centran cuando caben y
      permiten scroll horizontal (sin recorte izquierdo) cuando hay zoom. */
@@ -827,6 +831,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   .barra-lector > #btn-rotar,
   .barra-lector > #btn-zoom-menos,
   .barra-lector > #btn-ancho-auto,
+  .barra-lector > #btn-pagina-completa,
   .barra-lector > #btn-zoom-mas,
   .barra-lector > #btn-noche,
   .barra-lector > .tiempo-restante { display: none !important; }

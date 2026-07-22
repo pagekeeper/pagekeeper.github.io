@@ -30,6 +30,7 @@ export class Lector {
     this.documento = null;
     this.pagina = 1;
     this.zoom = 1; // multiplicador sobre "ajustar al ancho"
+    this.ajuste = 'ancho'; // 'ancho', 'pagina' o 'personalizado'
     this.modo = 'pagina';
     this.rotacion = 0; // giro extra en grados (0, 90, 180, 270)
     this.doble = false; // dos páginas juntas (solo en modo página)
@@ -94,12 +95,25 @@ export class Lector {
     return this.enDoble() ? Math.floor((total - 12) / 2) : total;
   }
 
+  // Escala base para encajar la página. En el ajuste completo se toma la
+  // menor de las escalas disponibles en ambos ejes, de modo que nunca haga
+  // falta desplazar la página para verla entera.
+  escalaPara(pagina) {
+    const rotacion = this.rotacionDe(pagina);
+    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
+    const escalaAncho = this.anchoPagina() / base.width;
+    if (this.ajuste !== 'pagina') return { base, escala: escalaAncho * this.zoom };
+    const altoDisponible = Math.max(1, this.area.clientHeight - 16);
+    const escalaPagina = Math.min(escalaAncho, altoDisponible / base.height);
+    return { base, escala: escalaPagina * this.zoom };
+  }
+
   // Giro total de una página: el que trae el propio PDF más el del usuario.
   rotacionDe(pagina) {
     return (pagina.rotate + this.rotacion) % 360;
   }
 
-  async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1) {
+  async abrir(datos, paginaInicial = 1, modo = this.modo, zoom = 1, ajuste = 'ancho') {
     if (this.documento) { try { await this.documento.destroy(); } catch { /* ignorar */ } }
     const tarea = pdfjs.getDocument({ data: datos });
     let cancelada = false;
@@ -123,7 +137,8 @@ export class Lector {
       throw error;
     }
     this.modo = modo;
-    this.zoom = Math.min(4, Math.max(0.5, zoom));
+    this.zoom = Math.min(4, Math.max(0.1, zoom));
+    this.ajuste = ['ancho', 'pagina', 'personalizado'].includes(ajuste) ? ajuste : 'ancho';
     this.pagina = Math.min(Math.max(1, paginaInicial), this.documento.numPages);
     await this.montar();
   }
@@ -135,7 +150,25 @@ export class Lector {
   }
 
   async cambiarZoom(factor) {
-    this.zoom = Math.min(4, Math.max(0.5, this.zoom * factor));
+    // Al ampliar desde "página completa" se conserva el tamaño visible y se
+    // convierte a un zoom personalizado relativo al ancho.
+    if (this.ajuste === 'pagina' && this.documento) {
+      const pagina = await this.documento.getPage(this.pagina);
+      const rotacion = this.rotacionDe(pagina);
+      const base = pagina.getViewport({ scale: 1, rotation: rotacion });
+      const escalaAncho = this.anchoPagina() / base.width;
+      const escalaPagina = Math.min(escalaAncho, Math.max(1, this.area.clientHeight - 16) / base.height);
+      this.zoom *= escalaPagina / escalaAncho;
+    }
+    this.ajuste = 'personalizado';
+    this.zoom = Math.min(4, Math.max(0.1, this.zoom * factor));
+    if (this.documento) await this.montar();
+  }
+
+  async ajustar(tipo) {
+    if (!['ancho', 'pagina'].includes(tipo)) return;
+    this.ajuste = tipo;
+    this.zoom = 1;
     if (this.documento) await this.montar();
   }
 
@@ -284,6 +317,7 @@ export class Lector {
     this.montando = true;
     try {
       this.limpiar();
+      this.contenedor.classList.toggle('ajuste-pagina', this.ajuste === 'pagina' && this.modo === 'pagina');
       if (this.modo === 'continuo') await this.montarContinuo();
       else await this.montarPagina();
     } finally {
@@ -314,10 +348,8 @@ export class Lector {
     // Tamaño de referencia (a partir de la primera página) para los huecos
     // reservados de las páginas aún no renderizadas.
     const primera = await this.documento.getPage(1);
-    const ancho = this.anchoPagina();
     const rotacion = this.rotacionDe(primera);
-    const base = primera.getViewport({ scale: 1, rotation: rotacion });
-    const escala = (ancho / base.width) * this.zoom;
+    const { escala } = this.escalaPara(primera);
     const vista = primera.getViewport({ scale: escala, rotation: rotacion });
 
     for (let n = 1; n <= this.totalPaginas; n++) {
@@ -390,10 +422,8 @@ export class Lector {
 
   async pintar(numero, lienzo) {
     const pagina = await this.documento.getPage(numero);
-    const anchoDisponible = this.anchoPagina();
     const rotacion = this.rotacionDe(pagina);
-    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
-    const escala = (anchoDisponible / base.width) * this.zoom;
+    const { escala } = this.escalaPara(pagina);
     const vista = pagina.getViewport({ scale: escala, rotation: rotacion });
 
     const dpr = window.devicePixelRatio || 1;

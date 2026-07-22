@@ -39,7 +39,7 @@ libros y sincronizar el progreso de lectura.
   en el dispositivo. PageKeeper guarda una copia en IndexedDB, la actualiza
   cuando cambia en WebDAV y la abre automáticamente si falla la conexión, sin
   confundirla con un libro local ni borrar nunca el original de la nube.
-- 📂 **Biblioteca local**: también puedes añadir PDF del propio dispositivo
+- 📂 **Biblioteca local**: también puedes añadir PDF y EPUB del propio dispositivo
   sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
   en la sección «En este dispositivo» y se reabren sin volver a elegir el
   archivo (la posición solo se recuerda en ese navegador).
@@ -99,6 +99,8 @@ libros y sincronizar el progreso de lectura.
 - ⏱️ **Tiempo restante estimado**: tras unos minutos de lectura, la barra
   muestra cuánto falta para terminar el libro según tu ritmo real de
   lectura (medido y guardado solo en el dispositivo).
+- 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
+  o mostrar la página completa, además del zoom manual y el gesto de pellizco.
 - 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
