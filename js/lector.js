@@ -19,6 +19,10 @@ const MAXIMO_PAGINAS_MEMORIA = 20;
 // rootMargin del observador: si no, se liberaría una página que este sigue
 // considerando visible y no volvería a pintarse hasta salir y entrar de nuevo.
 const MARGEN_LIBERACION = 1000;
+// Páginas pintadas que se guardan en modo página: la actual (o las dos de la
+// vista doble), las vecinas adelantadas y unas pocas recién visitadas, para
+// que ir y volver no vuelva a pintar nada.
+const MAXIMO_PAGINAS_PREPARADAS = 8;
 
 export class Lector {
   constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
@@ -46,6 +50,7 @@ export class Lector {
 
     this.envoltorios = []; // página(s) visibles: canvas + capas (modo página)
     this.paginas = [];     // envoltorios por número de página (modo continuo)
+    this.preparadas = new Map(); // número de página → promesa de canvas pintado
     this.observador = null;
     this.tareaRender = null;
     this.pendiente = null;
@@ -333,6 +338,8 @@ export class Lector {
     this.contenedor.classList.remove('continuo');
     this.paginas = [];
     this.envoltorios = [];
+    // Las páginas preparadas lo están a la escala y el giro anteriores.
+    this.preparadas.clear();
     this.pendiente = null;
   }
 
@@ -405,7 +412,9 @@ export class Lector {
 
   // ───────────────────────── Renderizado ─────────────────────────
 
-  // Modo página: canvas fijos (uno o dos); el último renderizado solicitado gana.
+  // Modo página: cada página se pinta en su propio canvas y se intercambia ya
+  // terminado, en lugar de vaciarse y rellenarse a la vista. El último
+  // renderizado solicitado gana.
   async renderUnica(numero) {
     this.pendiente = numero;
     if (this.tareaRender) return;
@@ -419,13 +428,56 @@ export class Lector {
           if (n + i > this.totalPaginas) { envoltorio.classList.add('oculto'); continue; }
           envoltorio.classList.remove('oculto');
           envoltorio.dataset.num = String(n + i);
-          const { pagina, vista } = await this.pintar(n + i, envoltorio.querySelector('canvas'));
+          const { pagina, vista, lienzo } = await this.preparar(n + i);
+          const anterior = envoltorio.querySelector('canvas');
+          if (anterior !== lienzo) {
+            // Las capas de la página que se va no deben quedar sobre la nueva.
+            for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces, .capa-resaltados, .capa-busqueda')) capa.remove();
+            if (anterior) anterior.replaceWith(lienzo);
+            else envoltorio.prepend(lienzo);
+          }
           // Las capas solo se montan para el último render solicitado.
           if (this.pendiente === null) await this.montarCapas(envoltorio, pagina, vista);
         }
+        if (this.pendiente === null) this.prepararVecinas(n);
       })();
       await this.tareaRender.catch(() => {});
       this.tareaRender = null;
+    }
+  }
+
+  // Pinta una página en un canvas propio (o reaprovecha el que ya se pintó).
+  // Devuelve siempre la misma promesa mientras la página siga preparada, así
+  // que pedirla dos veces no la dibuja dos veces.
+  preparar(numero) {
+    let preparada = this.preparadas.get(numero);
+    if (!preparada) {
+      const lienzo = document.createElement('canvas');
+      preparada = this.pintar(numero, lienzo).then(({ pagina, vista }) => ({ pagina, vista, lienzo }));
+      preparada.catch(() => this.preparadas.delete(numero));
+      this.preparadas.set(numero, preparada);
+    }
+    return preparada;
+  }
+
+  // Adelanta el pintado de las páginas contiguas una vez montada la actual:
+  // al pasar de página el canvas ya está listo y el cambio es inmediato.
+  prepararVecinas(n) {
+    const vecinas = this.enDoble() ? [n + 2, n + 3, n - 2, n - 1] : [n + 1, n - 1];
+    for (const numero of vecinas) {
+      if (numero >= 1 && numero <= this.totalPaginas) this.preparar(numero);
+    }
+    if (this.preparadas.size <= MAXIMO_PAGINAS_PREPARADAS) return;
+    const sobran = [...this.preparadas.keys()]
+      .sort((a, b) => Math.abs(b - n) - Math.abs(a - n))
+      .slice(0, this.preparadas.size - MAXIMO_PAGINAS_PREPARADAS);
+    for (const numero of sobran) {
+      const preparada = this.preparadas.get(numero);
+      this.preparadas.delete(numero);
+      // Vaciar el canvas devuelve su memoria, salvo que siga a la vista.
+      preparada?.then(({ lienzo }) => {
+        if (!lienzo.isConnected) { lienzo.width = 0; lienzo.height = 0; }
+      }).catch(() => {});
     }
   }
 
