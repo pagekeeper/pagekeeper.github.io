@@ -588,20 +588,28 @@ export class LectorEpub {
     return entradas;
   }
 
-  async buscar(consulta) {
+  // Recorre el libro capítulo a capítulo. La señal permite abandonar el
+  // barrido a medias (cargar y descargar todas las secciones de un libro
+  // grande no es gratis) y los avisos entregan lo encontrado sobre la marcha.
+  async buscar(consulta, { senal, alProgreso, alEncontrar } = {}) {
     if (!this.libro) return [];
     const buscado = normalizarBusqueda(consulta.trim());
     if (!buscado) return [];
     const resultados = [];
-    for (const seccion of this.libro.spine.spineItems) {
+    const secciones = this.libro.spine.spineItems;
+    const total = secciones.filter((seccion) => seccion.linear !== 'no').length;
+    let revisadas = 0;
+    for (const seccion of secciones) {
+      if (senal?.aborted) break;
       if (seccion.linear === 'no' || resultados.length >= 200) continue;
       try {
         await seccion.load(this.libro.load.bind(this.libro));
         const cuerpo = seccion.document?.body;
         if (!cuerpo) continue;
         const { visible, normal, origen } = plegarTexto(cuerpo);
+        const nuevos = [];
         let posicion = 0;
-        while ((posicion = normal.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
+        while ((posicion = normal.indexOf(buscado, posicion)) !== -1 && resultados.length + nuevos.length < 200) {
           // El CFI exacto de la aparición permite saltar a ella (y no solo
           // al capítulo) y resaltarla al llegar.
           let cfi = null;
@@ -613,7 +621,7 @@ export class LectorEpub {
             rango.setEnd(fin.nodo, Math.min(fin.indice + 1, fin.nodo.textContent.length));
             cfi = seccion.cfiFromRange(rango);
           } catch { /* sin CFI se salta al capítulo, como antes */ }
-          resultados.push({
+          nuevos.push({
             destino: cfi ?? seccion.href,
             cfi,
             numero: seccion.index + 1,
@@ -621,8 +629,11 @@ export class LectorEpub {
           });
           posicion += Math.max(1, buscado.length);
         }
+        resultados.push(...nuevos);
+        if (nuevos.length) alEncontrar?.(nuevos);
       } finally {
         seccion.unload();
+        alProgreso?.(++revisadas, total);
       }
     }
     return resultados;

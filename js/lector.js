@@ -11,6 +11,15 @@ import { posicionVerticalLibre } from './posicion-notas.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
+// Páginas renderizadas que se conservan a la vez en modo continuo. Cada una
+// ocupa un canvas del tamaño de la pantalla (por el devicePixelRatio), así que
+// un documento largo recorrido entero agotaría la memoria del dispositivo.
+const MAXIMO_PAGINAS_MEMORIA = 20;
+// Distancia mínima a la vista para poder soltar una página. Debe superar el
+// rootMargin del observador: si no, se liberaría una página que este sigue
+// considerando visible y no volvería a pintarse hasta salir y entrar de nuevo.
+const MARGEN_LIBERACION = 1000;
+
 export class Lector {
   constructor({ area, contenedor, alCambiarPagina, alPulsarEnlaceInterno, alSeleccionarTexto,
     alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota, etiquetaOpcionesNota,
@@ -200,24 +209,41 @@ export class Lector {
     this.alCambiarPagina?.(this.pagina, this.totalPaginas);
   }
 
+  // ¿Hay un canvas montado (o montándose) para esa página?
+  enPantalla(numero) {
+    if (this.modo === 'continuo') return Boolean(this.paginas[numero]?.dataset.estado);
+    return this.envoltorios.some((envoltorio) => Number(envoltorio.dataset.num) === numero);
+  }
+
   anterior() { return this.irA(this.pagina - (this.enDoble() ? 2 : 1)); }
   siguiente() { return this.irA(this.pagina + (this.enDoble() ? 2 : 1)); }
 
-  async buscar(consulta) {
+  // Recorre el documento página a página. La señal permite abandonar el
+  // barrido (cerrar el panel o buscar otra cosa) sin seguir leyendo el resto
+  // del PDF, y los avisos van entregando lo encontrado sin esperar al final.
+  async buscar(consulta, { senal, alProgreso, alEncontrar } = {}) {
     if (!this.documento) return [];
     const buscado = normalizarBusqueda(consulta.trim());
     if (!buscado) return [];
     const resultados = [];
     for (let numero = 1; numero <= this.totalPaginas && resultados.length < 200; numero++) {
+      if (senal?.aborted) break;
       const pagina = await this.documento.getPage(numero);
       const contenido = await pagina.getTextContent();
+      // Las páginas que no están en pantalla se sueltan tras leerlas: si no,
+      // buscar en un documento largo deja en memoria todo su contenido.
+      if (!this.enPantalla(numero)) { try { pagina.cleanup(); } catch { /* en uso */ } }
       const texto = contenido.items.map((item) => item.str).join(' ').replace(/\s+/g, ' ').trim();
       const minusculas = normalizarBusqueda(texto);
+      const nuevos = [];
       let posicion = 0;
-      while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length < 200) {
-        resultados.push({ destino: numero, numero, fragmento: fragmentoBusqueda(texto, posicion, buscado.length) });
+      while ((posicion = minusculas.indexOf(buscado, posicion)) !== -1 && resultados.length + nuevos.length < 200) {
+        nuevos.push({ destino: numero, numero, fragmento: fragmentoBusqueda(texto, posicion, buscado.length) });
         posicion += Math.max(1, buscado.length);
       }
+      resultados.push(...nuevos);
+      if (nuevos.length) alEncontrar?.(nuevos);
+      alProgreso?.(numero, this.totalPaginas);
     }
     return resultados;
   }
@@ -415,9 +441,44 @@ export class Lector {
       envoltorio.replaceChildren(lienzo);
       await this.montarCapas(envoltorio, pagina, vista);
       envoltorio.dataset.estado = 'listo';
+      this.podarPaginas();
     } catch {
       delete envoltorio.dataset.estado; // se reintentará al volver a entrar en vista
     }
+  }
+
+  // Suelta las páginas renderizadas más alejadas de la vista cuando hay
+  // demasiadas en memoria. El envoltorio conserva su alto real, de modo que el
+  // scroll no salta, y el observador las vuelve a pintar al acercarse.
+  podarPaginas() {
+    const listas = [];
+    for (let n = 1; n <= this.totalPaginas; n++) {
+      if (this.paginas[n]?.dataset.estado === 'listo') listas.push(n);
+    }
+    const sobran = listas.length - MAXIMO_PAGINAS_MEMORIA;
+    if (sobran <= 0) return;
+
+    const rectArea = this.area.getBoundingClientRect();
+    const candidatos = [];
+    for (const n of listas) {
+      const rect = this.paginas[n].getBoundingClientRect();
+      const distancia = Math.max(rectArea.top - rect.bottom, rect.top - rectArea.bottom, 0);
+      if (distancia > MARGEN_LIBERACION) candidatos.push({ n, distancia });
+    }
+    candidatos.sort((a, b) => b.distancia - a.distancia);
+    for (const { n } of candidatos.slice(0, sobran)) this.liberarPagina(n);
+  }
+
+  liberarPagina(numero) {
+    const envoltorio = this.paginas[numero];
+    if (envoltorio?.dataset.estado !== 'listo') return;
+    envoltorio.style.height = `${envoltorio.offsetHeight}px`;
+    // Vaciar el canvas antes de descartarlo libera su memoria de inmediato en
+    // los navegadores que no la devuelven hasta pasar el recolector.
+    const lienzo = envoltorio.querySelector('canvas');
+    if (lienzo) { lienzo.width = 0; lienzo.height = 0; }
+    envoltorio.replaceChildren();
+    delete envoltorio.dataset.estado;
   }
 
   async pintar(numero, lienzo) {
@@ -470,11 +531,12 @@ export class Lector {
   mostrarAnotaciones(anotaciones) {
     this.ocultarNotaHover();
     this.anotaciones = Array.isArray(anotaciones) ? anotaciones : [];
+    // En continuo solo se repintan las páginas ya renderizadas: las demás
+    // (nunca pintadas o soltadas por memoria) montarán sus capas al pintarse.
     const envoltorios = this.modo === 'continuo'
-      ? this.paginas.filter(Boolean)
+      ? this.paginas.filter((envoltorio) => envoltorio?.dataset.estado === 'listo')
       : this.envoltorios.filter((envoltorio) => !envoltorio.classList.contains('oculto'));
     for (const envoltorio of envoltorios) {
-      if (envoltorio.dataset.estado && envoltorio.dataset.estado !== 'listo') continue;
       envoltorio.querySelector('.capa-resaltados')?.remove();
       this.montarResaltados(envoltorio, Number(envoltorio.dataset.num));
     }

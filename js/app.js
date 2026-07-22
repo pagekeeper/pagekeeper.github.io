@@ -2835,6 +2835,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
 let resultadosBusquedaLibro = [];
 let consultaBusquedaLibro = '';
 let versionBusquedaLibro = 0;
+let corteBusquedaLibro = null; // AbortController del barrido en curso
 const historialNavegacion = { atras: [], adelante: [] };
 
 function posicionActualLibro() {
@@ -3600,6 +3601,8 @@ $('buscar-anotaciones').addEventListener('input', () => pintarAnotaciones());
 
 function cerrarBusquedaLibro() {
   versionBusquedaLibro += 1;
+  corteBusquedaLibro?.abort(); // no seguir recorriendo el libro a ciegas
+  corteBusquedaLibro = null;
   $('panel-busqueda-libro').classList.add('oculto');
 }
 
@@ -3630,20 +3633,23 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
   const consulta = $('buscar-en-libro').value.trim();
   if (!consulta) return;
   const version = ++versionBusquedaLibro;
+  corteBusquedaLibro?.abort(); // abandona el barrido anterior, no solo su resultado
+  const corte = new AbortController();
+  corteBusquedaLibro = corte;
   const estado = $('estado-busqueda-libro');
   const lista = $('resultados-busqueda-libro');
   estado.textContent = t('searchingBook');
   lista.replaceChildren();
-  try {
-    const esEpub = epubAbierto();
-    const activo = esEpub ? lectorEpub : lector;
-    consultaBusquedaLibro = consulta;
-    resultadosBusquedaLibro = await activo.buscar(consulta);
-    if (version !== versionBusquedaLibro) return;
-    estado.textContent = resultadosBusquedaLibro.length
-      ? t('searchResults', { count: resultadosBusquedaLibro.length })
-      : t('noSearchResults');
-    resultadosBusquedaLibro.forEach((resultado, indice) => {
+  const esEpub = epubAbierto();
+  const activo = esEpub ? lectorEpub : lector;
+  consultaBusquedaLibro = consulta;
+  resultadosBusquedaLibro = [];
+
+  // Los resultados se van pintando según aparecen: en un libro largo se puede
+  // saltar al primero sin esperar a que termine el recorrido.
+  const pintarResultados = (nuevos) => {
+    for (const resultado of nuevos) {
+      const indice = resultadosBusquedaLibro.push(resultado) - 1;
       const li = document.createElement('li');
       const boton = document.createElement('button');
       boton.type = 'button';
@@ -3669,9 +3675,28 @@ $('form-busqueda-libro').addEventListener('submit', async (evento) => {
       });
       li.append(boton);
       lista.append(li);
+    }
+  };
+
+  try {
+    await activo.buscar(consulta, {
+      senal: corte.signal,
+      alEncontrar: (nuevos) => { if (version === versionBusquedaLibro) pintarResultados(nuevos); },
+      alProgreso: (hechas, total) => {
+        if (version !== versionBusquedaLibro || hechas >= total) return;
+        estado.textContent = t('searchProgress', {
+          done: hechas, total, count: resultadosBusquedaLibro.length,
+        });
+      },
     });
+    if (version !== versionBusquedaLibro) return;
+    estado.textContent = resultadosBusquedaLibro.length
+      ? t('searchResults', { count: resultadosBusquedaLibro.length })
+      : t('noSearchResults');
   } catch (error) {
     if (version === versionBusquedaLibro) estado.textContent = error.message;
+  } finally {
+    if (corteBusquedaLibro === corte) corteBusquedaLibro = null;
   }
 });
 
