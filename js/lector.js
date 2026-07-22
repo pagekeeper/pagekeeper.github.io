@@ -161,6 +161,34 @@ export class Lector {
     return recorte;
   }
 
+  // Miniatura de una página para el panel de navegación. Respeta el giro y el
+  // recorte, para que se parezca a lo que se está leyendo.
+  async miniatura(numero, ancho) {
+    const pagina = await this.documento.getPage(numero);
+    const recorte = await this.recorteDePagina(pagina);
+    const rotacion = this.rotacionDe(pagina);
+    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
+    const escala = ancho / (base.width * (recorte?.ancho ?? 1));
+    const vista = pagina.getViewport({ scale: escala, rotation: rotacion });
+    const desplazamiento = recorte
+      ? { x: vista.width * recorte.x, y: vista.height * recorte.y }
+      : { x: 0, y: 0 };
+    // Con dos píxeles por punto basta para que se vea nítida sin gastar de más.
+    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const lienzo = document.createElement('canvas');
+    lienzo.width = Math.max(1, Math.floor(vista.width * (recorte?.ancho ?? 1) * dpr));
+    lienzo.height = Math.max(1, Math.floor(vista.height * (recorte?.alto ?? 1) * dpr));
+    const contexto = lienzo.getContext('2d');
+    contexto.fillStyle = '#ffffff';
+    contexto.fillRect(0, 0, lienzo.width, lienzo.height);
+    await pagina.render({
+      canvasContext: contexto,
+      viewport: vista,
+      transform: [dpr, 0, 0, dpr, -desplazamiento.x * dpr, -desplazamiento.y * dpr],
+    }).promise;
+    return lienzo;
+  }
+
   // Dibuja la página muy pequeña sobre blanco y devuelve dónde tiene contenido.
   async cajaDe(pagina) {
     const rotacion = this.rotacionDe(pagina);

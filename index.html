@@ -328,10 +328,20 @@
     </header>
     <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
       <div class="cabecera-panel-lector">
-        <h2 data-i18n="bookIndex">Índice del libro</h2>
+        <h2 id="titulo-panel-indice" data-i18n="bookIndex">Índice del libro</h2>
+        <div id="pestanas-panel-indice" class="pestanas-panel oculto" role="tablist"
+          aria-label="Navegación del libro" data-i18n-aria-label="bookNavigation">
+          <button type="button" id="pestana-indice" class="pestana-panel" role="tab"
+            aria-selected="true" aria-controls="lista-indice-libro" data-i18n="bookIndexShort">Índice</button>
+          <button type="button" id="pestana-miniaturas" class="pestana-panel" role="tab"
+            aria-selected="false" aria-controls="rejilla-miniaturas" data-i18n="thumbnails">Miniaturas</button>
+        </div>
         <button type="button" id="cerrar-indice-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
       </div>
-      <ol id="lista-indice-libro" class="lista-indice-libro"></ol>
+      <ol id="lista-indice-libro" class="lista-indice-libro" role="tabpanel"
+        aria-labelledby="pestana-indice"></ol>
+      <div id="rejilla-miniaturas" class="rejilla-miniaturas oculto" role="tabpanel"
+        aria-labelledby="pestana-miniaturas"></div>
     </aside>
     <div id="area-lectura">
       <aside id="panel-marcadores" class="panel-flotante-lector panel-marcadores oculto">

@@ -2718,6 +2718,7 @@ $('btn-rotar').addEventListener('click', async () => {
   if (epubAbierto() || !libroActual) return;
   await lector.rotar();
   guardarRotacionPdf(libroActual.id, lector.rotacion);
+  reiniciarMiniaturas(); // las miniaturas también van giradas
 });
 
 // ───────────────────────── Progreso y sincronización ─────────────────────────
@@ -2807,6 +2808,7 @@ function cuandoCambiaPagina(pagina, total) {
   $('btn-indicador').textContent = `${visible} / ${total}`;
   if (!libroActual) return;
   progreso.anotarPagina(libroActual.id, pagina, total);
+  marcarMiniaturaActual();
   anotarRitmo(pagina);
   pintarTiempoRestante();
   // Navegar a mano mientras suena la lectura en voz alta la detiene; los
@@ -3043,6 +3045,44 @@ function cerrarIndiceLibro() {
   $('btn-indice-libro').setAttribute('aria-expanded', 'false');
 }
 
+// ── Panel de navegación: índice y miniaturas ──
+//
+// En PDF el panel tiene dos pestañas; en EPUB solo el índice. Cuando un PDF no
+// trae índice (los escaneados casi nunca lo traen), el panel se abre
+// directamente en las miniaturas, que es justo cuando más falta hacen.
+
+let hayIndiceLibro = false;
+let pestanaPanel = 'indice';
+
+function conMiniaturas() {
+  return !epubAbierto() && Boolean(lector.documento);
+}
+
+function mostrarPestanaPanel(cual) {
+  pestanaPanel = cual === 'miniaturas' && conMiniaturas() ? 'miniaturas' : 'indice';
+  const enMiniaturas = pestanaPanel === 'miniaturas';
+  $('lista-indice-libro').classList.toggle('oculto', enMiniaturas);
+  $('rejilla-miniaturas').classList.toggle('oculto', !enMiniaturas);
+  $('pestana-indice').setAttribute('aria-selected', String(!enMiniaturas));
+  $('pestana-miniaturas').setAttribute('aria-selected', String(enMiniaturas));
+  $('titulo-panel-indice').textContent = t(enMiniaturas ? 'pageThumbnails' : 'bookIndex');
+  if (enMiniaturas) prepararMiniaturas();
+}
+
+// Ajusta el panel al libro recién cargado: con qué pestañas cuenta y en cuál
+// se abre. El botón aparece siempre que haya algo que enseñar.
+function prepararPanelNavegacion() {
+  reiniciarMiniaturas(); // pertenecían al libro anterior
+  const conIndice = hayIndiceLibro;
+  const conRejilla = conMiniaturas();
+  $('btn-indice-libro').classList.toggle('oculto', !conIndice && !conRejilla);
+  $('pestanas-panel-indice').classList.toggle('oculto', !(conIndice && conRejilla));
+  $('titulo-panel-indice').classList.toggle('oculto', conIndice && conRejilla);
+  $('pestana-indice').classList.toggle('oculto', !conIndice);
+  mostrarPestanaPanel(conIndice ? 'indice' : 'miniaturas');
+  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
+}
+
 async function cargarIndiceLibro(lectorActivo, idLibro) {
   try {
     const entradas = await lectorActivo.indice();
@@ -3076,10 +3116,114 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
       li.append(boton);
       lista.append(li);
     }
-    $('btn-indice-libro').classList.toggle('oculto', entradas.length === 0);
-    if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
+    hayIndiceLibro = entradas.length > 0;
+    prepararPanelNavegacion();
   } catch {
-    $('btn-indice-libro').classList.add('oculto');
+    hayIndiceLibro = false;
+    prepararPanelNavegacion();
+  }
+}
+
+// ── Miniaturas de las páginas ──
+//
+// Se crean todos los huecos de golpe (son baratos) y solo se dibujan los que
+// entran en la vista, soltando los que se alejan: un PDF largo no puede tener
+// cientos de miniaturas en memoria.
+const MAXIMO_MINIATURAS = 40;
+const ANCHO_MINIATURA = 150;
+let observadorMiniaturas = null;
+let miniaturasMontadas = 0;
+
+function reiniciarMiniaturas() {
+  observadorMiniaturas?.disconnect();
+  observadorMiniaturas = null;
+  $('rejilla-miniaturas').replaceChildren();
+  miniaturasMontadas = 0;
+  if (pestanaPanel === 'miniaturas' && !$('panel-indice-libro').classList.contains('oculto')) {
+    prepararMiniaturas();
+  }
+}
+
+function prepararMiniaturas() {
+  const rejilla = $('rejilla-miniaturas');
+  if (!conMiniaturas() || rejilla.childElementCount) return;
+  for (let numero = 1; numero <= lector.totalPaginas; numero++) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'miniatura-pagina';
+    boton.dataset.pagina = String(numero);
+    const hoja = document.createElement('span');
+    hoja.className = 'hoja';
+    const etiqueta = document.createElement('span');
+    etiqueta.textContent = String(numero);
+    boton.append(hoja, etiqueta);
+    boton.addEventListener('click', async () => {
+      try {
+        await saltarConHistorial(numero);
+        cerrarIndiceSiFlota();
+      } catch (error) {
+        avisar(error.message, 5000);
+      }
+    });
+    rejilla.append(boton);
+  }
+  // El que se desplaza es el panel, no la rejilla: es él quien decide qué
+  // miniaturas están a la vista y cuáles se pueden soltar.
+  observadorMiniaturas = new IntersectionObserver((entradas) => {
+    for (const entrada of entradas) {
+      if (entrada.isIntersecting) pintarMiniatura(entrada.target);
+    }
+  }, { root: $('panel-indice-libro'), rootMargin: '300px 0px' });
+  for (const boton of rejilla.children) observadorMiniaturas.observe(boton);
+  marcarMiniaturaActual(true);
+}
+
+async function pintarMiniatura(boton) {
+  if (boton.dataset.estado) return; // en curso o ya dibujada
+  boton.dataset.estado = 'pintando';
+  try {
+    const lienzo = await lector.miniatura(Number(boton.dataset.pagina), ANCHO_MINIATURA);
+    boton.querySelector('.hoja').replaceChildren(lienzo);
+    boton.dataset.estado = 'lista';
+    miniaturasMontadas += 1;
+    podarMiniaturas();
+  } catch {
+    delete boton.dataset.estado; // se reintenta al volver a entrar en vista
+  }
+}
+
+function podarMiniaturas() {
+  if (miniaturasMontadas <= MAXIMO_MINIATURAS) return;
+  const rejilla = $('rejilla-miniaturas');
+  const marco = $('panel-indice-libro').getBoundingClientRect();
+  const lejanas = [...rejilla.children]
+    .filter((boton) => boton.dataset.estado === 'lista')
+    .map((boton) => {
+      const caja = boton.getBoundingClientRect();
+      return { boton, distancia: Math.max(marco.top - caja.bottom, caja.top - marco.bottom, 0) };
+    })
+    .filter((entrada) => entrada.distancia > 0)
+    .sort((a, b) => b.distancia - a.distancia);
+  for (const { boton } of lejanas.slice(0, miniaturasMontadas - MAXIMO_MINIATURAS)) {
+    const lienzo = boton.querySelector('canvas');
+    if (lienzo) { lienzo.width = 0; lienzo.height = 0; }
+    boton.querySelector('.hoja').replaceChildren();
+    delete boton.dataset.estado;
+    miniaturasMontadas -= 1;
+  }
+}
+
+// Señala la página en la que se está leyendo y, si se acaba de abrir el panel,
+// la trae a la vista.
+function marcarMiniaturaActual(desplazar = false) {
+  const rejilla = $('rejilla-miniaturas');
+  if (!rejilla.childElementCount) return;
+  const actual = String(lector.pagina);
+  for (const boton of rejilla.children) {
+    const esActual = boton.dataset.pagina === actual;
+    if (esActual) boton.setAttribute('aria-current', 'true');
+    else boton.removeAttribute('aria-current');
+    if (esActual && desplazar) boton.scrollIntoView({ block: 'center' });
   }
 }
 
@@ -3660,9 +3804,19 @@ $('btn-indice-libro').addEventListener('click', () => {
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
   $('btn-indice-libro').setAttribute('aria-expanded', String(abrir));
-  if (abrir) panel.querySelector('.entrada-indice-libro')?.focus();
+  if (!abrir) return;
+  if (pestanaPanel === 'miniaturas') {
+    prepararMiniaturas();
+    marcarMiniaturaActual(true);
+  }
+  panel.querySelector('.entrada-indice-libro, .miniatura-pagina')?.focus();
 });
 $('cerrar-indice-libro').addEventListener('click', cerrarIndiceLibro);
+$('pestana-indice').addEventListener('click', () => mostrarPestanaPanel('indice'));
+$('pestana-miniaturas').addEventListener('click', () => {
+  mostrarPestanaPanel('miniaturas');
+  marcarMiniaturaActual(true);
+});
 
 $('form-busqueda-libro').addEventListener('submit', async (evento) => {
   evento.preventDefault();
@@ -4088,6 +4242,7 @@ $('btn-recorte').addEventListener('click', async () => {
   }
   localStorage.setItem(CLAVE_RECORTE_PDF, lector.recorte ? '1' : '0');
   aplicarAparienciaAjustePdf();
+  reiniciarMiniaturas(); // se dibujan recortadas, como la lectura
   if (activar && !lector.recorteComun) avisar(t('noMarginsToCrop'));
 });
 
