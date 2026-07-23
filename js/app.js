@@ -1260,13 +1260,11 @@ function restaurarEnContinuar(id) {
 // el desplegable deja de tener sentido y se muestran todas de una vez. En
 // pantallas estrechas sigue plegándose, que es donde el espacio escasea.
 const PANTALLA_ANCHA = window.matchMedia?.('(min-width: 64rem)');
-// Y a partir de este otro caben todas en una sola fila.
-const FILA_UNICA = window.matchMedia?.('(min-width: 80rem)');
 
-// Cuántas lecturas recientes se enseñan. Cuatro solo cuando van en una fila;
-// con dos columnas serían tres tarjetas repartidas y una cuarta descolgada.
+// Cuántas lecturas recientes se enseñan: una más en cuanto hay cuadrícula,
+// donde las cuatro fichas caben en una fila ya desde el ancho mínimo.
 function maximoRecientes() {
-  return FILA_UNICA?.matches ? 4 : 3;
+  return PANTALLA_ANCHA?.matches ? 4 : 3;
 }
 
 function actualizarDesplegableContinuar() {
@@ -1281,13 +1279,10 @@ function actualizarDesplegableContinuar() {
     : t('showMoreRecent', { count: Math.max(0, filas.length - 1) });
 }
 
-// Al cruzar cualquiera de los dos umbrales cambia cuántas lecturas caben y
-// cómo se colocan, así que se repinta.
-for (const consulta of [PANTALLA_ANCHA, FILA_UNICA]) {
-  consulta?.addEventListener('change', () => {
-    if (!$('vista-biblioteca').classList.contains('oculto')) pintarContinuarLeyendo();
-  });
-}
+// Al cruzar el umbral cambia cuántas lecturas caben, así que se repinta.
+PANTALLA_ANCHA?.addEventListener('change', () => {
+  if (!$('vista-biblioteca').classList.contains('oculto')) pintarContinuarLeyendo();
+});
 
 function lecturaTerminada(avance, porcentaje = null) {
   const pct = porcentaje ?? (avance?.paginas

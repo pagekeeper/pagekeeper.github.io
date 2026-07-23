@@ -1278,27 +1278,55 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
        y con alturas dispares la rejilla parece descuadrada. */
     align-items: stretch;
   }
-  /* Mientras las recientes van en dos filas, la destacada ocupa el ancho
-     entero: es la protagonista. Más abajo, cuando caben todas en una sola
-     fila, deja de hacer falta. */
-  #libro-continuar > li:first-child { grid-column: 1 / -1; }
+  /* Las lecturas recientes pasan a fichas verticales con la portada grande,
+     como en la vista de cuadrícula. Las columnas son de ancho fijo y no de
+     fracción: repartiéndose el hueco, una sola lectura se estiraría de lado a
+     lado. Aquí sobra sitio para el título entero, así que no se recorta. */
+  /* Y el recuadro se ciñe a las fichas que haya: con una o dos lecturas, un
+     marco de lado a lado con el hueco vacío queda peor que el problema que
+     resolvía. */
+  .continuar-leyendo { width: fit-content; max-width: 100%; justify-self: start; }
+  #libro-continuar {
+    display: grid;
+    /* Sin las columnas anchas que hereda de .lista-libros: aquí manda
+       grid-auto-columns, que solo dimensiona las columnas implícitas. */
+    grid-template-columns: none;
+    grid-auto-flow: column; grid-auto-columns: 12rem;
+    justify-content: start; gap: 0.6rem; align-items: stretch;
+  }
+  #libro-continuar > li { display: block; }
+  #libro-continuar .libro {
+    height: 100%; flex-direction: column; align-items: stretch;
+    gap: 0.5rem; padding: 0.6rem 0.6rem 0.7rem;
+  }
+  #libro-continuar .libro .portada {
+    width: 100%; height: auto; aspect-ratio: 2 / 3;
+  }
+  #libro-continuar .libro .portada .icono { width: 2.2rem; height: 2.2rem; }
+  #libro-continuar .libro .cabecera-libro { align-items: flex-start; flex-wrap: wrap; }
+  #libro-continuar .libro .nombre {
+    white-space: normal; font-size: 0.85rem; line-height: 1.3;
+  }
+  /* El progreso se pega abajo para que todas las fichas lo alineen, por largo
+     que sea el título de cada una. */
+  #libro-continuar .libro .fila-detalle { margin-top: auto; }
+  #libro-continuar .libro .barra-progreso { margin-top: 0.15rem; }
+  /* La destacada deja de ser mayor: aquí todas lucen su portada por igual. */
+  #libro-continuar li:not(:first-child) .libro { padding: 0.6rem 0.6rem 0.7rem; }
+  #libro-continuar li:not(:first-child) .portada { width: 100%; height: auto; }
+  #libro-continuar li:not(:first-child) .nombre { font-size: 0.85rem; }
+  .continuar-leyendo .btn-quitar-continuar {
+    background: rgba(15, 23, 42, 0.62); color: #e2e8f0;
+  }
+  .continuar-leyendo .btn-quitar-continuar:hover,
+  .continuar-leyendo .btn-quitar-continuar:focus-visible {
+    background: var(--peligro); color: var(--fondo-tarjeta);
+  }
 
   /* Con más sitio, las portadas de la cuadrícula dejan de ser sellos. */
   .lista-libros.vista-cuadricula {
     grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
   }
-}
-
-/* Con este ancho las lecturas recientes caben todas en una fila. La destacada
-   se lleva algo más de sitio para que se siga notando cuál es, y conserva su
-   portada grande; el resto se reparte lo que queda a partes iguales. */
-@media (min-width: 80rem) {
-  #libro-continuar {
-    grid-auto-flow: column;
-    grid-template-columns: minmax(0, 1.35fr);
-    grid-auto-columns: minmax(0, 1fr);
-  }
-  #libro-continuar > li:first-child { grid-column: auto; }
 }
 
 /* En monitores grandes las tarjetas no necesitan más de 30rem: pasado eso el
