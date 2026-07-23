@@ -114,6 +114,19 @@ body {
   padding: 1rem; display: flex; flex-direction: column; gap: 1rem; flex: 1;
 }
 
+/* ── Pantallas anchas ──
+   Las 42rem son la medida de lectura cómoda y se quedan así en Ajustes y en la
+   Ayuda, que son texto seguido. La biblioteca es otra cosa: es un catálogo, y
+   en un monitor grande una única columna estrecha deja dos tercios de pantalla
+   en blanco y obliga a bajar mucho. Ahí se ensancha por tramos y las listas
+   pasan a varias columnas. El orden sigue siendo el del documento (izquierda a
+   derecha, fila a fila), así que el recorrido del tabulador no cambia. */
+#vista-biblioteca .contenido { max-width: var(--ancho-biblioteca, 42rem); }
+
+@media (min-width: 64rem)  { :root { --ancho-biblioteca: 56rem; } }
+@media (min-width: 80rem)  { :root { --ancho-biblioteca: 71rem; } }
+@media (min-width: 100rem) { :root { --ancho-biblioteca: 86rem; } }
+
 .fila-seccion { display: flex; align-items: flex-start; gap: 0.5rem; }
 .encabezado-seccion { flex: 1; min-width: 0; }
 .titulo-y-estado-seccion { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
@@ -1240,4 +1253,88 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   /* El resaltado del resultado de búsqueda se apaga solo al terminar su
      animación: sin ella se queda fijo (y visible) hasta cambiar de página. */
   .capa-busqueda span { animation: none !important; opacity: 1; }
+}
+
+/* ── Biblioteca en pantallas anchas ──
+   Continúa el bloque de más arriba: aquí van los cambios de disposición que
+   solo tienen sentido cuando sobra ancho. */
+@media (min-width: 64rem) {
+  /* Buscar, filtrar y ordenar caben en la misma línea, y así la primera
+     portada entra en pantalla sin bajar. */
+  #vista-biblioteca .contenido {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: start;
+    column-gap: 1rem;
+  }
+  #vista-biblioteca .contenido > * { grid-column: 1 / -1; }
+  /* Con el mismo peso que la regla de arriba, si no esta no se aplicaría. */
+  #vista-biblioteca .contenido > .buscador-biblioteca {
+    grid-column: 1; align-self: center;
+  }
+  #vista-biblioteca .contenido > .organizacion-biblioteca {
+    grid-column: 2; grid-template-columns: auto auto auto; align-items: end;
+  }
+  .organizacion-biblioteca select { min-width: 9.5rem; }
+
+  /* Las listas se reparten en columnas. Con «auto-fill» y un mínimo por
+     tarjeta el número de columnas lo decide el ancho disponible, sin fijar
+     cuántas hay en cada tramo. */
+  .lista-libros:not(.vista-cuadricula) {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
+    gap: 0.5rem;
+    /* Igual de altas dentro de cada fila: unos libros traen autor y otros no,
+       y con alturas dispares la rejilla parece descuadrada. */
+    align-items: stretch;
+  }
+  /* La lectura destacada sigue ocupando el ancho entero: es la protagonista. */
+  #libro-continuar > li:first-child { grid-column: 1 / -1; }
+
+  /* Con más sitio, las portadas de la cuadrícula dejan de ser sellos. */
+  .lista-libros.vista-cuadricula {
+    grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  }
+}
+
+/* En monitores grandes las tarjetas no necesitan más de 30rem: pasado eso el
+   texto queda perdido en medio de la fila y se prefiere otra columna. */
+@media (min-width: 100rem) {
+  .lista-libros:not(.vista-cuadricula) {
+    grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+  }
+  .lista-libros.vista-cuadricula {
+    grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  }
+}
+
+/* ── Ajustes, Ayuda e Importar/Exportar en pantallas anchas ──
+   Son tarjetas independientes, así que en vez de una tira vertical larguísima
+   se reparten en dos columnas. Cada columna sigue midiendo unas 36rem, que es
+   ancho de lectura cómodo; el reparto es por filas (izquierda y luego derecha),
+   de modo que lo que se ve coincide con el orden del documento. */
+@media (min-width: 72rem) {
+  #vista-ajustes .contenido,
+  #vista-archivos .contenido,
+  #vista-ayuda .contenido {
+    max-width: 76rem;
+    display: block;   /* deja de ser una columna flexible */
+    columns: 2;
+    column-gap: 1rem;
+  }
+  /* Columnas de periódico y no una rejilla: las tarjetas tienen alturas muy
+     dispares y una rejilla por filas dejaría huecos enormes. Así se reparten
+     solas y el orden de lectura sigue siendo el del documento. */
+  #vista-ajustes .contenido > *,
+  #vista-archivos .contenido > *,
+  #vista-ayuda .contenido > * {
+    break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+}
+
+/* Con sitio de sobra, una tercera columna deja la ayuda casi de un vistazo
+   sin bajar de las 24rem por columna, que siguen siendo cómodas de leer. */
+@media (min-width: 105rem) {
+  #vista-ayuda .contenido { max-width: 96rem; columns: 3; }
 }
