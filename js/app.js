@@ -1255,16 +1255,34 @@ function restaurarEnContinuar(id) {
   guardarOcultosDeContinuar(ocultos);
 }
 
+// A partir de este ancho las listas se reparten en columnas (ver estilos.css),
+// así que las demás lecturas caben al lado de la destacada sin alargar nada:
+// el desplegable deja de tener sentido y se muestran todas de una vez. En
+// pantallas estrechas sigue plegándose, que es donde el espacio escasea.
+const PANTALLA_ANCHA = window.matchMedia?.('(min-width: 64rem)');
+
+// Cuántas lecturas recientes se enseñan: una más cuando hay columnas, para
+// que la fila de las secundarias quede completa.
+function maximoRecientes() {
+  return PANTALLA_ANCHA?.matches ? 4 : 3;
+}
+
 function actualizarDesplegableContinuar() {
   const filas = [...$('libro-continuar').children];
-  filas.forEach((fila, indice) => fila.classList.toggle('oculto', !continuarExpandido && indice > 0));
+  const todas = continuarExpandido || Boolean(PANTALLA_ANCHA?.matches);
+  filas.forEach((fila, indice) => fila.classList.toggle('oculto', !todas && indice > 0));
   const boton = $('btn-mas-recientes');
-  boton.classList.toggle('oculto', filas.length <= 1);
+  boton.classList.toggle('oculto', filas.length <= 1 || Boolean(PANTALLA_ANCHA?.matches));
   boton.setAttribute('aria-expanded', String(continuarExpandido));
   boton.textContent = continuarExpandido
     ? t('showFewerRecent')
     : t('showMoreRecent', { count: Math.max(0, filas.length - 1) });
 }
+
+// Al cruzar el umbral cambia cuántas lecturas caben, así que se repinta.
+PANTALLA_ANCHA?.addEventListener('change', () => {
+  if (!$('vista-biblioteca').classList.contains('oculto')) pintarContinuarLeyendo();
+});
 
 function lecturaTerminada(avance, porcentaje = null) {
   const pct = porcentaje ?? (avance?.paginas
@@ -1308,8 +1326,9 @@ async function pintarContinuarLeyendo({
   const locales = await almacen.listarLibros().catch(() => []);
   if (version !== versionContinuarLeyendo) return;
   const localesPorId = new Map(locales.map((libro) => [libro.id, libro]));
+  const maximo = maximoRecientes();
   for (const reciente of recientes) {
-    if (lista.children.length >= 3) break;
+    if (lista.children.length >= maximo) break;
     let nombre;
     let tamano = 0;
     let alAbrir;
