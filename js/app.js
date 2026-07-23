@@ -332,10 +332,19 @@ function epubAbierto() {
 
 // ───────────────────────── Utilidades de interfaz ─────────────────────────
 
+// Al cambiar de vista la anterior se oculta con display:none, así que el foco
+// que hubiera dentro se pierde y el navegador lo devuelve a <body>: quien usa
+// teclado o lector de pantalla acaba al principio del documento sin enterarse.
+// Se lleva a la cabecera de la vista nueva, que además la anuncia. Si nadie
+// tenía el foco dentro de una vista (la carga inicial) no se toca nada.
 function mostrarVista(nombre) {
+  const anterior = document.activeElement;
+  const destino = $(`vista-${nombre}`);
   for (const vista of document.querySelectorAll('.vista')) {
-    vista.classList.toggle('oculto', vista.id !== `vista-${nombre}`);
+    vista.classList.toggle('oculto', vista !== destino);
   }
+  if (!destino || !anterior?.closest?.('.vista')) return;
+  destino.querySelector('[data-foco-vista]')?.focus();
 }
 
 const ESTADO_VISTA = 'pagekeeperVista';
@@ -399,18 +408,25 @@ window.addEventListener('popstate', () => {
 let temporizadorToast;
 function avisar(mensaje, ms = 3500) {
   const toast = $('toast');
-  toast.textContent = mensaje;
+  // Primero visible y luego el texto: un cambio dentro de un elemento con
+  // display:none no llega a anunciarse aunque sea una región «live».
   toast.classList.remove('oculto');
+  toast.textContent = mensaje;
   clearTimeout(temporizadorToast);
   temporizadorToast = setTimeout(() => toast.classList.add('oculto'), ms);
 }
 
+// El texto visible del indicador se refresca con cada porcentaje de descarga,
+// así que la región que anuncia el lector de pantalla es otra (#anuncio-cargando)
+// y solo recibe el texto estable: si no, cantaría el avance número a número.
 function mostrarCarga(texto) {
   $('texto-cargando').textContent = texto;
   $('cargando').classList.remove('oculto');
+  $('anuncio-cargando').textContent = texto;
 }
 function ocultarCarga() {
   $('cargando').classList.add('oculto');
+  $('anuncio-cargando').textContent = '';
 }
 
 // ───────────────────────── Configuración ─────────────────────────
@@ -4383,9 +4399,34 @@ $('btn-noche').addEventListener('click', () => {
   lectorEpub.aplicarNoche(activo);
 });
 
+// Elementos que ya usan las flechas y el espacio para lo suyo: escribir, abrir
+// un desplegable o moverse por sus opciones.
+const ETIQUETAS_CON_TECLADO_PROPIO = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'OPTION']);
+
+// Diálogos y menús que se superponen al libro: mientras alguno esté abierto,
+// las teclas son suyas aunque el foco no haya llegado a caer dentro.
+const CAPAS_SOBRE_EL_LIBRO = ['dialogo-mover', 'dialogo-editar-nota',
+  'dialogo-contrasena-pdf', 'dialogo-pdf-sin-texto', 'menu-libro',
+  'fondo-menu-lector', 'menu-nota-contextual'];
+
+// Decide si otra parte de la interfaz tiene preferencia sobre estas teclas.
+// Sin esta comprobación, elegir el interlineado con las flechas o escribir un
+// espacio en una nota pasaba de página además de hacer lo suyo.
+function tecladoOcupado(evento) {
+  if (evento.defaultPrevented) return true; // p. ej. el tirador del panel
+  if (CAPAS_SOBRE_EL_LIBRO.some((id) => !$(id).classList.contains('oculto'))) return true;
+  const destino = evento.target;
+  if (!(destino instanceof HTMLElement)) return false;
+  if (ETIQUETAS_CON_TECLADO_PROPIO.has(destino.tagName) || destino.isContentEditable) return true;
+  // El espacio activa el botón o el enlace que tenga el foco; no debe además
+  // pasar de página.
+  if (evento.key === ' ' && destino.closest('button, a[href], summary, [role="menuitem"]')) return true;
+  return Boolean(destino.closest('[role="dialog"]'));
+}
+
 function manejarTecla(evento) {
   if ($('vista-lector').classList.contains('oculto')) return;
-  if (evento.target?.tagName === 'INPUT') return;
+  if (tecladoOcupado(evento)) return;
   const activo = epubAbierto() ? lectorEpub : lector;
   switch (evento.key) {
     case 'ArrowLeft': case 'PageUp': activo.anterior(); break;

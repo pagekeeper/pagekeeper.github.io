@@ -23,6 +23,15 @@ body {
 
 .oculto { display: none !important; }
 
+/* Un único indicador de foco para todo lo que se puede tabular: el fondo tenue
+   que marca el paso del ratón no basta para saber dónde está el teclado. Las
+   reglas de más abajo pueden afinarlo, pero ninguna debe quitarlo. */
+:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+
+/* Las cabeceras reciben el foco al cambiar de vista solo para anunciarla: no
+   son controles y no forman parte del recorrido del tabulador. */
+[data-foco-vista]:focus { outline: none; }
+
 .vista { min-height: 100dvh; display: flex; flex-direction: column; }
 
 /* ── Cabeceras ── */
@@ -105,7 +114,7 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 }
 .btn-cerrar-aviso:hover, .btn-cerrar-aviso:focus-visible {
   background: color-mix(in srgb, var(--texto-suave) 16%, transparent);
-  color: var(--texto); outline: none;
+  color: var(--texto);
 }
 .btn-cerrar-aviso .icono { width: 1rem; height: 1rem; }
 
@@ -219,7 +228,6 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 }
 .btn-quitar-continuar:hover, .btn-quitar-continuar:focus-visible {
   background: color-mix(in srgb, var(--peligro) 14%, transparent); color: var(--peligro);
-  outline: none;
 }
 .btn-quitar-continuar .icono { width: 1rem; height: 1rem; }
 .btn-mas-recientes {
@@ -228,7 +236,7 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   color: var(--acento); font: inherit; font-size: 0.8rem; font-weight: 650; cursor: pointer;
 }
 .btn-mas-recientes:hover, .btn-mas-recientes:focus-visible {
-  background: color-mix(in srgb, var(--acento) 12%, transparent); outline: none;
+  background: color-mix(in srgb, var(--acento) 12%, transparent);
 }
 .continuar-leyendo .libro .portada { width: 3.3rem; height: 4.4rem; }
 .continuar-leyendo .libro .nombre { font-size: 1.05rem; }
@@ -302,13 +310,19 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   background: var(--fondo-tarjeta); border: 1px solid var(--borde);
   border-radius: 0.65rem; padding: 0.25rem 0.7rem; color: var(--texto-suave);
 }
-.buscador:focus-within { border-color: var(--acento); }
+/* El campo ocupa toda la caja, así que el foco se marca sobre la caja entera
+   en lugar de sobre un input sin borde propio. */
+.buscador:focus-within {
+  border-color: var(--acento);
+  outline: 2px solid var(--acento); outline-offset: 1px;
+}
 .buscador .icono { width: 1rem; height: 1rem; }
 .buscador input, .buscador-form input {
   width: 100%; min-width: 0; background: transparent; border: none;
   color: var(--texto); font: inherit; padding: 0.45rem 0;
 }
-.buscador input:focus, .buscador-form input:focus { outline: none; }
+.buscador input:focus { outline: none; } /* lo marca la caja de alrededor */
+.buscador-form input:focus { outline: 2px solid var(--acento); border-color: transparent; }
 
 /* ── Formulario ── */
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
@@ -381,7 +395,6 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .btn-menu-libro:hover, .btn-menu-libro:focus-visible {
   color: var(--acento);
   background: color-mix(in srgb, var(--acento) 10%, transparent);
-  outline: none;
 }
 .btn-menu-libro .icono { width: 1.2rem; height: 1.2rem; }
 .estado-sin-conexion {
@@ -436,7 +449,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .btn-terminado-en-libro:hover { color: var(--acento); border-color: var(--acento); }
 .btn-terminado-en-libro.terminado { color: #34d399; border-color: #34d399; }
 .btn-terminado-en-libro.terminado:hover, .btn-terminado-en-libro.terminado:focus-visible {
-  color: var(--peligro); border-color: var(--peligro); outline: none;
+  color: var(--peligro); border-color: var(--peligro);
 }
 .btn-terminado-en-libro .icono-quitar-terminado { width: 0.7rem; height: 0.7rem; margin-left: 0.05rem; }
 .libro-terminado .barra-progreso > div { background: #34d399; }
@@ -533,7 +546,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   border-radius: 0.55rem; font: inherit; text-align: left; cursor: pointer;
 }
 .item-menu-lector:hover, .item-menu-lector:focus-visible {
-  background: color-mix(in srgb, var(--acento) 12%, transparent); outline: none;
+  background: color-mix(in srgb, var(--acento) 12%, transparent);
 }
 .item-menu-lector .icono { width: 1.15rem; height: 1.15rem; color: var(--texto-suave); }
 .grupo-zoom-menu {
@@ -818,7 +831,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
     background: transparent; cursor: col-resize; touch-action: none;
   }
   #tirador-indice:hover, #tirador-indice:focus-visible,
-  #tirador-indice.arrastrando { background: var(--acento); outline: none; }
+  #tirador-indice.arrastrando { background: var(--acento); }
   /* Sin barra de herramientas (modo inmersivo) el panel sube a la primera fila. */
   #vista-lector.inmersivo :is(#panel-indice-libro, #tirador-indice, > #area-lectura) {
     grid-row: 1 / -1;
@@ -887,7 +900,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--texto); font: inherit; text-align: left; cursor: pointer;
 }
 .entrada-indice-libro:hover, .entrada-indice-libro:focus-visible {
-  border-color: var(--acento); background: var(--fondo-tarjeta); outline: none;
+  border-color: var(--acento); background: var(--fondo-tarjeta);
 }
 .entrada-indice-libro .titulo-entrada-indice { flex: 1; min-width: 0; line-height: 1.3; }
 .entrada-indice-libro .pagina-entrada-indice {
@@ -976,7 +989,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   min-width: 0; padding: 0.45rem 0.55rem; border: 0; border-radius: 0.45rem;
   background: none; color: var(--texto); text-align: left; cursor: pointer;
 }
-.ir-anotacion:hover, .ir-anotacion:focus-visible { background: var(--fondo-tarjeta); outline: none; }
+.ir-anotacion:hover, .ir-anotacion:focus-visible { background: var(--fondo-tarjeta); }
 .texto-anotacion, .nota-anotacion { display: block; overflow: hidden; text-overflow: ellipsis; }
 .texto-anotacion { white-space: nowrap; font-size: 0.9rem; }
 .nota-anotacion { color: var(--acento); font-size: 0.8rem; white-space: nowrap; margin-top: 0.15rem; }
@@ -994,7 +1007,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: none; border: none; padding: 0.1rem 0.25rem; font: inherit;
   color: var(--acento); cursor: pointer; border-radius: 0.3rem;
 }
-.miga:hover, .miga:focus-visible { text-decoration: underline; outline: none; }
+.miga:hover, .miga:focus-visible { text-decoration: underline; }
 .separador-miga { color: var(--texto-suave); }
 .miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
 .libro .portada-carpeta { color: #fbbf24; }
@@ -1071,7 +1084,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--texto); font: inherit; text-align: left; cursor: pointer;
 }
 .item-menu-libro:hover, .item-menu-libro:focus-visible {
-  background: color-mix(in srgb, var(--acento) 12%, transparent); outline: none;
+  background: color-mix(in srgb, var(--acento) 12%, transparent);
 }
 .item-menu-libro .icono { width: 1.15rem; height: 1.15rem; flex: none; color: var(--texto-suave); }
 .item-menu-peligro { color: var(--peligro); }

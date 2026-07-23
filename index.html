@@ -14,7 +14,7 @@
   <!-- ═══════════ BIBLIOTECA ═══════════ -->
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
-      <h1><span class="icono-app" data-icono="book-open"></span>PageKeeper</h1>
+      <h1 tabindex="-1" data-foco-vista><span class="icono-app" data-icono="book-open"></span>PageKeeper</h1>
       <label class="selector-idioma" for="selector-idioma"><span class="sr-solo" data-i18n="language">Idioma</span>
         <select id="selector-idioma" aria-label="Idioma" data-i18n-aria-label="language">
           <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option>
@@ -63,7 +63,7 @@
         <input id="buscar-biblioteca" type="search" placeholder="Buscar por título, autor…"
           data-i18n-placeholder="searchLibraryPlaceholder" autocomplete="off">
       </label>
-      <p id="estado-filtro-biblioteca" class="estado oculto"></p>
+      <p id="estado-filtro-biblioteca" class="estado oculto" role="status"></p>
 
       <div id="organizacion-biblioteca" class="organizacion-biblioteca oculto">
         <label>
@@ -114,7 +114,7 @@
             aria-expanded="true" aria-controls="zona-remota"></button>
         </div>
         <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
-        <div id="estado-remoto" class="estado"></div>
+        <div id="estado-remoto" class="estado" role="status"></div>
         <ul id="lista-libros" class="lista-libros"></ul>
       </div>
 
@@ -167,7 +167,7 @@
   <section id="vista-lector" class="vista oculto">
     <header class="barra-lector">
       <button id="btn-volver" class="btn-icono" data-icono="arrow-left" title="Volver a la biblioteca" data-i18n-title="backLibrary"></button>
-      <span id="titulo-libro" class="titulo-libro"></span>
+      <span id="titulo-libro" class="titulo-libro" tabindex="-1" data-foco-vista></span>
       <div class="grupo-posicion">
         <button type="button" id="btn-posicion-anterior" class="btn-icono historial-movil" data-icono="undo-2"
           title="Volver a la posición anterior" data-i18n-title="backPosition"></button>
@@ -388,7 +388,7 @@
           <button type="submit" class="btn-primario" data-i18n="search">Buscar</button>
           <button type="button" id="cerrar-busqueda-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
         </form>
-        <div id="estado-busqueda-libro" class="estado"></div>
+        <div id="estado-busqueda-libro" class="estado" role="status"></div>
         <ol id="resultados-busqueda-libro" class="resultados-busqueda"></ol>
       </aside>
       <div id="contenedor-pagina"></div>
@@ -431,7 +431,7 @@
   <section id="vista-ajustes" class="vista oculto">
     <header class="cabecera">
       <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
-      <h1 data-i18n="settings">Ajustes</h1>
+      <h1 tabindex="-1" data-foco-vista data-i18n="settings">Ajustes</h1>
     </header>
     <main class="contenido">
       <form id="formulario-webdav" class="tarjeta">
@@ -454,7 +454,7 @@
           <button type="submit" class="btn-primario" data-i18n="save">Guardar</button>
           <button type="button" id="btn-borrar-config" class="btn-peligro" data-i18n="deleteConfig">Borrar configuración</button>
         </div>
-        <div id="resultado-prueba" class="estado"></div>
+        <div id="resultado-prueba" class="estado" role="status"></div>
       </form>
 
       <div class="tarjeta">
@@ -468,7 +468,7 @@
             data-i18n="importConfigFile">Restaurar configuración</label>
           <input type="file" id="selector-importar-config" accept=".json,application/json" hidden>
         </div>
-        <div id="resultado-copia" class="estado"></div>
+        <div id="resultado-copia" class="estado" role="status"></div>
       </div>
 
     </main>
@@ -479,7 +479,7 @@
     <header class="cabecera">
       <button id="btn-cerrar-archivos" class="btn-icono" data-icono="arrow-left"
         title="Volver" data-i18n-title="back"></button>
-      <h1 data-i18n="importExport">Importar y exportar</h1>
+      <h1 tabindex="-1" data-foco-vista data-i18n="importExport">Importar y exportar</h1>
     </header>
     <main class="contenido">
       <div class="tarjeta">
@@ -503,7 +503,7 @@
           <input type="file" id="selector-restaurar-biblioteca"
             accept=".zip,application/zip,application/x-zip-compressed" hidden>
         </div>
-        <div id="resultado-copia-biblioteca" class="estado"></div>
+        <div id="resultado-copia-biblioteca" class="estado" role="status"></div>
       </div>
 
       <div id="tarjeta-copia-nube" class="tarjeta">
@@ -517,7 +517,7 @@
           <input type="file" id="selector-restaurar-nube"
             accept=".zip,application/zip,application/x-zip-compressed" hidden>
         </div>
-        <div id="resultado-copia-nube" class="estado"></div>
+        <div id="resultado-copia-nube" class="estado" role="status"></div>
       </div>
     </main>
   </section>
@@ -526,7 +526,7 @@
   <section id="vista-ayuda" class="vista oculto">
     <header class="cabecera">
       <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
-      <h1 data-i18n="help">Ayuda</h1>
+      <h1 tabindex="-1" data-foco-vista data-i18n="help">Ayuda</h1>
     </header>
     <main id="contenido-ayuda" class="contenido" data-i18n-ayuda>
 
@@ -772,7 +772,7 @@
       <h2 id="titulo-mover"></h2>
       <nav id="ruta-mover" class="ruta-carpeta" aria-label="Carpeta de destino" data-i18n-aria-label="targetFolder"></nav>
       <ul id="lista-carpetas-mover" class="lista-carpetas-mover"></ul>
-      <div id="estado-mover" class="estado"></div>
+      <div id="estado-mover" class="estado" role="status"></div>
       <div class="fila-botones botones-mover">
         <button type="button" id="btn-carpeta-nueva-mover" class="btn-secundario" data-i18n="newFolder">Crear una carpeta</button>
         <button type="button" id="btn-cancelar-mover" class="btn-secundario" data-i18n="cancel">Cancelar</button>
@@ -852,8 +852,11 @@
     </div>
   </div>
 
-  <div id="toast" class="toast oculto"></div>
+  <div id="toast" class="toast oculto" role="status"></div>
   <div id="cargando" class="cargando oculto"><div class="ruedecilla"></div><span id="texto-cargando">Cargando…</span></div>
+  <!-- El texto visible de arriba cambia con cada porcentaje; lo que se anuncia
+       es esta copia, que solo recibe el texto estable de cada operación. -->
+  <span id="anuncio-cargando" class="sr-solo" role="status"></span>
 
   <script type="module" src="js/app.js"></script>
 </body>
