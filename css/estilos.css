@@ -22,7 +22,9 @@
   --formato-pdf: #be123c;
   --formato-epub: #0f766e;
   --borde: #cbd5e1;        /* separadores y marcos suaves */
-  --borde-fuerte: #64748b; /* contorno de los campos, que si no se pierden */
+  /* Contorno de los campos: con el borde suave se pierden sobre la tarjeta.
+     Los dos temas llegan al 3:1 que pide un control (4,76:1 y 3,35:1). */
+  --borde-fuerte: #64748b;
   --velo: rgba(15, 23, 42, 0.35);       /* fondo de los diálogos */
   --velo-denso: rgba(248, 250, 252, 0.9); /* fondo del indicador de carga */
   --sombra: rgba(15, 23, 42, 0.18);
@@ -45,7 +47,7 @@
   --formato-pdf: #fb7185;
   --formato-epub: #2dd4bf;
   --borde: #334155;
-  --borde-fuerte: #475569;
+  --borde-fuerte: #6b7a90;
   --velo: rgba(15, 23, 42, 0.7);
   --velo-denso: rgba(15, 23, 42, 0.85);
   --sombra: rgba(0, 0, 0, 0.45);
