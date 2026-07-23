@@ -62,6 +62,9 @@ const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
 const CLAVE_EJEMPLOS_PRECARGADOS = 'lector.ejemplosPrecargados'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
+// Ausente o distinta de '1' significa visible: el bloque se enseña salvo que
+// se pida lo contrario, así que no hay nada que guardar en el caso normal.
+const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
 
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
@@ -71,6 +74,7 @@ const CLAVES_PREFERENCIAS_COPIA = [
   CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA, CLAVE_PLEGADA_LOCAL,
+  CLAVE_CONTINUAR_OCULTO,
 ];
 
 // Un libro de ejemplo por formato e idioma: así quedan representados
@@ -817,6 +821,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
   $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
   aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+  sincronizarCasillaContinuar();
 }
 
 async function exportarBibliotecaLocal() {
@@ -1267,6 +1272,23 @@ function maximoRecientes() {
   return PANTALLA_ANCHA?.matches ? 4 : 3;
 }
 
+// «Continuar leyendo» se puede apagar del todo desde los ajustes. A quien
+// abre siempre el mismo libro, o lee de un tirón, el bloque no le aporta y le
+// aparta la biblioteca hacia abajo.
+function continuarDesactivado() {
+  return localStorage.getItem(CLAVE_CONTINUAR_OCULTO) === '1';
+}
+
+function sincronizarCasillaContinuar() {
+  $('casilla-continuar').checked = !continuarDesactivado();
+}
+
+$('casilla-continuar').addEventListener('change', (evento) => {
+  if (evento.target.checked) localStorage.removeItem(CLAVE_CONTINUAR_OCULTO);
+  else localStorage.setItem(CLAVE_CONTINUAR_OCULTO, '1');
+  pintarContinuarLeyendo();
+});
+
 function actualizarDesplegableContinuar() {
   const filas = [...$('libro-continuar').children];
   const todas = continuarExpandido || Boolean(PANTALLA_ANCHA?.matches);
@@ -1315,6 +1337,12 @@ async function pintarContinuarLeyendo({
   const version = ++versionContinuarLeyendo;
   const seccion = $('continuar-leyendo');
   const lista = $('libro-continuar');
+  if (continuarDesactivado()) {
+    lista.replaceChildren();
+    seccion.classList.add('oculto');
+    $('btn-mas-recientes').classList.add('oculto');
+    return;
+  }
   const ocultos = librosOcultosDeContinuar();
   const recientes = progreso.librosRecientes(Infinity).filter((reciente) =>
     !ocultos.has(reciente.id) && !lecturaTerminada(reciente.progreso));
@@ -5194,6 +5222,7 @@ document.addEventListener('idioma-cambiado', () => {
 });
 iniciarIdioma();
 iniciarTema();
+sincronizarCasillaContinuar();
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
   document.body.classList.add('modo-noche');
 }

@@ -23,7 +23,7 @@ libros y sincronizar el progreso de lectura.
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red).
 - ▶️ **Continuar leyendo**: al abrir la aplicación, el último libro aparece
-  destacado. Los demás recientes se pueden desplegar y quitar individualmente;
+  destacado; el recuadro entero se puede ocultar desde Ajustes. Los demás recientes se pueden desplegar y quitar individualmente;
   vuelven a aparecer al abrirlos de nuevo. Los terminados y los archivos que ya
   no están disponibles se excluyen automáticamente.
 - 🗂️ **Biblioteca organizada**: permite ordenar por lectura reciente, título,

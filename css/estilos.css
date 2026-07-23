@@ -391,6 +391,16 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 
 /* ── Formulario ── */
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
+
+/* Casilla de una preferencia suelta, con la etiqueta al lado y toda la fila
+   como zona de pulsación. */
+.casilla { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
+.casilla input {
+  width: 1.1rem; height: 1.1rem; flex: none; margin: 0;
+  accent-color: var(--acento-oscuro); cursor: pointer;
+}
+.casilla input:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.casilla + .ayuda { margin-top: 0.45rem; }
 form input {
   background: var(--fondo); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.55rem 0.7rem;
