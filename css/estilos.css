@@ -391,16 +391,6 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 
 /* ── Formulario ── */
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
-/* Un control suelto en una tarjeta (fuera de un formulario) se presenta igual
-   que los campos de arriba, para que no parezca de otra familia. */
-.campo-ajuste { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
-.campo-ajuste select {
-  align-self: flex-start; min-width: 14rem; max-width: 100%;
-  background: var(--fondo); border: 1px solid var(--borde-fuerte);
-  border-radius: 0.5rem; padding: 0.55rem 0.7rem;
-  color: var(--texto); font: inherit; font-size: 1rem;
-}
-.campo-ajuste select:focus-visible { outline: 2px solid var(--acento); border-color: transparent; }
 form input {
   background: var(--fondo); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.55rem 0.7rem;

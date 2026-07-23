@@ -48,11 +48,19 @@ export function guardarTema(tema) {
   pintarTema();
 }
 
-// Alterna entre claro y oscuro partiendo de lo que se está viendo: el primer
-// toque desde «automático» fija el contrario de lo que hay en pantalla.
-export function alternarTema() {
-  guardarTema(temaEfectivo() === 'oscuro' ? 'claro' : 'oscuro');
-  return temaEfectivo();
+// Los tres estados en rueda: seguir al sistema → claro → oscuro → seguir al
+// sistema. Que «automático» esté a un toque es la razón de que el botón cicle
+// en vez de alternar: si no, volver a él exigiría entrar en los ajustes.
+const RUEDA = { auto: 'claro', claro: 'oscuro', oscuro: 'auto' };
+
+export function siguienteTema(desde = temaElegido()) {
+  return RUEDA[desde] ?? 'auto';
+}
+
+export function pasarAlSiguienteTema() {
+  const nuevo = siguienteTema();
+  guardarTema(nuevo);
+  return nuevo;
 }
 
 export function iniciarTema() {

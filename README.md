@@ -49,10 +49,11 @@ libros y sincronizar el progreso de lectura.
   forma parte del identificador del libro, mover uno conserva intactos su
   página, sus marcadores y sus anotaciones. El buscador sigue mirando en todas
   las carpetas.
-- 🌗 **Modo claro y oscuro**: arranca con el tema del sistema y se cambia con
-  el botón de la cabecera; la elección se recuerda en ese navegador y desde
-  Ajustes se puede volver a seguir al sistema. Es independiente del «modo
-  noche» del lector, que oscurece la página del libro.
+- 🌗 **Modo claro y oscuro**: el botón de la cabecera pasa por tres estados
+  (el del sistema, claro y oscuro) y el icono indica en cuál estás; la
+  elección se recuerda en ese navegador. De partida sigue al sistema, también
+  mientras la aplicación está abierta. Es independiente del «modo noche» del
+  lector, que oscurece la página del libro.
 - ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
   dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
   sección local; uno local sube con su botón de la nube o arrastrándolo hasta

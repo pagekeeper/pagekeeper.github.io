@@ -39,7 +39,7 @@
           <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option>
         </select>
       </label>
-      <button id="btn-tema" class="btn-icono" title="Cambiar a modo claro u oscuro"></button>
+      <button id="btn-tema" class="btn-icono" title="Tema"></button>
       <button id="btn-archivos" class="btn-icono" data-icono="folder-input"
         title="Importar y exportar" data-i18n-title="importExport"></button>
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
@@ -484,18 +484,6 @@
       </form>
 
       <div class="tarjeta">
-        <h2 data-i18n="appearance">Aspecto</h2>
-        <p class="ayuda" data-i18n="themeHelp">De partida se usa el tema del sistema. Si eliges uno, se recuerda en este navegador.</p>
-        <label class="campo-ajuste"><span data-i18n="theme">Tema</span>
-          <select id="selector-tema">
-            <option value="auto" data-i18n="themeAuto">El del sistema</option>
-            <option value="claro" data-i18n="themeLight">Claro</option>
-            <option value="oscuro" data-i18n="themeDark">Oscuro</option>
-          </select>
-        </label>
-      </div>
-
-      <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
         <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
         <div class="fila-botones">
@@ -815,10 +803,12 @@
 
       <div class="tarjeta">
         <h2>Modo claro y modo oscuro</h2>
-        <p>PageKeeper arranca con el tema que tenga puesto tu sistema. El botón
-        del sol o la luna de la cabecera lo cambia al instante, y tu elección se
-        recuerda en ese navegador. Si quieres volver a seguir al sistema, en
-        <strong>⚙️ Ajustes → Aspecto</strong> tienes «El del sistema».</p>
+        <p>El botón del tema, en la cabecera, va pasando por los tres estados
+        cada vez que lo pulsas: <strong>el del sistema</strong> (círculo mitad
+        claro mitad oscuro), <strong>claro</strong> (sol) y <strong>oscuro</strong>
+        (luna). El icono te dice en cuál estás y tu elección se recuerda en ese
+        navegador. De partida se usa el del sistema, así que la aplicación se
+        aclara u oscurece cuando lo hace el resto del dispositivo.</p>
         <p class="ayuda">No lo confundas con el <strong>modo noche</strong> del
         lector: aquel oscurece la página del libro y se guarda por separado.</p>
       </div>

@@ -156,10 +156,10 @@ const textos = {
     folderDeleted: 'Carpeta borrada de la nube.', emptyFolder: 'Esta carpeta está vacía.',
     deviceRoot: 'Inicio', actionRenameFolder: 'Cambiar el nombre de la carpeta',
     actionSaveToDevice: 'Guardar en este dispositivo',
-    appearance: 'Aspecto', theme: 'Tema', themeAuto: 'El del sistema',
-    themeLight: 'Claro', themeDark: 'Oscuro',
-    themeHelp: 'De partida se usa el tema del sistema. Si eliges uno, se recuerda en este navegador.',
-    switchToLight: 'Cambiar al modo claro', switchToDark: 'Cambiar al modo oscuro',
+    themeAuto: 'El del sistema', themeLight: 'Claro', themeDark: 'Oscuro',
+    themeNowAuto: 'Tema: el del sistema. Pulsa para el modo claro',
+    themeNowLight: 'Tema: claro. Pulsa para el modo oscuro',
+    themeNowDark: 'Tema: oscuro. Pulsa para seguir el del sistema',
     actionMoveFolder: 'Mover la carpeta', moveFolderTo: 'Mover la carpeta «{name}»',
     folderMoved: 'Carpeta «{name}» movida.',
     savedToDevice: '«{title}» guardado en este dispositivo.',
@@ -330,10 +330,10 @@ const textos = {
     folderDeleted: 'S’ha esborrat la carpeta del núvol.', emptyFolder: 'Aquesta carpeta és buida.',
     deviceRoot: 'Inici', actionRenameFolder: 'Canvia el nom de la carpeta',
     actionSaveToDevice: 'Desa en aquest dispositiu',
-    appearance: 'Aspecte', theme: 'Tema', themeAuto: 'El del sistema',
-    themeLight: 'Clar', themeDark: 'Fosc',
-    themeHelp: 'De primer s’usa el tema del sistema. Si en tries un, es recorda en aquest navegador.',
-    switchToLight: 'Canvia al mode clar', switchToDark: 'Canvia al mode fosc',
+    themeAuto: 'El del sistema', themeLight: 'Clar', themeDark: 'Fosc',
+    themeNowAuto: 'Tema: el del sistema. Prem per al mode clar',
+    themeNowLight: 'Tema: clar. Prem per al mode fosc',
+    themeNowDark: 'Tema: fosc. Prem per seguir el del sistema',
     actionMoveFolder: 'Mou la carpeta', moveFolderTo: 'Mou la carpeta «{name}»',
     folderMoved: 'S’ha mogut la carpeta «{name}».',
     savedToDevice: 'S’ha desat «{title}» en aquest dispositiu.',
@@ -504,10 +504,10 @@ const textos = {
     folderDeleted: 'Folder deleted from the cloud.', emptyFolder: 'This folder is empty.',
     deviceRoot: 'Home', actionRenameFolder: 'Rename folder',
     actionSaveToDevice: 'Save to this device',
-    appearance: 'Appearance', theme: 'Theme', themeAuto: 'Match the system',
-    themeLight: 'Light', themeDark: 'Dark',
-    themeHelp: 'The system theme is used to begin with. Pick one and it is remembered in this browser.',
-    switchToLight: 'Switch to light mode', switchToDark: 'Switch to dark mode',
+    themeAuto: 'Match the system', themeLight: 'Light', themeDark: 'Dark',
+    themeNowAuto: 'Theme: match the system. Tap for light mode',
+    themeNowLight: 'Theme: light. Tap for dark mode',
+    themeNowDark: 'Theme: dark. Tap to match the system',
     actionMoveFolder: 'Move folder', moveFolderTo: 'Move the folder “{name}”',
     folderMoved: 'Folder “{name}” moved.',
     savedToDevice: '“{title}” saved to this device.',
@@ -540,7 +540,7 @@ const ayudas = {
     <div class="tarjeta"><h2>Tinc o administro un Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector (<code id="ayuda-dominio">aquest lloc</code>) als orígens permesos.</li><li>Crea una <strong>contrasenya d’aplicació</strong> a Configuració → Seguretat; no facis servir la principal.</li><li>A <strong>⚙️ Configuració</strong>, indica l’URL de la carpeta, l’usuari i la contrasenya.</li></ul></div>
     <div class="tarjeta"><h2>Porta la configuració a un altre dispositiu</h2><p>A <strong>⚙️ Configuració → «Copia l’enllaç de configuració»</strong> obtens un enllaç amb l’URL, l’usuari i la contrasenya. Obre’l a l’altre dispositiu i comparteix-lo només per canals privats; esborra’l després.</p></div>
     <div class="tarjeta destacado"><h2>🤖 Tens dubtes? Pregunta a una IA</h2><p>ChatGPT, Claude o Gemini et poden guiar per configurar el servidor. Per exemple: «Tinc un servidor Nextcloud. Com instal·lo <em>WebAppPassword</em> i permeto l’accés WebDAV des d’una web allotjada a <code id="ayuda-dominio-ia">aquest lloc</code>?»</p></div>
-    <div class="tarjeta"><h2>Mode clar i mode fosc</h2><p>PageKeeper arrenca amb el tema que tingui el teu sistema. El botó del sol o la lluna de la capçalera el canvia a l’instant i la teva tria es recorda en aquest navegador. Per tornar a seguir el sistema, a <strong>⚙️ Configuració → Aspecte</strong> tens «El del sistema».</p><p class="ayuda">No el confonguis amb el <strong>mode nit</strong> del lector: aquell enfosqueix la pàgina del llibre i es desa a part.</p></div>
+    <div class="tarjeta"><h2>Mode clar i mode fosc</h2><p>El botó del tema, a la capçalera, va passant pels tres estats cada cop que el prems: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol) i <strong>fosc</strong> (lluna). La icona et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">No el confonguis amb el <strong>mode nit</strong> del lector: aquell enfosqueix la pàgina del llibre i es desa a part.</p></div>
     <div class="tarjeta"><h2>Privadesa</h2><p>No hi ha cap servidor intermediari: el navegador es connecta directament al teu núvol. L’URL, l’usuari i la contrasenya es desen només en aquest navegador.</p></div>`,
   en: `
     <div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works immediately without accounts. The book is stored only in that browser. You can also drag one or more files onto the local section.</li><li><strong>Connect cloud storage (WebDAV):</strong> books and reading position sync between your devices.</li></ul></div>
@@ -552,7 +552,7 @@ const ayudas = {
     <div class="tarjeta"><h2>I have or administer Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Install <strong>WebAppPassword</strong> and add this reader’s domain (<code id="ayuda-dominio">this site</code>) to the allowed origins.</li><li>Create an <strong>app password</strong> in Settings → Security; do not use your main password.</li><li>Under this reader’s <strong>⚙️ Settings</strong>, enter the folder URL, username and password.</li></ul></div>
     <div class="tarjeta"><h2>Move configuration to another device</h2><p>Under <strong>⚙️ Settings → “Copy configuration link”</strong>, you get a link containing the URL, username and password. Open it on the other device, share it only through private channels and delete it afterwards.</p></div>
     <div class="tarjeta destacado"><h2>🤖 Need help? Ask an AI</h2><p>ChatGPT, Claude or Gemini can guide you through server setup. For example: “I have a Nextcloud server. How do I install <em>WebAppPassword</em> and allow WebDAV access from a website hosted at <code id="ayuda-dominio-ia">this site</code>?”</p></div>
-    <div class="tarjeta"><h2>Light and dark mode</h2><p>PageKeeper starts with whatever theme your system uses. The sun or moon button in the header switches it straight away, and your choice is remembered in that browser. To follow the system again, pick “Match the system” under <strong>⚙️ Settings → Appearance</strong>.</p><p class="ayuda">Do not confuse it with the reader’s <strong>night mode</strong>, which darkens the book page and is stored separately.</p></div>
+    <div class="tarjeta"><h2>Light and dark mode</h2><p>The theme button in the header steps through three states each time you press it: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun) and <strong>dark</strong> (moon). The icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">Do not confuse it with the reader’s <strong>night mode</strong>, which darkens the book page and is stored separately.</p></div>
     <div class="tarjeta"><h2>Privacy</h2><p>There is no intermediary server: your browser connects directly to your cloud. The URL, username and password are stored only in this browser.</p></div>`,
 };
 

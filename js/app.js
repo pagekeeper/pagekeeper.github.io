@@ -8,7 +8,7 @@ import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
 import { LectorVoz } from './tts.js';
-import { iniciarTema, temaElegido, temaEfectivo, guardarTema, alternarTema } from './tema.js';
+import { iniciarTema, temaElegido, siguienteTema, pasarAlSiguienteTema } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
@@ -4904,23 +4904,27 @@ function pedirPosicionLibro() {
 
 $('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
-// ── Tema claro u oscuro ──
-// El icono anuncia a dónde lleva el botón, no dónde estamos: con el tema
-// oscuro puesto se ve un sol, porque pulsarlo aclara la interfaz.
+// ── Tema claro, oscuro o el del sistema ──
+// Un único botón con los tres estados en rueda. El icono enseña el estado
+// puesto (no a dónde lleva el botón, que con tres opciones no se adivina) y el
+// título dice en voz alta cuál es y qué pasa al pulsarlo.
+
+const ICONO_TEMA = { auto: 'contrast', claro: 'sun', oscuro: 'moon' };
+const NOMBRE_TEMA = { auto: 'themeAuto', claro: 'themeLight', oscuro: 'themeDark' };
+const TITULO_TEMA = { auto: 'themeNowAuto', claro: 'themeNowLight', oscuro: 'themeNowDark' };
 
 function pintarControlesTema() {
-  const claro = temaEfectivo() === 'claro';
-  $('btn-tema').innerHTML = icono(claro ? 'moon' : 'sun');
-  $('btn-tema').title = t(claro ? 'switchToDark' : 'switchToLight');
+  const elegido = temaElegido();
+  $('btn-tema').innerHTML = icono(ICONO_TEMA[elegido]);
+  $('btn-tema').title = t(TITULO_TEMA[elegido]);
   etiquetarPorTitulo($('btn-tema'));
-  $('selector-tema').value = temaElegido();
 }
 
 $('btn-tema').addEventListener('click', () => {
-  alternarTema();
-  avisar(t(temaEfectivo() === 'claro' ? 'themeLight' : 'themeDark'), 1500);
+  // El aviso confirma el estado nuevo: entre «claro» y «el del sistema» en un
+  // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
+  avisar(t(NOMBRE_TEMA[pasarAlSiguienteTema()]), 1600);
 });
-$('selector-tema').addEventListener('change', (evento) => guardarTema(evento.target.value));
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
 
