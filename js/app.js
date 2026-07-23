@@ -6,7 +6,7 @@ import * as almacen from './almacen.js';
 import * as anotaciones from './anotaciones.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
-import { t, iniciarIdioma, aplicarIdioma, idiomaActual } from './i18n.js';
+import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import {
@@ -347,6 +347,13 @@ function mostrarVista(nombre) {
   destino.querySelector('[data-foco-vista]')?.focus();
 }
 
+// Salta la cabecera y lleva el foco al contenido de la vista que esté abierta.
+$('salto-contenido').addEventListener('click', () => {
+  const vista = [...document.querySelectorAll('.vista')]
+    .find((seccion) => !seccion.classList.contains('oculto'));
+  vista?.querySelector('[data-contenido-vista]')?.focus();
+});
+
 const ESTADO_VISTA = 'pagekeeperVista';
 
 function registrarVista(nombre) {
@@ -427,6 +434,92 @@ function mostrarCarga(texto) {
 function ocultarCarga() {
   $('cargando').classList.add('oculto');
   $('anuncio-cargando').textContent = '';
+}
+
+// ──────────────────── Diálogos y menús superpuestos ────────────────────
+//
+// Cada capa se abre y se cierra desde una docena de sitios distintos, siempre
+// quitando o poniendo la clase «oculto». En lugar de tocarlos todos se vigila
+// esa clase: mientras haya una capa abierta, el resto de la página queda
+// inerte (fuera del tabulador y del árbol de accesibilidad, que es lo que
+// aria-modal ya prometía) y al cerrarse el foco vuelve a donde estaba.
+
+const CAPAS_MODALES = ['dialogo-mover', 'dialogo-editar-nota', 'dialogo-contrasena-pdf',
+  'dialogo-pdf-sin-texto', 'menu-libro', 'fondo-menu-lector', 'menu-nota-contextual'];
+
+// Los avisos y el indicador de carga viven fuera de las vistas y tienen que
+// seguir anunciándose aunque haya un diálogo delante.
+const NUNCA_INERTES = new Set(['toast', 'cargando', 'anuncio-cargando']);
+
+const FOCALIZABLES = 'a[href], button:not([disabled]), input:not([disabled]), ' +
+  'select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const aislamientos = new Map();
+
+// A dónde volver al cerrar. No sirve mirar el foco al abrir la capa: para
+// entonces varias ya lo han movido a su primer botón, y ese botón desaparece
+// con ella. Se recuerda el último control enfocado fuera de cualquier capa.
+let ultimoFocoFuera = null;
+document.addEventListener('focusin', (evento) => {
+  if (CAPAS_MODALES.every((id) => !$(id).contains(evento.target))) {
+    ultimoFocoFuera = evento.target;
+  }
+}, true);
+
+// Deja inerte todo lo que no sea la capa ni sus ancestros, subiendo nivel a
+// nivel. Devuelve solo lo que ha marcado esta llamada, para no despertar al
+// cerrar lo que ya estaba inerte por una capa de debajo.
+function aislarCapa(capa) {
+  const inertes = [];
+  for (let nodo = capa; nodo?.parentElement; nodo = nodo.parentElement) {
+    for (const hermano of nodo.parentElement.children) {
+      if (hermano === nodo || hermano.inert || NUNCA_INERTES.has(hermano.id)) continue;
+      hermano.inert = true;
+      inertes.push(hermano);
+    }
+  }
+  return inertes;
+}
+
+function alAbrirCapa(capa) {
+  aislamientos.set(capa, { inertes: aislarCapa(capa), previo: ultimoFocoFuera });
+  // Varias capas ya colocan el foco donde mejor les viene; solo se interviene
+  // si al pintarse no lo ha recogido nadie.
+  requestAnimationFrame(() => {
+    if (capa.classList.contains('oculto') || capa.contains(document.activeElement)) return;
+    // El primero que además se vea: varios menús esconden opciones que no
+    // vienen al caso, y enfocar una oculta no hace nada.
+    [...capa.querySelectorAll(FOCALIZABLES)]
+      .find((elemento) => elemento.checkVisibility?.() ?? true)?.focus();
+  });
+}
+
+function alCerrarCapa(capa) {
+  const guardado = aislamientos.get(capa);
+  if (!guardado) return;
+  aislamientos.delete(capa);
+  for (const elemento of guardado.inertes) elemento.inert = false;
+  // El foco se da por perdido si sigue dentro de la capa que se acaba de
+  // ocultar (el navegador aún no lo ha soltado cuando llega este aviso) o si ya
+  // ha caído en <body>. Si alguien lo ha recolocado en otra parte —Escape lo
+  // hace en varios sitios— no se le lleva la contraria, y si queda una capa
+  // debajo, la última palabra es suya.
+  const previo = guardado.previo;
+  const activo = document.activeElement;
+  const perdido = !activo || activo === document.body || capa.contains(activo);
+  if (aislamientos.size || !perdido) return;
+  if (previo?.isConnected && (previo.checkVisibility?.() ?? true)) previo.focus();
+}
+
+for (const id of CAPAS_MODALES) {
+  const capa = $(id);
+  let abierta = !capa.classList.contains('oculto');
+  new MutationObserver(() => {
+    const ahora = !capa.classList.contains('oculto');
+    if (ahora === abierta) return;
+    abierta = ahora;
+    if (ahora) alAbrirCapa(capa); else alCerrarCapa(capa);
+  }).observe(capa, { attributes: true, attributeFilter: ['class'] });
 }
 
 // ───────────────────────── Configuración ─────────────────────────
@@ -2565,6 +2658,9 @@ async function abrirEnLector(datos, libro) {
   // El botón de subir solo tiene sentido con un libro local y una nube configurada.
   $('btn-subir').classList.toggle('oculto', !(libro.tipo === 'local' && cliente));
   const esEpub = libro.formato === 'epub';
+  // Solo el PDF se queda el pellizco de dos dedos: tiene zoom propio. En EPUB
+  // se le devuelve al navegador para no dejar sin ampliación a quien la use.
+  $('vista-lector').classList.toggle('leyendo-pdf', !esEpub);
   $('contenedor-pagina').classList.toggle('oculto', esEpub);
   $('contenedor-epub').classList.toggle('oculto', !esEpub);
   $('control-texto').classList.toggle('oculto', !esEpub);
@@ -2705,6 +2801,7 @@ function aplicarAparienciaModo(modo) {
   $('btn-modo').title = modo === 'continuo'
     ? t('pageMode')
     : t('scrollMode');
+  etiquetarPorTitulo($('btn-modo'));
   // La vista doble solo actúa pasando página: en continuo se oculta el botón.
   $('btn-doble').classList.toggle('oculto', modo === 'continuo');
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
@@ -2713,6 +2810,7 @@ function aplicarAparienciaModo(modo) {
 function aplicarAparienciaDoble(activo = dobleGuardado()) {
   $('btn-doble').setAttribute('aria-pressed', String(activo));
   $('btn-doble').title = t(activo ? 'onePage' : 'twoPages');
+  etiquetarPorTitulo($('btn-doble'));
 }
 
 $('btn-modo').addEventListener('click', async () => {
@@ -2947,7 +3045,10 @@ function abrirMenuLector() {
   actualizarMenuLector();
   $('fondo-menu-lector').classList.remove('oculto');
   $('btn-menu-lector').setAttribute('aria-expanded', 'true');
-  $('menu-lector').querySelector('button:not([disabled])')?.focus();
+  // La primera opción que se vea: las que no vienen al caso para este libro
+  // están ocultas, y enfocar una oculta deja el foco en el limbo.
+  [...$('menu-lector').querySelectorAll('button:not([disabled])')]
+    .find((boton) => boton.checkVisibility?.() ?? true)?.focus();
 }
 
 $('btn-menu-lector').addEventListener('click', () => {
@@ -3163,11 +3264,33 @@ function mostrarPestanaPanel(cual) {
   const enMiniaturas = pestanaPanel === 'miniaturas';
   $('lista-indice-libro').classList.toggle('oculto', enMiniaturas);
   $('rejilla-miniaturas').classList.toggle('oculto', !enMiniaturas);
-  $('pestana-indice').setAttribute('aria-selected', String(!enMiniaturas));
-  $('pestana-miniaturas').setAttribute('aria-selected', String(enMiniaturas));
+  // Un grupo de pestañas ocupa una sola parada del tabulador: se entra en la
+  // activa y dentro se cambia con las flechas.
+  for (const [pestana, activa] of [['pestana-indice', !enMiniaturas], ['pestana-miniaturas', enMiniaturas]]) {
+    $(pestana).setAttribute('aria-selected', String(activa));
+    $(pestana).tabIndex = activa ? 0 : -1;
+  }
   $('titulo-panel-indice').textContent = t(enMiniaturas ? 'pageThumbnails' : 'bookIndex');
   if (enMiniaturas) prepararMiniaturas();
 }
+
+// Flechas, Inicio y Fin para moverse entre pestañas, como en cualquier otro
+// grupo de pestañas: quien navega con teclado no espera tener que tabular.
+$('pestanas-panel-indice').addEventListener('keydown', (evento) => {
+  const pestanas = [...$('pestanas-panel-indice').querySelectorAll('.pestana-panel')]
+    .filter((pestana) => !pestana.classList.contains('oculto'));
+  const actual = pestanas.indexOf(document.activeElement);
+  if (actual < 0) return;
+  let destino;
+  if (evento.key === 'ArrowRight' || evento.key === 'ArrowDown') destino = (actual + 1) % pestanas.length;
+  else if (evento.key === 'ArrowLeft' || evento.key === 'ArrowUp') destino = (actual - 1 + pestanas.length) % pestanas.length;
+  else if (evento.key === 'Home') destino = 0;
+  else if (evento.key === 'End') destino = pestanas.length - 1;
+  else return;
+  evento.preventDefault();
+  pestanas[destino].click();
+  pestanas[destino].focus();
+});
 
 // Ajusta el panel al libro recién cargado: con qué pestañas cuenta y en cuál
 // se abre. El botón aparece siempre que haya algo que enseñar.
@@ -3423,6 +3546,7 @@ function pintarMarcadores() {
     editar.type = 'button';
     editar.className = 'btn-icono btn-editar-marcador';
     editar.title = t('editBookmark');
+    etiquetarPorTitulo(editar);
     editar.innerHTML = icono('pencil');
     editar.addEventListener('click', () => {
       const respuesta = prompt(t('bookmarkNamePrompt'), marcador.nombre ?? '');
@@ -3440,6 +3564,7 @@ function pintarMarcadores() {
     borrar.type = 'button';
     borrar.className = 'btn-icono btn-borrar-marcador';
     borrar.title = t('deleteBookmark');
+    etiquetarPorTitulo(borrar);
     borrar.innerHTML = icono('trash-2');
     borrar.addEventListener('click', () => {
       const actuales = progreso.marcadoresDe(libroActual.id);
@@ -3805,6 +3930,7 @@ function pintarAnotaciones(idEnfocado = null) {
     editar.type = 'button';
     editar.className = 'btn-icono';
     editar.title = t('editNote');
+    etiquetarPorTitulo(editar);
     editar.innerHTML = icono('pencil');
     editar.addEventListener('click', () => {
       editarAnotacionPorId(anotacion.id).catch((error) => avisar(error.message, 5000));
@@ -3814,6 +3940,7 @@ function pintarAnotaciones(idEnfocado = null) {
     borrar.type = 'button';
     borrar.className = 'btn-icono';
     borrar.title = t('deleteAnnotation');
+    etiquetarPorTitulo(borrar);
     borrar.innerHTML = icono('trash-2');
     borrar.addEventListener('click', () => {
       eliminarAnotacionPorId(anotacion.id).catch((error) => avisar(error.message, 5000));
@@ -4389,6 +4516,7 @@ function pintarIconoNoche() {
   const activo = document.body.classList.contains('modo-noche');
   $('btn-noche').innerHTML = icono(activo ? 'sun' : 'moon');
   $('btn-noche').title = activo ? t('dayMode') : t('nightMode');
+  etiquetarPorTitulo($('btn-noche'));
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 

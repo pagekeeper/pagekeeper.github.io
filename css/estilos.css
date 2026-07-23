@@ -5,7 +5,9 @@
   --texto: #e2e8f0;
   --texto-suave: #94a3b8;
   --acento: #38bdf8;
-  --acento-oscuro: #0284c7;
+  /* Fondo de los botones primarios y de las insignias: con texto blanco encima
+     el azul anterior (#0284c7) se quedaba en 4.1:1, por debajo del mínimo. */
+  --acento-oscuro: #0369a1;
   --peligro: #f87171;
   --borde: #334155;
 }
@@ -28,9 +30,19 @@ body {
    reglas de más abajo pueden afinarlo, pero ninguna debe quitarlo. */
 :focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 
-/* Las cabeceras reciben el foco al cambiar de vista solo para anunciarla: no
-   son controles y no forman parte del recorrido del tabulador. */
-[data-foco-vista]:focus { outline: none; }
+/* Las cabeceras y el contenido reciben el foco al cambiar de vista o al saltar
+   la barra: no son controles y no forman parte del recorrido del tabulador. */
+[data-foco-vista]:focus, [data-contenido-vista]:focus { outline: none; }
+
+/* Fuera de la vista hasta que se tabula hasta él. */
+.salto-contenido {
+  position: fixed; top: 0.5rem; left: 0.5rem; z-index: 100;
+  transform: translateY(-200%);
+  padding: 0.6rem 1.1rem; border: 1px solid var(--acento); border-radius: 0.5rem;
+  background: var(--fondo-tarjeta); color: var(--texto);
+  font: inherit; font-weight: 600; cursor: pointer;
+}
+.salto-contenido:focus { transform: translateY(0); }
 
 .vista { min-height: 100dvh; display: flex; flex-direction: column; }
 
@@ -558,9 +570,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--acento); background: var(--fondo-tarjeta);
 }
 
-/* touch-action reserva el pellizco de dos dedos para el zoom del PDF
-   (sin él, el navegador ampliaría toda la interfaz). */
-#area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; touch-action: pan-x pan-y; }
+#area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
+/* touch-action reserva el pellizco de dos dedos para el zoom del PDF (sin él,
+   el navegador ampliaría toda la interfaz). Solo se le quita al navegador
+   donde hay un PDF: en EPUB no habría nada a cambio y quien necesita ampliar
+   se quedaría sin el zoom del sistema. */
+#vista-lector.leyendo-pdf #area-lectura { touch-action: pan-x pan-y; }
 
 /* Modo inmersivo: un toque en el centro oculta la barra; otro la recupera. */
 #vista-lector.inmersivo .barra-lector { display: none; }
@@ -1155,3 +1170,24 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   animation: girar 0.8s linear infinite;
 }
 @keyframes girar { to { transform: rotate(360deg); } }
+
+/* ── Menos movimiento ──
+   Quien lo pide en su sistema (por mareo o migraña) no debería tener que ver
+   los despliegues ni el resaltado pulsante. La ruedecilla sigue girando,
+   porque sin ella no se distingue una carga de una pantalla congelada, pero
+   mucho más despacio. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .ruedecilla {
+    animation-duration: 2.4s !important;
+    animation-iteration-count: infinite !important;
+  }
+  /* El resaltado del resultado de búsqueda se apaga solo al terminar su
+     animación: sin ella se queda fijo (y visible) hasta cambiar de página. */
+  .capa-busqueda span { animation: none !important; opacity: 1; }
+}

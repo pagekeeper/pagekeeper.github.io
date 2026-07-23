@@ -11,6 +11,11 @@
 </head>
 <body>
 
+  <!-- Primera parada del tabulador: la barra del lector tiene veinte botones
+       por delante de la página del libro. -->
+  <button type="button" id="salto-contenido" class="salto-contenido"
+    data-i18n="skipToContent">Saltar al contenido</button>
+
   <!-- ═══════════ BIBLIOTECA ═══════════ -->
   <section id="vista-biblioteca" class="vista">
     <header class="cabecera">
@@ -25,7 +30,7 @@
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
       <button id="btn-ajustes" class="btn-icono" data-icono="settings" title="Ajustes" data-i18n-title="settings"></button>
     </header>
-    <main class="contenido">
+    <main class="contenido" tabindex="-1" data-contenido-vista>
       <div id="aviso-sin-config" class="tarjeta aviso-cerrable oculto">
         <button type="button" id="btn-cerrar-aviso-config" class="btn-cerrar-aviso" data-icono="x"
           title="Cerrar" data-i18n-title="close" aria-label="Cerrar" data-i18n-aria-label="close"></button>
@@ -332,9 +337,9 @@
         <div id="pestanas-panel-indice" class="pestanas-panel oculto" role="tablist"
           aria-label="Navegación del libro" data-i18n-aria-label="bookNavigation">
           <button type="button" id="pestana-indice" class="pestana-panel" role="tab"
-            aria-selected="true" aria-controls="lista-indice-libro" data-i18n="bookIndexShort">Índice</button>
+            aria-selected="true" tabindex="0" aria-controls="lista-indice-libro" data-i18n="bookIndexShort">Índice</button>
           <button type="button" id="pestana-miniaturas" class="pestana-panel" role="tab"
-            aria-selected="false" aria-controls="rejilla-miniaturas" data-i18n="thumbnails">Miniaturas</button>
+            aria-selected="false" tabindex="-1" aria-controls="rejilla-miniaturas" data-i18n="thumbnails">Miniaturas</button>
         </div>
         <button type="button" id="cerrar-indice-libro" class="btn-icono" data-icono="x" title="Cerrar" data-i18n-title="close"></button>
       </div>
@@ -347,7 +352,7 @@
       tabindex="0" title="Cambiar el ancho del panel" data-i18n-title="resizePanel"
       aria-label="Cambiar el ancho del panel" data-i18n-aria-label="resizePanel"
       aria-controls="panel-indice-libro"></div>
-    <div id="area-lectura">
+    <div id="area-lectura" tabindex="-1" data-contenido-vista>
       <aside id="panel-marcadores" class="panel-flotante-lector panel-marcadores oculto">
         <div class="cabecera-panel-lector">
           <h2 data-i18n="bookmarks">Marcadores</h2>
@@ -433,7 +438,7 @@
       <button id="btn-cerrar-ajustes" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
       <h1 tabindex="-1" data-foco-vista data-i18n="settings">Ajustes</h1>
     </header>
-    <main class="contenido">
+    <main class="contenido" tabindex="-1" data-contenido-vista>
       <form id="formulario-webdav" class="tarjeta">
         <h2 data-i18n="webdav">Nube (WebDAV)</h2>
         <p class="ayuda" data-i18n-html="webdavHelpHtml">Compatible con Nextcloud, ownCloud y cualquier servidor WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la posición de lectura se sincronizará entre todos tus dispositivos. ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la ayuda</a>.</p>
@@ -481,7 +486,7 @@
         title="Volver" data-i18n-title="back"></button>
       <h1 tabindex="-1" data-foco-vista data-i18n="importExport">Importar y exportar</h1>
     </header>
-    <main class="contenido">
+    <main class="contenido" tabindex="-1" data-contenido-vista>
       <div class="tarjeta">
         <h2 data-i18n="addBooks">Añadir libros</h2>
         <p class="ayuda" data-i18n="addBooksHelp">Añade PDF o EPUB al dispositivo o súbelos a la carpeta de la nube que tengas abierta.</p>
@@ -528,7 +533,7 @@
       <button id="btn-cerrar-ayuda" class="btn-icono" data-icono="arrow-left" title="Volver" data-i18n-title="back"></button>
       <h1 tabindex="-1" data-foco-vista data-i18n="help">Ayuda</h1>
     </header>
-    <main id="contenido-ayuda" class="contenido" data-i18n-ayuda>
+    <main id="contenido-ayuda" class="contenido" tabindex="-1" data-contenido-vista data-i18n-ayuda>
 
       <div class="tarjeta">
         <h2>¿Qué hace PageKeeper?</h2>

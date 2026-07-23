@@ -10,7 +10,7 @@ const textos = {
     device: 'En este dispositivo', addLocal: 'Añadir un libro (PDF o EPUB) de este dispositivo',
     addCloud: 'Subir un libro (PDF o EPUB) a la nube', reload: 'Recargar',
     backLibrary: 'Volver a la biblioteca', saveCloud: 'Guardar en mi nube',
-    margins: 'Ajustar márgenes', zoom: 'Zoom', zoomOut: 'Reducir', autoWidth: 'Ajustar al ancho', fitPage: 'Ajustar la página completa', cropMargins: 'Recortar los márgenes', bookIndexShort: 'Índice', thumbnails: 'Miniaturas', resizePanel: 'Cambiar el ancho del panel', bookNavigation: 'Navegación del libro', pageThumbnails: 'Miniaturas de las páginas', noMarginsToCrop: 'Esta obra no tiene márgenes que recortar.', zoomIn: 'Ampliar',
+    margins: 'Ajustar márgenes', zoom: 'Zoom', zoomOut: 'Reducir', autoWidth: 'Ajustar al ancho', fitPage: 'Ajustar la página completa', cropMargins: 'Recortar los márgenes', skipToContent: 'Saltar al contenido', bookIndexShort: 'Índice', thumbnails: 'Miniaturas', resizePanel: 'Cambiar el ancho del panel', bookNavigation: 'Navegación del libro', pageThumbnails: 'Miniaturas de las páginas', noMarginsToCrop: 'Esta obra no tiene márgenes que recortar.', zoomIn: 'Ampliar',
     moreReaderActions: 'Más acciones', readerActions: 'Acciones de lectura',
     previous: 'Página anterior', next: 'Página siguiente', goPage: 'Ir a una página',
     marginSide: 'Margen lateral', noMargin: 'Sin margen', moreMargin: 'Más margen',
@@ -169,7 +169,7 @@ const textos = {
     device: 'En aquest dispositiu', addLocal: 'Afegeix un llibre (PDF o EPUB) d’aquest dispositiu',
     addCloud: 'Puja un llibre (PDF o EPUB) al núvol', reload: 'Recarrega',
     backLibrary: 'Torna a la biblioteca', saveCloud: 'Desa al meu núvol',
-    margins: 'Ajusta els marges', zoom: 'Zoom', zoomOut: 'Redueix', autoWidth: 'Ajusta a l’amplada', fitPage: 'Ajusta la pàgina completa', cropMargins: 'Retalla els marges', bookIndexShort: 'Índex', thumbnails: 'Miniatures', resizePanel: 'Canvia l’amplada del plafó', bookNavigation: 'Navegació del llibre', pageThumbnails: 'Miniatures de les pàgines', noMarginsToCrop: 'Aquesta obra no té marges per retallar.', zoomIn: 'Amplia',
+    margins: 'Ajusta els marges', zoom: 'Zoom', zoomOut: 'Redueix', autoWidth: 'Ajusta a l’amplada', fitPage: 'Ajusta la pàgina completa', cropMargins: 'Retalla els marges', skipToContent: 'Vés al contingut', bookIndexShort: 'Índex', thumbnails: 'Miniatures', resizePanel: 'Canvia l’amplada del plafó', bookNavigation: 'Navegació del llibre', pageThumbnails: 'Miniatures de les pàgines', noMarginsToCrop: 'Aquesta obra no té marges per retallar.', zoomIn: 'Amplia',
     moreReaderActions: 'Més accions', readerActions: 'Accions de lectura',
     previous: 'Pàgina anterior', next: 'Pàgina següent', goPage: 'Ves a una pàgina',
     marginSide: 'Marge lateral', noMargin: 'Sense marge', moreMargin: 'Més marge',
@@ -328,7 +328,7 @@ const textos = {
     device: 'On this device', addLocal: 'Add a book (PDF or EPUB) from this device',
     addCloud: 'Upload a book (PDF or EPUB) to the cloud', reload: 'Reload',
     backLibrary: 'Back to library', saveCloud: 'Save to my cloud',
-    margins: 'Adjust margins', zoom: 'Zoom', zoomOut: 'Zoom out', autoWidth: 'Fit to width', fitPage: 'Fit full page', cropMargins: 'Crop margins', bookIndexShort: 'Contents', thumbnails: 'Thumbnails', resizePanel: 'Resize the panel', bookNavigation: 'Book navigation', pageThumbnails: 'Page thumbnails', noMarginsToCrop: 'This book has no margins to crop.', zoomIn: 'Zoom in',
+    margins: 'Adjust margins', zoom: 'Zoom', zoomOut: 'Zoom out', autoWidth: 'Fit to width', fitPage: 'Fit full page', cropMargins: 'Crop margins', skipToContent: 'Skip to content', bookIndexShort: 'Contents', thumbnails: 'Thumbnails', resizePanel: 'Resize the panel', bookNavigation: 'Book navigation', pageThumbnails: 'Page thumbnails', noMarginsToCrop: 'This book has no margins to crop.', zoomIn: 'Zoom in',
     moreReaderActions: 'More actions', readerActions: 'Reading actions',
     previous: 'Previous page', next: 'Next page', goPage: 'Go to a page',
     marginSide: 'Side margin', noMargin: 'No margin', moreMargin: 'More margin',
@@ -528,6 +528,26 @@ export function t(clave, valores = {}) {
 
 export function idiomaActual() { return idioma; }
 
+// Los controles que solo llevan un icono se quedarían sin nombre accesible. El
+// «title» sirve de último recurso, pero no se anuncia en pantallas táctiles ni
+// sobrevive al modo de alto contraste, así que se copia a aria-label. Se
+// respetan los que ya tienen etiqueta propia y los que muestran texto (ahí el
+// título es información añadida, no el nombre del control).
+const CONTROLES = 'button, a[href], label, summary, [role="button"], [role="menuitem"]';
+
+function etiquetarUno(control) {
+  const puesto = control.hasAttribute('data-etiqueta-de-titulo');
+  if (!puesto && (control.getAttribute('aria-label') || control.textContent.trim())) return;
+  if (!control.title) return;
+  control.setAttribute('data-etiqueta-de-titulo', '');
+  control.setAttribute('aria-label', control.title);
+}
+
+export function etiquetarPorTitulo(raiz = document) {
+  if (raiz instanceof Element && raiz.matches(CONTROLES)) etiquetarUno(raiz);
+  for (const control of raiz.querySelectorAll(CONTROLES)) etiquetarUno(control);
+}
+
 export function aplicarIdioma(nuevo) {
   idioma = IDIOMAS.includes(nuevo) ? nuevo : 'es';
   localStorage.setItem(CLAVE_IDIOMA, idioma);
@@ -551,6 +571,7 @@ export function aplicarIdioma(nuevo) {
   document.querySelectorAll('[data-i18n-placeholder]').forEach((elemento) => {
     elemento.placeholder = t(elemento.dataset.i18nPlaceholder);
   });
+  etiquetarPorTitulo();
   const selector = document.getElementById('selector-idioma');
   if (selector) selector.value = idioma;
   document.dispatchEvent(new CustomEvent('idioma-cambiado'));
