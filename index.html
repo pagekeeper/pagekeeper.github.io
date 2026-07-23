@@ -212,7 +212,7 @@
       </nav>
       <span class="separador"></span>
       <button id="btn-subir" class="btn-icono oculto" data-icono="cloud-upload" title="Guardar en mi nube" data-i18n-title="saveCloud"></button>
-      <button id="btn-indice-libro" class="btn-icono oculto" data-icono="panel-left-text" title="Mostrar el índice" data-i18n-title="showBookIndex"
+      <button id="btn-indice-libro" class="btn-icono oculto" data-icono="panel-left-text" title="Mostrar el índice"
         aria-controls="panel-indice-libro" aria-expanded="false" aria-pressed="false"></button>
       <button id="btn-marcadores" class="btn-icono" data-icono="bookmark" title="Marcadores" data-i18n-title="bookmarks"
         aria-controls="panel-marcadores" aria-expanded="false"></button>
@@ -312,7 +312,7 @@
               <span data-icono="cloud-upload"></span><span data-i18n="saveCloud">Guardar en mi nube</span>
             </button></li>
             <li id="fila-menu-indice"><button type="button" id="menu-indice" class="item-menu-lector">
-              <span data-icono="panel-left-text"></span><span data-i18n="showBookIndex">Mostrar el índice</span>
+              <span data-icono="panel-left-text"></span><span>Mostrar el índice</span>
             </button></li>
             <li><button type="button" id="menu-anotaciones" class="item-menu-lector">
               <span data-icono="highlighter"></span><span data-i18n="annotations">Anotaciones</span>
@@ -696,8 +696,11 @@
           se tiñe la página entera.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
           porcentaje en EPUB) para saltar directamente.</li>
-          <li><strong>Índice:</strong> si el PDF o EPUB incluye uno, aparece
-          un botón para abrirlo y saltar directamente a cualquier apartado.</li>
+          <li><strong>Índice y miniaturas:</strong> el botón del panel abre lo
+          que traiga el libro, y su texto lo dice: el índice, las miniaturas de
+          las páginas o ambos. Al abrirlo, el capítulo por el que vas aparece
+          resaltado y a la vista, sin buscarlo. En pantalla ancha la barra
+          lateral se queda abierta de un libro a otro hasta que la cierres tú.</li>
           <li><strong>Marcadores:</strong> el botón del marcador guarda la
           posición actual para volver a ella cuando quieras. Puedes asignarle
           un nombre y cambiarlo más tarde. En los libros de

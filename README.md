@@ -105,15 +105,18 @@ libros y sincronizar el progreso de lectura.
 - 🔎 **Dos buscadores**: filtra la biblioteca por título, autor, formato y
   metadatos, y encuentra palabras o frases dentro del PDF o EPUB con salto
   al punto exacto del resultado, que queda resaltado unos segundos.
-- 🗂️ **Índice y miniaturas**: el panel de navegación muestra los capítulos o
+- 🗂️ **Índice y miniaturas**: el botón nombra lo que abre según el libro
+  (índice, miniaturas o ambos) y, al abrirlo, el capítulo en curso queda
+  resaltado y a la vista. El panel de navegación muestra los capítulos o
   marcadores del PDF y del EPUB, y en los PDF una segunda pestaña con las
   miniaturas de todas las páginas, con la actual señalada. Si el PDF no trae
   índice (lo habitual en los escaneados), el panel se abre directamente en las
   miniaturas. En pantallas anchas de escritorio es una barra lateral a la
   izquierda que estrecha el documento en vez de taparlo y se queda abierta
   mientras navegas; su ancho se ajusta arrastrando el borde (o con las flechas
-  del teclado) y se recuerda en cada dispositivo. En móvil y tablet sigue
-  siendo un panel flotante que se cierra al saltar.
+  del teclado) y se recuerda en cada dispositivo, igual que si se deja
+  abierta: sigue abierta con el siguiente libro hasta que se cierre a mano. En
+  móvil y tablet sigue siendo un panel flotante que se cierra al saltar.
 - 🖥️ **Modo inmersivo**: un toque en el centro de la página oculta la barra
   para leer a pantalla completa; otro toque la recupera. En pantalla táctil
   el PDF también se amplía pellizcando con dos dedos.

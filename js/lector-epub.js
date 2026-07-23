@@ -605,12 +605,31 @@ export class LectorEpub {
 
   irA(destino) { return this.vista?.display(destino); }
 
+  // Sección del libro (índice del «spine») por la que se va ahora mismo.
+  // Sirve para saber a qué capítulo del índice corresponde la lectura.
+  get seccionActual() {
+    const inicio = this.vista?.currentLocation()?.start;
+    return Number.isInteger(inicio?.index) ? inicio.index : null;
+  }
+
+  // A qué sección del «spine» apunta un enlace del índice.
+  seccionDe(href) {
+    try {
+      const seccion = this.libro?.spine?.get(href);
+      return Number.isInteger(seccion?.index) ? seccion.index : null;
+    } catch {
+      return null; // enlace roto o externo
+    }
+  }
+
   indice() {
     const entradas = [];
     const recorrer = (elementos, nivel = 0) => {
       for (const elemento of elementos ?? []) {
         const titulo = String(elemento.label ?? '').replace(/\s+/g, ' ').trim();
-        if (titulo && elemento.href) entradas.push({ titulo, destino: elemento.href, nivel });
+        if (titulo && elemento.href) {
+          entradas.push({ titulo, destino: elemento.href, nivel, seccion: this.seccionDe(elemento.href) });
+        }
         recorrer(elemento.subitems, nivel + 1);
       }
     };
@@ -624,7 +643,10 @@ export class LectorEpub {
       const hayEnlaceAlInicio = entradas.some((entrada) =>
         sinFragmento(entrada.destino) === sinFragmento(primeraSeccion.href));
       if (!hayEnlaceAlInicio) {
-        entradas.unshift({ esInicio: true, destino: primeraSeccion.href, nivel: 0 });
+        entradas.unshift({
+          esInicio: true, destino: primeraSeccion.href, nivel: 0,
+          seccion: this.seccionDe(primeraSeccion.href),
+        });
       }
     }
     return entradas;

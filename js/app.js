@@ -49,6 +49,7 @@ function colorDeAnotacion(anotacion) {
 const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
 const CLAVE_AJUSTE_PDF = 'lector.ajustePdf'; // ancho, página o zoom personalizado
 const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
+const CLAVE_INDICE_ABIERTO = 'lector.indiceAbierto'; // solo de este dispositivo
 const CLAVE_ANCHO_INDICE = 'lector.anchoIndice'; // solo de este dispositivo
 const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
@@ -3356,6 +3357,7 @@ function cuandoCambiaPagina(pagina, total) {
   if (!libroActual) return;
   progreso.anotarPagina(libroActual.id, pagina, total);
   marcarMiniaturaActual();
+  marcarEntradaIndiceActual();
   anotarRitmo(pagina);
   pintarTiempoRestante();
   // Navegar a mano mientras suena la lectura en voz alta la detiene; los
@@ -3367,6 +3369,7 @@ function cuandoCambiaPagina(pagina, total) {
 
 function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   $('btn-indicador').textContent = conLocalizaciones ? `${porcentaje}%` : '…';
+  marcarEntradaIndiceActual();
   if (!libroActual || !cfi) return;
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
@@ -3604,6 +3607,44 @@ function marcarBotonIndice(abierto) {
   // El tirador solo tiene sentido con la barra lateral desplegada.
   $('tirador-indice').classList.toggle('oculto', !abierto);
   $('vista-lector').classList.toggle('con-barra-lateral', abierto);
+  etiquetarBotonIndice(abierto);
+}
+
+// El botón no siempre abre lo mismo: hay libros con índice, PDF escaneados
+// que solo traen miniaturas y PDF con las dos cosas. Decirlo evita que las
+// miniaturas queden escondidas detrás de una etiqueta que no las nombra.
+function claveBotonIndice(abierto) {
+  const conIndice = hayIndiceLibro;
+  const conMinis = conMiniaturas();
+  const que = conIndice && conMinis ? 'IndexThumbs' : conIndice ? 'Index' : 'Thumbs';
+  return (abierto ? 'hide' : 'show') + que;
+}
+
+function etiquetarBotonIndice(abierto = $('btn-indice-libro').getAttribute('aria-pressed') === 'true') {
+  const texto = t(claveBotonIndice(abierto));
+  $('btn-indice-libro').title = texto;
+  etiquetarPorTitulo($('btn-indice-libro'));
+  $('menu-indice').innerHTML = icono('panel-left-text') + `<span>${texto}</span>`;
+}
+
+// Abrir la barra lateral es una preferencia de lectura, no algo de cada libro:
+// si se deja abierta, sigue abierta con el siguiente. En pantalla estrecha no
+// se restaura, porque ahí el panel flota encima de la página.
+function indiceAbiertoGuardado() {
+  return localStorage.getItem(CLAVE_INDICE_ABIERTO) === '1';
+}
+
+function restaurarPanelIndice() {
+  const hayContenido = hayIndiceLibro || conMiniaturas();
+  if (!hayContenido || !indiceAbiertoGuardado() || indiceFlotante()) return;
+  $('panel-indice-libro').classList.remove('oculto');
+  marcarBotonIndice(true);
+  if (pestanaPanel === 'miniaturas') {
+    prepararMiniaturas();
+    marcarMiniaturaActual(true);
+  } else {
+    marcarEntradaIndiceActual(true);
+  }
 }
 
 // ── Ancho de la barra lateral ──
@@ -3735,6 +3776,8 @@ function prepararPanelNavegacion() {
   $('titulo-panel-indice').classList.toggle('oculto', conIndice && conRejilla);
   $('pestana-indice').classList.toggle('oculto', !conIndice);
   mostrarPestanaPanel(conIndice ? 'indice' : 'miniaturas');
+  etiquetarBotonIndice();
+  restaurarPanelIndice();
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
@@ -3749,6 +3792,10 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
       const boton = document.createElement('button');
       boton.type = 'button';
       boton.className = 'entrada-indice-libro';
+      // Con qué comparar la posición de lectura para saber si es el capítulo
+      // en curso: la página en PDF y la sección del «spine» en EPUB.
+      if (Number.isInteger(entrada.numero)) boton.dataset.pagina = String(entrada.numero);
+      if (Number.isInteger(entrada.seccion)) boton.dataset.seccion = String(entrada.seccion);
       boton.style.paddingLeft = `${0.65 + Math.min(entrada.nivel, 6) * 0.85}rem`;
       const titulo = document.createElement('span');
       titulo.className = 'titulo-entrada-indice';
@@ -3773,6 +3820,7 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
     }
     hayIndiceLibro = entradas.length > 0;
     prepararPanelNavegacion();
+    marcarEntradaIndiceActual();
   } catch {
     hayIndiceLibro = false;
     prepararPanelNavegacion();
@@ -3881,6 +3929,51 @@ function podarMiniaturas() {
 
 // Señala la página en la que se está leyendo y, si se acaba de abrir el panel,
 // la trae a la vista.
+// Resalta el capítulo por el que se va. El índice da el punto donde empieza
+// cada uno, así que el activo es el último que ya ha quedado atrás: en PDF, el
+// de mayor página que no pase de la actual; en EPUB, lo mismo con la sección.
+// Con `desplazar` se lleva además a la vista, que es lo que se espera al abrir
+// el panel en mitad de un libro largo.
+let entradaIndiceActiva = null;
+
+// ¿Se ve entera dentro del panel?
+function entradaALaVista(entrada) {
+  const caja = entrada.getBoundingClientRect();
+  const panel = $('panel-indice-libro').getBoundingClientRect();
+  return caja.top >= panel.top && caja.bottom <= panel.bottom;
+}
+
+function marcarEntradaIndiceActual(desplazar = false) {
+  const lista = $('lista-indice-libro');
+  const entradas = [...lista.querySelectorAll('.entrada-indice-libro')];
+  if (!entradas.length) {
+    entradaIndiceActiva = null;
+    return;
+  }
+  const campo = epubAbierto() ? 'seccion' : 'pagina';
+  const posicion = epubAbierto() ? lectorEpub.seccionActual : lector.pagina;
+  let activa = null;
+  if (Number.isInteger(posicion)) {
+    for (const entrada of entradas) {
+      const valor = Number(entrada.dataset[campo]);
+      if (Number.isFinite(valor) && valor <= posicion) activa = entrada;
+    }
+  }
+  for (const entrada of entradas) {
+    entrada.toggleAttribute('aria-current', entrada === activa);
+    if (entrada === activa) entrada.setAttribute('aria-current', 'true');
+  }
+  const cambioDeCapitulo = activa !== entradaIndiceActiva;
+  entradaIndiceActiva = activa;
+  if (!activa) return;
+  // Al abrir el panel se lleva siempre a la vista. Con el panel ya abierto,
+  // solo al cambiar de capítulo y si se ha quedado fuera: seguir la lectura
+  // línea a línea le robaría el desplazamiento a quien está mirando el índice.
+  if (desplazar || (cambioDeCapitulo && !entradaALaVista(activa))) {
+    activa.scrollIntoView({ block: 'center' });
+  }
+}
+
 function marcarMiniaturaActual(desplazar = false) {
   const rejilla = $('rejilla-miniaturas');
   if (!rejilla.childElementCount) return;
@@ -4474,15 +4567,26 @@ $('btn-indice-libro').addEventListener('click', () => {
   const abrir = panel.classList.contains('oculto');
   panel.classList.toggle('oculto', !abrir);
   marcarBotonIndice(abrir);
+  // Solo el gesto manual cambia la preferencia: el cierre automático al saltar
+  // a un capítulo en pantalla estrecha no cuenta como «lo he cerrado yo».
+  localStorage.setItem(CLAVE_INDICE_ABIERTO, abrir ? '1' : '0');
   if (!abrir) return;
   if (pestanaPanel === 'miniaturas') {
     prepararMiniaturas();
     marcarMiniaturaActual(true);
+  } else {
+    marcarEntradaIndiceActual(true);
   }
-  panel.querySelector('.entrada-indice-libro, .miniatura-pagina')?.focus();
+  // El foco va al capítulo en curso, no al primero de la lista: es el punto
+  // desde el que se quiere navegar.
+  const activa = panel.querySelector('.entrada-indice-libro[aria-current], .miniatura-pagina[aria-current]');
+  (activa ?? panel.querySelector('.entrada-indice-libro, .miniatura-pagina'))?.focus();
 });
 $('cerrar-indice-libro').addEventListener('click', cerrarIndiceLibro);
-$('pestana-indice').addEventListener('click', () => mostrarPestanaPanel('indice'));
+$('pestana-indice').addEventListener('click', () => {
+  mostrarPestanaPanel('indice');
+  marcarEntradaIndiceActual(true);
+});
 $('pestana-miniaturas').addEventListener('click', () => {
   mostrarPestanaPanel('miniaturas');
   marcarMiniaturaActual(true);
@@ -4967,6 +5071,9 @@ $('btn-tema').addEventListener('click', () => {
 });
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
+// Su texto depende de lo que traiga el libro, así que no lo cubre el paso
+// automático de traducciones.
+document.addEventListener('idioma-cambiado', () => etiquetarBotonIndice());
 
 // ── Tema de la página del libro ──
 // Papel claro, sepia o noche, en rueda como el tema de la interfaz. Es cosa
