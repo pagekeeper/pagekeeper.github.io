@@ -1278,13 +1278,27 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
        y con alturas dispares la rejilla parece descuadrada. */
     align-items: stretch;
   }
-  /* La lectura destacada sigue ocupando el ancho entero: es la protagonista. */
+  /* Mientras las recientes van en dos filas, la destacada ocupa el ancho
+     entero: es la protagonista. Más abajo, cuando caben todas en una sola
+     fila, deja de hacer falta. */
   #libro-continuar > li:first-child { grid-column: 1 / -1; }
 
   /* Con más sitio, las portadas de la cuadrícula dejan de ser sellos. */
   .lista-libros.vista-cuadricula {
     grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
   }
+}
+
+/* Con este ancho las lecturas recientes caben todas en una fila. La destacada
+   se lleva algo más de sitio para que se siga notando cuál es, y conserva su
+   portada grande; el resto se reparte lo que queda a partes iguales. */
+@media (min-width: 80rem) {
+  #libro-continuar {
+    grid-auto-flow: column;
+    grid-template-columns: minmax(0, 1.35fr);
+    grid-auto-columns: minmax(0, 1fr);
+  }
+  #libro-continuar > li:first-child { grid-column: auto; }
 }
 
 /* En monitores grandes las tarjetas no necesitan más de 30rem: pasado eso el
