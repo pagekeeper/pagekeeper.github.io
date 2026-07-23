@@ -315,6 +315,9 @@ const lectorEpub = new LectorEpub({
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
   etiquetaOpcionesNota: () => t('noteActions'),
+  // El texto del libro va en un iframe que se queda los toques: los reenvía
+  // para que funcionen igual el arrastre de página y el pellizco.
+  alTocar: (toque) => tocarDesdeElLibro(toque),
 });
 
 function formatoDe(nombre) {
@@ -5240,6 +5243,9 @@ function salirModoInmersivo() {
 function toqueCentroLector(objetivo) {
   if (seleccionPendiente || haySeleccionActiva()) return;
   if (Date.now() - ultimoPellizco < 600) return;
+  // Tras arrastrar la página, el toque que remata el gesto no debe además
+  // esconder la barra de herramientas.
+  if (Date.now() - ultimoGestoPagina < 500) return;
   if (objetivo?.closest?.('a, button, input, select, textarea, .panel-flotante-lector, ' +
       '.barra-seleccion, .menu-nota-contextual, .barra-lector')) return;
   // Se espera un instante por si el toque forma parte de un doble clic de
@@ -5327,29 +5333,209 @@ $('area-lectura').addEventListener('touchcancel', () => {
   terminarPellizco().catch(() => null);
 }, { passive: true });
 
-// Deslizar el dedo para pasar página.
-let toqueX = null, toqueY = null;
-$('area-lectura').addEventListener('touchstart', (evento) => {
-  toqueX = evento.touches[0].clientX;
-  toqueY = evento.touches[0].clientY;
-}, { passive: true });
-$('area-lectura').addEventListener('touchend', (evento) => {
-  if (toqueX === null) return;
-  // Un pellizco (dos dedos) no debe rematar en un paso de página.
-  if (pellizco || Date.now() - ultimoPellizco < 600) { toqueX = toqueY = null; return; }
-  const dx = evento.changedTouches[0].clientX - toqueX;
-  const dy = evento.changedTouches[0].clientY - toqueY;
-  toqueX = toqueY = null;
-  if (modoActual() === 'continuo') return; // en continuo manda el scroll vertical
-  // Con zoom (la página desborda a lo ancho), el dedo desplaza el lienzo
-  // con el scroll nativo: no debe interpretarse como pasar página.
+// ─────────────── Pasar página arrastrando el dedo ───────────────
+//
+// La página acompaña al dedo y deja ver a dónde se va, en vez de saltar de
+// golpe. En PDF asoma de verdad la página vecina, que ya está pintada de
+// antemano (ver copiaDePagina); en EPUB se desliza la actual, porque su
+// contenido vive en un iframe que epub.js no deja mirar por adelantado.
+//
+// Al soltar, el recorrido decide: pasado el umbral la página termina de
+// salir, y si no vuelve a su sitio. Así un roce no cambia de página y se
+// puede echar un vistazo y arrepentirse.
+
+const UMBRAL_PASO = 0.22;   // parte del ancho que hay que recorrer
+const HOLGURA_GESTO = 10;   // píxeles antes de decidir si el gesto es nuestro
+const SEPARACION_VECINA = 16;
+
+let gesto = null;
+let ultimoGestoPagina = 0;
+
+function elementoQueSeMueve() {
+  return epubAbierto() ? $('contenedor-epub') : $('contenedor-pagina').querySelector('.par-paginas');
+}
+
+// ¿Puede empezar aquí un arrastre de página?
+function gestoDePaginaPermitido() {
+  if (!libroActual || pellizco || Date.now() - ultimoPellizco < 600) return false;
+  // Con texto seleccionado (o seleccionándose) el dedo está ajustando la
+  // selección, no pasando página.
+  if (seleccionPendiente || haySeleccionActiva()) return false;
+  if (modoActual() === 'continuo') return false; // ahí manda el scroll vertical
+  // Con zoom la página desborda a lo ancho y el dedo la desplaza: es scroll.
   const area = $('area-lectura');
-  if (area.scrollWidth > area.clientWidth + 2) return;
-  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 2) {
-    const activo = epubAbierto() ? lectorEpub : lector;
-    if (dx < 0) activo.siguiente(); else activo.anterior();
+  if (area.scrollWidth > area.clientWidth + 2) return false;
+  return Boolean(elementoQueSeMueve());
+}
+
+async function prepararVecinasDelGesto() {
+  if (epubAbierto() || !gesto) return;
+  const paso = lector.enDoble() ? 2 : 1;
+  const contenedor = elementoQueSeMueve();
+  for (const [signo, clase] of [[-paso, 'vecina-antes'], [paso, 'vecina-despues']]) {
+    const copia = await lector.copiaDePagina(lector.pagina + signo);
+    if (!gesto || gesto.terminado) return; // el dedo ya se ha levantado
+    if (!copia) continue;                  // no hay página por ese lado
+    const vecina = document.createElement('div');
+    vecina.className = `pagina-pdf pagina-vecina ${clase}`;
+    vecina.append(copia);
+    contenedor.append(vecina);
+    gesto.vecinas.push(vecina);
   }
+}
+
+function limpiarGesto() {
+  const contenedor = gesto?.elemento;
+  for (const vecina of gesto?.vecinas ?? []) vecina.remove();
+  if (contenedor) {
+    contenedor.style.transform = '';
+    contenedor.classList.remove('arrastrando-pagina', 'soltando-pagina');
+  }
+  $('area-lectura').classList.remove('gesto-pagina');
+  gesto = null;
+}
+
+// El gesto llega por dos caminos: el área de lectura en PDF y, en EPUB, el
+// iframe del libro, que se queda los toques y los reenvía. De ahí que la
+// lógica trabaje con coordenadas sueltas y no con el evento.
+
+function iniciarGesto(x, y, toques) {
+  if (gesto && toques > 1) limpiarGesto(); // llega un pellizco
+  if (toques !== 1 || !gestoDePaginaPermitido()) return;
+  gesto = { x, y, dx: 0, activo: false, terminado: false, vecinas: [], elemento: null };
+}
+
+function moverGesto(x, y, toques, evitar) {
+  // Con un segundo dedo el gesto pasa a ser un pellizco para el zoom: la
+  // página vuelve a su sitio y deja de seguir al dedo.
+  if (gesto && toques > 1) { limpiarGesto(); return; }
+  if (!gesto || toques !== 1) return;
+  const dx = x - gesto.x;
+  const dy = y - gesto.y;
+  if (!gesto.activo) {
+    // Hasta que el recorrido no es claramente horizontal no se toca nada: si
+    // no, un desplazamiento vertical arrastraría la página de refilón.
+    if (Math.abs(dy) > HOLGURA_GESTO && Math.abs(dy) > Math.abs(dx)) { gesto = null; return; }
+    if (Math.abs(dx) <= HOLGURA_GESTO) return;
+    gesto.activo = true;
+    gesto.elemento = elementoQueSeMueve();
+    gesto.elemento?.classList.add('arrastrando-pagina');
+    $('area-lectura').classList.add('gesto-pagina');
+    prepararVecinasDelGesto();
+  }
+  if (!gesto.elemento) return;
+  evitar?.(); // el gesto es nuestro: ni scroll ni selección
+  // Sin vecina a la que ir, el arrastre se queda corto: se nota el tope.
+  const paso = lector.enDoble() ? 2 : 1;
+  const haciaAtras = dx > 0;
+  const hayDestino = epubAbierto() || (haciaAtras
+    ? lector.pagina > 1
+    : lector.pagina + paso <= lector.totalPaginas);
+  gesto.dx = hayDestino ? dx : dx * 0.25;
+  gesto.elemento.style.transform = `translateX(${gesto.dx}px)`;
+}
+
+$('area-lectura').addEventListener('touchstart', (evento) => {
+  iniciarGesto(evento.touches[0].clientX, evento.touches[0].clientY, evento.touches.length);
 }, { passive: true });
+
+$('area-lectura').addEventListener('touchmove', (evento) => {
+  moverGesto(evento.touches[0]?.clientX ?? 0, evento.touches[0]?.clientY ?? 0,
+    evento.touches.length, () => evento.preventDefault());
+}, { passive: false });
+
+function terminarGestoPagina() {
+  if (!gesto) return;
+  gesto.terminado = true;
+  const { dx, activo, elemento } = gesto;
+  if (!activo || !elemento) { limpiarGesto(); return; }
+  ultimoGestoPagina = Date.now();
+  const ancho = $('area-lectura').clientWidth || 1;
+  const pasa = Math.abs(dx) > ancho * UMBRAL_PASO;
+  const activoLector = epubAbierto() ? lectorEpub : lector;
+  if (!pasa) {
+    // Vuelta a su sitio, con la transición que da la clase.
+    elemento.classList.add('soltando-pagina');
+    elemento.style.transform = '';
+    alAcabarElDeslizamiento(elemento, limpiarGesto);
+    return;
+  }
+  // Termina de salir y, ya fuera de la vista, se cambia de página.
+  elemento.classList.add('soltando-pagina');
+  elemento.style.transform = `translateX(${dx < 0 ? -ancho : ancho}px)`;
+  alAcabarElDeslizamiento(elemento, () => {
+    limpiarGesto();
+    if (dx < 0) activoLector.siguiente(); else activoLector.anterior();
+  });
+}
+
+// Espera a que acabe el deslizamiento en vez de contar un tiempo fijo: con
+// «menos movimiento» la transición dura lo que nada, y un temporizador dejaría
+// la pantalla vacía mientras tanto. El plazo es solo por si el aviso no llega.
+function alAcabarElDeslizamiento(elemento, alFinal) {
+  let hecho = false;
+  const rematar = (evento) => {
+    if (hecho || (evento && evento.propertyName !== 'transform')) return;
+    hecho = true;
+    elemento.removeEventListener('transitionend', rematar);
+    alFinal();
+  };
+  elemento.addEventListener('transitionend', rematar);
+  setTimeout(rematar, 260);
+}
+
+$('area-lectura').addEventListener('touchend', terminarGestoPagina, { passive: true });
+$('area-lectura').addEventListener('touchcancel', () => { if (gesto) limpiarGesto(); }, { passive: true });
+
+// ── Pellizco para el tamaño de letra del EPUB ──
+//
+// El PDF se amplía escalando el lienzo, pero un EPUB no tiene lienzo: lo que
+// se cambia es el cuerpo del texto y el capítulo se recompone. Recomponerlo en
+// cada movimiento del dedo sería lentísimo, así que el gesto se traduce a
+// saltos de un 10 %, los mismos que dan los botones de zoom, y solo se aplica
+// cuando el pellizco ha crecido lo bastante como para justificar uno.
+
+const SALTO_LETRA = 10;
+let pellizcoEpub = null;
+
+function distanciaEntre(puntos) {
+  return Math.hypot(puntos[0].x - puntos[1].x, puntos[0].y - puntos[1].y);
+}
+
+function pellizcarEpub(puntos) {
+  if (!pellizcoEpub) {
+    pellizcoEpub = { inicial: distanciaEntre(puntos), tamano: lectorEpub.tamano };
+    return;
+  }
+  const factor = distanciaEntre(puntos) / (pellizcoEpub.inicial || 1);
+  // Se redondea al salto más cercano para no recomponer por cada píxel.
+  const objetivo = Math.round(pellizcoEpub.tamano * factor / SALTO_LETRA) * SALTO_LETRA;
+  const acotado = Math.min(300, Math.max(60, objetivo));
+  if (acotado === lectorEpub.tamano) return;
+  lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
+}
+
+function terminarPellizcoEpub() {
+  if (!pellizcoEpub) return;
+  pellizcoEpub = null;
+  localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  ultimoPellizco = Date.now(); // que el gesto de página no remate el pellizco
+}
+
+// Toques reenviados desde el iframe del EPUB.
+function tocarDesdeElLibro({ tipo, x, y, toques, puntos, evitar }) {
+  // Dos dedos: el gesto es un pellizco para el tamaño de letra.
+  if (toques > 1 && puntos?.length === 2) {
+    if (gesto) limpiarGesto();
+    evitar?.();
+    pellizcarEpub(puntos);
+    return;
+  }
+  if (tipo === 'inicio') iniciarGesto(x, y, toques);
+  else if (tipo === 'mueve') moverGesto(x, y, toques, evitar);
+  else if (tipo === 'fin') { terminarPellizcoEpub(); terminarGestoPagina(); }
+  else { terminarPellizcoEpub(); if (gesto) limpiarGesto(); }
+}
 
 // Arrastrar con el ratón para desplazar la página cuando desborda (zoom o
 // página más alta que la vista). En táctil ya lo hace el scroll nativo.

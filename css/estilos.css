@@ -748,7 +748,24 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 /* En modo página las páginas (una o dos, según la vista doble) van dentro
    de un par que hereda el centrado con margin:auto. */
-.par-paginas { display: flex; align-items: flex-start; gap: 0.75rem; margin: 0 auto; flex: none; }
+/* position:relative para que las páginas vecinas del gesto de arrastre se
+   coloquen respecto a ella y viajen con ella. */
+.par-paginas {
+  position: relative;
+  display: flex; align-items: flex-start; gap: 0.75rem; margin: 0 auto; flex: none;
+}
+
+/* ── Pasar página arrastrando el dedo ── */
+/* Mientras dura el gesto no hay desplazamiento: las páginas vecinas se salen
+   del área a propósito y no deben asomar barras ni rebotes. */
+#area-lectura.gesto-pagina { overflow: hidden; }
+.arrastrando-pagina { will-change: transform; }
+/* La animación es solo al soltar: mientras el dedo manda, la página va con él
+   sin retardo ninguno. */
+.soltando-pagina { transition: transform 0.19s ease-out; }
+.pagina-vecina { position: absolute; top: 0; pointer-events: none; }
+.pagina-vecina.vecina-antes { right: calc(100% + 1rem); }
+.pagina-vecina.vecina-despues { left: calc(100% + 1rem); }
 .par-paginas .pagina-pdf { margin: 0; }
 .par-paginas .pagina-pdf.oculto { display: none; }
 .pagina-pdf canvas { display: block; border-radius: 2px; }

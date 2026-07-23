@@ -120,8 +120,12 @@ libros y sincronizar el progreso de lectura.
   abierta: sigue abierta con el siguiente libro hasta que se cierre a mano. En
   móvil y tablet sigue siendo un panel flotante que se cierra al saltar.
 - 🖥️ **Modo inmersivo**: un toque en el centro de la página oculta la barra
-  para leer a pantalla completa; otro toque la recupera. En pantalla táctil
-  el PDF también se amplía pellizcando con dos dedos.
+  para leer a pantalla completa; otro toque la recupera.
+- 👆 **Gestos táctiles**: arrastrar hacia los lados pasa de página con la
+  hoja siguiendo al dedo (en PDF asoma la página vecina, ya renderizada de
+  antemano) y vuelve atrás si no se completa el recorrido. El pellizco amplía:
+  el zoom en los PDF y el tamaño de letra en los EPUB, cuyos toques se
+  reenvían desde el iframe del capítulo.
 - 📄 **Dos modos de lectura** (botón 📜/📄 en la barra): *página a página*
   como un libro (cómodo en móvil/tablet) o *páginas continuas* con scroll
   vertical (mejor en ordenador). La elección se recuerda entre sesiones.

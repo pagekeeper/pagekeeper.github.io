@@ -592,6 +592,27 @@ export class Lector {
     return preparada;
   }
 
+  // Copia de una página ya preparada, a tamaño real y lista para enseñarse
+  // suelta. Se usa al arrastrar el dedo, para dejar ver a dónde se va. Es una
+  // copia y no el original porque ese canvas se monta en la página cuando el
+  // cambio se confirma, y no puede estar en dos sitios a la vez.
+  async copiaDePagina(numero) {
+    if (numero < 1 || numero > this.totalPaginas) return null;
+    try {
+      const { lienzo } = await this.preparar(numero);
+      if (!lienzo?.width) return null;
+      const copia = document.createElement('canvas');
+      copia.width = lienzo.width;
+      copia.height = lienzo.height;
+      copia.style.width = lienzo.style.width;
+      copia.style.height = lienzo.style.height;
+      copia.getContext('2d').drawImage(lienzo, 0, 0);
+      return copia;
+    } catch {
+      return null; // aún no está pintada: se arrastra sin adelanto
+    }
+  }
+
   // Adelanta el pintado de las páginas contiguas una vez montada la actual:
   // al pasar de página el canvas ya está listo y el cambio es inmediato.
   prepararVecinas(n) {

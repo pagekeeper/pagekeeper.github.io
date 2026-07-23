@@ -156,7 +156,7 @@ const COLORES_PAGINA = {
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
-    etiquetaOpcionesNota }) {
+    etiquetaOpcionesNota, alTocar }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
@@ -168,6 +168,7 @@ export class LectorEpub {
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
     this.etiquetaOpcionesNota = etiquetaOpcionesNota;
+    this.alTocar = alTocar;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -347,9 +348,41 @@ export class LectorEpub {
     this.programarIconosNotas();
   }
 
+  // El texto del libro vive dentro de un iframe, que se queda los toques: sin
+  // esto, el gesto de pasar página arrastrando nunca llegaría a la aplicación.
+  // Las coordenadas se pasan a las de la ventana de fuera, que es donde se
+  // miden los recorridos.
+  registrarToques(contents) {
+    const doc = contents?.document;
+    const marco = contents?.window?.frameElement;
+    if (!doc || !this.alTocar) return;
+    const reenviar = (tipo) => (evento) => {
+      const caja = marco?.getBoundingClientRect() ?? { left: 0, top: 0 };
+      const fuera = (toque) => (toque ? {
+        x: toque.clientX + caja.left, y: toque.clientY + caja.top,
+      } : null);
+      const lista = [...evento.touches].map(fuera);
+      const principal = lista[0] ?? fuera(evento.changedTouches[0]) ?? { x: 0, y: 0 };
+      this.alTocar({
+        tipo,
+        toques: evento.touches.length,
+        x: principal.x,
+        y: principal.y,
+        // Los dos primeros dedos, que es lo que mide un pellizco.
+        puntos: lista.slice(0, 2),
+        evitar: () => { if (evento.cancelable) evento.preventDefault(); },
+      });
+    };
+    doc.addEventListener('touchstart', reenviar('inicio'), { passive: true });
+    doc.addEventListener('touchmove', reenviar('mueve'), { passive: false });
+    doc.addEventListener('touchend', reenviar('fin'), { passive: true });
+    doc.addEventListener('touchcancel', reenviar('cancela'), { passive: true });
+  }
+
   registrarInteraccionesNotas(contents) {
     const doc = contents?.document;
     if (!doc) return;
+    this.registrarToques(contents);
     let frameHover = null;
     doc.addEventListener('mousemove', (evento) => {
       cancelAnimationFrame(frameHover);
