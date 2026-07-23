@@ -23,6 +23,7 @@ import {
 const CLAVE_CONFIG = 'lector.config';
 const CLAVE_NOCHE = 'lector.noche'; // heredada: solo para migrar al tema de página
 const CLAVE_TEMA_PAGINA = 'lector.temaPagina'; // 'claro' | 'sepia' | 'noche'
+const CLAVE_IMAGENES_NATURALES = 'lector.imagenesNaturales'; // solo de este dispositivo
 const CLAVE_MODO = 'lector.modo';
 const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
 const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
@@ -71,7 +72,7 @@ const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
 const CLAVES_PREFERENCIAS_COPIA = [
-  'lector.idioma', CLAVE_NOCHE, CLAVE_TEMA_PAGINA, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
+  'lector.idioma', CLAVE_NOCHE, CLAVE_TEMA_PAGINA, CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
   CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
@@ -3106,6 +3107,8 @@ async function abrirEnLector(datos, libro) {
   cerrarPanelTts();
   salirModoInmersivo();
   cerrarPanelTexto();
+  // Antes de dibujar la primera página, para que salga ya con su capa.
+  aplicarImagenesNaturales();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
   registrarVistaLector();
@@ -3897,7 +3900,15 @@ async function pintarMiniatura(boton) {
   boton.dataset.estado = 'pintando';
   try {
     const lienzo = await lector.miniatura(Number(boton.dataset.pagina), anchoMiniatura);
-    boton.querySelector('.hoja').replaceChildren(lienzo);
+    const hoja = boton.querySelector('.hoja');
+    hoja.replaceChildren(lienzo);
+    // La miniatura enseña lo mismo que la página, también sus imágenes.
+    const datos = lienzo.datosRender;
+    if (datos) {
+      await lector.montarImagenesNaturales(
+        hoja, datos.pagina, datos.vista, datos.desplazamiento, datos.dpr,
+      );
+    }
     boton.dataset.estado = 'lista';
     miniaturasMontadas += 1;
     podarMiniaturas();
@@ -5095,7 +5106,45 @@ function aplicarTemaPagina(tema) {
   document.body.classList.toggle('modo-sepia', tema === 'sepia');
   lectorEpub.aplicarTemaPagina(tema);
   pintarIconoNoche();
+  aplicarImagenesNaturales();
 }
+
+// ── Imágenes en su color con el modo noche ──
+//
+// Invertir la página deja las fotos y los logotipos en negativo. Esto los
+// devuelve a su color, y es cosa del usuario porque no hay una respuesta
+// buena para todos los documentos: en uno escaneado la página entera es una
+// imagen, y ahí lo que se quiere es justo lo contrario.
+
+function imagenesNaturalesActivo() {
+  return localStorage.getItem(CLAVE_IMAGENES_NATURALES) === '1';
+}
+
+// El botón solo sale cuando puede hacer algo: con un PDF abierto y la página
+// invertida. En EPUB no hace falta (allí no se filtra nada) y con papel claro
+// o sepia no hay negativo que deshacer.
+function aplicarImagenesNaturales() {
+  const procede = Boolean(libroActual) && !epubAbierto() && temaPagina() === 'noche';
+  const activo = procede && imagenesNaturalesActivo();
+  $('btn-imagenes-noche').classList.toggle('oculto', !procede);
+  $('btn-imagenes-noche').setAttribute('aria-pressed', String(activo));
+  $('btn-imagenes-noche').title = t(activo ? 'imagesInvertedOn' : 'imagesInvertedOff');
+  etiquetarPorTitulo($('btn-imagenes-noche'));
+  if (lector.imagenesNaturales === activo) return;
+  lector.imagenesNaturales = activo;
+  lector.refrescarImagenesNaturales();
+  if (pestanaPanel === 'miniaturas' && !$('panel-indice-libro').classList.contains('oculto')) {
+    reiniciarMiniaturas();
+    prepararMiniaturas();
+    marcarMiniaturaActual();
+  }
+}
+
+$('btn-imagenes-noche').addEventListener('click', () => {
+  const activo = !imagenesNaturalesActivo();
+  localStorage.setItem(CLAVE_IMAGENES_NATURALES, activo ? '1' : '0');
+  aplicarImagenesNaturales();
+});
 
 function pintarIconoNoche() {
   const tema = temaPagina();

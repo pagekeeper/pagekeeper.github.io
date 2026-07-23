@@ -885,7 +885,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 body { --filtro-pagina: none; }
 body.modo-noche { --filtro-pagina: invert(0.93) hue-rotate(180deg); }
 body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); }
-#area-lectura canvas, .miniatura-pagina canvas { filter: var(--filtro-pagina); }
+/* La capa de imágenes queda fuera: es justo lo que no debe filtrarse. */
+:is(#area-lectura, .miniatura-pagina) canvas:not(.capa-imagenes) {
+  filter: var(--filtro-pagina);
+}
+/* Copia sin filtro de las ilustraciones, encima de la página invertida: es lo
+   que les devuelve su color. No recibe eventos, para no estorbar a la
+   selección de texto ni a los enlaces que hay debajo. */
+.capa-imagenes {
+  position: absolute; top: 0; left: 0; z-index: 1;
+  pointer-events: none; filter: none; background: none; box-shadow: none;
+}
 /* El hueco alrededor de la página acompaña al papel en vez de quedarse gris. */
 .modo-sepia #area-lectura { background: #e6dcc4; }
 
@@ -984,12 +994,15 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 /* El hueco reserva el sitio antes de dibujar, para que la rejilla no salte. */
 /* Cada hoja va en su propio recuadro: deja claro dónde acaba una página y
    empieza la siguiente. Antes de dibujarse reserva el sitio, sin saltos. */
+/* El canvas y su capa de imágenes comparten celda, así se escalan igual. */
+.miniatura-pagina .hoja > * { grid-area: 1 / 1; }
+.miniatura-pagina .capa-imagenes { position: static; max-width: 100%; max-height: 100%; }
 .miniatura-pagina .hoja {
   width: 100%; aspect-ratio: 3 / 4; display: grid; place-items: center;
   padding: 0.2rem; background: rgba(148, 163, 184, 0.12);
   border: 1px solid var(--borde); border-radius: 0.3rem; overflow: hidden;
 }
-.miniatura-pagina canvas {
+.miniatura-pagina canvas:not(.capa-imagenes) {
   display: block; max-width: 100%; max-height: 100%;
   background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.35);
 }

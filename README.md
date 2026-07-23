@@ -55,7 +55,9 @@ libros y sincronizar el progreso de lectura.
   mientras la aplicación está abierta. Es independiente del papel del lector.
 - 📜 **Papel del libro**: claro, sepia o modo noche, en un botón que recorre
   los tres. En EPUB se cambian los colores del texto, así que las
-  ilustraciones se ven tal cual; en PDF se tiñe la página.
+  ilustraciones se ven tal cual; en PDF se tiñe la página. En modo noche, un
+  segundo botón devuelve su color a las fotos y logotipos del PDF, dejando
+  intactas las páginas escaneadas, donde la hoja entera es una imagen.
 - ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
   dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
   sección local; uno local sube con su botón de la nube o arrastrándolo hasta

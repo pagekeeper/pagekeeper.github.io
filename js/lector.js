@@ -8,6 +8,7 @@
 
 import * as pdfjs from '../vendor/pdf.min.js';
 import { posicionVerticalLibre } from './posicion-notas.js';
+import { componerMatriz, soloIlustraciones } from './imagenes-pdf.js';
 import {
   cajaDeContenido, cajaRepresentativa, unir, conAire, ajustarRecorte, paginasAMuestrear,
 } from './recorte.js';
@@ -53,6 +54,7 @@ export class Lector {
     this.modo = 'pagina';
     this.rotacion = 0; // giro extra en grados (0, 90, 180, 270)
     this.doble = false; // dos páginas juntas (solo en modo página)
+    this.imagenesNaturales = false; // devolver su color a las imágenes en modo noche
     this.recorte = false;         // recortar los márgenes en blanco
     this.recorteComun = null;     // caja típica del documento (fracciones de página)
     this.recortesPagina = new Map(); // número → su caja, unida con la común
@@ -186,6 +188,8 @@ export class Lector {
       viewport: vista,
       transform: [dpr, 0, 0, dpr, -desplazamiento.x * dpr, -desplazamiento.y * dpr],
     }).promise;
+    // Para que quien la coloque pueda montarle encima la capa de imágenes.
+    lienzo.datosRender = { pagina, vista, desplazamiento, dpr };
     return lienzo;
   }
 
@@ -696,6 +700,97 @@ export class Lector {
     return { pagina, vista, desplazamiento };
   }
 
+  // ─────────── Imágenes en su color con el papel invertido ───────────
+  //
+  // El modo noche invierte la página entera con un filtro CSS, porque un PDF
+  // ya viene dibujado y no se puede recolorear el papel sin tocar la tinta.
+  // Eso deja las fotos y los logotipos en negativo. Para devolverlos a su
+  // color se localiza dónde los pinta la página y se vuelven a copiar encima,
+  // desde el mismo canvas —que conserva los píxeles originales, ya que el
+  // filtro es solo de presentación— en una capa que no lleva filtro.
+
+  // Rectángulos que ocupan las imágenes de la página, en píxeles del canvas.
+  // Cada imagen se pinta sobre el cuadrado unidad, así que su sitio sale de la
+  // matriz acumulada en ese punto de la lista de operaciones.
+  async regionesDeImagen(pagina, vista, desplazamiento, dpr) {
+    const { OPS } = pdfjs;
+    const lista = await pagina.getOperatorList();
+    const base = componerMatriz(
+      [dpr, 0, 0, dpr, -desplazamiento.x * dpr, -desplazamiento.y * dpr],
+      vista.transform,
+    );
+    let matriz = base;
+    const pila = [];
+    const regiones = [];
+    for (let i = 0; i < lista.fnArray.length; i++) {
+      const operacion = lista.fnArray[i];
+      if (operacion === OPS.save) pila.push(matriz.slice());
+      else if (operacion === OPS.restore) matriz = pila.pop() ?? base;
+      else if (operacion === OPS.transform) {
+        matriz = componerMatriz(matriz, lista.argsArray[i]);
+      } else if (operacion === OPS.paintImageXObject ||
+                 operacion === OPS.paintJpegXObject ||
+                 operacion === OPS.paintInlineImageXObject ||
+                 operacion === OPS.paintImageMaskXObject) {
+        const xs = [matriz[4], matriz[0] + matriz[4], matriz[2] + matriz[4],
+          matriz[0] + matriz[2] + matriz[4]];
+        const ys = [matriz[5], matriz[1] + matriz[5], matriz[3] + matriz[5],
+          matriz[1] + matriz[3] + matriz[5]];
+        const x = Math.min(...xs);
+        const y = Math.min(...ys);
+        const ancho = Math.max(...xs) - x;
+        const alto = Math.max(...ys) - y;
+        // Las de un píxel suelen ser rellenos o separadores, no ilustraciones.
+        if (ancho >= 4 && alto >= 4) regiones.push({ x, y, ancho, alto });
+      }
+    }
+    return regiones;
+  }
+
+  // Rehace la capa en las páginas ya dibujadas, que es mucho más barato que
+  // volver a renderizarlas.
+  async refrescarImagenesNaturales() {
+    for (const envoltorio of this.contenedor?.querySelectorAll('.pagina-pdf') ?? []) {
+      const datos = envoltorio.datosRender;
+      if (!datos) continue;
+      await this.montarImagenesNaturales(envoltorio, datos.pagina, datos.vista, datos.desplazamiento);
+    }
+  }
+
+  // Copia esas regiones sin filtro encima de la página ya dibujada.
+  async montarImagenesNaturales(envoltorio, pagina, vista, desplazamiento,
+    dpr = window.devicePixelRatio || 1) {
+    envoltorio.querySelector('.capa-imagenes')?.remove();
+    if (!this.imagenesNaturales) return;
+    const lienzo = envoltorio.querySelector('canvas:not(.capa-imagenes)');
+    if (!lienzo?.width) return;
+    let regiones = [];
+    try {
+      regiones = await this.regionesDeImagen(pagina, vista, desplazamiento, dpr);
+    } catch {
+      return; // sin lista de operaciones se deja la página tal cual
+    }
+    regiones = soloIlustraciones(regiones, lienzo.width, lienzo.height);
+    if (!regiones.length) return;
+    const capa = document.createElement('canvas');
+    capa.className = 'capa-imagenes';
+    capa.width = lienzo.width;
+    capa.height = lienzo.height;
+    if (lienzo.style.width) capa.style.width = lienzo.style.width;
+    const contexto = capa.getContext('2d');
+    for (const { x, y, ancho, alto } of regiones) {
+      // Un margen de un píxel evita que asome el borde invertido por el
+      // redondeo entre las coordenadas del PDF y las del canvas.
+      const rx = Math.floor(x) + 1;
+      const ry = Math.floor(y) + 1;
+      const rancho = Math.ceil(ancho) - 2;
+      const ralto = Math.ceil(alto) - 2;
+      if (rancho <= 0 || ralto <= 0) continue;
+      contexto.drawImage(lienzo, rx, ry, rancho, ralto, rx, ry, rancho, ralto);
+    }
+    envoltorio.append(capa);
+  }
+
   // ─────────────── Capas de texto y enlaces sobre el canvas ───────────────
 
   // Superpone al canvas el texto seleccionable (TextLayer de PDF.js) y los
@@ -703,6 +798,10 @@ export class Lector {
   // CSS --scale-factor, que debe reflejar la escala del viewport.
   async montarCapas(envoltorio, pagina, vista, desplazamiento = { x: 0, y: 0 }) {
     for (const capa of envoltorio.querySelectorAll('.capa-texto, .capa-enlaces, .capa-resaltados')) capa.remove();
+    // Se guardan para poder rehacer la capa de imágenes sin volver a dibujar
+    // la página entera cuando se activa o desactiva la opción.
+    envoltorio.datosRender = { pagina, vista, desplazamiento };
+    this.montarImagenesNaturales(envoltorio, pagina, vista, desplazamiento);
     envoltorio.style.setProperty('--scale-factor', String(vista.scale));
 
     const capaTexto = document.createElement('div');

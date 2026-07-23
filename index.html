@@ -300,6 +300,8 @@
         data-i18n-title="cropMargins" aria-pressed="false"></button>
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
+      <button id="btn-imagenes-noche" class="btn-icono oculto" data-icono="image"
+        title="Imágenes en su color" aria-pressed="false"></button>
       <button id="btn-menu-lector" class="btn-icono btn-menu-lector" data-icono="ellipsis-vertical"
         title="Más acciones" data-i18n-title="moreReaderActions" aria-haspopup="menu"
         aria-controls="fondo-menu-lector" aria-expanded="false"></button>
@@ -694,6 +696,13 @@
           sepia. En EPUB se cambian los colores del texto, así que las
           ilustraciones se ven tal cual; en PDF, que es una imagen ya dibujada,
           se tiñe la página entera.</li>
+          <li><strong>Imágenes en modo noche (solo PDF):</strong> al invertir la
+          página, las fotos y los logotipos quedan en negativo. El botón de la
+          imagen, que aparece junto al del papel cuando lees un PDF en modo
+          noche, les devuelve su color. Se recuerda de un libro a otro. Las
+          páginas escaneadas no se tocan: ahí la hoja entera es una imagen y
+          devolverle su color dejaría el papel en blanco, que es justo lo que se
+          quiere evitar de noche.</li>
           <li><strong>Ir a un punto:</strong> toca el indicador de página (o
           porcentaje en EPUB) para saltar directamente.</li>
           <li><strong>Índice y miniaturas:</strong> el botón del panel abre lo
