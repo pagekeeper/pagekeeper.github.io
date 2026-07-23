@@ -52,8 +52,10 @@ libros y sincronizar el progreso de lectura.
 - 🌗 **Modo claro y oscuro**: el botón de la cabecera pasa por tres estados
   (el del sistema, claro y oscuro) y el icono indica en cuál estás; la
   elección se recuerda en ese navegador. De partida sigue al sistema, también
-  mientras la aplicación está abierta. Es independiente del «modo noche» del
-  lector, que oscurece la página del libro.
+  mientras la aplicación está abierta. Es independiente del papel del lector.
+- 📜 **Papel del libro**: claro, sepia o modo noche, en un botón que recorre
+  los tres. En EPUB se cambian los colores del texto, así que las
+  ilustraciones se ven tal cual; en PDF se tiñe la página.
 - ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
   dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
   sección local; uno local sube con su botón de la nube o arrastrándolo hasta
@@ -135,7 +137,7 @@ libros y sincronizar el progreso de lectura.
   bastante más grande. Cada página se comprueba por separado antes de
   pintarla, así que las portadas y las láminas a toda página siguen viéndose
   enteras. La preferencia se recuerda en cada dispositivo.
-- 🌙 Modo noche, zoom, paso de página con botones, teclado (←/→, espacio,
+- 🌙 Papel claro/sepia/noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
   sin serifa), interlineado y margen lateral, con las preferencias guardadas

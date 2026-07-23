@@ -21,7 +21,8 @@ import {
 } from './copia-local.js';
 
 const CLAVE_CONFIG = 'lector.config';
-const CLAVE_NOCHE = 'lector.noche';
+const CLAVE_NOCHE = 'lector.noche'; // heredada: solo para migrar al tema de página
+const CLAVE_TEMA_PAGINA = 'lector.temaPagina'; // 'claro' | 'sepia' | 'noche'
 const CLAVE_MODO = 'lector.modo';
 const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
 const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
@@ -69,7 +70,7 @@ const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
 const CLAVES_PREFERENCIAS_COPIA = [
-  'lector.idioma', CLAVE_NOCHE, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
+  'lector.idioma', CLAVE_NOCHE, CLAVE_TEMA_PAGINA, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
   CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
@@ -816,8 +817,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   }
   const idioma = localStorage.getItem('lector.idioma');
   if (idioma) aplicarIdioma(idioma);
-  document.body.classList.toggle('modo-noche', localStorage.getItem(CLAVE_NOCHE) === '1');
-  pintarIconoNoche();
+  aplicarTemaPagina(temaPagina());
   $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
   $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
   aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
@@ -1275,8 +1275,12 @@ function maximoRecientes() {
 // «Continuar leyendo» se puede apagar del todo desde los ajustes. A quien
 // abre siempre el mismo libro, o lee de un tirón, el bloque no le aporta y le
 // aparta la biblioteca hacia abajo.
+//
+// Tampoco pinta nada dentro de una carpeta: ahí se ha entrado a buscar algo
+// concreto, y las últimas lecturas ni siquiera tienen por qué estar dentro.
 function continuarDesactivado() {
-  return localStorage.getItem(CLAVE_CONTINUAR_OCULTO) === '1';
+  return localStorage.getItem(CLAVE_CONTINUAR_OCULTO) === '1' ||
+    Boolean(rutaNube) || Boolean(rutaLocal);
 }
 
 function sincronizarCasillaContinuar() {
@@ -2026,10 +2030,7 @@ function rutaLocalDe(nombre) {
 function pintarRutaLocal() {
   const nav = $('ruta-carpeta-local');
   nav.classList.toggle('oculto', !rutaLocal);
-  pintarMigas(nav, rutaLocal, (destino) => {
-    rutaLocal = destino;
-    cargarLibrosLocales();
-  }, false, t('deviceRoot'));
+  pintarMigas(nav, rutaLocal, navegarCarpetaLocal, false, t('deviceRoot'));
   // Cada tramo de la ruta acepta libros locales: soltarlos ahí los mueve.
   for (const boton of nav.querySelectorAll('.miga')) {
     hacerDestinoDeLibroLocal(boton, boton.dataset.rutaMiga ?? '');
@@ -2091,10 +2092,7 @@ function crearFilaCarpetaLocal(nombre) {
     <span class="portada portada-carpeta">${icono('folder')}</span>
     <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
-  const abrir = () => {
-    rutaLocal = rutaLocalDe(nombre);
-    cargarLibrosLocales();
-  };
+  const abrir = () => navegarCarpetaLocal(rutaLocalDe(nombre));
   boton.addEventListener('click', abrir);
   boton.addEventListener('keydown', (evento) => {
     if (evento.target !== boton) return;
@@ -2213,6 +2211,7 @@ async function moverCarpetaLocalA(origen, rutaDestino) {
     if (rutaLocal === origen || rutaLocal.startsWith(`${origen}/`)) {
       rutaLocal = (rutaDestino ? `${rutaDestino}/${nombre}` : nombre) + rutaLocal.slice(origen.length);
     }
+    pintarContinuarLeyendo();
   } catch (error) {
     avisar(explicarError(error), 6000);
   }
@@ -2417,7 +2416,10 @@ async function cargarLibrosLocales() {
   // Si la carpeta abierta ha dejado de existir (se borró, o la copia
   // restaurada no la traía), se vuelve a la raíz en lugar de quedarse en una
   // vista vacía sin salida.
-  if (rutaLocal && !carpetasRegistradas.includes(rutaLocal)) rutaLocal = '';
+  if (rutaLocal && !carpetasRegistradas.includes(rutaLocal)) {
+    rutaLocal = '';
+    pintarContinuarLeyendo();
+  }
   const { carpetas, libros } = almacen.bibliotecaLocal(todos, carpetasRegistradas, rutaLocal);
   // Buscando se mira en toda la biblioteca, no solo en la carpeta abierta: si
   // no, guardar un libro en una carpeta equivaldría a esconderlo del buscador.
@@ -2473,6 +2475,16 @@ async function cargarLibrosLocales() {
   aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
   return todos.length;
+}
+
+// Entrar o salir de una carpeta del dispositivo. Va aparte de recargar la
+// lista porque además hay que revisar «Continuar leyendo», que solo sale en la
+// raíz; se hace solo aquí y no en cada recarga para no repetir las
+// comprobaciones de los libros remotos contra el servidor.
+function navegarCarpetaLocal(destino) {
+  rutaLocal = destino;
+  cargarLibrosLocales();
+  pintarContinuarLeyendo();
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
@@ -3123,7 +3135,7 @@ async function abrirEnLector(datos, libro) {
       } finally {
         restaurandoPosicionEpub = false;
       }
-      lectorEpub.aplicarNoche(document.body.classList.contains('modo-noche'));
+      lectorEpub.aplicarTemaPagina(temaPagina());
       if (avance?.cfi) avisar(t('continuing'));
     } else {
       lectorEpub.cerrar();
@@ -3442,9 +3454,9 @@ function actualizarMenuLector() {
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
   $('menu-doble').innerHTML = icono('columns-2') +
     `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
-  const noche = document.body.classList.contains('modo-noche');
-  $('menu-noche').innerHTML = icono(noche ? 'sun' : 'moon') +
-    `<span>${t(noche ? 'dayMode' : 'nightMode')}</span>`;
+  const pagina = temaPagina();
+  $('menu-noche').innerHTML = icono(ICONO_PAGINA[pagina]) +
+    `<span>${t(TITULO_PAGINA[pagina])}</span>`;
   const tiempo = tiempoRestanteEstimado();
   $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
   $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
@@ -4956,19 +4968,43 @@ $('btn-tema').addEventListener('click', () => {
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
 
+// ── Tema de la página del libro ──
+// Papel claro, sepia o noche, en rueda como el tema de la interfaz. Es cosa
+// aparte de aquel: se puede leer en sepia con la aplicación en oscuro.
+
+const TEMAS_PAGINA = ['claro', 'sepia', 'noche'];
+const ICONO_PAGINA = { claro: 'sun', sepia: 'coffee', noche: 'moon' };
+const TITULO_PAGINA = { claro: 'pageNowLight', sepia: 'pageNowSepia', noche: 'pageNowDark' };
+
+function temaPagina() {
+  const guardado = localStorage.getItem(CLAVE_TEMA_PAGINA);
+  if (TEMAS_PAGINA.includes(guardado)) return guardado;
+  // Quien ya tenía el modo noche puesto sigue con él sin enterarse del cambio.
+  return localStorage.getItem(CLAVE_NOCHE) === '1' ? 'noche' : 'claro';
+}
+
+function aplicarTemaPagina(tema) {
+  document.body.classList.toggle('modo-noche', tema === 'noche');
+  document.body.classList.toggle('modo-sepia', tema === 'sepia');
+  lectorEpub.aplicarTemaPagina(tema);
+  pintarIconoNoche();
+}
+
 function pintarIconoNoche() {
-  const activo = document.body.classList.contains('modo-noche');
-  $('btn-noche').innerHTML = icono(activo ? 'sun' : 'moon');
-  $('btn-noche').title = activo ? t('dayMode') : t('nightMode');
+  const tema = temaPagina();
+  $('btn-noche').innerHTML = icono(ICONO_PAGINA[tema]);
+  $('btn-noche').title = t(TITULO_PAGINA[tema]);
   etiquetarPorTitulo($('btn-noche'));
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
 $('btn-noche').addEventListener('click', () => {
-  const activo = document.body.classList.toggle('modo-noche');
-  localStorage.setItem(CLAVE_NOCHE, activo ? '1' : '0');
-  pintarIconoNoche();
-  lectorEpub.aplicarNoche(activo);
+  const siguiente = TEMAS_PAGINA[(TEMAS_PAGINA.indexOf(temaPagina()) + 1) % TEMAS_PAGINA.length];
+  localStorage.setItem(CLAVE_TEMA_PAGINA, siguiente);
+  // La clave antigua se mantiene al día por si se restaura una copia en una
+  // versión anterior de la aplicación.
+  localStorage.setItem(CLAVE_NOCHE, siguiente === 'noche' ? '1' : '0');
+  aplicarTemaPagina(siguiente);
 });
 
 // Elementos que ya usan las flechas y el espacio para lo suyo: escribir, abrir
@@ -5223,10 +5259,7 @@ document.addEventListener('idioma-cambiado', () => {
 iniciarIdioma();
 iniciarTema();
 sincronizarCasillaContinuar();
-if (localStorage.getItem(CLAVE_NOCHE) === '1') {
-  document.body.classList.add('modo-noche');
-}
-pintarIconoNoche();
+aplicarTemaPagina(temaPagina());
 aplicarAparienciaModo(modoActual());
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {

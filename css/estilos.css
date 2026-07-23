@@ -656,6 +656,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   padding: 0 var(--margen-texto);
 }
 .modo-noche #contenedor-epub { background: var(--fondo-lector); }
+.modo-sepia #contenedor-epub { background: #f4ecd8; }
 #contenedor-epub iframe { border: none; }
 /* En modo continuo, epub.js ya compensa con scroll la altura de los capítulos
    que antepone; el anclaje de scroll del navegador la compensaría por segunda
@@ -875,6 +876,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 
 .modo-noche #area-lectura canvas { filter: invert(0.93) hue-rotate(180deg); }
+/* En PDF no se puede recolorear el papel sin tocar la tinta, porque la página
+   es una imagen ya dibujada: se tiñe entera con un filtro, igual que en modo
+   noche. El tono es suave a propósito, para no desvirtuar las ilustraciones
+   más de lo imprescindible. */
+.modo-sepia #area-lectura canvas { filter: sepia(0.55) saturate(0.85) brightness(0.97); }
+/* El hueco alrededor de la página acompaña al papel en vez de quedarse gris. */
+.modo-sepia #area-lectura { background: #e6dcc4; }
 
 /* En modo continuo las zonas de toque laterales estorbarían al scroll. */
 #vista-lector.modo-continuo .zona-toque { display: none; }

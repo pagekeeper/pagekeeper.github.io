@@ -144,6 +144,15 @@ export function inyectarMathJax(contents) {
   doc.head.append(script);
 }
 
+// Papel y tinta de cada tema de lectura. El sepia es el tostado clásico de
+// los lectores de tinta electrónica; con esta pareja el texto queda en 8,7:1,
+// de sobra por encima del mínimo.
+const COLORES_PAGINA = {
+  claro: { texto: '#1f2937', fondo: '#ffffff' },
+  sepia: { texto: '#4b3a2a', fondo: '#f4ecd8' },
+  noche: { texto: '#e2e8f0', fondo: '#171f2e' },
+};
+
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
@@ -168,7 +177,7 @@ export class LectorEpub {
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
     this.alineacion = 'libro'; // 'libro' | 'izquierda' (sin justificar)
-    this.noche = false;
+    this.temaPagina = 'claro';
     this.cfi = null;
     this.porcentaje = 0;
     this.conLocalizaciones = false;
@@ -291,15 +300,18 @@ export class LectorEpub {
     // estilo acumulativas y volver del tema oscuro al claro no funciona.
     // override() aplica estilos en línea que sí se reemplazan al alternar.
     this.vista.themes.default({ 'a, a:visited': { color: '#0ea5e9' } });
-    this.aplicarNoche(this.noche);
+    this.aplicarTemaPagina(this.temaPagina);
     this.vista.themes.fontSize(this.tamano + '%');
   }
 
-  aplicarNoche(activo) {
-    this.noche = activo;
+  // Papel del libro. En EPUB no se filtra nada: se cambian directamente el
+  // color del texto y el del fondo, así que las ilustraciones se ven tal cual.
+  aplicarTemaPagina(tema) {
+    this.temaPagina = COLORES_PAGINA[tema] ? tema : 'claro';
     if (!this.vista) return;
-    this.vista.themes.override('color', activo ? '#e2e8f0' : '#1f2937');
-    this.vista.themes.override('background', activo ? '#171f2e' : '#ffffff');
+    const { texto, fondo } = COLORES_PAGINA[this.temaPagina];
+    this.vista.themes.override('color', texto);
+    this.vista.themes.override('background', fondo);
   }
 
   mostrarAnotaciones(anotaciones) {
