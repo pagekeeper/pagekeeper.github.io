@@ -3,11 +3,25 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0f172a">
+  <meta name="theme-color" content="#f8fafc">
   <title>PageKeeper</title>
   <link rel="stylesheet" href="css/estilos.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+  <script>
+    // Se aplica antes de pintar nada: si esperase al módulo, la primera imagen
+    // sería del tema que no toca y se vería el cambio de golpe.
+    (() => {
+      let guardado = null;
+      try { guardado = localStorage.getItem('lector.tema'); } catch { /* sin almacenamiento */ }
+      const oscuro = guardado === 'oscuro' ||
+        (guardado !== 'claro' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
+      document.documentElement.dataset.tema = oscuro ? 'oscuro' : 'claro';
+      if (oscuro) {
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0f172a');
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -25,6 +39,7 @@
           <option value="es">ES</option><option value="ca">CA</option><option value="en">EN</option>
         </select>
       </label>
+      <button id="btn-tema" class="btn-icono" title="Cambiar a modo claro u oscuro"></button>
       <button id="btn-archivos" class="btn-icono" data-icono="folder-input"
         title="Importar y exportar" data-i18n-title="importExport"></button>
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
@@ -468,6 +483,18 @@
       </form>
 
       <div class="tarjeta">
+        <h2 data-i18n="appearance">Aspecto</h2>
+        <p class="ayuda" data-i18n="themeHelp">De partida se usa el tema del sistema. Si eliges uno, se recuerda en este navegador.</p>
+        <label class="campo-ajuste"><span data-i18n="theme">Tema</span>
+          <select id="selector-tema">
+            <option value="auto" data-i18n="themeAuto">El del sistema</option>
+            <option value="claro" data-i18n="themeLight">Claro</option>
+            <option value="oscuro" data-i18n="themeDark">Oscuro</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
         <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
         <div class="fila-botones">
@@ -590,7 +617,9 @@
           la carpeta con «+». Entra en ellas pulsándolas (la ruta aparece
           encima de la lista para volver), cambia su nombre o bórralas desde su
           menú «⋯», y mueve un libro con su opción «Mover a otra carpeta» o
-          arrastrándolo hasta la carpeta. Mover un libro aquí no le afecta en
+          arrastrándolo hasta la carpeta. Las carpetas también se mueven: con
+          «Mover la carpeta» o arrastrándolas hasta otra carpeta o hasta un
+          tramo de la ruta, llevándose todo lo que hay dentro. Mover un libro aquí no le afecta en
           nada: conserva la página, los marcadores y las anotaciones. Los
           libros nuevos van a parar a la carpeta que tengas abierta, y el
           buscador sigue encontrándolos estén donde estén.</li>
@@ -779,6 +808,16 @@
           <li>«¿El servicio de nube <em>[nombre]</em> permite acceso WebDAV
           desde el navegador (CORS) para una web externa?»</li>
         </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Modo claro y modo oscuro</h2>
+        <p>PageKeeper arranca con el tema que tenga puesto tu sistema. El botón
+        del sol o la luna de la cabecera lo cambia al instante, y tu elección se
+        recuerda en ese navegador. Si quieres volver a seguir al sistema, en
+        <strong>⚙️ Ajustes → Aspecto</strong> tienes «El del sistema».</p>
+        <p class="ayuda">No lo confundas con el <strong>modo noche</strong> del
+        lector: aquel oscurece la página del libro y se guarda por separado.</p>
       </div>
 
       <div class="tarjeta">

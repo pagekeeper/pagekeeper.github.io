@@ -1,7 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { bibliotecaLocal, normalizarCarpeta, nombreCarpetaValido } from '../js/almacen.js';
+import {
+  bibliotecaLocal, normalizarCarpeta, nombreCarpetaValido, movimientoDeCarpetaValido,
+} from '../js/almacen.js';
 
 const libro = (id, carpeta = '') => ({ id, nombre: `${id}.pdf`, tamano: 1, carpeta });
 
@@ -76,4 +78,29 @@ test('un libro sin carpeta se queda en la raíz', () => {
 test('ordena las carpetas alfabéticamente respetando los acentos', () => {
   const { carpetas } = bibliotecaLocal([], ['Zoología', 'Álgebra', 'biología'], '');
   assert.deepEqual(carpetas.map((c) => c.nombre), ['Álgebra', 'biología', 'Zoología']);
+});
+
+test('una carpeta no se puede mover dentro de sí misma ni de sus hijas', () => {
+  assert.equal(movimientoDeCarpetaValido('Novela', 'Novela'), false);
+  assert.equal(movimientoDeCarpetaValido('Novela', 'Novela/Negra'), false);
+  assert.equal(movimientoDeCarpetaValido('Novela', 'Novela/Negra/Nórdica'), false);
+});
+
+test('una carpeta no se mueve a donde ya está', () => {
+  assert.equal(movimientoDeCarpetaValido('Novela', ''), false);
+  assert.equal(movimientoDeCarpetaValido('Novela/Negra', 'Novela'), false);
+});
+
+test('acepta llevar una carpeta a otra rama o sacarla a la raíz', () => {
+  assert.equal(movimientoDeCarpetaValido('Novela/Negra', ''), true);
+  assert.equal(movimientoDeCarpetaValido('Novela/Negra', 'Ensayo'), true);
+  assert.equal(movimientoDeCarpetaValido('Novela', 'Ensayo/Historia'), true);
+});
+
+test('un prefijo parecido no cuenta como descendiente', () => {
+  assert.equal(movimientoDeCarpetaValido('Novela', 'Novelas'), true);
+});
+
+test('sin carpeta de origen no hay movimiento posible', () => {
+  assert.equal(movimientoDeCarpetaValido('', 'Ensayo'), false);
 });

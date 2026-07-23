@@ -1,15 +1,55 @@
+/* ── Temas ──
+   El claro son los valores de partida y el oscuro los reemplaza. El tema en
+   uso lo marca un script del <head> con data-tema en <html>, así que no hace
+   falta duplicar la paleta en una consulta de medios: «automático» se resuelve
+   antes del primer pintado y no hay parpadeo al cargar.
+   Todos los colores de texto llegan al menos a 4.5:1 sobre su fondo. */
 :root {
+  color-scheme: light;
+  --fondo: #f8fafc;
+  --fondo-tarjeta: #ffffff;
+  --fondo-lector: #e2e8f0;
+  --texto: #0f172a;
+  --texto-suave: #475569;
+  --acento: #0369a1;
+  /* Fondo de los botones primarios y de las insignias, siempre con texto
+     blanco encima: el azul de antes (#0284c7) se quedaba en 4.1:1. */
+  --acento-oscuro: #0369a1;
+  --sobre-acento: #ffffff; /* texto sobre un fondo de acento pleno */
+  --peligro: #b91c1c;
+  --exito: #15803d;
+  --aviso: #a16207;
+  --formato-pdf: #be123c;
+  --formato-epub: #0f766e;
+  --borde: #cbd5e1;        /* separadores y marcos suaves */
+  --borde-fuerte: #64748b; /* contorno de los campos, que si no se pierden */
+  --velo: rgba(15, 23, 42, 0.35);       /* fondo de los diálogos */
+  --velo-denso: rgba(248, 250, 252, 0.9); /* fondo del indicador de carga */
+  --sombra: rgba(15, 23, 42, 0.18);
+  --sombra-fuerte: rgba(15, 23, 42, 0.28);
+}
+
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
   --fondo: #0f172a;
   --fondo-tarjeta: #1e293b;
   --fondo-lector: #171f2e;
   --texto: #e2e8f0;
   --texto-suave: #94a3b8;
   --acento: #38bdf8;
-  /* Fondo de los botones primarios y de las insignias: con texto blanco encima
-     el azul anterior (#0284c7) se quedaba en 4.1:1, por debajo del mínimo. */
   --acento-oscuro: #0369a1;
+  --sobre-acento: #082f49;
   --peligro: #f87171;
+  --exito: #34d399;
+  --aviso: #fbbf24;
+  --formato-pdf: #fb7185;
+  --formato-epub: #2dd4bf;
   --borde: #334155;
+  --borde-fuerte: #475569;
+  --velo: rgba(15, 23, 42, 0.7);
+  --velo-denso: rgba(15, 23, 42, 0.85);
+  --sombra: rgba(0, 0, 0, 0.45);
+  --sombra-fuerte: rgba(0, 0, 0, 0.5);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -99,8 +139,8 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   background: color-mix(in srgb, var(--acento) 12%, transparent); color: var(--acento);
 }
 .estado-sincronizacion.no-sincronizado {
-  border-color: color-mix(in srgb, #fbbf24 55%, transparent);
-  background: color-mix(in srgb, #fbbf24 10%, transparent); color: #fbbf24;
+  border-color: color-mix(in srgb, var(--aviso) 55%, transparent);
+  background: color-mix(in srgb, var(--aviso) 10%, transparent); color: var(--aviso);
 }
 .estado-sincronizacion.error {
   border-color: color-mix(in srgb, var(--peligro) 65%, transparent);
@@ -151,7 +191,7 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   font-size: 0.95rem; font-weight: 600; border: 1px solid transparent;
 }
 .btn-primario { background: var(--acento-oscuro); color: white; }
-.btn-primario:hover { background: var(--acento); color: #082f49; }
+.btn-primario:hover { background: var(--acento); color: var(--sobre-acento); }
 .btn-secundario { background: none; border-color: var(--borde); color: var(--texto); }
 .btn-secundario:hover { border-color: var(--acento); }
 .btn-secundario:disabled, .accion-deshabilitada {
@@ -176,8 +216,8 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.35rem;
   padding: 0.05rem 0.35rem; font-size: 0.85em; word-break: break-all;
 }
-.tarjeta.importante { border-color: #d9a441; }
-.tarjeta.importante h2 { color: #f0b95a; }
+.tarjeta.importante { border-color: var(--aviso); }
+.tarjeta.importante h2 { color: var(--aviso); }
 .tarjeta.destacado { border-color: var(--acento); }
 .tarjeta.destacado h2 { color: var(--acento); }
 
@@ -215,7 +255,7 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   background: linear-gradient(135deg,
     color-mix(in srgb, var(--acento) 13%, var(--fondo-tarjeta)),
     var(--fondo-tarjeta));
-  box-shadow: 0 0.4rem 1.4rem rgb(0 0 0 / 18%);
+  box-shadow: 0 0.4rem 1.4rem var(--sombra);
 }
 .cabecera-continuar { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.7rem; }
 .cabecera-continuar h2 { color: var(--acento); font-size: 1rem; }
@@ -315,11 +355,11 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 
 .estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
 .estado.error { color: var(--peligro); white-space: pre-wrap; }
-.estado.exito { color: #4ade80; }
+.estado.exito { color: var(--exito); }
 
 .buscador {
   display: flex; align-items: center; gap: 0.55rem;
-  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde-fuerte);
   border-radius: 0.65rem; padding: 0.25rem 0.7rem; color: var(--texto-suave);
 }
 /* El campo ocupa toda la caja, así que el foco se marca sobre la caja entera
@@ -338,8 +378,18 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 
 /* ── Formulario ── */
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
+/* Un control suelto en una tarjeta (fuera de un formulario) se presenta igual
+   que los campos de arriba, para que no parezca de otra familia. */
+.campo-ajuste { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
+.campo-ajuste select {
+  align-self: flex-start; min-width: 14rem; max-width: 100%;
+  background: var(--fondo); border: 1px solid var(--borde-fuerte);
+  border-radius: 0.5rem; padding: 0.55rem 0.7rem;
+  color: var(--texto); font: inherit; font-size: 1rem;
+}
+.campo-ajuste select:focus-visible { outline: 2px solid var(--acento); border-color: transparent; }
 form input {
-  background: var(--fondo); border: 1px solid var(--borde);
+  background: var(--fondo); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.55rem 0.7rem;
   color: var(--texto); font-size: 1rem;
 }
@@ -410,10 +460,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .btn-menu-libro .icono { width: 1.2rem; height: 1.2rem; }
 .estado-sin-conexion {
-  flex: none; color: #34d399; font-size: 0.62rem; font-weight: 750;
+  flex: none; color: var(--exito); font-size: 0.62rem; font-weight: 750;
   line-height: 1.25; white-space: nowrap;
 }
-.estado-sin-conexion.desactualizada { color: #fbbf24; }
+.estado-sin-conexion.desactualizada { color: var(--aviso); }
 .libro:hover { border-color: var(--acento); }
 .libro .portada {
   width: 2.7rem; height: 3.6rem; flex: none;
@@ -438,9 +488,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   border-radius: 0.3rem; font-size: 0.62rem; font-weight: 750;
   line-height: 1.25; letter-spacing: 0.035em;
 }
-.libro .formato-pdf { color: #fb7185; }
-.libro .formato-epub { color: #2dd4bf; }
-.libro .formato.sin-texto { color: #fbbf24; }
+.libro .formato-pdf { color: var(--formato-pdf); }
+.libro .formato-epub { color: var(--formato-epub); }
+.libro .formato.sin-texto { color: var(--aviso); }
 .libro .autor {
   color: var(--texto-suave); font-size: 0.78rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -459,12 +509,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .btn-terminado-en-libro .icono { width: 0.8rem; height: 0.8rem; }
 .btn-terminado-en-libro:hover { color: var(--acento); border-color: var(--acento); }
-.btn-terminado-en-libro.terminado { color: #34d399; border-color: #34d399; }
+.btn-terminado-en-libro.terminado { color: var(--exito); border-color: var(--exito); }
 .btn-terminado-en-libro.terminado:hover, .btn-terminado-en-libro.terminado:focus-visible {
   color: var(--peligro); border-color: var(--peligro);
 }
 .btn-terminado-en-libro .icono-quitar-terminado { width: 0.7rem; height: 0.7rem; margin-left: 0.05rem; }
-.libro-terminado .barra-progreso > div { background: #34d399; }
+.libro-terminado .barra-progreso > div { background: var(--exito); }
 .libro .barra-progreso {
   height: 4px; background: var(--borde); border-radius: 2px;
   margin-top: 0.35rem; overflow: hidden;
@@ -501,7 +551,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: rgba(15, 23, 42, 0.72); color: #e2e8f0;
 }
 .vista-cuadricula .btn-menu-libro:hover, .vista-cuadricula .btn-menu-libro:focus-visible {
-  color: var(--acento); background: rgba(15, 23, 42, 0.85);
+  color: var(--acento); background: var(--velo-denso);
 }
 
 /* ── Lector ── */
@@ -544,7 +594,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   position: absolute; top: max(3.45rem, calc(env(safe-area-inset-top) + 2.9rem)); right: 0.35rem;
   width: min(19rem, calc(100vw - 0.7rem)); max-height: calc(100dvh - 4rem); overflow: auto;
   background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
-  padding: 0.6rem; box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  padding: 0.6rem; box-shadow: 0 10px 32px var(--sombra-fuerte);
   animation: despliegue-menu 0.12s ease-out; transform-origin: top right;
 }
 .menu-lector h2 {
@@ -607,7 +657,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   width: min(20rem, calc(100vw - 1rem));
   padding: 1rem; border: 1px solid var(--borde); border-radius: 0.75rem;
   background: var(--fondo-tarjeta); color: var(--texto);
-  box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+  box-shadow: 0 10px 32px var(--sombra);
 }
 .campo-texto-epub {
   display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
@@ -678,7 +728,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   /* overflow: clip recorta el texto y los enlaces de los márgenes cuando la
      página se muestra recortada; sus capas se salen del recuadro a propósito. */
   position: relative; margin: 0 auto; flex: none; overflow: clip;
-  background: white; box-shadow: 0 4px 24px rgba(0,0,0,0.5); border-radius: 2px;
+  background: white; box-shadow: 0 4px 24px var(--sombra-fuerte); border-radius: 2px;
 }
 /* En modo página las páginas (una o dos, según la vista doble) van dentro
    de un par que hereda el centrado con margin:auto. */
@@ -773,7 +823,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   max-height: min(16rem, calc(100dvh - 1rem)); overflow: hidden; pointer-events: none;
   padding: 0.65rem 0.75rem; border: 1px solid rgba(14, 165, 233, 0.7);
   border-radius: 0.6rem; background: var(--fondo); color: var(--texto);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4); white-space: pre-wrap;
+  box-shadow: 0 8px 24px var(--sombra); white-space: pre-wrap;
   overflow-wrap: anywhere; font-size: 0.9rem; line-height: 1.4;
 }
 
@@ -781,7 +831,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   position: fixed; z-index: 85; width: 11.5rem; padding: 0.35rem;
   border: 1px solid var(--borde); border-radius: 0.65rem;
   background: var(--fondo); color: var(--texto);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  box-shadow: 0 8px 24px var(--sombra);
 }
 .menu-nota-contextual .item-menu-lector { padding: 0.55rem 0.65rem; }
 
@@ -821,7 +871,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   width: min(28rem, calc(100vw - 1.2rem)); max-height: calc(100dvh - 4.4rem);
   overflow: auto; padding: 0.75rem; border: 1px solid var(--borde);
   border-radius: 0.75rem; background: var(--fondo); color: var(--texto);
-  box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 32px var(--sombra-fuerte);
 }
 /* En pantallas anchas el índice deja de flotar y pasa a ser una barra lateral
    que estrecha el documento en vez de taparlo, como en los visores de PDF de
@@ -968,7 +1018,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .buscador-form { display: flex; align-items: center; gap: 0.4rem; }
 .buscador-form input {
-  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.55rem 0.7rem;
 }
 .buscador-form .btn-primario { padding: 0.55rem 0.8rem; }
@@ -987,7 +1037,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   transform: translateX(-50%); display: flex; align-items: center; gap: 0.4rem;
   max-width: calc(100vw - 1rem); padding: 0.45rem;
   background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 32px var(--sombra-fuerte);
 }
 .barra-seleccion .btn-primario, .barra-seleccion .btn-secundario {
   display: flex; align-items: center; gap: 0.4rem; white-space: nowrap;
@@ -1025,7 +1075,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .miga:hover, .miga:focus-visible { text-decoration: underline; }
 .separador-miga { color: var(--texto-suave); }
 .miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
-.libro .portada-carpeta { color: #fbbf24; }
+.libro .portada-carpeta { color: var(--aviso); }
 /* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
 .libro.carpeta.destino-mover { border-color: var(--acento); background: var(--fondo-tarjeta); }
 .miga.destino-mover {
@@ -1035,13 +1085,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 .dialogo-fondo {
   position: fixed; inset: 0; z-index: 95;
-  background: rgba(15, 23, 42, 0.7);
+  background: var(--velo);
   display: flex; align-items: center; justify-content: center; padding: 1rem;
 }
 .dialogo {
   width: min(26rem, 100%); max-height: min(34rem, 90dvh); overflow: auto;
   background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.75rem;
-  padding: 1rem; box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  padding: 1rem; box-shadow: 0 10px 32px var(--sombra-fuerte);
   display: flex; flex-direction: column; gap: 0.55rem;
 }
 .dialogo h2 { font-size: 1rem; }
@@ -1077,7 +1127,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   min-width: 13rem; max-width: min(20rem, calc(100vw - 1rem));
   background: var(--fondo); border: 1px solid var(--borde);
   border-radius: 0.75rem; padding: 0.6rem;
-  box-shadow: 0 10px 32px rgba(0,0,0,0.5);
+  box-shadow: 0 10px 32px var(--sombra-fuerte);
   display: flex; flex-direction: column; gap: 0.4rem;
   transform-origin: top right;
   animation: despliegue-menu 0.12s ease-out;
@@ -1107,14 +1157,14 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .item-menu-peligro:hover, .item-menu-peligro:focus-visible {
   background: color-mix(in srgb, var(--peligro) 12%, transparent);
 }
-.item-sin-conexion-disponible .icono { color: #34d399; }
-.item-sin-conexion-desactualizada .icono { color: #fbbf24; }
+.item-sin-conexion-disponible .icono { color: var(--exito); }
+.item-sin-conexion-desactualizada .icono { color: var(--aviso); }
 .lista-carpetas-mover {
   list-style: none; display: flex; flex-direction: column; gap: 0.25rem;
   min-height: 5rem;
 }
 .entrada-carpeta-mover { align-items: center; gap: 0.5rem; padding-left: 0.65rem; }
-.entrada-carpeta-mover .icono { color: #fbbf24; }
+.entrada-carpeta-mover .icono { color: var(--aviso); }
 .botones-mover { justify-content: flex-end; flex-wrap: wrap; }
 .botones-mover .btn-primario:disabled {
   opacity: 0.45; cursor: not-allowed;
@@ -1139,7 +1189,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .fila-marcador .entrada-indice-libro { padding-left: 0.65rem; }
 .btn-editar-marcador, .btn-borrar-marcador { flex: none; color: var(--texto-suave); }
 .btn-editar-marcador:hover { color: var(--acento); }
-.btn-borrar-marcador:hover { color: #f87171; }
+.btn-borrar-marcador:hover { color: var(--peligro); }
 
 .zona-toque {
   position: fixed; top: 20%; bottom: 10%; width: 18%;
@@ -1155,12 +1205,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: var(--fondo-tarjeta); border: 1px solid var(--borde);
   border-radius: 0.75rem; padding: 0.6rem 1.2rem; font-size: 0.9rem;
   z-index: 100; max-width: 90vw; text-align: center;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px var(--sombra);
 }
 
 .cargando {
   position: fixed; inset: 0; z-index: 90;
-  background: rgba(15, 23, 42, 0.85);
+  background: var(--velo-denso);
   display: flex; flex-direction: column; gap: 1rem;
   align-items: center; justify-content: center;
 }

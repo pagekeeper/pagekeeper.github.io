@@ -8,6 +8,7 @@ import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
 import { LectorVoz } from './tts.js';
+import { iniciarTema, temaElegido, temaEfectivo, guardarTema, alternarTema } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
@@ -1750,12 +1751,14 @@ function actualizarVisibilidadBuscadorBiblioteca() {
 
 const TIPO_ARRASTRE_LIBRO = 'application/x-pagekeeper-libro';       // libro de la nube: mover
 const TIPO_ARRASTRE_LOCAL = 'application/x-pagekeeper-libro-local'; // libro local: subir (copia)
+const TIPO_ARRASTRE_CARPETA = 'application/x-pagekeeper-carpeta-local'; // carpeta local: mover
 
 function tiposArrastreLibro(evento) {
   const tipos = Array.from(evento.dataTransfer?.types ?? []);
   return {
     nube: tipos.includes(TIPO_ARRASTRE_LIBRO),
     local: tipos.includes(TIPO_ARRASTRE_LOCAL),
+    carpeta: tipos.includes(TIPO_ARRASTRE_CARPETA),
   };
 }
 
@@ -1987,11 +1990,16 @@ function pintarRutaLocal() {
 }
 
 // Convierte un elemento en destino de la biblioteca del dispositivo: un libro
-// local se mueve a `rutaDestino` y uno de la nube se descarga ahí.
+// local se mueve a `rutaDestino`, uno de la nube se descarga ahí y una carpeta
+// local se lleva dentro con todo su contenido.
 function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
+  // Una carpeta no se puede soltar sobre sí misma ni sobre lo que contiene:
+  // ahí ni se resalta el destino ni se acepta la caída.
+  const admiteCarpeta = (evento) => tiposArrastreLibro(evento).carpeta &&
+    almacen.movimientoDeCarpetaValido(carpetaArrastrada, rutaDestino);
   elemento.addEventListener('dragover', (evento) => {
     const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
+    if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
     evento.dataTransfer.dropEffect = nube ? 'copy' : 'move';
@@ -2000,19 +2008,26 @@ function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
   elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
   elemento.addEventListener('drop', (evento) => {
     const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
+    if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
     elemento.classList.remove('destino-mover');
     if (nube) {
       const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
       if (id) guardarLibroRemotoEnDispositivo(id, rutaDestino);
-    } else {
+    } else if (local) {
       const libro = libroLocalArrastrado(evento);
       if (libro) moverLibroLocalA(libro, rutaDestino);
+    } else {
+      moverCarpetaLocalA(carpetaArrastrada, rutaDestino);
     }
   });
 }
+
+// Ruta de la carpeta que se está arrastrando. Va aparte del dataTransfer
+// porque durante el «dragover» los datos no se pueden leer y aquí hacen falta
+// para saber si el destino es válido.
+let carpetaArrastrada = '';
 
 function crearFilaCarpetaLocal(nombre) {
   const elemento = document.createElement('li');
@@ -2041,7 +2056,21 @@ function crearFilaCarpetaLocal(nombre) {
     abrir();
   });
   hacerDestinoDeLibroLocal(boton, rutaLocalDe(nombre));
+  boton.draggable = true;
+  boton.addEventListener('dragstart', (evento) => {
+    carpetaArrastrada = rutaLocalDe(nombre);
+    evento.dataTransfer.setData(TIPO_ARRASTRE_CARPETA, carpetaArrastrada);
+    evento.dataTransfer.effectAllowed = 'move';
+  });
+  boton.addEventListener('dragend', () => { carpetaArrastrada = ''; });
   boton.append(crearBotonMenu(boton, () => [
+    {
+      icono: 'folder-input',
+      etiqueta: t('actionMoveFolder'),
+      alPulsar: () => abrirDialogoMover(
+        { id: rutaLocalDe(nombre), nombre }, 'carpeta-local',
+      ),
+    },
     {
       icono: 'pencil',
       etiqueta: t('actionRenameFolder'),
@@ -2127,6 +2156,22 @@ async function borrarCarpetaLocal(nombre) {
   }
 }
 
+async function moverCarpetaLocalA(origen, rutaDestino) {
+  if (!origen) return;
+  const nombre = origen.split('/').pop();
+  try {
+    if (!await almacen.moverCarpetaLocal(origen, rutaDestino)) return;
+    avisar(t('folderMoved', { name: nombre }));
+    // Si estábamos dentro de la carpeta movida, se sigue donde estaba.
+    if (rutaLocal === origen || rutaLocal.startsWith(`${origen}/`)) {
+      rutaLocal = (rutaDestino ? `${rutaDestino}/${nombre}` : nombre) + rutaLocal.slice(origen.length);
+    }
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  }
+  await cargarLibrosLocales();
+}
+
 async function moverLibroLocalA(libro, rutaDestino) {
   try {
     if (!await almacen.moverLibroACarpeta(libro.id, rutaDestino)) return;
@@ -2150,28 +2195,37 @@ function cerrarDialogoMover() {
 // del id; en el dispositivo es un campo del registro.
 async function carpetaActualDelMovimiento() {
   if (movimiento.ambito === 'nube') return carpetaDeId(movimiento.id);
+  // Una carpeta: su sitio actual es el de su padre.
+  if (movimiento.ambito === 'carpeta-local') return carpetaDeId(movimiento.id);
   const libros = await almacen.listarLibros().catch(() => []);
   const libro = libros.find((registro) => registro.id === movimiento.id);
   return almacen.normalizarCarpeta(libro?.carpeta);
 }
 
+const TITULOS_MOVER = {
+  nube: 'moveBook', local: 'moveToDeviceFolder', 'carpeta-local': 'moveFolderTo',
+};
+
 async function abrirDialogoMover(libro, ambito = 'nube') {
   if (ambito === 'nube' && !cliente) return;
   movimiento = { id: libro.id, nombre: libro.nombre, ambito, ruta: '' };
   movimiento.ruta = await carpetaActualDelMovimiento();
-  $('titulo-mover').textContent = t(ambito === 'nube' ? 'moveBook' : 'moveToDeviceFolder',
-    { title: libro.nombre });
+  $('titulo-mover').textContent = t(TITULOS_MOVER[ambito], { title: libro.nombre, name: libro.nombre });
   $('dialogo-mover').classList.remove('oculto');
   await pintarDialogoMover();
 }
 
-// Subcarpetas de una ruta, vengan de la nube o del dispositivo.
+// Subcarpetas de una ruta, vengan de la nube o del dispositivo. Al mover una
+// carpeta se esconde ella misma: entrar ahí sería meterla dentro de sí misma.
 async function subcarpetasDe(ruta) {
   if (movimiento.ambito === 'nube') return (await cliente.listar(ruta)).carpetas;
   const [libros, carpetas] = await Promise.all([
     almacen.listarLibros(), almacen.listarCarpetasLocales(),
   ]);
-  return almacen.bibliotecaLocal(libros, carpetas, ruta).carpetas;
+  const { carpetas: hijas } = almacen.bibliotecaLocal(libros, carpetas, ruta);
+  if (movimiento.ambito !== 'carpeta-local') return hijas;
+  const prefijo = ruta ? `${ruta}/` : '';
+  return hijas.filter((carpeta) => prefijo + carpeta.nombre !== movimiento.id);
 }
 
 // Explorador de carpetas del diálogo: migas + subcarpetas de la ruta actual.
@@ -2205,8 +2259,10 @@ async function pintarDialogoMover() {
       li.append(boton);
       lista.append(li);
     }
-    // Mover a la carpeta donde ya está no tiene sentido.
-    $('btn-confirmar-mover').disabled = movimiento.ruta === await carpetaActualDelMovimiento();
+    // Mover a donde ya está (o meter una carpeta dentro de sí misma) no vale.
+    $('btn-confirmar-mover').disabled = movimiento.ambito === 'carpeta-local'
+      ? !almacen.movimientoDeCarpetaValido(movimiento.id, movimiento.ruta)
+      : movimiento.ruta === await carpetaActualDelMovimiento();
   } catch (error) {
     if (movimiento) estado.textContent = explicarError(error);
   }
@@ -2260,6 +2316,7 @@ $('btn-confirmar-mover').addEventListener('click', async () => {
   if (ambito === 'nube' && !cliente) return;
   cerrarDialogoMover();
   if (ambito === 'nube') await moverLibroA(id, ruta);
+  else if (ambito === 'carpeta-local') await moverCarpetaLocalA(id, ruta);
   else await moverLibroLocalA({ id, nombre }, ruta);
 });
 
@@ -2923,27 +2980,35 @@ for (const [id, alSoltar] of [
 // de la lista tienen su propio destino, más específico.
 {
   const zona = $('zona-local');
+  // Soltar en la sección (y no en una carpeta concreta) lleva a la carpeta
+  // que esté abierta, que es donde el usuario está mirando.
+  const admitido = (evento) => {
+    const { nube, local, carpeta } = tiposArrastreLibro(evento);
+    return nube || local ||
+      (carpeta && almacen.movimientoDeCarpetaValido(carpetaArrastrada, rutaLocal));
+  };
   zona.addEventListener('dragover', (evento) => {
-    const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
+    if (!admitido(evento)) return;
     evento.preventDefault();
-    evento.dataTransfer.dropEffect = nube ? 'copy' : 'move';
+    evento.dataTransfer.dropEffect = tiposArrastreLibro(evento).nube ? 'copy' : 'move';
     zona.classList.add('sobre-destino');
   });
   zona.addEventListener('dragleave', (evento) => {
     if (!zona.contains(evento.relatedTarget)) zona.classList.remove('sobre-destino');
   });
   zona.addEventListener('drop', (evento) => {
+    if (!admitido(evento)) return;
     const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
     evento.preventDefault();
     zona.classList.remove('sobre-destino');
     if (nube) {
       const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
       if (id) guardarLibroRemotoEnDispositivo(id, rutaLocal);
-    } else {
+    } else if (local) {
       const libro = libroLocalArrastrado(evento);
       if (libro) moverLibroLocalA(libro, rutaLocal);
+    } else {
+      moverCarpetaLocalA(carpetaArrastrada, rutaLocal);
     }
   });
 }
@@ -4820,6 +4885,26 @@ function pedirPosicionLibro() {
 
 $('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
+// ── Tema claro u oscuro ──
+// El icono anuncia a dónde lleva el botón, no dónde estamos: con el tema
+// oscuro puesto se ve un sol, porque pulsarlo aclara la interfaz.
+
+function pintarControlesTema() {
+  const claro = temaEfectivo() === 'claro';
+  $('btn-tema').innerHTML = icono(claro ? 'moon' : 'sun');
+  $('btn-tema').title = t(claro ? 'switchToDark' : 'switchToLight');
+  etiquetarPorTitulo($('btn-tema'));
+  $('selector-tema').value = temaElegido();
+}
+
+$('btn-tema').addEventListener('click', () => {
+  alternarTema();
+  avisar(t(temaEfectivo() === 'claro' ? 'themeLight' : 'themeDark'), 1500);
+});
+$('selector-tema').addEventListener('change', (evento) => guardarTema(evento.target.value));
+document.addEventListener('tema-cambiado', pintarControlesTema);
+document.addEventListener('idioma-cambiado', pintarControlesTema);
+
 function pintarIconoNoche() {
   const activo = document.body.classList.contains('modo-noche');
   $('btn-noche').innerHTML = icono(activo ? 'sun' : 'moon');
@@ -5085,6 +5170,7 @@ document.addEventListener('idioma-cambiado', () => {
   else if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
 });
 iniciarIdioma();
+iniciarTema();
 if (localStorage.getItem(CLAVE_NOCHE) === '1') {
   document.body.classList.add('modo-noche');
 }

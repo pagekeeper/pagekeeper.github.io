@@ -44,10 +44,15 @@ libros y sincronizar el progreso de lectura.
   en la sección «En este dispositivo» y se reabren sin volver a elegir el
   archivo (la posición solo se recuerda en ese navegador). La sección se puede
   organizar en **carpetas**: se crean, se renombran y se borran desde la propia
-  lista, y los libros se mueven con su menú o arrastrándolos. Como aquí la
-  carpeta es solo una etiqueta del registro y no forma parte del identificador
-  del libro, mover uno conserva intactos su página, sus marcadores y sus
-  anotaciones. El buscador sigue mirando en todas las carpetas.
+  lista, y tanto los libros como las propias carpetas se mueven con su menú o
+  arrastrándolos. Como aquí la carpeta es solo una etiqueta del registro y no
+  forma parte del identificador del libro, mover uno conserva intactos su
+  página, sus marcadores y sus anotaciones. El buscador sigue mirando en todas
+  las carpetas.
+- 🌗 **Modo claro y oscuro**: arranca con el tema del sistema y se cambia con
+  el botón de la cabecera; la elección se recuerda en ese navegador y desde
+  Ajustes se puede volver a seguir al sistema. Es independiente del «modo
+  noche» del lector, que oscurece la página del libro.
 - ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
   dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
   sección local; uno local sube con su botón de la nube o arrastrándolo hasta

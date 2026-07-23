@@ -240,6 +240,29 @@ export async function renombrarCarpetaLocal(rutaVieja, rutaNueva) {
   }
 }
 
+// ¿Se puede llevar la carpeta `origen` dentro de `destino`? No, si es su sitio
+// actual (no haría nada) ni si `destino` cuelga de la propia `origen`: una
+// carpeta no puede meterse dentro de sí misma.
+export function movimientoDeCarpetaValido(origen, destino) {
+  const desde = normalizarCarpeta(origen);
+  const hasta = normalizarCarpeta(destino);
+  if (!desde) return false;
+  const padre = desde.includes('/') ? desde.slice(0, desde.lastIndexOf('/')) : '';
+  if (hasta === padre) return false;
+  return hasta !== desde && !hasta.startsWith(`${desde}/`);
+}
+
+// Lleva una carpeta (con todo lo que contiene) dentro de otra. Mover y
+// renombrar son la misma operación: cambiar el prefijo de la ruta.
+export async function moverCarpetaLocal(origen, destino) {
+  const desde = normalizarCarpeta(origen);
+  const hasta = normalizarCarpeta(destino);
+  if (!movimientoDeCarpetaValido(desde, hasta)) return false;
+  const nombre = desde.split('/').pop();
+  await renombrarCarpetaLocal(desde, hasta ? `${hasta}/${nombre}` : nombre);
+  return true;
+}
+
 export async function moverLibroACarpeta(id, carpeta) {
   const destino = normalizarCarpeta(carpeta);
   const bd = await abrirBd();
