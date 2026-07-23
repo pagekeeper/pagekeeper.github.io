@@ -1336,7 +1336,7 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   #vista-biblioteca .contenido > * { grid-column: 1 / -1; }
   /* Con el mismo peso que la regla de arriba, si no esta no se aplicaría. */
   #vista-biblioteca .contenido > .buscador-biblioteca {
-    grid-column: 1; align-self: center;
+    grid-column: 1; align-self: end;
   }
   #vista-biblioteca .contenido > .organizacion-biblioteca {
     grid-column: 2; grid-template-columns: auto auto auto; align-items: end;
