@@ -875,12 +875,17 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   outline: 1px solid rgba(14, 165, 233, 0.6);
 }
 
-.modo-noche #area-lectura canvas { filter: invert(0.93) hue-rotate(180deg); }
-/* En PDF no se puede recolorear el papel sin tocar la tinta, porque la página
-   es una imagen ya dibujada: se tiñe entera con un filtro, igual que en modo
-   noche. El tono es suave a propósito, para no desvirtuar las ilustraciones
-   más de lo imprescindible. */
-.modo-sepia #area-lectura canvas { filter: sepia(0.55) saturate(0.85) brightness(0.97); }
+/* Papel del PDF. La página es una imagen ya dibujada, así que no se puede
+   recolorear el fondo sin tocar la tinta: se tiñe entera con un filtro. El
+   sepia va suave a propósito, para no desvirtuar las ilustraciones más de lo
+   imprescindible.
+   El filtro vive en una variable porque lo comparten la página que se lee y
+   sus miniaturas, que cuelgan de otra parte del documento: así no pueden
+   acabar con temas distintos. */
+body { --filtro-pagina: none; }
+body.modo-noche { --filtro-pagina: invert(0.93) hue-rotate(180deg); }
+body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); }
+#area-lectura canvas, .miniatura-pagina canvas { filter: var(--filtro-pagina); }
 /* El hueco alrededor de la página acompaña al papel en vez de quedarse gris. */
 .modo-sepia #area-lectura { background: #e6dcc4; }
 
