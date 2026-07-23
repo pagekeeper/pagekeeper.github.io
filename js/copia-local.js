@@ -2,7 +2,7 @@
 // navegador para que la validación y la fusión puedan probarse por separado.
 
 export const FORMATO_COPIA_LOCAL = 'pagekeeper-local-backup';
-export const VERSION_COPIA_LOCAL = 2;
+export const VERSION_COPIA_LOCAL = 3;
 export const FORMATO_CONFIG_NUBE = 'pagekeeper-cloud-config';
 export const VERSION_CONFIG_NUBE = 1;
 
@@ -39,17 +39,22 @@ export function validarCopiaConfigNube(copia) {
 }
 
 export function crearManifiestoCopia({
-  libros, progreso, anotaciones, preferencias, creado, origen = 'local',
+  libros, progreso, anotaciones, preferencias, creado, origen = 'local', carpetas = [],
 }) {
   return {
     formato: FORMATO_COPIA_LOCAL,
     version: VERSION_COPIA_LOCAL,
     origen,
     creado: creado ?? new Date().toISOString(),
-    libros: libros.map(({ id, nombre, tamano, anadido }, indice) => ({
+    // En las copias de la nube la carpeta ya va dentro del id; en las del
+    // dispositivo es un campo aparte y hay que llevarlo, junto con la lista de
+    // carpetas, para que las vacías sobrevivan al viaje.
+    libros: libros.map(({ id, nombre, tamano, anadido, carpeta }, indice) => ({
       id, nombre, tamano, anadido,
+      ...(origen === 'local' && carpeta ? { carpeta } : {}),
       archivo: `libros/${indice}.${/\.epub$/i.test(nombre) ? 'epub' : 'pdf'}`,
     })),
+    ...(origen === 'local' && carpetas.length ? { carpetas } : {}),
     progreso,
     anotaciones,
     preferencias,
@@ -62,7 +67,7 @@ function objeto(valor) {
 
 export function validarManifiestoCopia(manifiesto) {
   if (!objeto(manifiesto) || manifiesto.formato !== FORMATO_COPIA_LOCAL ||
-      ![1, VERSION_COPIA_LOCAL].includes(manifiesto.version) || !Array.isArray(manifiesto.libros)) {
+      ![1, 2, VERSION_COPIA_LOCAL].includes(manifiesto.version) || !Array.isArray(manifiesto.libros)) {
     throw new Error('INVALID_BACKUP');
   }
   const origen = manifiesto.version === 1 ? 'local' : manifiesto.origen;
@@ -75,7 +80,7 @@ export function validarManifiestoCopia(manifiesto) {
     const idValido = origen === 'local'
       ? typeof libro.id === 'string' && libro.id.startsWith('local:')
       : rutaRemotaValida(libro.id) && libro.id.split('/').at(-1) === libro.nombre;
-    if (!idValido ||
+    if (!idValido || !carpetaCopiaValida(libro.carpeta) ||
         typeof libro.nombre !== 'string' || !/\.(pdf|epub)$/i.test(libro.nombre) ||
         !Number.isSafeInteger(libro.tamano) || libro.tamano < 0 ||
         typeof libro.archivo !== 'string' || !/^libros\/\d+\.(pdf|epub)$/i.test(libro.archivo) ||
@@ -84,6 +89,11 @@ export function validarManifiestoCopia(manifiesto) {
     }
     ids.add(libro.id);
     archivos.add(libro.archivo);
+  }
+  if (manifiesto.carpetas !== undefined &&
+      (!Array.isArray(manifiesto.carpetas) || manifiesto.carpetas.length > 10000 ||
+       !manifiesto.carpetas.every((ruta) => carpetaCopiaValida(ruta) && ruta))) {
+    throw new Error('INVALID_BACKUP');
   }
   if (manifiesto.progreso !== undefined && !objeto(manifiesto.progreso)) {
     throw new Error('INVALID_BACKUP');
@@ -95,6 +105,13 @@ export function validarManifiestoCopia(manifiesto) {
     throw new Error('INVALID_BACKUP');
   }
   return { manifiesto: { ...manifiesto, origen }, ids, origen };
+}
+
+// La carpeta de un libro del dispositivo: ausente, vacía o una ruta relativa
+// con tramos limpios. Las mismas reglas que una ruta remota, pero opcional.
+function carpetaCopiaValida(carpeta) {
+  if (carpeta === undefined || carpeta === '') return true;
+  return rutaRemotaValida(carpeta);
 }
 
 function rutaRemotaValida(ruta) {

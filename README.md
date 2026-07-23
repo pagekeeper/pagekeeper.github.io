@@ -42,7 +42,16 @@ libros y sincronizar el progreso de lectura.
 - 📂 **Biblioteca local**: también puedes añadir PDF y EPUB del propio dispositivo
   sin configurar nada. Quedan guardados en el navegador (IndexedDB), aparecen
   en la sección «En este dispositivo» y se reabren sin volver a elegir el
-  archivo (la posición solo se recuerda en ese navegador).
+  archivo (la posición solo se recuerda en ese navegador). La sección se puede
+  organizar en **carpetas**: se crean, se renombran y se borran desde la propia
+  lista, y los libros se mueven con su menú o arrastrándolos. Como aquí la
+  carpeta es solo una etiqueta del registro y no forma parte del identificador
+  del libro, mover uno conserva intactos su página, sus marcadores y sus
+  anotaciones. El buscador sigue mirando en todas las carpetas.
+- ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
+  dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
+  sección local; uno local sube con su botón de la nube o arrastrándolo hasta
+  «En la nube». Siempre es una copia: el original se queda donde estaba.
 - 💾 **Copias portables de la biblioteca**: la pantalla «Importar y exportar»
   descarga en ZIP tanto la biblioteca del dispositivo como, por separado,
   toda la biblioteca WebDAV con sus subcarpetas. Conserva progreso, marcadores

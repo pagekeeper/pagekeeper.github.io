@@ -2,12 +2,13 @@
 //
 // Los PDF abiertos desde el dispositivo se guardan aquí para que aparezcan
 // en la biblioteca y puedan reabrirse sin volver a elegir el archivo.
-// Se usan ocho almacenes: los cuatro originales, dos para las copias de
-// libros WebDAV, uno para las anotaciones locales y su cola de sincronización
-// y otro para las localizaciones ya calculadas de cada EPUB.
+// Se usan nueve almacenes: los cuatro originales, dos para las copias de
+// libros WebDAV, uno para las anotaciones locales y su cola de sincronización,
+// otro para las localizaciones ya calculadas de cada EPUB y otro para las
+// carpetas de la biblioteca del dispositivo.
 
 const NOMBRE_BD = 'lector-pdf';
-const VERSION = 6;
+const VERSION = 7;
 
 function abrirBd() {
   return new Promise((resolver, rechazar) => {
@@ -28,6 +29,11 @@ function abrirBd() {
         anotaciones.createIndex('ambito', 'ambito');
       }
       if (!bd.objectStoreNames.contains('localizaciones')) bd.createObjectStore('localizaciones');
+      // Las carpetas se registran aparte de los libros para que puedan estar
+      // vacías: crear una y llenarla después es lo normal.
+      if (!bd.objectStoreNames.contains('carpetas-locales')) {
+        bd.createObjectStore('carpetas-locales', { keyPath: 'ruta' });
+      }
     };
     solicitud.onsuccess = () => resolver(solicitud.result);
     solicitud.onerror = () => rechazar(solicitud.error);
@@ -84,11 +90,179 @@ export function bibliotecaDeCopias(copias, ruta = '') {
   };
 }
 
-export async function guardarLibro({ id, nombre, tamano, anadido }, datos) {
+// ── Carpetas de la biblioteca del dispositivo ──
+//
+// A diferencia de la nube, aquí la carpeta es un campo del registro y no parte
+// del identificador: el id de un libro local («local:nombre:tamaño») es la
+// clave de su progreso, sus marcadores, sus anotaciones y su portada, así que
+// mover un libro de carpeta no debe tocarlo. Mover es, literalmente, cambiar
+// una cadena.
+
+// Deja una ruta en su forma canónica: sin barras sobrantes ni tramos vacíos.
+export function normalizarCarpeta(ruta) {
+  return String(ruta ?? '').split('/').map((tramo) => tramo.trim()).filter(Boolean).join('/');
+}
+
+export function nombreCarpetaValido(nombre) {
+  const limpio = String(nombre ?? '').trim();
+  return Boolean(limpio) && limpio.length <= 120 &&
+    !/[/\\]/.test(limpio) && !limpio.startsWith('.');
+}
+
+// Un nivel de la biblioteca local: las subcarpetas que cuelgan directamente de
+// `ruta` y los libros que están justo ahí. Las carpetas salen tanto del
+// registro propio (pueden estar vacías) como de los libros, por si un registro
+// se perdiera. Función pura: se prueba sin IndexedDB.
+export function bibliotecaLocal(libros, carpetas = [], ruta = '') {
+  const base = normalizarCarpeta(ruta);
+  const prefijo = base ? `${base}/` : '';
+  const nombres = new Set();
+  const dentro = [];
+  const anotarCarpeta = (carpeta) => {
+    const valor = normalizarCarpeta(carpeta);
+    if (base ? !valor.startsWith(prefijo) : !valor) return;
+    const resto = valor.slice(prefijo.length);
+    if (resto) nombres.add(resto.split('/')[0]);
+  };
+  for (const carpeta of carpetas) anotarCarpeta(typeof carpeta === 'string' ? carpeta : carpeta.ruta);
+  for (const libro of libros) {
+    const carpeta = normalizarCarpeta(libro.carpeta);
+    if (carpeta === base) dentro.push(libro);
+    else anotarCarpeta(carpeta);
+  }
+  return {
+    carpetas: [...nombres].sort((a, b) => a.localeCompare(b, 'es')).map((nombre) => ({ nombre })),
+    libros: dentro,
+  };
+}
+
+export async function listarCarpetasLocales() {
+  const bd = await abrirBd();
+  try {
+    const carpetas = await esperar(
+      bd.transaction('carpetas-locales').objectStore('carpetas-locales').getAll(),
+    );
+    return carpetas.map((carpeta) => carpeta.ruta)
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'es'));
+  } finally {
+    bd.close();
+  }
+}
+
+export async function crearCarpetaLocal(ruta) {
+  const destino = normalizarCarpeta(ruta);
+  if (!destino) return;
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction('carpetas-locales', 'readwrite');
+    // También las intermedias: una subcarpeta creada de golpe no debe dejar
+    // huecos en el camino.
+    const tramos = destino.split('/');
+    for (let i = 1; i <= tramos.length; i++) {
+      tx.objectStore('carpetas-locales').put({ ruta: tramos.slice(0, i).join('/') });
+    }
+    await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
+// Borra la carpeta, sus subcarpetas y todo lo que contienen. Devuelve los ids
+// de los libros eliminados para que quien llama limpie progreso y anotaciones.
+export async function borrarCarpetaLocal(ruta) {
+  const destino = normalizarCarpeta(ruta);
+  if (!destino) return [];
+  const prefijo = `${destino}/`;
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction(
+      ['libros', 'datos', 'portadas', 'metadatos', 'localizaciones', 'carpetas-locales'],
+      'readwrite',
+    );
+    const libros = await esperar(tx.objectStore('libros').getAll());
+    const borrados = [];
+    for (const libro of libros) {
+      const carpeta = normalizarCarpeta(libro.carpeta);
+      if (carpeta !== destino && !carpeta.startsWith(prefijo)) continue;
+      borrados.push(libro.id);
+      tx.objectStore('libros').delete(libro.id);
+      tx.objectStore('datos').delete(libro.id);
+      tx.objectStore('portadas').delete(libro.id);
+      tx.objectStore('metadatos').delete(libro.id);
+      tx.objectStore('localizaciones').delete(`local|${libro.id}`);
+    }
+    const carpetas = await esperar(tx.objectStore('carpetas-locales').getAll());
+    for (const carpeta of carpetas) {
+      if (carpeta.ruta === destino || carpeta.ruta.startsWith(prefijo)) {
+        tx.objectStore('carpetas-locales').delete(carpeta.ruta);
+      }
+    }
+    await esperarTransaccion(tx);
+    return borrados;
+  } finally {
+    bd.close();
+  }
+}
+
+// Renombrar arrastra a las subcarpetas y a los libros: todo lo que colgaba de
+// la ruta vieja pasa a colgar de la nueva.
+export async function renombrarCarpetaLocal(rutaVieja, rutaNueva) {
+  const vieja = normalizarCarpeta(rutaVieja);
+  const nueva = normalizarCarpeta(rutaNueva);
+  if (!vieja || !nueva || vieja === nueva) return;
+  const prefijoViejo = `${vieja}/`;
+  const recolocar = (carpeta) => (carpeta === vieja
+    ? nueva
+    : carpeta.startsWith(prefijoViejo) ? nueva + carpeta.slice(vieja.length) : null);
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction(['libros', 'carpetas-locales'], 'readwrite');
+    const libros = await esperar(tx.objectStore('libros').getAll());
+    for (const libro of libros) {
+      const destino = recolocar(normalizarCarpeta(libro.carpeta));
+      if (destino !== null) tx.objectStore('libros').put({ ...libro, carpeta: destino });
+    }
+    const carpetas = await esperar(tx.objectStore('carpetas-locales').getAll());
+    for (const carpeta of carpetas) {
+      const destino = recolocar(carpeta.ruta);
+      if (destino === null) continue;
+      tx.objectStore('carpetas-locales').delete(carpeta.ruta);
+      tx.objectStore('carpetas-locales').put({ ruta: destino });
+    }
+    const tramos = nueva.split('/');
+    for (let i = 1; i <= tramos.length; i++) {
+      tx.objectStore('carpetas-locales').put({ ruta: tramos.slice(0, i).join('/') });
+    }
+    await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
+export async function moverLibroACarpeta(id, carpeta) {
+  const destino = normalizarCarpeta(carpeta);
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction('libros', 'readwrite');
+    const libro = await esperar(tx.objectStore('libros').get(id));
+    if (!libro) return false;
+    tx.objectStore('libros').put({ ...libro, carpeta: destino });
+    await esperarTransaccion(tx);
+    return true;
+  } finally {
+    bd.close();
+  }
+}
+
+export async function guardarLibro({ id, nombre, tamano, anadido, carpeta = '' }, datos) {
   const bd = await abrirBd();
   try {
     const tx = bd.transaction(['libros', 'datos'], 'readwrite');
-    tx.objectStore('libros').put({ id, nombre, tamano, anadido: anadido ?? new Date().toISOString() });
+    tx.objectStore('libros').put({
+      id, nombre, tamano, anadido: anadido ?? new Date().toISOString(),
+      carpeta: normalizarCarpeta(carpeta),
+    });
     tx.objectStore('datos').put(new Blob([datos], { type: tipoLibro(nombre) }), id);
     await esperarTransaccion(tx);
   } finally {
@@ -100,27 +274,41 @@ export async function guardarLibro({ id, nombre, tamano, anadido }, datos) {
 // portadas y los metadatos no se incluyen: son derivados y se regeneran al
 // restaurar, evitando inflar innecesariamente el archivo.
 export async function exportarBibliotecaLocal() {
-  const [libros, anotaciones] = await Promise.all([
-    listarLibros(), listarDocumentosAnotaciones('local'),
+  const [libros, anotaciones, carpetas] = await Promise.all([
+    listarLibros(), listarDocumentosAnotaciones('local'), listarCarpetasLocales(),
   ]);
   const resultado = (await Promise.all(libros.map(async (libro) => {
     const datos = await obtenerDatos(libro.id);
     return datos ? { ...libro, datos } : null;
   }))).filter(Boolean);
-  return { libros: resultado, anotaciones };
+  return { libros: resultado, anotaciones, carpetas };
 }
 
 // Restaura todos los registros de IndexedDB en una sola transacción. Los
 // libros ajenos a la copia se conservan y los que tengan el mismo id se
 // reemplazan, junto con sus anotaciones.
-export async function restaurarBibliotecaLocal(libros, documentos = []) {
+export async function restaurarBibliotecaLocal(libros, documentos = [], carpetas = []) {
   const bd = await abrirBd();
   try {
     const tx = bd.transaction(
-      ['libros', 'datos', 'portadas', 'metadatos', 'anotaciones'], 'readwrite',
+      ['libros', 'datos', 'portadas', 'metadatos', 'anotaciones', 'carpetas-locales'], 'readwrite',
     );
+    // Se registran también las carpetas de cada libro: una copia antigua no
+    // trae la lista, pero sus libros sí saben dónde estaban.
+    const rutas = new Set(carpetas.map(normalizarCarpeta).filter(Boolean));
+    for (const libro of libros) {
+      const carpeta = normalizarCarpeta(libro.carpeta);
+      if (carpeta) rutas.add(carpeta);
+    }
+    for (const ruta of rutas) {
+      const tramos = ruta.split('/');
+      for (let i = 1; i <= tramos.length; i++) {
+        tx.objectStore('carpetas-locales').put({ ruta: tramos.slice(0, i).join('/') });
+      }
+    }
     for (const libro of libros) {
       const { datos, ...info } = libro;
+      info.carpeta = normalizarCarpeta(info.carpeta);
       tx.objectStore('libros').put(info);
       tx.objectStore('datos').put(new Blob([datos], { type: tipoLibro(info.nombre) }), info.id);
       tx.objectStore('portadas').delete(info.id);

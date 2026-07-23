@@ -184,6 +184,7 @@ const $ = (id) => document.getElementById(id);
 
 let cliente = null;        // ClienteWebDav o null si no hay configuración
 let rutaNube = '';         // subcarpeta abierta en la sección de la nube ('' = raíz)
+let rutaLocal = '';        // subcarpeta abierta en la sección del dispositivo ('' = raíz)
 let libroActual = null;    // { id, titulo, tipo: 'webdav'|'local', formato: 'pdf'|'epub' }
 let temporizadorSync = null;
 let temporizadorSyncAnotaciones = null;
@@ -821,7 +822,7 @@ async function exportarBibliotecaLocal() {
   const estado = $('resultado-copia-biblioteca');
   mostrarCarga(t('creatingBackup'));
   try {
-    const { libros, anotaciones: documentos } = await almacen.exportarBibliotecaLocal();
+    const { libros, anotaciones: documentos, carpetas } = await almacen.exportarBibliotecaLocal();
     if (!libros.length) {
       estado.textContent = t('noLocalBooksBackup');
       estado.className = 'estado error';
@@ -838,6 +839,7 @@ async function exportarBibliotecaLocal() {
     const preferencias = preferenciasParaCopia(ids);
     const manifiesto = crearManifiestoCopia({
       libros,
+      carpetas, // incluidas las vacías, que no se deducen de ningún libro
       progreso: progresoLocal,
       anotaciones: documentos.filter((documento) => ids.has(documento.libro)),
       preferencias,
@@ -865,7 +867,7 @@ async function restaurarBibliotecaLocal(archivo) {
     const documentos = (manifiesto.anotaciones ?? [])
       .filter((documento) => documento && documento.ambito === 'local' && ids.has(documento.libro))
       .map((documento) => ({ ...documento, ambito: 'local' }));
-    await almacen.restaurarBibliotecaLocal(libros, documentos);
+    await almacen.restaurarBibliotecaLocal(libros, documentos, manifiesto.carpetas ?? []);
     progreso.guardarLocal(fusionarProgresoRestaurado(
       progreso.cargarLocal(), manifiesto.progreso, ids,
     ));
@@ -1432,8 +1434,8 @@ function crearBotonMenu(ficha, obtenerAcciones) {
 // Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
-  alSinConexion, sinConexion = false, copiaDesactualizada = false, mostrarTerminado = true,
-  sinTexto = false,
+  alGuardarEnDispositivo, alSinConexion, sinConexion = false, copiaDesactualizada = false,
+  mostrarTerminado = true, sinTexto = false,
 }) {
   const avance = progreso.progresoDe(id);
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
@@ -1562,6 +1564,13 @@ function crearFilaLibro({
   const acciones = [];
   if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
+  if (alGuardarEnDispositivo) {
+    acciones.push({
+      icono: 'smartphone',
+      etiqueta: t('actionSaveToDevice'),
+      alPulsar: alGuardarEnDispositivo,
+    });
+  }
   if (alDescargar) acciones.push({ icono: 'download', etiqueta: t('actionDownload'), alPulsar: alDescargar });
   if (alSinConexion) {
     acciones.push({
@@ -1648,7 +1657,16 @@ function aplicarOrganizacionBiblioteca() {
   estado.classList.toggle('oculto', !estado.textContent);
 }
 
-$('buscar-biblioteca').addEventListener('input', aplicarOrganizacionBiblioteca);
+let buscandoEnBiblioteca = false;
+$('buscar-biblioteca').addEventListener('input', () => {
+  const hayConsulta = Boolean($('buscar-biblioteca').value.trim());
+  if (hayConsulta !== buscandoEnBiblioteca) {
+    buscandoEnBiblioteca = hayConsulta;
+    // Entrar o salir de una búsqueda cambia el alcance de la lista local.
+    cargarLibrosLocales();
+  }
+  aplicarOrganizacionBiblioteca();
+});
 $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
 $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
 $('filtro-biblioteca').addEventListener('change', (evento) => {
@@ -1782,7 +1800,7 @@ function hacerDestinoDeLibro(elemento, rutaDestino) {
 // Pinta una ruta como migas: la raíz y cada carpeta intermedia son botones
 // que navegan al pulsar; la carpeta actual se muestra sin enlace. Con
 // `admiteLibros`, cada tramo acepta también libros arrastrados para moverlos.
-function pintarMigas(nav, ruta, alNavegar, admiteLibros = false) {
+function pintarMigas(nav, ruta, alNavegar, admiteLibros = false, raiz = t('cloudRoot')) {
   nav.replaceChildren();
   const segmentos = ruta ? ruta.split('/') : [];
   const anadir = (texto, destino, esUltimo) => {
@@ -1796,12 +1814,13 @@ function pintarMigas(nav, ruta, alNavegar, admiteLibros = false) {
       boton.type = 'button';
       boton.className = 'miga';
       boton.textContent = texto;
+      boton.dataset.rutaMiga = destino;
       boton.addEventListener('click', () => alNavegar(destino));
       if (admiteLibros) hacerDestinoDeLibro(boton, destino);
       nav.append(boton);
     }
   };
-  anadir(t('cloudRoot'), '', segmentos.length === 0);
+  anadir(raiz, '', segmentos.length === 0);
   segmentos.forEach((segmento, indice) => {
     const separador = document.createElement('span');
     separador.className = 'separador-miga';
@@ -1879,6 +1898,7 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
       }),
       alAbrir: () => abrirLibroRemoto(id, libro),
       alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
+      alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
       alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
       alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
       alSinConexion: copia && !desactualizada
@@ -1898,7 +1918,7 @@ function pedirNombreCarpeta() {
   const respuesta = prompt(t('folderNamePrompt'));
   if (respuesta === null) return null;
   const nombre = respuesta.trim();
-  if (!nombre || /[/\\]/.test(nombre) || nombre.startsWith('.')) {
+  if (!almacen.nombreCarpetaValido(nombre)) {
     avisar(t('invalidFolderName'));
     return null;
   }
@@ -1943,21 +1963,215 @@ async function borrarCarpetaRemota(nombre) {
   }
 }
 
+// ────────────── Carpetas de la biblioteca del dispositivo ──────────────
+//
+// Mismo comportamiento que en la nube, pero mucho más barato: aquí la carpeta
+// es un campo del registro, no parte del id, así que mover un libro no arrastra
+// su progreso, sus marcadores ni sus anotaciones.
+
+function rutaLocalDe(nombre) {
+  return rutaLocal ? `${rutaLocal}/${nombre}` : nombre;
+}
+
+function pintarRutaLocal() {
+  const nav = $('ruta-carpeta-local');
+  nav.classList.toggle('oculto', !rutaLocal);
+  pintarMigas(nav, rutaLocal, (destino) => {
+    rutaLocal = destino;
+    cargarLibrosLocales();
+  }, false, t('deviceRoot'));
+  // Cada tramo de la ruta acepta libros locales: soltarlos ahí los mueve.
+  for (const boton of nav.querySelectorAll('.miga')) {
+    hacerDestinoDeLibroLocal(boton, boton.dataset.rutaMiga ?? '');
+  }
+}
+
+// Convierte un elemento en destino de la biblioteca del dispositivo: un libro
+// local se mueve a `rutaDestino` y uno de la nube se descarga ahí.
+function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
+  elemento.addEventListener('dragover', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    evento.dataTransfer.dropEffect = nube ? 'copy' : 'move';
+    elemento.classList.add('destino-mover');
+  });
+  elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
+  elemento.addEventListener('drop', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    elemento.classList.remove('destino-mover');
+    if (nube) {
+      const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
+      if (id) guardarLibroRemotoEnDispositivo(id, rutaDestino);
+    } else {
+      const libro = libroLocalArrastrado(evento);
+      if (libro) moverLibroLocalA(libro, rutaDestino);
+    }
+  });
+}
+
+function crearFilaCarpetaLocal(nombre) {
+  const elemento = document.createElement('li');
+  elemento.dataset.busqueda = normalizarBusqueda(nombre);
+  // Un div con role="button" y no un <button>, para poder alojar dentro el
+  // botón «⋯» del menú: un botón anidado en otro no es HTML válido.
+  const boton = document.createElement('div');
+  boton.className = 'libro carpeta';
+  boton.setAttribute('role', 'button');
+  boton.tabIndex = 0;
+  boton.title = t('openFolder', { name: nombre });
+  etiquetarPorTitulo(boton);
+  boton.innerHTML = `
+    <span class="portada portada-carpeta">${icono('folder')}</span>
+    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span></span>`;
+  boton.querySelector('.nombre').textContent = nombre;
+  const abrir = () => {
+    rutaLocal = rutaLocalDe(nombre);
+    cargarLibrosLocales();
+  };
+  boton.addEventListener('click', abrir);
+  boton.addEventListener('keydown', (evento) => {
+    if (evento.target !== boton) return;
+    if (evento.key !== 'Enter' && evento.key !== ' ') return;
+    evento.preventDefault();
+    abrir();
+  });
+  hacerDestinoDeLibroLocal(boton, rutaLocalDe(nombre));
+  boton.append(crearBotonMenu(boton, () => [
+    {
+      icono: 'pencil',
+      etiqueta: t('actionRenameFolder'),
+      alPulsar: () => renombrarCarpetaLocal(nombre),
+    },
+    {
+      icono: 'trash-2',
+      etiqueta: t('actionDeleteFolder'),
+      alPulsar: () => borrarCarpetaLocal(nombre),
+      peligro: true,
+    },
+  ]));
+  elemento.append(boton);
+  return elemento;
+}
+
+// Comprueba que no haya ya una carpeta con ese nombre en el mismo sitio.
+async function carpetaLocalOcupada(ruta) {
+  const carpetas = await almacen.listarCarpetasLocales().catch(() => []);
+  return carpetas.includes(ruta);
+}
+
+async function crearCarpetaLocalNueva() {
+  const nombre = pedirNombreCarpeta();
+  if (!nombre) return;
+  const ruta = rutaLocalDe(nombre);
+  if (await carpetaLocalOcupada(ruta)) {
+    avisar(t('folderExists'));
+    return;
+  }
+  try {
+    await almacen.crearCarpetaLocal(ruta);
+    avisar(t('folderCreated', { name: nombre }));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  }
+  await cargarLibrosLocales();
+}
+
+$('btn-carpeta-nueva-local').addEventListener('click', crearCarpetaLocalNueva);
+
+async function renombrarCarpetaLocal(nombre) {
+  const respuesta = prompt(t('folderRenamePrompt'), nombre);
+  if (respuesta === null) return;
+  const nuevo = respuesta.trim();
+  if (nuevo === nombre) return;
+  if (!almacen.nombreCarpetaValido(nuevo)) {
+    avisar(t('invalidFolderName'));
+    return;
+  }
+  const destino = rutaLocalDe(nuevo);
+  if (await carpetaLocalOcupada(destino)) {
+    avisar(t('folderExists'));
+    return;
+  }
+  try {
+    await almacen.renombrarCarpetaLocal(rutaLocalDe(nombre), destino);
+    avisar(t('folderRenamed'));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  }
+  await cargarLibrosLocales();
+}
+
+async function borrarCarpetaLocal(nombre) {
+  if (!confirm(t('deleteLocalFolderConfirm', { name: nombre }))) return;
+  mostrarCarga(t('deleting', { title: nombre }));
+  try {
+    const borrados = await almacen.borrarCarpetaLocal(rutaLocalDe(nombre));
+    // El progreso y las anotaciones se guardan por id de libro, así que hay
+    // que limpiarlos uno a uno: no cuelgan de la carpeta.
+    for (const id of borrados) {
+      await progreso.olvidar(id).catch(() => null);
+      await anotaciones.olvidar('local', id).catch(() => null);
+    }
+    avisar(t('localFolderDeleted'));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    await cargarLibrosLocales();
+    pintarContinuarLeyendo();
+  }
+}
+
+async function moverLibroLocalA(libro, rutaDestino) {
+  try {
+    if (!await almacen.moverLibroACarpeta(libro.id, rutaDestino)) return;
+    avisar(t('bookMoved', { title: libro.nombre }));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  }
+  await cargarLibrosLocales();
+}
+
 // ───────────────────────── Mover libros entre carpetas ─────────────────────────
 
-let movimiento = null; // { id, nombre, ruta: carpeta de destino en exploración }
+let movimiento = null; // { id, nombre, ruta: carpeta de destino, ambito: 'nube'|'local' }
 
 function cerrarDialogoMover() {
   movimiento = null;
   $('dialogo-mover').classList.add('oculto');
 }
 
-async function abrirDialogoMover(libro) {
-  if (!cliente) return;
-  movimiento = { id: libro.id, nombre: libro.nombre, ruta: carpetaDeId(libro.id) };
-  $('titulo-mover').textContent = t('moveBook', { title: libro.nombre });
+// Carpeta donde está ahora el libro que se va a mover. En la nube va dentro
+// del id; en el dispositivo es un campo del registro.
+async function carpetaActualDelMovimiento() {
+  if (movimiento.ambito === 'nube') return carpetaDeId(movimiento.id);
+  const libros = await almacen.listarLibros().catch(() => []);
+  const libro = libros.find((registro) => registro.id === movimiento.id);
+  return almacen.normalizarCarpeta(libro?.carpeta);
+}
+
+async function abrirDialogoMover(libro, ambito = 'nube') {
+  if (ambito === 'nube' && !cliente) return;
+  movimiento = { id: libro.id, nombre: libro.nombre, ambito, ruta: '' };
+  movimiento.ruta = await carpetaActualDelMovimiento();
+  $('titulo-mover').textContent = t(ambito === 'nube' ? 'moveBook' : 'moveToDeviceFolder',
+    { title: libro.nombre });
   $('dialogo-mover').classList.remove('oculto');
   await pintarDialogoMover();
+}
+
+// Subcarpetas de una ruta, vengan de la nube o del dispositivo.
+async function subcarpetasDe(ruta) {
+  if (movimiento.ambito === 'nube') return (await cliente.listar(ruta)).carpetas;
+  const [libros, carpetas] = await Promise.all([
+    almacen.listarLibros(), almacen.listarCarpetasLocales(),
+  ]);
+  return almacen.bibliotecaLocal(libros, carpetas, ruta).carpetas;
 }
 
 // Explorador de carpetas del diálogo: migas + subcarpetas de la ruta actual.
@@ -1968,13 +2182,13 @@ async function pintarDialogoMover() {
   pintarMigas($('ruta-mover'), movimiento.ruta, (destino) => {
     movimiento.ruta = destino;
     pintarDialogoMover();
-  });
+  }, false, t(movimiento.ambito === 'nube' ? 'cloudRoot' : 'deviceRoot'));
   lista.replaceChildren();
   estado.textContent = t('loadingFolders');
   $('btn-confirmar-mover').disabled = true;
   try {
     const ruta = movimiento.ruta;
-    const { carpetas } = await cliente.listar(ruta);
+    const carpetas = await subcarpetasDe(ruta);
     if (!movimiento || movimiento.ruta !== ruta) return; // navegación posterior
     estado.textContent = carpetas.length ? '' : t('noSubfolders');
     for (const carpeta of carpetas) {
@@ -1992,7 +2206,7 @@ async function pintarDialogoMover() {
       lista.append(li);
     }
     // Mover a la carpeta donde ya está no tiene sentido.
-    $('btn-confirmar-mover').disabled = movimiento.ruta === carpetaDeId(movimiento.id);
+    $('btn-confirmar-mover').disabled = movimiento.ruta === await carpetaActualDelMovimiento();
   } catch (error) {
     if (movimiento) estado.textContent = explicarError(error);
   }
@@ -2041,10 +2255,12 @@ async function moverLibroA(id, rutaDestino) {
 }
 
 $('btn-confirmar-mover').addEventListener('click', async () => {
-  if (!movimiento || !cliente) return;
-  const { id, ruta } = movimiento;
+  if (!movimiento) return;
+  const { id, nombre, ruta, ambito } = movimiento;
+  if (ambito === 'nube' && !cliente) return;
   cerrarDialogoMover();
-  await moverLibroA(id, ruta);
+  if (ambito === 'nube') await moverLibroA(id, ruta);
+  else await moverLibroLocalA({ id, nombre }, ruta);
 });
 
 $('btn-cancelar-mover').addEventListener('click', cerrarDialogoMover);
@@ -2053,11 +2269,14 @@ $('dialogo-mover').addEventListener('click', (evento) => {
 });
 
 $('btn-carpeta-nueva-mover').addEventListener('click', async () => {
-  if (!movimiento || !cliente) return;
+  if (!movimiento) return;
+  if (movimiento.ambito === 'nube' && !cliente) return;
   const nombre = pedirNombreCarpeta();
   if (!nombre) return;
+  const destino = movimiento.ruta ? `${movimiento.ruta}/${nombre}` : nombre;
   try {
-    await cliente.crearCarpeta(movimiento.ruta ? `${movimiento.ruta}/${nombre}` : nombre);
+    if (movimiento.ambito === 'nube') await cliente.crearCarpeta(destino);
+    else await almacen.crearCarpetaLocal(destino);
     await pintarDialogoMover();
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -2083,14 +2302,39 @@ async function trasladarCache(idViejo, idNuevo, sobrescribir = false) {
 
 async function cargarLibrosLocales() {
   const lista = $('lista-locales');
-  let libros = [];
+  let todos = [];
+  let carpetasRegistradas = [];
   try {
-    libros = await almacen.listarLibros();
+    [todos, carpetasRegistradas] = await Promise.all([
+      almacen.listarLibros(), almacen.listarCarpetasLocales(),
+    ]);
   } catch { /* IndexedDB no disponible (p. ej. navegación privada) */ }
 
-  $('aviso-local-vacio').classList.toggle('oculto', libros.length > 0);
+  // Si la carpeta abierta ha dejado de existir (se borró, o la copia
+  // restaurada no la traía), se vuelve a la raíz en lugar de quedarse en una
+  // vista vacía sin salida.
+  if (rutaLocal && !carpetasRegistradas.includes(rutaLocal)) rutaLocal = '';
+  const { carpetas, libros } = almacen.bibliotecaLocal(todos, carpetasRegistradas, rutaLocal);
+  // Buscando se mira en toda la biblioteca, no solo en la carpeta abierta: si
+  // no, guardar un libro en una carpeta equivaldría a esconderlo del buscador.
+  const buscando = Boolean($('buscar-biblioteca').value.trim());
+  const aPintar = buscando ? todos : libros;
+
+  pintarRutaLocal();
+  // El cartel de bienvenida solo cabe cuando no hay absolutamente nada; dentro
+  // de una carpeta vacía el mensaje es otro.
+  $('aviso-local-vacio').classList.toggle('oculto',
+    todos.length > 0 || carpetasRegistradas.length > 0);
+  const estado = $('estado-local');
+  estado.textContent = !buscando && rutaLocal && !carpetas.length && !libros.length
+    ? t('emptyLocalFolder') : '';
+  estado.classList.toggle('oculto', !estado.textContent);
+
   lista.replaceChildren();
-  for (const libro of libros) {
+  if (!buscando) {
+    for (const carpeta of carpetas) lista.append(crearFilaCarpetaLocal(carpeta.nombre));
+  }
+  for (const libro of aPintar) {
     const fila = crearFilaLibro({
       id: libro.id,
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
@@ -2102,25 +2346,29 @@ async function cargarLibrosLocales() {
       alAbrir: () => abrirLibroLocal(libro),
       // Subir a la nube: solo si hay servidor configurado.
       alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
+      alMover: () => abrirDialogoMover({ id: libro.id, nombre: libro.nombre }, 'local'),
       alDescargar: () => descargarLibroLocal(libro),
       alBorrar: () => borrarLibroLocal(libro),
     });
-    // Con nube configurada, el libro local también puede arrastrarse hasta
-    // la sección remota o una de sus carpetas para subirlo.
-    if (cliente) {
-      const boton = fila.querySelector('.libro');
-      boton.draggable = true;
-      boton.addEventListener('dragstart', (evento) => {
-        evento.dataTransfer.setData(TIPO_ARRASTRE_LOCAL,
-          JSON.stringify({ id: libro.id, nombre: libro.nombre }));
-        evento.dataTransfer.effectAllowed = 'copy';
-      });
+    // El nombre de la carpeta cuenta como texto buscable: «novela negra»
+    // encuentra lo que hay dentro de esa carpeta.
+    if (libro.carpeta) {
+      fila.dataset.busqueda = `${fila.dataset.busqueda} ${normalizarBusqueda(libro.carpeta.replace(/\//g, ' '))}`;
     }
+    // Arrastrar un libro local sirve para dos cosas: soltarlo en una carpeta
+    // del dispositivo (lo mueve) o en la sección de la nube (lo sube).
+    const boton = fila.querySelector('.libro');
+    boton.draggable = true;
+    boton.addEventListener('dragstart', (evento) => {
+      evento.dataTransfer.setData(TIPO_ARRASTRE_LOCAL,
+        JSON.stringify({ id: libro.id, nombre: libro.nombre }));
+      evento.dataTransfer.effectAllowed = cliente ? 'copyMove' : 'move';
+    });
     lista.append(fila);
   }
   aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
-  return libros.length;
+  return todos.length;
 }
 
 $('btn-recargar').addEventListener('click', cargarBiblioteca);
@@ -2255,6 +2503,35 @@ async function descargarLibroRemoto(id) {
       $('texto-cargando').textContent = `${t('downloading', { title: nombre })} ${pct}%`;
     });
     entregarDescarga(nombre, datos);
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+  }
+}
+
+// Trae un libro de la nube a la biblioteca del dispositivo. Es una copia: el
+// original sigue en el servidor y el progreso de cada uno va por su lado,
+// porque cada biblioteca identifica los libros a su manera.
+async function guardarLibroRemotoEnDispositivo(id, carpeta = rutaLocal) {
+  if (!cliente) return;
+  const nombre = nombreDeId(id);
+  mostrarCarga(t('downloading', { title: nombre }));
+  try {
+    const datos = await cliente.descargar(id, (recibido, total) => {
+      const pct = Math.round((recibido / total) * 100);
+      $('texto-cargando').textContent = `${t('downloading', { title: nombre })} ${pct}%`;
+    });
+    const libro = {
+      id: `local:${nombre}:${datos.byteLength}`,
+      nombre,
+      tamano: datos.byteLength,
+      carpeta,
+    };
+    await almacen.guardarLibro(libro, datos);
+    asegurarMiniatura(libro.id, formatoDe(nombre), datos);
+    avisar(t('savedToDevice', { title: nombre }));
+    await cargarLibrosLocales();
   } catch (error) {
     avisar(explicarError(error), 6000);
   } finally {
@@ -2470,6 +2747,7 @@ async function guardarArchivoLocal(archivo, abrirDespues = false) {
     id: `local:${archivo.name}:${archivo.size}`,
     nombre: archivo.name,
     tamano: archivo.size,
+    carpeta: rutaLocal, // va a parar a la carpeta que esté abierta
   };
   await almacen.guardarLibro(libro, datos);
   asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
@@ -2637,6 +2915,36 @@ for (const [id, alSoltar] of [
     zona.classList.remove('sobre-destino');
     const libro = libroLocalArrastrado(evento);
     if (libro) subirLibroLocalANube(libro, rutaNube);
+  });
+}
+
+// La sección del dispositivo acepta las dos direcciones: un libro local vuelve
+// a la carpeta que esté abierta y uno de la nube se descarga aquí. Las carpetas
+// de la lista tienen su propio destino, más específico.
+{
+  const zona = $('zona-local');
+  zona.addEventListener('dragover', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    evento.dataTransfer.dropEffect = nube ? 'copy' : 'move';
+    zona.classList.add('sobre-destino');
+  });
+  zona.addEventListener('dragleave', (evento) => {
+    if (!zona.contains(evento.relatedTarget)) zona.classList.remove('sobre-destino');
+  });
+  zona.addEventListener('drop', (evento) => {
+    const { nube, local } = tiposArrastreLibro(evento);
+    if (!nube && !local) return;
+    evento.preventDefault();
+    zona.classList.remove('sobre-destino');
+    if (nube) {
+      const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
+      if (id) guardarLibroRemotoEnDispositivo(id, rutaLocal);
+    } else {
+      const libro = libroLocalArrastrado(evento);
+      if (libro) moverLibroLocalA(libro, rutaLocal);
+    }
   });
 }
 

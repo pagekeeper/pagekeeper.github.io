@@ -133,12 +133,17 @@
             </div>
             <p data-i18n="localScope">Libros guardados únicamente en este dispositivo</p>
           </div>
+          <button id="btn-carpeta-nueva-local" class="btn-icono" data-icono="folder-plus"
+            title="Crear una carpeta" data-i18n-title="newFolder"></button>
           <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo" data-i18n-title="addLocal"></label>
           <input type="file" id="selector-archivo" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
           <button id="btn-plegar-local" class="btn-icono btn-plegar-seccion" data-icono="chevron-down"
             title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
             aria-expanded="true" aria-controls="zona-local"></button>
         </div>
+        <nav id="ruta-carpeta-local" class="ruta-carpeta oculto" aria-label="Carpeta actual"
+          data-i18n-aria-label="currentFolder"></nav>
+        <p id="estado-local" class="estado oculto" role="status"></p>
         <button type="button" id="aviso-local-vacio" class="carga-local-vacia oculto">
           <span class="icono-carga-local" data-icono="plus"></span>
           <span class="texto-carga-local">
@@ -580,6 +585,21 @@
           puedes arrastrar un libro de «En este dispositivo» hasta la nube o
           hasta una de sus carpetas. Todo se sube a la carpeta que tengas
           abierta.</li>
+          <li><strong>Carpetas del dispositivo:</strong> la sección «En este
+          dispositivo» también se puede organizar en carpetas con el botón de
+          la carpeta con «+». Entra en ellas pulsándolas (la ruta aparece
+          encima de la lista para volver), cambia su nombre o bórralas desde su
+          menú «⋯», y mueve un libro con su opción «Mover a otra carpeta» o
+          arrastrándolo hasta la carpeta. Mover un libro aquí no le afecta en
+          nada: conserva la página, los marcadores y las anotaciones. Los
+          libros nuevos van a parar a la carpeta que tengas abierta, y el
+          buscador sigue encontrándolos estén donde estén.</li>
+          <li><strong>Llevar libros de un lado a otro:</strong> un libro de la
+          nube se puede guardar en el dispositivo con «Guardar en este
+          dispositivo» o arrastrándolo hasta la sección (o la carpeta) local; y
+          uno del dispositivo se sube a la nube con su botón o arrastrándolo
+          hasta «En la nube». En ambos casos se hace una copia: el original se
+          queda donde estaba y cada biblioteca lleva su propio progreso.</li>
           <li><strong>Carpetas:</strong> la sección «En la nube» muestra las
           subcarpetas de tu carpeta y permite entrar en ellas (la ruta aparece
           encima de la lista para volver). Puedes crear carpetas nuevas,
