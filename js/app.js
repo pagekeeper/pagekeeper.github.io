@@ -18,6 +18,9 @@ import {
   esLibro, librosElegidos, librosArrastrados, capturarArrastre,
 } from './archivos-entrantes.js';
 import {
+  librosDeCarpetaLocal, librosDeCarpetaRemota, nombreSeguro, puedeGuardarEnDisco,
+} from './descarga-carpeta.js';
+import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
   carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
   validarConfigNube,
@@ -1496,6 +1499,18 @@ function crearBotonMenu(ficha, obtenerAcciones) {
   return menu;
 }
 
+// La misma acción para las carpetas de las dos bibliotecas. El nombre cambia
+// con lo que sepa hacer el navegador: guardarla en el equipo tal cual o,
+// cuando eso no es posible, entregarla comprimida.
+function accionDescargarCarpeta(alPulsar) {
+  const enDisco = puedeGuardarEnDisco();
+  return {
+    icono: enDisco ? 'folder-down' : 'download',
+    etiqueta: t(enDisco ? 'actionSaveFolderToDisk' : 'actionDownloadFolderZip'),
+    alPulsar,
+  };
+}
+
 // Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
@@ -1984,12 +1999,15 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
   hacerDestinoDeLibro(boton, rutaNube ? `${rutaNube}/${nombre}` : nombre);
 
   if (!soloLectura) {
-    boton.append(crearBotonMenu(boton, () => [{
-      icono: 'trash-2',
-      etiqueta: t('actionDeleteFolder'),
-      alPulsar: () => borrarCarpetaRemota(nombre),
-      peligro: true,
-    }]));
+    boton.append(crearBotonMenu(boton, () => [
+      accionDescargarCarpeta(() => descargarCarpetaRemota(nombre)),
+      {
+        icono: 'trash-2',
+        etiqueta: t('actionDeleteFolder'),
+        alPulsar: () => borrarCarpetaRemota(nombre),
+        peligro: true,
+      },
+    ]));
   }
   elemento.append(boton);
   return elemento;
@@ -2229,6 +2247,7 @@ function crearFilaCarpetaLocal(nombre, conteo = null) {
       etiqueta: t('actionRenameFolder'),
       alPulsar: () => renombrarCarpetaLocal(nombre),
     },
+    accionDescargarCarpeta(() => descargarCarpetaLocal(nombre)),
     {
       icono: 'trash-2',
       etiqueta: t('actionDeleteFolder'),
@@ -2776,6 +2795,119 @@ async function descargarLibroLocal(libro) {
   } catch (error) {
     avisar(`No se pudo descargar: ${error.message}`, 6000);
   }
+}
+
+// ─────────────── Descargar una carpeta con todo su contenido ───────────────
+
+// Donde se puede escribir en el disco (Chrome, Edge y Opera de escritorio) la
+// carpeta se guarda tal cual, con sus subcarpetas; en el resto de navegadores
+// no queda más remedio que entregar un ZIP.
+
+// Escribe las entradas dentro de una carpeta elegida por el usuario, creando
+// las subcarpetas que hagan falta.
+async function volcarEnDisco(nombreCarpeta, entradas, traer, informe) {
+  const elegida = await window.showDirectoryPicker({ mode: 'readwrite', id: 'pagekeeper-carpetas' });
+  const raiz = await elegida.getDirectoryHandle(nombreSeguro(nombreCarpeta), { create: true });
+  for (const entrada of entradas) {
+    const datos = await traer(entrada, informe);
+    if (!datos) continue;
+    const tramos = entrada.ruta.split('/');
+    let destino = raiz;
+    for (const tramo of tramos.slice(0, -1)) {
+      destino = await destino.getDirectoryHandle(tramo, { create: true });
+    }
+    const archivo = await destino.getFileHandle(tramos.at(-1), { create: true });
+    const escritura = await archivo.createWritable();
+    try {
+      await escritura.write(datos);
+    } finally {
+      await escritura.close();
+    }
+  }
+  if (!informe.hechos) throw new Error(t('folderDownloadFailed'));
+}
+
+// Los PDF y los EPUB ya vienen comprimidos: el ZIP solo los empaqueta.
+async function empaquetarEnZip(nombreCarpeta, entradas, traer, informe) {
+  await cargarZip();
+  const zip = new window.JSZip();
+  for (const entrada of entradas) {
+    const datos = await traer(entrada, informe);
+    if (datos) zip.file(entrada.ruta, datos, { compression: 'STORE' });
+  }
+  if (!informe.hechos) throw new Error(t('folderDownloadFailed'));
+  const archivo = await zip.generateAsync({ type: 'blob', compression: 'STORE' }, (avance) => {
+    $('texto-cargando').textContent = `${t('packingFolder')} ${Math.round(avance.percent)} %`;
+  });
+  entregarDescarga(`${nombreSeguro(nombreCarpeta)}.zip`, archivo, 'application/zip');
+}
+
+async function entregarCarpeta(nombreCarpeta, entradas, leerDatos) {
+  if (!entradas.length) {
+    avisar(t('folderHasNoBooks'));
+    return;
+  }
+  const informe = { hechos: 0, fallidos: 0 };
+  // Un libro que ya no se puede leer no debe llevarse por delante los demás:
+  // se cuenta aparte y la carpeta llega con el resto.
+  const traer = async (entrada) => {
+    $('texto-cargando').textContent = t('packingFolderItem', {
+      current: informe.hechos + informe.fallidos + 1,
+      total: entradas.length,
+      title: entrada.nombre,
+    });
+    try {
+      const datos = await leerDatos(entrada);
+      informe.hechos += 1;
+      return datos;
+    } catch {
+      informe.fallidos += 1;
+      return null;
+    }
+  };
+  mostrarCarga(t('packingFolder'));
+  try {
+    if (puedeGuardarEnDisco()) await volcarEnDisco(nombreCarpeta, entradas, traer, informe);
+    else await empaquetarEnZip(nombreCarpeta, entradas, traer, informe);
+    avisar(informe.fallidos
+      ? t('folderDownloadedPartial', {
+        name: nombreCarpeta, failed: informe.fallidos, total: entradas.length,
+      })
+      : t(informe.hechos === 1 ? 'folderDownloadedOne' : 'folderDownloadedMany', {
+        name: nombreCarpeta, count: informe.hechos,
+      }), 6000);
+  } catch (error) {
+    // Cerrar el selector de carpeta sin elegir ninguna no es un fallo.
+    if (error.name !== 'AbortError') avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+  }
+}
+
+async function descargarCarpetaLocal(nombre) {
+  const ruta = rutaLocalDe(nombre);
+  const libros = await almacen.listarLibros().catch(() => []);
+  await entregarCarpeta(nombre, librosDeCarpetaLocal(libros, ruta), async ({ id }) => {
+    const datos = await almacen.obtenerDatos(id);
+    if (!datos) throw new Error(t('bookGone'));
+    return datos;
+  });
+}
+
+async function descargarCarpetaRemota(nombre) {
+  if (!cliente) return;
+  const ruta = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  mostrarCarga(t('packingFolder'));
+  let entradas = [];
+  try {
+    entradas = await librosDeCarpetaRemota((sitio) => cliente.listar(sitio), ruta);
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+    return;
+  } finally {
+    ocultarCarga();
+  }
+  await entregarCarpeta(nombre, entradas, ({ id }) => cliente.descargar(id));
 }
 
 // Si el destino ya estaba fijado para leer sin conexión, una sobrescritura

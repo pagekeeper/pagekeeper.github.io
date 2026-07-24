@@ -77,6 +77,11 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
   local para guardarlos en el dispositivo o sobre la sección remota para
   subirlos directamente por WebDAV.
+- 📥 **Descargar carpetas enteras**: el menú «⋯» de cualquier carpeta (de la
+  nube o del dispositivo) la guarda completa, con sus subcarpetas y todos sus
+  libros. En los navegadores que permiten escribir en el disco (Chrome, Edge y
+  Opera de escritorio) eliges dónde ponerla y se copia tal cual; en el resto se
+  entrega como un único ZIP.
 - 🗂️ **Añadir carpetas enteras**: cada sección tiene un botón para elegir una
   carpeta del dispositivo, y también se pueden soltar carpetas arrastrándolas.
   Se recogen todos los PDF y EPUB que haya dentro, subcarpetas incluidas, y se
