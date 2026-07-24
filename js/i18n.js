@@ -6,6 +6,7 @@ const IDIOMAS = ['es', 'ca', 'en'];
 
 const textos = {
   es: {
+    appTagline: 'Lector de libros electrónicos',
     language: 'Idioma', help: 'Ayuda', settings: 'Ajustes', back: 'Volver', cloud: 'En la nube',
     device: 'En este dispositivo', addLocal: 'Añadir un libro (PDF o EPUB) de este dispositivo',
     addCloud: 'Subir un libro (PDF o EPUB) a la nube', reload: 'Recargar',
@@ -186,6 +187,7 @@ const textos = {
     unjustifiedAlignment: 'Sin justificar',
   },
   ca: {
+    appTagline: 'Lector de llibres electrònics',
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
     device: 'En aquest dispositiu', addLocal: 'Afegeix un llibre (PDF o EPUB) d’aquest dispositiu',
     addCloud: 'Puja un llibre (PDF o EPUB) al núvol', reload: 'Recarrega',
@@ -366,6 +368,7 @@ const textos = {
     unjustifiedAlignment: 'Sense justificar',
   },
   en: {
+    appTagline: 'E-book reader',
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
     device: 'On this device', addLocal: 'Add a book (PDF or EPUB) from this device',
     addCloud: 'Upload a book (PDF or EPUB) to the cloud', reload: 'Reload',

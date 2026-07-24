@@ -95,8 +95,17 @@ body {
   border-bottom: 1px solid var(--borde);
 }
 .cabecera h1 {
-  font-size: 1.2rem; flex: 1;
-  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 1.2rem; flex: 1; min-width: 0;
+  display: flex; align-items: baseline; gap: 0.5rem;
+}
+.cabecera h1 .icono-app { align-self: center; }
+.subtitulo-app {
+  font-size: 0.8rem; font-weight: 400; color: var(--texto-suave);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding-left: 0.55rem; border-left: 1px solid var(--borde);
+}
+@media (max-width: 720px) {
+  .subtitulo-app { display: none; }
 }
 @media (max-width: 430px) {
   .cabecera { gap: 0.25rem; padding-left: 0.5rem; padding-right: 0.5rem; }
