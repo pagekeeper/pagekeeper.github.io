@@ -1163,7 +1163,12 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 .miga:hover, .miga:focus-visible { text-decoration: underline; }
 .separador-miga { color: var(--texto-suave); }
 .miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
-.libro .portada-carpeta { color: var(--aviso); }
+.libro .portada-carpeta {
+  color: var(--aviso);
+  background: color-mix(in srgb, var(--aviso) 12%, var(--fondo));
+  border-color: color-mix(in srgb, var(--aviso) 35%, var(--borde));
+}
+.vista-cuadricula .libro .portada-carpeta .icono { width: 3.5rem; height: 3.5rem; }
 /* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
 .libro.carpeta.destino-mover { border-color: var(--acento); background: var(--fondo-tarjeta); }
 .miga.destino-mover {
