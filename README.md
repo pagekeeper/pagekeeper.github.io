@@ -90,9 +90,10 @@ libros y sincronizar el progreso de lectura.
   una chapita con la nube o el dispositivo, porque las dos bibliotecas pueden
   tener el mismo título y la cabecera de la sección queda lejos al bajar. En
   pantallas anchas esa cabecera además se queda fija mientras recorres su
-  lista. Las carpetas ocupan una ficha baja, sin estirarse hasta el alto de una
-  portada, y el menú «⋯» y el círculo de «terminado» solo aparecen al pasar el
-  ratón por encima (en pantallas táctiles siguen siempre a la vista).
+  lista. Las carpetas se agrupan en una banda propia encima de los libros, con
+  fichas bajas que no gastan el alto de una portada, y el menú «⋯» y el círculo
+  de «terminado» solo aparecen al pasar el ratón por encima (en pantallas
+  táctiles siguen siempre a la vista).
 - 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
   de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación

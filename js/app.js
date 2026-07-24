@@ -1236,6 +1236,7 @@ async function cargarBiblioteca() {
   $('zona-local').classList.toggle('oculto', Boolean(hayConfig && rutaNube));
   if (!hayConfig) {
     $('lista-libros').replaceChildren();
+    $('lista-carpetas').replaceChildren();
     mostrarLibroEjemplo((await promesaLocales) === 0);
     await pintarContinuarLeyendo();
     actualizarVisibilidadBuscadorBiblioteca();
@@ -1246,6 +1247,7 @@ async function cargarBiblioteca() {
   estado.className = 'estado';
   estado.textContent = t('loadingLibrary');
   $('lista-libros').replaceChildren();
+  $('lista-carpetas').replaceChildren();
   const promesaCopias = almacen.listarCopiasRemotas(cliente.base).catch(() => []);
 
   try {
@@ -1852,7 +1854,8 @@ function aplicarOrganizacionBiblioteca() {
   }
 
   let visibles = 0;
-  const filas = document.querySelectorAll('#lista-libros > li, #lista-locales > li');
+  const filas = document.querySelectorAll(
+    '#lista-libros > li, #lista-locales > li, #lista-carpetas > li, #lista-carpetas-locales > li');
   for (const fila of filas) {
     const coincideTexto = !consulta || fila.dataset.busqueda?.includes(consulta);
     const coincideEstado = !fila.dataset.idLibro || filtro === 'todos' || fila.dataset.estadoLectura === filtro;
@@ -1890,7 +1893,8 @@ $('orden-biblioteca').addEventListener('change', (evento) => {
 
 function aplicarVistaBiblioteca(vista) {
   const cuadricula = vista === 'cuadricula';
-  for (const lista of [$('lista-libros'), $('lista-locales')]) {
+  for (const lista of [$('lista-libros'), $('lista-locales'),
+    $('lista-carpetas'), $('lista-carpetas-locales')]) {
     lista.classList.toggle('vista-cuadricula', cuadricula);
   }
   $('btn-vista-lista').setAttribute('aria-pressed', String(!cuadricula));
@@ -2136,7 +2140,12 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
   pintarRutaNube();
   const version = ++versionConteosNube; // cancela conteos de una lista anterior
   const lista = $('lista-libros');
+  // Las carpetas van en su propia lista, encima de la de libros: en la
+  // cuadrícula sus fichas son bajas y, mezcladas con los libros, la fila
+  // acababa midiendo lo que la portada más alta y dejando el hueco debajo.
+  const listaCarpetas = $('lista-carpetas');
   lista.replaceChildren();
+  listaCarpetas.replaceChildren();
   const copiasPorId = new Map(copias.map((copia) => [copia.id, copia]));
   const filasPendientes = [];
   for (const carpeta of carpetas) {
@@ -2146,7 +2155,7 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
       ? contarCopiasEn(copias, rutaNube ? `${rutaNube}/${carpeta.nombre}` : carpeta.nombre)
       : null;
     const fila = crearFilaCarpeta(carpeta.nombre, soloCopias, conteo);
-    lista.append(fila);
+    listaCarpetas.append(fila);
     if (!soloCopias) filasPendientes.push({ fila, nombre: carpeta.nombre });
   }
   if (filasPendientes.length && cliente) rellenarConteosNube(rutaNube, filasPendientes, version);
@@ -2684,11 +2693,14 @@ async function cargarLibrosLocales() {
   estado.classList.toggle('oculto', !estado.textContent);
 
   lista.replaceChildren();
+  // Las carpetas, en su lista aparte (ver pintarListaRemota).
+  const listaCarpetas = $('lista-carpetas-locales');
+  listaCarpetas.replaceChildren();
   if (!buscando) {
     for (const carpeta of carpetas) {
       const dentro = almacen.bibliotecaLocal(todos, carpetasRegistradas, rutaLocalDe(carpeta.nombre));
       const conteo = dentro.carpetas.length + dentro.libros.length;
-      lista.append(crearFilaCarpetaLocal(carpeta.nombre, conteo));
+      listaCarpetas.append(crearFilaCarpetaLocal(carpeta.nombre, conteo));
     }
   }
   for (const libro of aPintar) {

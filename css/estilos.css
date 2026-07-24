@@ -470,6 +470,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .texto-carga-local > span { color: var(--texto-suave); font-size: 0.88rem; line-height: 1.4; }
 
 .lista-libros { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; }
+/* Las carpetas van en una lista propia, justo encima de la de libros: se
+   despega de ella lo mismo que separa a dos fichas entre sí. */
+.lista-carpetas:not(:empty) { margin-bottom: 0.5rem; }
+.lista-carpetas.vista-cuadricula:not(:empty) { margin-bottom: 0.6rem; }
 .lista-libros li { display: flex; align-items: stretch; gap: 0.4rem; }
 .libro {
   flex: 1; min-width: 0;
@@ -1217,11 +1221,9 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   background: color-mix(in srgb, var(--aviso) 12%, var(--fondo));
   border-color: color-mix(in srgb, var(--aviso) 35%, var(--borde));
 }
-/* Una carpeta no necesita el alto de una portada para enseñar un icono: en la
-   cuadrícula su caja es baja y la ficha se queda arriba de la fila, sin
-   estirarse hasta donde llegan los libros que la acompañan. */
-.vista-cuadricula > li:has(> .libro.carpeta) { align-self: start; }
-.vista-cuadricula .libro.carpeta { height: auto; }
+/* Una carpeta no necesita el alto de una portada para enseñar un icono: su
+   caja es baja, y como las carpetas van en su propia lista (ver
+   .lista-carpetas) los libros empiezan justo debajo, sin hueco. */
 .vista-cuadricula .libro.carpeta .portada-carpeta { aspect-ratio: 3 / 2; }
 .vista-cuadricula .libro .portada-carpeta .icono { width: 2.4rem; height: 2.4rem; }
 /* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
