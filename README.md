@@ -180,6 +180,10 @@ libros y sincronizar el progreso de lectura.
   enteras. La preferencia se recuerda en cada dispositivo.
 - 🌙 Papel claro/sepia/noche, zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
+- 👆 **La página asoma mientras se desliza**: al arrastrar con el dedo, la
+  página vecina entra de verdad por el lado, en PDF y también en EPUB, en
+  lugar de dejar un hueco vacío hasta terminar el gesto. Si el recorrido se
+  queda corto, la página vuelve a su sitio y no se pasa nada.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
   sin serifa), interlineado y margen lateral, con las preferencias guardadas
   localmente en cada dispositivo.

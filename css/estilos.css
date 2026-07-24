@@ -825,6 +825,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* La animación es solo al soltar: mientras el dedo manda, la página va con él
    sin retardo ninguno. */
 .soltando-pagina { transition: transform 0.19s ease-out; }
+/* En EPUB lo que se desliza es la tira de columnas del capítulo, y estos
+   avisos de nota cuelgan del contenedor de fuera: si se quedaran quietos
+   flotarían sobre un texto que ya no es el suyo. */
+#area-lectura.gesto-pagina .boton-nota-epub { opacity: 0; }
 .pagina-vecina { position: absolute; top: 0; pointer-events: none; }
 .pagina-vecina.vecina-antes { right: calc(100% + 1rem); }
 .pagina-vecina.vecina-despues { left: calc(100% + 1rem); }

@@ -614,6 +614,26 @@ export class LectorEpub {
   siguiente() { this.vista?.next(); }
   anterior() { this.vista?.prev(); }
 
+  // Piezas para deslizar la página con el dedo. epub.js reparte el capítulo
+  // entero en columnas dentro de una tira más ancha que la pantalla, y pasa
+  // página moviendo el marco que la recorta: las páginas vecinas de ese
+  // capítulo ya están dibujadas, así que el gesto puede descubrirlas de
+  // verdad. Devuelve la tira y a qué lados hay vecina; en los bordes del
+  // capítulo no hay ninguna, porque el siguiente vive en otro documento que
+  // todavía no está montado.
+  tiraDeColumnas() {
+    if (this.modo === 'continuo') return null;
+    const marco = this.contenedor.querySelector('.epub-container');
+    const tira = this.contenedor.querySelector('.epub-view');
+    if (!marco || !tira || !marco.clientWidth) return null;
+    return {
+      tira,
+      paso: marco.clientWidth,
+      antes: marco.scrollLeft > 1,
+      despues: marco.scrollLeft + marco.clientWidth < marco.scrollWidth - 1,
+    };
+  }
+
   // ───────────── Apoyo a la lectura en voz alta ─────────────
 
   // Texto desde la posición visible hasta el final del capítulo actual.

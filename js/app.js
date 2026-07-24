@@ -5808,8 +5808,11 @@ $('area-lectura').addEventListener('touchcancel', () => {
 //
 // La página acompaña al dedo y deja ver a dónde se va, en vez de saltar de
 // golpe. En PDF asoma de verdad la página vecina, que ya está pintada de
-// antemano (ver copiaDePagina); en EPUB se desliza la actual, porque su
-// contenido vive en un iframe que epub.js no deja mirar por adelantado.
+// antemano (ver copiaDePagina). En EPUB asoma la columna de al lado: el
+// capítulo entero está compuesto en una tira de columnas que se desliza
+// dentro del marco que la recorta (ver tiraDeColumnas). Solo en los bordes
+// del capítulo, donde la página siguiente es otro documento todavía sin
+// montar, se arrastra el contenedor entero como único recurso.
 //
 // Al soltar, el recorrido decide: pasado el umbral la página termina de
 // salir, y si no vuelve a su sitio. Así un roce no cambia de página y se
@@ -5824,6 +5827,24 @@ let ultimoGestoPagina = 0;
 
 function elementoQueSeMueve() {
   return epubAbierto() ? $('contenedor-epub') : $('contenedor-pagina').querySelector('.par-paginas');
+}
+
+// Qué sigue al dedo y cuánto mide un paso completo. En EPUB, cuando la página
+// vecina ya está compuesta en la tira de columnas, se desliza la tira: entonces
+// el paso es el ancho de una columna y no el del área, que puede ser más ancha
+// (el marco del libro deja márgenes a los lados).
+function piezasDelGesto(haciaAtras) {
+  if (epubAbierto()) {
+    const columnas = lectorEpub.tiraDeColumnas();
+    if (columnas && (haciaAtras ? columnas.antes : columnas.despues)) {
+      return { elemento: columnas.tira, paso: columnas.paso, enColumnas: true };
+    }
+  }
+  return {
+    elemento: elementoQueSeMueve(),
+    paso: $('area-lectura').clientWidth || 1,
+    enColumnas: false,
+  };
 }
 
 // ¿Puede empezar aquí un arrastre de página?
@@ -5873,7 +5894,10 @@ function limpiarGesto() {
 function iniciarGesto(x, y, toques) {
   if (gesto && toques > 1) limpiarGesto(); // llega un pellizco
   if (toques !== 1 || !gestoDePaginaPermitido()) return;
-  gesto = { x, y, dx: 0, activo: false, terminado: false, vecinas: [], elemento: null };
+  gesto = {
+    x, y, dx: 0, activo: false, terminado: false, vecinas: [], elemento: null,
+    paso: 0, enColumnas: false,
+  };
 }
 
 function moverGesto(x, y, toques, evitar) {
@@ -5889,7 +5913,10 @@ function moverGesto(x, y, toques, evitar) {
     if (Math.abs(dy) > HOLGURA_GESTO && Math.abs(dy) > Math.abs(dx)) { gesto = null; return; }
     if (Math.abs(dx) <= HOLGURA_GESTO) return;
     gesto.activo = true;
-    gesto.elemento = elementoQueSeMueve();
+    const piezas = piezasDelGesto(dx > 0);
+    gesto.elemento = piezas.elemento;
+    gesto.paso = piezas.paso;
+    gesto.enColumnas = piezas.enColumnas;
     gesto.elemento?.classList.add('arrastrando-pagina');
     $('area-lectura').classList.add('gesto-pagina');
     prepararVecinasDelGesto();
@@ -5902,7 +5929,11 @@ function moverGesto(x, y, toques, evitar) {
   const hayDestino = epubAbierto() || (haciaAtras
     ? lector.pagina > 1
     : lector.pagina + paso <= lector.totalPaginas);
-  gesto.dx = hayDestino ? dx : dx * 0.25;
+  // Deslizando la tira de columnas, más allá de una página empezaría a asomar
+  // la siguiente a esa: el recorrido se queda en un paso.
+  gesto.dx = hayDestino
+    ? (gesto.enColumnas ? Math.max(-gesto.paso, Math.min(gesto.paso, dx)) : dx)
+    : dx * 0.25;
   gesto.elemento.style.transform = `translateX(${gesto.dx}px)`;
 }
 
@@ -5921,7 +5952,7 @@ function terminarGestoPagina() {
   const { dx, activo, elemento } = gesto;
   if (!activo || !elemento) { limpiarGesto(); return; }
   ultimoGestoPagina = Date.now();
-  const ancho = $('area-lectura').clientWidth || 1;
+  const ancho = gesto.paso || $('area-lectura').clientWidth || 1;
   const pasa = Math.abs(dx) > ancho * UMBRAL_PASO;
   const activoLector = epubAbierto() ? lectorEpub : lector;
   if (!pasa) {
