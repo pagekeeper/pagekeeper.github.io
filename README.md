@@ -77,6 +77,12 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
   local para guardarlos en el dispositivo o sobre la sección remota para
   subirlos directamente por WebDAV.
+- 🗂️ **Añadir carpetas enteras**: cada sección tiene un botón para elegir una
+  carpeta del dispositivo, y también se pueden soltar carpetas arrastrándolas.
+  Se recogen todos los PDF y EPUB que haya dentro, subcarpetas incluidas, y se
+  rehace esa misma estructura en la biblioteca (en la nube las carpetas se
+  crean en el servidor). Se ignoran las carpetas ocultas y los archivos de
+  otros formatos.
 - 📁 **Subcarpetas en la nube**: la biblioteca muestra las carpetas de tu
   nube y permite navegar por ellas, crear carpetas nuevas, borrarlas y mover
   libros de una carpeta a otra (con el botón de mover o arrastrando el libro

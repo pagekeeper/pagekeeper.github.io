@@ -15,6 +15,9 @@ import {
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
 } from './ritmo.js';
 import {
+  esLibro, librosElegidos, librosArrastrados, capturarArrastre,
+} from './archivos-entrantes.js';
+import {
   crearManifiestoCopia, validarManifiestoCopia, fusionarProgresoRestaurado,
   carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
   validarConfigNube,
@@ -735,10 +738,15 @@ $('selector-importar-config').addEventListener('change', async (evento) => {
 
 // ───────────────────── Copia de la biblioteca local ─────────────────────
 
+// Botones de «Importar y exportar» que no llevan a ninguna parte sin nube.
+const ACCIONES_DE_NUBE = [
+  'accion-restaurar-nube', 'accion-subir-desde-archivos', 'accion-subir-carpeta-desde-archivos',
+];
+
 function actualizarAccionesArchivos() {
   const disponible = Boolean(cliente);
   $('btn-exportar-nube').disabled = !disponible;
-  for (const id of ['accion-restaurar-nube', 'accion-subir-desde-archivos']) {
+  for (const id of ACCIONES_DE_NUBE) {
     $(id).classList.toggle('accion-deshabilitada', !disponible);
     $(id).setAttribute('aria-disabled', String(!disponible));
   }
@@ -757,7 +765,7 @@ $('btn-cerrar-archivos').addEventListener('click', () => {
   mostrarVista('biblioteca');
   cargarBiblioteca();
 });
-for (const id of ['accion-restaurar-nube', 'accion-subir-desde-archivos']) {
+for (const id of ACCIONES_DE_NUBE) {
   $(id).addEventListener('click', (evento) => {
     if (!cliente) evento.preventDefault();
   });
@@ -2120,6 +2128,12 @@ function rutaLocalDe(nombre) {
   return rutaLocal ? `${rutaLocal}/${nombre}` : nombre;
 }
 
+// Igual, pero admitiendo que no haya subcarpeta: entonces el destino es la
+// carpeta abierta, sin barra suelta al final.
+function destinoLocal(subcarpeta) {
+  return almacen.normalizarCarpeta(rutaLocalDe(subcarpeta));
+}
+
 function pintarRutaLocal() {
   const nav = $('ruta-carpeta-local');
   nav.classList.toggle('oculto', !rutaLocal);
@@ -2951,18 +2965,30 @@ async function abrirLibroLocal(libro) {
   }
 }
 
-function archivosCompatibles(archivos) {
-  return Array.from(archivos).filter((archivo) => /\.(pdf|epub)$/i.test(archivo.name));
+// Los libros llegan emparejados con la carpeta de la que vienen (lo que
+// devuelve «archivos-entrantes»), pero también se admite un archivo suelto:
+// entonces se queda en la carpeta que esté abierta.
+function entrantesCompatibles(archivos) {
+  return Array.from(archivos)
+    .map((elemento) => (elemento?.archivo ? elemento : { archivo: elemento, carpeta: '' }))
+    .filter(({ archivo }) => esLibro(archivo.name));
 }
 
-async function guardarArchivoLocal(archivo, abrirDespues = false) {
+// Las carpetas que hay que preparar antes de copiar nada, de fuera adentro:
+// así una subcarpeta nunca se crea antes que la que la contiene.
+function carpetasDe(entrantes) {
+  return [...new Set(entrantes.map(({ carpeta }) => carpeta).filter(Boolean))]
+    .sort((a, b) => a.split('/').length - b.split('/').length);
+}
+
+async function guardarArchivoLocal(archivo, abrirDespues = false, carpeta = rutaLocal) {
   mostrarCarga(t('adding', { title: archivo.name }));
   const datos = new Uint8Array(await archivo.arrayBuffer());
   const libro = {
     id: `local:${archivo.name}:${archivo.size}`,
     nombre: archivo.name,
     tamano: archivo.size,
-    carpeta: rutaLocal, // va a parar a la carpeta que esté abierta
+    carpeta,
   };
   await almacen.guardarLibro(libro, datos);
   asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
@@ -2979,17 +3005,26 @@ async function guardarArchivoLocal(archivo, abrirDespues = false) {
 }
 
 async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
-  const validos = archivosCompatibles(archivos);
+  const validos = entrantesCompatibles(archivos);
   if (!validos.length) {
     avisar(t('unsupportedFiles'));
     return;
   }
-  const abiertoDirectamente = abrirSiEsUno && validos.length === 1;
+  // Abrir de golpe solo tiene sentido con un archivo suelto: quien añade una
+  // carpeta entera quiere verla en la lista, no que se le abra un libro.
+  const abiertoDirectamente = abrirSiEsUno && validos.length === 1 && !validos[0].carpeta;
   let guardados = 0;
   try {
-    for (const archivo of validos) {
+    for (const carpeta of carpetasDe(validos)) {
       try {
-        await guardarArchivoLocal(archivo, abiertoDirectamente);
+        await almacen.crearCarpetaLocal(destinoLocal(carpeta));
+      } catch (error) {
+        avisar(explicarError(error), 6000);
+      }
+    }
+    for (const { archivo, carpeta } of validos) {
+      try {
+        await guardarArchivoLocal(archivo, abiertoDirectamente, destinoLocal(carpeta));
         guardados += 1;
       } catch (error) {
         avisar(t('saveFailed', { title: archivo.name, error: error.message }), 6000);
@@ -3007,10 +3042,11 @@ async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
   }
 }
 
-async function subirArchivoANube(archivo) {
+async function subirArchivoANube(archivo, subcarpeta = '') {
   if (!cliente) return false;
   const nombre = archivo.name;
-  const destino = idRemoto(nombre); // se sube a la carpeta abierta
+  // Se sube a la carpeta abierta, o a la subcarpeta de la que venga el libro.
+  const destino = idRemoto(subcarpeta ? `${subcarpeta}/${nombre}` : nombre);
   try {
     if (await cliente.existe(destino) &&
         !confirm(t('overwrite', { title: nombre }))) {
@@ -3031,31 +3067,65 @@ async function subirArchivoANube(archivo) {
   }
 }
 
+// MKCOL no crea las carpetas intermedias, así que hay que ir tramo a tramo
+// creando las que falten.
+async function asegurarCarpetaRemota(ruta) {
+  let acumulada = '';
+  for (const tramo of ruta.split('/')) {
+    acumulada = acumulada ? `${acumulada}/${tramo}` : tramo;
+    if (!await cliente.existe(acumulada)) await cliente.crearCarpeta(acumulada);
+  }
+}
+
 async function subirArchivosANube(archivos) {
-  const validos = archivosCompatibles(archivos);
+  const validos = entrantesCompatibles(archivos);
   if (!validos.length) {
     avisar(t('unsupportedFiles'));
     return;
   }
-  for (const archivo of validos) await subirArchivoANube(archivo);
+  if (!cliente) return;
+  try {
+    for (const carpeta of carpetasDe(validos)) {
+      mostrarCarga(t('creatingFolder', { name: carpeta }));
+      await asegurarCarpetaRemota(idRemoto(carpeta));
+    }
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+    return;
+  } finally {
+    ocultarCarga();
+  }
+  for (const { archivo, carpeta } of validos) await subirArchivoANube(archivo, carpeta);
   cargarBiblioteca();
 }
 
 // Los selectores y el arrastre comparten el mismo procesamiento; el selector
-// local conserva el comportamiento anterior de abrir un único libro.
-$('selector-archivo').addEventListener('change', (evento) => {
-  const archivos = [...evento.target.files];
-  evento.target.value = '';
-  guardarArchivosLocales(archivos, true);
-});
+// local conserva el comportamiento anterior de abrir un único libro. Los
+// selectores de carpeta traen además la ruta de cada archivo, que es lo que
+// permite rehacer la estructura dentro de la biblioteca.
+for (const [id, procesar] of [
+  ['selector-archivo', (libros) => guardarArchivosLocales(libros, true)],
+  ['selector-carpeta', (libros) => guardarArchivosLocales(libros)],
+  ['selector-subir-nube', (libros) => subirArchivosANube(libros)],
+  ['selector-subir-carpeta-nube', (libros) => subirArchivosANube(libros)],
+]) {
+  $(id).addEventListener('change', (evento) => {
+    const { files, webkitdirectory } = evento.target;
+    const libros = librosElegidos(files);
+    const carpetaVacia = webkitdirectory && files.length > 0 && libros.length === 0;
+    evento.target.value = '';
+    if (carpetaVacia) avisar(t('noBooksInFolder'));
+    else procesar(libros);
+  });
+}
+
+// Sin soporte de selección de carpetas (Firefox en Android, por ejemplo) los
+// botones no llevarían a ninguna parte, así que ni se muestran.
+if (!('webkitdirectory' in HTMLInputElement.prototype)) {
+  document.querySelectorAll('.accion-carpeta').forEach((boton) => boton.classList.add('oculto'));
+}
 
 $('aviso-local-vacio').addEventListener('click', () => $('selector-archivo').click());
-
-$('selector-subir-nube').addEventListener('change', (evento) => {
-  const archivos = [...evento.target.files];
-  evento.target.value = '';
-  subirArchivosANube(archivos);
-});
 
 // ───────────────────────── Arrastrar archivos ─────────────────────────
 
@@ -3101,13 +3171,20 @@ for (const [id, alSoltar] of [
     evento.preventDefault();
     evento.dataTransfer.dropEffect = 'copy';
   });
-  zona.addEventListener('drop', (evento) => {
+  zona.addEventListener('drop', async (evento) => {
     if (!contieneArchivos(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
-    const archivos = [...evento.dataTransfer.files];
+    // La captura tiene que ser aquí mismo: leer las carpetas es asíncrono y
+    // para entonces el «dataTransfer» ya está vacío.
+    const capturado = capturarArrastre(evento.dataTransfer);
     terminarArrastre();
-    alSoltar(archivos);
+    const libros = await librosArrastrados(capturado);
+    if (!libros.length && capturado.some((elemento) => elemento.isDirectory)) {
+      avisar(t('noBooksInFolder'));
+      return;
+    }
+    alSoltar(libros);
   });
 }
 
