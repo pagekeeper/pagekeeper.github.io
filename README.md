@@ -77,6 +77,10 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
   local para guardarlos en el dispositivo o sobre la sección remota para
   subirlos directamente por WebDAV.
+- ⬅️ **Retroceder navega por las carpetas**: cada carpeta que se abre ocupa una
+  entrada del historial, así que el botón (o el gesto) de volver atrás del
+  navegador sube un nivel en lugar de salir de la aplicación. Desde la raíz sí
+  se sale, como siempre.
 - 📥 **Descargar carpetas enteras**: el menú «⋯» de cualquier carpeta (de la
   nube o del dispositivo) la guarda completa, con sus subcarpetas y todos sus
   libros. En los navegadores que permiten escribir en el disco (Chrome, Edge y

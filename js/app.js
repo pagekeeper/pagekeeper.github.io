@@ -373,10 +373,51 @@ $('salto-contenido').addEventListener('click', () => {
 });
 
 const ESTADO_VISTA = 'pagekeeperVista';
+const ESTADO_CARPETAS = 'pagekeeperCarpetas';
 
 function registrarVista(nombre) {
   if (history.state?.[ESTADO_VISTA] === nombre) return;
   history.pushState({ [ESTADO_VISTA]: nombre }, '');
+}
+
+// Abrir una carpeta (o volver a la raíz por la ruta) es un paso más del
+// historial: así el botón de retroceder del navegador sube un nivel en lugar
+// de sacar de la aplicación. Se registra después de cambiar la ruta, para que
+// la entrada anterior siga apuntando a la carpeta de la que se viene.
+function estadoBiblioteca() {
+  return {
+    [ESTADO_VISTA]: 'biblioteca',
+    [ESTADO_CARPETAS]: { local: rutaLocal, nube: rutaNube },
+  };
+}
+
+function registrarCarpetas() {
+  history.pushState(estadoBiblioteca(), '');
+}
+
+// Pone al día la entrada actual del historial cuando la carpeta abierta cambia
+// sin que el usuario navegue (porque ha dejado de existir). Si en ese momento
+// se está en otra vista, su entrada no se toca.
+function actualizarCarpetasEnHistorial() {
+  if (history.state?.[ESTADO_VISTA] !== 'biblioteca') return;
+  history.replaceState(estadoBiblioteca(), '');
+}
+
+// Cierra una vista superpuesta (ajustes, importar y exportar) desde el propio
+// código, sin que el usuario haya pulsado atrás: la entrada que ocupaba pasa a
+// ser la de la biblioteca, así que retroceder después lleva a la carpeta en la
+// que se estaba y no a una vista ya cerrada.
+function volverALaBiblioteca() {
+  if (history.state?.[ESTADO_VISTA] !== 'biblioteca') history.replaceState(estadoBiblioteca(), '');
+  mostrarVista('biblioteca');
+  cargarBiblioteca();
+}
+
+// Devuelve la biblioteca a las carpetas de una entrada del historial. Las
+// entradas antiguas no las llevan: entonces toca la raíz.
+function volverACarpetas(estado) {
+  rutaLocal = estado?.local ?? '';
+  rutaNube = estado?.nube ?? '';
 }
 
 function registrarVistaLector() {
@@ -419,13 +460,20 @@ window.addEventListener('popstate', () => {
     return;
   }
   if (destino === 'lector') {
-    history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
+    history.replaceState(estadoBiblioteca(), '');
     mostrarVista('biblioteca');
     cargarBiblioteca();
   } else if (destino === 'ayuda') {
     abrirAyuda(false);
+  } else if (destino === 'ajustes') {
+    abrirAjustes(false);
+  } else if (destino === 'archivos') {
+    abrirArchivos(false);
   } else {
+    // Retroceder desde dentro de una carpeta lleva a la anterior, no fuera.
+    volverACarpetas(history.state?.[ESTADO_CARPETAS]);
     mostrarVista('biblioteca');
+    pintarContinuarLeyendo();
     cargarBiblioteca();
   }
 });
@@ -557,7 +605,7 @@ function crearCliente() {
   actualizarAccionesArchivos();
 }
 
-function abrirAjustes() {
+function abrirAjustes(registrar = true) {
   const config = cargarConfig() ?? {};
   $('campo-url').value = config.url ?? '';
   $('campo-usuario').value = config.usuario ?? '';
@@ -565,6 +613,7 @@ function abrirAjustes() {
   $('resultado-prueba').textContent = '';
   $('resultado-prueba').className = 'estado';
   mostrarVista('ajustes');
+  if (registrar) registrarVista('ajustes');
 }
 
 function leerFormulario() {
@@ -585,8 +634,7 @@ $('formulario-webdav').addEventListener('submit', (evento) => {
   localStorage.setItem(CLAVE_CONFIG, JSON.stringify(config));
   crearCliente();
   avisar(t('configSaved'));
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  volverALaBiblioteca();
 });
 
 $('btn-probar').addEventListener('click', async () => {
@@ -608,8 +656,7 @@ $('btn-borrar-config').addEventListener('click', () => {
   localStorage.removeItem(CLAVE_CONFIG);
   crearCliente();
   avisar(t('configDeleted'));
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  volverALaBiblioteca();
 });
 
 $('btn-ajustes').addEventListener('click', abrirAjustes);
@@ -667,8 +714,7 @@ window.addEventListener('hashchange', () => {
   if (!location.hash.startsWith('#cfg=')) return;
   importarConfigDeUrl();
   crearCliente();
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  volverALaBiblioteca();
 });
 
 function importarConfigDeUrl() {
@@ -755,18 +801,22 @@ function actualizarAccionesArchivos() {
   }
 }
 
-function abrirArchivos() {
+function abrirArchivos(registrar = true) {
   actualizarAccionesArchivos();
   $('resultado-copia-biblioteca').textContent = '';
   $('resultado-copia-nube').textContent = cliente ? '' : t('cloudBackupNeedsConfig');
   $('resultado-copia-nube').className = `estado${cliente ? '' : ' error'}`;
   mostrarVista('archivos');
+  if (registrar) registrarVista('archivos');
 }
 
 $('btn-archivos').addEventListener('click', abrirArchivos);
 $('btn-cerrar-archivos').addEventListener('click', () => {
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  if (history.state?.[ESTADO_VISTA] === 'archivos') history.back();
+  else {
+    mostrarVista('biblioteca');
+    cargarBiblioteca();
+  }
 });
 for (const id of ACCIONES_DE_NUBE) {
   $(id).addEventListener('click', (evento) => {
@@ -1075,8 +1125,11 @@ document.addEventListener('click', (evento) => {
   if (enlace.id === 'enlace-configurar') abrirAjustes(); else abrirAyuda();
 });
 $('btn-cerrar-ajustes').addEventListener('click', () => {
-  mostrarVista('biblioteca');
-  cargarBiblioteca();
+  if (history.state?.[ESTADO_VISTA] === 'ajustes') history.back();
+  else {
+    mostrarVista('biblioteca');
+    cargarBiblioteca();
+  }
 });
 
 // ───────────────────────── Biblioteca ─────────────────────────
@@ -1238,6 +1291,9 @@ async function cargarBiblioteca() {
     // vuelve a la raíz en lugar de dejar la sección bloqueada en un error.
     if (rutaNube) {
       rutaNube = '';
+      // La entrada del historial apuntaba a esa carpeta: se corrige en el
+      // sitio para que retroceder no intente volver a lo que ya no existe.
+      actualizarCarpetasEnHistorial();
       return cargarBiblioteca();
     }
     estado.className = 'estado error';
@@ -1950,7 +2006,9 @@ function pintarRutaNube() {
   const nav = $('ruta-carpeta');
   nav.classList.toggle('oculto', !rutaNube);
   pintarMigas(nav, rutaNube, (destino) => {
+    if (destino === rutaNube) return;
     rutaNube = destino;
+    registrarCarpetas();
     cargarBiblioteca();
   }, true);
 }
@@ -1987,6 +2045,7 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
   ponerConteoCarpeta(boton, conteo);
   const abrir = () => {
     rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+    registrarCarpetas();
     cargarBiblioteca();
   };
   boton.addEventListener('click', abrir);
@@ -2545,6 +2604,7 @@ async function cargarLibrosLocales() {
   // vista vacía sin salida.
   if (rutaLocal && !carpetasRegistradas.includes(rutaLocal)) {
     rutaLocal = '';
+    actualizarCarpetasEnHistorial();
     pintarContinuarLeyendo();
   }
   const { carpetas, libros } = almacen.bibliotecaLocal(todos, carpetasRegistradas, rutaLocal);
@@ -2614,7 +2674,9 @@ async function cargarLibrosLocales() {
 // raíz; se hace solo aquí y no en cada recarga para no repetir las
 // comprobaciones de los libros remotos contra el servidor.
 function navegarCarpetaLocal(destino) {
+  if (destino === rutaLocal) return;
   rutaLocal = destino;
+  registrarCarpetas();
   cargarLibrosLocales();
   pintarContinuarLeyendo();
 }
@@ -5919,6 +5981,6 @@ window.addEventListener('online', () => {
 
 importarConfigDeUrl();
 crearCliente();
-history.replaceState({ [ESTADO_VISTA]: 'biblioteca' }, '');
+history.replaceState(estadoBiblioteca(), '');
 mostrarVista('biblioteca');
 precargarLibrosEjemplo().finally(() => cargarBiblioteca());
