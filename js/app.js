@@ -1513,8 +1513,12 @@ function abrirMenuAcciones(titulo, acciones, ancla) {
 
   // Despliega el menú junto al botón «⋯»: alineado a su borde derecho y por
   // debajo; si no cabe en la ventana, se ajusta o se abre hacia arriba.
+  // Cuando el ancla es un punto —el sitio donde se pulsó el botón derecho— el
+  // menú cuelga hacia la derecha de ese punto en vez de acabar en él.
   const menu = document.querySelector('.menu-libro');
-  const caja = ancla.getBoundingClientRect();
+  const caja = ancla instanceof Element
+    ? ancla.getBoundingClientRect()
+    : { top: ancla.y, bottom: ancla.y, right: ancla.x + menu.offsetWidth };
   const margen = 8;
   let x = Math.min(caja.right - menu.offsetWidth, window.innerWidth - menu.offsetWidth - margen);
   x = Math.max(margen, x);
@@ -1551,6 +1555,18 @@ function crearBotonMenu(ficha, obtenerAcciones) {
     evento.stopPropagation();
     actualizarEtiqueta();
     abrirMenuAcciones(ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu);
+  });
+  // El botón derecho sobre la ficha abre el mismo menú donde está el puntero.
+  // Sobre el nombre no, porque ahí la pulsación larga ya muestra el título
+  // completo y en táctil las dos cosas se dispararían a la vez.
+  ficha.addEventListener('contextmenu', (evento) => {
+    if (evento.target.closest('.nombre, .btn-menu-libro')) return;
+    evento.preventDefault();
+    actualizarEtiqueta();
+    abrirMenuAcciones(
+      ficha.querySelector('.nombre').textContent, obtenerAcciones(),
+      { x: evento.clientX, y: evento.clientY },
+    );
   });
   return menu;
 }

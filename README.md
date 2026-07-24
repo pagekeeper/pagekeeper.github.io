@@ -86,6 +86,10 @@ libros y sincronizar el progreso de lectura.
   libros. En los navegadores que permiten escribir en el disco (Chrome, Edge y
   Opera de escritorio) eliges dónde ponerla y se copia tal cual; en el resto se
   entrega como un único ZIP.
+- 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
+  de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
+  opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación
+  larga sigue sirviendo para ver el nombre completo.
 - 🗂️ **Añadir carpetas enteras**: cada sección tiene un botón para elegir una
   carpeta del dispositivo, y también se pueden soltar carpetas arrastrándolas.
   Se recogen todos los PDF y EPUB que haya dentro, subcarpetas incluidas, y se
