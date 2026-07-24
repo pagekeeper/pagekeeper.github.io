@@ -88,7 +88,10 @@ libros y sincronizar el progreso de lectura.
   entrega como un único ZIP.
 - 🏷️ **De dónde sale cada libro**: en la vista de cuadrícula, cada ficha lleva
   una chapita con la nube o el dispositivo, porque las dos bibliotecas pueden
-  tener el mismo título y la cabecera de la sección queda lejos al bajar. En
+  tener el mismo título y la cabecera de la sección queda lejos al bajar. Justo
+  debajo va otra con el formato, PDF o EPUB; un PDF escaneado, que es solo
+  imágenes y por tanto no se puede buscar, seleccionar ni leer en voz alta, lo
+  avisa con el icono de la fotografía. En
   pantallas anchas esa cabecera además se queda fija mientras recorres su
   lista. Las carpetas se agrupan en una banda propia encima de los libros, con
   fichas bajas que no gastan el alto de una portada, y el menú «⋯» y el círculo

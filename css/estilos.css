@@ -597,16 +597,37 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--acento); background: var(--velo-denso);
 }
 
-/* De dónde viene el libro: la cabecera de la sección lo dice, pero al recorrer
-   la cuadrícula se pierde de vista y las dos bibliotecas pueden tener el mismo
-   título. La chapita lo lleva encima cada ficha. */
-.marca-origen { display: none; }
+/* De dónde viene el libro y de qué formato es: la cabecera de la sección dice
+   lo primero, pero al recorrer la cuadrícula se pierde de vista y las dos
+   bibliotecas pueden tener el mismo título; lo segundo no cabe junto al
+   título, que allí ya va recortado a dos líneas. Las dos chapitas van juntas
+   en una esquina de la portada. */
+.marcas-ficha { display: none; }
+/* Una debajo de la otra y no en fila: en una ficha estrecha, la de formato
+   llegaría hasta el botón «⋯» de la esquina contraria, que en pantalla táctil
+   está siempre a la vista. */
+.vista-cuadricula .marcas-ficha {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
+  position: absolute; top: 0.6rem; left: 0.6rem;
+}
 .vista-cuadricula .marca-origen {
-  display: flex; position: absolute; top: 0.6rem; left: 0.6rem;
-  width: 1.35rem; height: 1.35rem; align-items: center; justify-content: center;
+  display: flex; width: 1.35rem; height: 1.35rem;
+  align-items: center; justify-content: center;
   border-radius: 50%; background: rgba(15, 23, 42, 0.58); color: #e2e8f0;
 }
 .vista-cuadricula .marca-origen .icono { width: 0.85rem; height: 0.85rem; }
+.vista-cuadricula .marca-formato {
+  display: flex; align-items: center; gap: 0.15rem;
+  height: 1.35rem; padding: 0 0.32rem; border-radius: 0.4rem;
+  background: rgba(15, 23, 42, 0.58);
+  font-size: 0.58rem; font-weight: 750; letter-spacing: 0.03em;
+}
+/* Colores claros fijos, no los del tema: la chapita se apoya siempre sobre un
+   velo oscuro, y los tonos del tema claro se apagarían encima de él. */
+.vista-cuadricula .marca-formato.formato-pdf { color: #fda4af; }
+.vista-cuadricula .marca-formato.formato-epub { color: #5eead4; }
+.vista-cuadricula .marca-formato.sin-texto { color: #fcd34d; }
+.vista-cuadricula .marca-formato .icono { width: 0.7rem; height: 0.7rem; }
 
 /* Con ratón, el menú «⋯» y el círculo de terminado solo salen sobre la ficha
    que se está mirando: llenaban la cuadrícula de botones. Donde no hay ratón

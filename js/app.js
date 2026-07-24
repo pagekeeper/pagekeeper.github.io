@@ -1651,7 +1651,10 @@ function crearFilaLibro({
   boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
-    <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
+    <span class="marcas-ficha">
+      <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
+      <span class="marca-formato formato-${formato}"></span>
+    </span>
     <span class="datos">
       <span class="cabecera-libro">
         <span class="nombre"></span>
@@ -1681,6 +1684,17 @@ function crearFilaLibro({
     : formato.toUpperCase();
   etiquetaFormato.classList.toggle('sin-texto', sinTexto);
   if (sinTexto) etiquetaFormato.title = t('pdfNoTextTitle');
+  // En la cuadrícula no cabe la etiqueta junto al título, así que el formato
+  // se lleva a una chapita sobre la portada. Un PDF escaneado, que es solo
+  // imágenes, avisa con el icono de la fotografía: allí no hay texto que
+  // buscar, seleccionar ni leer en voz alta.
+  const chapaFormato = boton.querySelector('.marca-formato');
+  chapaFormato.textContent = formato.toUpperCase();
+  chapaFormato.title = sinTexto ? t('pdfNoTextTitle') : formato.toUpperCase();
+  if (sinTexto) {
+    chapaFormato.classList.add('sin-texto');
+    chapaFormato.insertAdjacentHTML('beforeend', icono('image'));
+  }
   const estadoSinConexion = boton.querySelector('.estado-sin-conexion');
   if (sinConexion) {
     estadoSinConexion.textContent = t(copiaDesactualizada ? 'offlineOutdated' : 'availableOffline');
