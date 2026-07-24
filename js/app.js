@@ -1898,7 +1898,22 @@ function pintarRutaNube() {
   }, true);
 }
 
-function crearFilaCarpeta(nombre, soloLectura = false) {
+// Texto del contador de una carpeta según cuántos elementos contiene.
+function textoConteoCarpeta(n) {
+  if (n === 0) return t('folderEmpty');
+  if (n === 1) return t('folderItemsOne');
+  return t('folderItems', { count: n });
+}
+
+// Rellena (o vacía) el contador de una fila de carpeta. Con `n` nulo lo deja
+// en blanco, para cuando aún no se sabe el número.
+function ponerConteoCarpeta(fila, n) {
+  const conteo = fila.querySelector('.conteo-carpeta');
+  if (!conteo) return;
+  conteo.textContent = Number.isFinite(n) ? textoConteoCarpeta(n) : '';
+}
+
+function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
   // Es un div con role="button" (no un <button>) para poder alojar dentro
@@ -1910,8 +1925,9 @@ function crearFilaCarpeta(nombre, soloLectura = false) {
   boton.title = t('openFolder', { name: nombre });
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
-    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span></span>`;
+    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span><span class="conteo-carpeta"></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
+  ponerConteoCarpeta(boton, conteo);
   const abrir = () => {
     rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
     cargarBiblioteca();
@@ -1939,10 +1955,22 @@ function crearFilaCarpeta(nombre, soloLectura = false) {
 
 function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false } = {}) {
   pintarRutaNube();
+  const version = ++versionConteosNube; // cancela conteos de una lista anterior
   const lista = $('lista-libros');
   lista.replaceChildren();
   const copiasPorId = new Map(copias.map((copia) => [copia.id, copia]));
-  for (const carpeta of carpetas) lista.append(crearFilaCarpeta(carpeta.nombre, soloCopias));
+  const filasPendientes = [];
+  for (const carpeta of carpetas) {
+    // Sin conexión el número sale de las copias que ya tenemos; con conexión
+    // hay que preguntarle al servidor, así que se rellena después sin bloquear.
+    const conteo = soloCopias
+      ? contarCopiasEn(copias, rutaNube ? `${rutaNube}/${carpeta.nombre}` : carpeta.nombre)
+      : null;
+    const fila = crearFilaCarpeta(carpeta.nombre, soloCopias, conteo);
+    lista.append(fila);
+    if (!soloCopias) filasPendientes.push({ fila, nombre: carpeta.nombre });
+  }
+  if (filasPendientes.length && cliente) rellenarConteosNube(rutaNube, filasPendientes, version);
   for (const libro of libros) {
     const id = idRemoto(libro.nombre);
     const copia = copiasPorId.get(id);
@@ -1969,6 +1997,31 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
   }
   aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
+}
+
+// Cuántos elementos (subcarpetas + libros) cuelgan directamente de `ruta`
+// según las copias sin conexión disponibles.
+let versionConteosNube = 0;
+function contarCopiasEn(copias, ruta) {
+  const { carpetas, libros } = almacen.bibliotecaDeCopias(copias, ruta);
+  return carpetas.length + libros.length;
+}
+
+// Pregunta al servidor cuántos elementos tiene cada carpeta y actualiza su
+// contador. Va de una en una para no saturar la nube; si la lista se vuelve a
+// pintar o la fila desaparece, se abandona sin tocar nada.
+async function rellenarConteosNube(rutaBase, filas, version) {
+  for (const { fila, nombre } of filas) {
+    if (version !== versionConteosNube) return;
+    let conteo = null;
+    try {
+      const subruta = rutaBase ? `${rutaBase}/${nombre}` : nombre;
+      const { carpetas, libros } = await cliente.listar(subruta);
+      conteo = carpetas.length + libros.length;
+    } catch { /* si no se puede listar, la carpeta se queda sin contador */ }
+    if (version !== versionConteosNube || !fila.isConnected) return;
+    ponerConteoCarpeta(fila, conteo);
+  }
 }
 
 // ───────────────────────── Gestión de carpetas ─────────────────────────
@@ -2082,7 +2135,7 @@ function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
 // para saber si el destino es válido.
 let carpetaArrastrada = '';
 
-function crearFilaCarpetaLocal(nombre) {
+function crearFilaCarpetaLocal(nombre, conteo = null) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
   // Un div con role="button" y no un <button>, para poder alojar dentro el
@@ -2095,8 +2148,9 @@ function crearFilaCarpetaLocal(nombre) {
   etiquetarPorTitulo(boton);
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
-    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span></span>`;
+    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span><span class="conteo-carpeta"></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
+  ponerConteoCarpeta(boton, conteo);
   const abrir = () => navegarCarpetaLocal(rutaLocalDe(nombre));
   boton.addEventListener('click', abrir);
   boton.addEventListener('keydown', (evento) => {
@@ -2443,7 +2497,11 @@ async function cargarLibrosLocales() {
 
   lista.replaceChildren();
   if (!buscando) {
-    for (const carpeta of carpetas) lista.append(crearFilaCarpetaLocal(carpeta.nombre));
+    for (const carpeta of carpetas) {
+      const dentro = almacen.bibliotecaLocal(todos, carpetasRegistradas, rutaLocalDe(carpeta.nombre));
+      const conteo = dentro.carpetas.length + dentro.libros.length;
+      lista.append(crearFilaCarpetaLocal(carpeta.nombre, conteo));
+    }
   }
   for (const libro of aPintar) {
     const fila = crearFilaLibro({

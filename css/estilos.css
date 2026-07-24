@@ -523,6 +523,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   font-size: 0.8rem; color: var(--texto-suave);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
+.conteo-carpeta {
+  color: var(--texto-suave); font-size: 0.78rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.conteo-carpeta:empty { display: none; }
 .libro .fila-detalle { display: flex; align-items: center; gap: 0.45rem; min-width: 0; }
 .libro .fila-detalle .detalle { flex: 1; min-width: 0; }
 .btn-terminado-en-libro {
