@@ -139,6 +139,16 @@ body {
 @media (min-width: 100rem) { :root { --ancho-biblioteca: 86rem; } }
 
 .fila-seccion { display: flex; align-items: flex-start; gap: 0.5rem; }
+/* La cabecera se queda arriba mientras se recorre su sección, para no perder
+   de vista si lo que se está mirando es la nube o el dispositivo. Solo donde
+   sobra alto: en un móvil, con su descripción de tres líneas, se comería
+   media pantalla, y allí ya distingue el origen la chapita de cada ficha. */
+@media (min-width: 48rem) {
+  .fila-seccion {
+    position: sticky; top: 0; z-index: 4;
+    background: var(--fondo); padding: 0.5rem 0; margin-top: -0.5rem;
+  }
+}
 .encabezado-seccion { flex: 1; min-width: 0; }
 .titulo-y-estado-seccion { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; }
 .fila-seccion h2 { font-size: 1rem; color: var(--texto); font-weight: 650; }
@@ -581,6 +591,34 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .vista-cuadricula .btn-menu-libro:hover, .vista-cuadricula .btn-menu-libro:focus-visible {
   color: var(--acento); background: var(--velo-denso);
+}
+
+/* De dónde viene el libro: la cabecera de la sección lo dice, pero al recorrer
+   la cuadrícula se pierde de vista y las dos bibliotecas pueden tener el mismo
+   título. La chapita lo lleva encima cada ficha. */
+.marca-origen { display: none; }
+.vista-cuadricula .marca-origen {
+  display: flex; position: absolute; top: 0.6rem; left: 0.6rem;
+  width: 1.35rem; height: 1.35rem; align-items: center; justify-content: center;
+  border-radius: 50%; background: rgba(15, 23, 42, 0.58); color: #e2e8f0;
+}
+.vista-cuadricula .marca-origen .icono { width: 0.85rem; height: 0.85rem; }
+
+/* Con ratón, el menú «⋯» y el círculo de terminado solo salen sobre la ficha
+   que se está mirando: llenaban la cuadrícula de botones. Donde no hay ratón
+   (táctil) siguen siempre visibles, que si no no habría forma de pulsarlos, y
+   el círculo de un libro ya terminado se queda: ahí es información, no mando. */
+@media (hover: hover) {
+  .vista-cuadricula .btn-menu-libro,
+  .vista-cuadricula .btn-terminado-en-libro:not(.terminado) {
+    opacity: 0; transition: opacity 0.12s;
+  }
+  .vista-cuadricula .libro:hover .btn-menu-libro,
+  .vista-cuadricula .libro:focus-within .btn-menu-libro,
+  .vista-cuadricula .libro:hover .btn-terminado-en-libro,
+  .vista-cuadricula .libro:focus-within .btn-terminado-en-libro {
+    opacity: 1;
+  }
 }
 
 /* ── Lector ── */
@@ -1179,7 +1217,13 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   background: color-mix(in srgb, var(--aviso) 12%, var(--fondo));
   border-color: color-mix(in srgb, var(--aviso) 35%, var(--borde));
 }
-.vista-cuadricula .libro .portada-carpeta .icono { width: 3.5rem; height: 3.5rem; }
+/* Una carpeta no necesita el alto de una portada para enseñar un icono: en la
+   cuadrícula su caja es baja y la ficha se queda arriba de la fila, sin
+   estirarse hasta donde llegan los libros que la acompañan. */
+.vista-cuadricula > li:has(> .libro.carpeta) { align-self: start; }
+.vista-cuadricula .libro.carpeta { height: auto; }
+.vista-cuadricula .libro.carpeta .portada-carpeta { aspect-ratio: 3 / 2; }
+.vista-cuadricula .libro .portada-carpeta .icono { width: 2.4rem; height: 2.4rem; }
 /* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
 .libro.carpeta.destino-mover { border-color: var(--acento); background: var(--fondo-tarjeta); }
 .miga.destino-mover {

@@ -1640,12 +1640,16 @@ function crearFilaLibro({
   elemento.dataset.fechaLectura = avance?.posicionActualizada ?? avance?.actualizado ?? '';
   elemento.dataset.estadoLectura = estadoLectura;
   elemento.classList.toggle('libro-terminado', estadoLectura === 'terminados');
+  // De dónde sale el libro, para marcarlo en la ficha: los identificadores
+  // locales llevan el prefijo «local:» y los de la nube son su ruta.
+  const enLaNube = !String(id).startsWith('local:');
   const boton = document.createElement('div');
   boton.className = 'libro';
   boton.setAttribute('role', 'button');
   boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
+    <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
     <span class="datos">
       <span class="cabecera-libro">
         <span class="nombre"></span>
@@ -1753,6 +1757,16 @@ function crearFilaLibro({
   }).catch(() => null);
 
   const acciones = [];
+  // Marcar la lectura como terminada vive en el círculo de la ficha, pero en
+  // la cuadrícula ese círculo solo aparece al pasar el ratón: en el menú está
+  // siempre a mano.
+  if (mostrarTerminado) {
+    acciones.push({
+      icono: 'circle-check',
+      etiqueta: t(estadoLectura === 'terminados' ? 'actionMarkUnfinished' : 'actionMarkFinished'),
+      alPulsar: () => alternarTerminado(id, estadoLectura !== 'terminados'),
+    });
+  }
   if (alRenombrar) acciones.push({ icono: 'pencil', etiqueta: t('actionRename'), alPulsar: alRenombrar });
   if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });

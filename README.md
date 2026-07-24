@@ -86,6 +86,13 @@ libros y sincronizar el progreso de lectura.
   libros. En los navegadores que permiten escribir en el disco (Chrome, Edge y
   Opera de escritorio) eliges dónde ponerla y se copia tal cual; en el resto se
   entrega como un único ZIP.
+- 🏷️ **De dónde sale cada libro**: en la vista de cuadrícula, cada ficha lleva
+  una chapita con la nube o el dispositivo, porque las dos bibliotecas pueden
+  tener el mismo título y la cabecera de la sección queda lejos al bajar. En
+  pantallas anchas esa cabecera además se queda fija mientras recorres su
+  lista. Las carpetas ocupan una ficha baja, sin estirarse hasta el alto de una
+  portada, y el menú «⋯» y el círculo de «terminado» solo aparecen al pasar el
+  ratón por encima (en pantallas táctiles siguen siempre a la vista).
 - 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
   de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación
