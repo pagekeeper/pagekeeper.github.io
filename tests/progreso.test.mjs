@@ -4,12 +4,26 @@ import assert from 'node:assert/strict';
 import {
   anotarPagina,
   fusionarEntradas,
+  guardarTitulo,
   librosRecientes,
   marcarTerminado,
   progresoDe,
   sincronizar,
+  tituloDe,
   ultimoLibroLeido,
 } from '../js/progreso.js';
+
+function conAlmacenamiento() {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+}
 
 function entrada({ pagina, posicionActualizada, marcadores = [], actualizado = posicionActualizada }) {
   return {
@@ -56,6 +70,42 @@ test('permite marcar y desmarcar manualmente un libro como terminado', () => {
   assert.equal(progresoDe('libro.pdf').terminado, true);
   marcarTerminado('libro.pdf', false);
   assert.equal(progresoDe('libro.pdf').terminado, false);
+});
+
+test('guarda y borra el nombre visible del libro', () => {
+  conAlmacenamiento();
+  guardarTitulo('libro.pdf', '  Mi novela favorita  ');
+  assert.equal(tituloDe('libro.pdf'), 'Mi novela favorita');
+  guardarTitulo('libro.pdf', '');
+  assert.equal(tituloDe('libro.pdf'), null);
+});
+
+test('un libro solo con nombre personalizado no aparece en «Continuar leyendo»', () => {
+  conAlmacenamiento();
+  guardarTitulo('nunca-abierto.pdf', 'Nombre a mano');
+  assert.deepEqual(librosRecientes(Infinity).map((libro) => libro.id), []);
+});
+
+test('el nombre personalizado gana el más reciente sin tocar la posición', () => {
+  const local = entrada({ pagina: 20, posicionActualizada: '2026-01-03T10:00:00.000Z' });
+  local.titulo = 'Nombre viejo';
+  local.tituloActualizado = '2026-01-01T10:00:00.000Z';
+  const remoto = entrada({ pagina: 10, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.titulo = 'Nombre nuevo';
+  remoto.tituloActualizado = '2026-01-04T10:00:00.000Z';
+  const resultado = fusionarEntradas(local, remoto);
+  assert.equal(resultado.pagina, 20);
+  assert.equal(resultado.titulo, 'Nombre nuevo');
+});
+
+test('borrar el nombre en un dispositivo se propaga al fusionar', () => {
+  const local = entrada({ pagina: 5, posicionActualizada: '2026-01-05T10:00:00.000Z' });
+  local.tituloActualizado = '2026-01-05T10:00:00.000Z'; // borrado más reciente, sin titulo
+  const remoto = entrada({ pagina: 5, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.titulo = 'Nombre antiguo';
+  remoto.tituloActualizado = '2026-01-02T10:00:00.000Z';
+  const resultado = fusionarEntradas(local, remoto);
+  assert.equal(resultado.titulo, undefined);
 });
 
 test('fusiona el estado terminado sin alterar la posición de lectura', () => {

@@ -1491,10 +1491,15 @@ function crearBotonMenu(ficha, obtenerAcciones) {
 // Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
-  alGuardarEnDispositivo, alSinConexion, sinConexion = false, copiaDesactualizada = false,
+  alGuardarEnDispositivo, alSinConexion, alRenombrar, sinConexion = false, copiaDesactualizada = false,
   mostrarTerminado = true, sinTexto = false,
 }) {
   const avance = progreso.progresoDe(id);
+  // El nombre que puso el usuario manda sobre el del archivo (y, más abajo,
+  // sobre el de los metadatos). `titulo` sigue vivo para la búsqueda, para que
+  // el nombre original todavía encuentre el libro.
+  const personalizado = progreso.tituloDe(id);
+  const tituloMostrado = personalizado || titulo;
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
   const estadoLectura = lecturaTerminada(avance, porcentaje)
     ? 'terminados'
@@ -1502,8 +1507,9 @@ function crearFilaLibro({
 
   const elemento = document.createElement('li');
   elemento.dataset.idLibro = id;
-  elemento.dataset.busqueda = normalizarBusqueda(`${titulo} ${formato}`);
-  elemento.dataset.titulo = normalizarBusqueda(titulo);
+  elemento.dataset.busqueda = normalizarBusqueda(`${tituloMostrado} ${titulo} ${formato}`);
+  elemento.dataset.titulo = normalizarBusqueda(tituloMostrado);
+  elemento.dataset.tituloPersonalizado = personalizado ? 'true' : '';
   elemento.dataset.autor = '';
   elemento.dataset.progreso = String(porcentaje);
   elemento.dataset.fechaLectura = avance?.posicionActualizada ?? avance?.actualizado ?? '';
@@ -1536,8 +1542,8 @@ function crearFilaLibro({
   }
 
   const nombreLibro = boton.querySelector('.nombre');
-  nombreLibro.textContent = titulo;
-  nombreLibro.title = titulo;
+  nombreLibro.textContent = tituloMostrado;
+  nombreLibro.title = tituloMostrado;
   const etiquetaFormato = boton.querySelector('.formato');
   etiquetaFormato.textContent = sinTexto
     ? `${formato.toUpperCase()} · ${t('pdfNoTextBadge')}`
@@ -1550,7 +1556,10 @@ function crearFilaLibro({
     estadoSinConexion.classList.remove('oculto');
     estadoSinConexion.classList.toggle('desactualizada', copiaDesactualizada);
   }
-  boton.querySelector('.detalle').textContent = !avance
+  // Una entrada sin página ni CFI (p. ej. creada solo para guardar el nombre)
+  // no es una lectura empezada: se muestra como pendiente.
+  const empezado = avance && (avance.pagina != null || avance.cfi);
+  boton.querySelector('.detalle').textContent = !empezado
     ? `${(tamano / 1024 / 1024).toFixed(1)} MB · ${t('notStarted')}`
     : avance.cfi
       ? `${porcentaje}% ${t('read')}`
@@ -1601,7 +1610,7 @@ function crearFilaLibro({
     terminado.type = 'button';
     terminado.className = 'btn-terminado-en-libro';
     terminado.classList.toggle('terminado', estadoLectura === 'terminados');
-    terminado.title = t(estadoLectura === 'terminados' ? 'markUnfinished' : 'markFinished', { title: titulo });
+    terminado.title = t(estadoLectura === 'terminados' ? 'markUnfinished' : 'markFinished', { title: tituloMostrado });
     terminado.setAttribute('aria-label', terminado.title);
     terminado.setAttribute('aria-pressed', String(estadoLectura === 'terminados'));
     terminado.innerHTML = `${icono('circle-check')}<span${estadoLectura === 'terminados' ? '' : ' class="sr-solo"'}>${t('finished')}</span>` +
@@ -1619,6 +1628,7 @@ function crearFilaLibro({
   }).catch(() => null);
 
   const acciones = [];
+  if (alRenombrar) acciones.push({ icono: 'pencil', etiqueta: t('actionRename'), alPulsar: alRenombrar });
   if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
   if (alGuardarEnDispositivo) {
@@ -1658,7 +1668,9 @@ async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
   if (!metadatos) return;
   const valores = Object.values(metadatos).filter(Boolean);
   fila.dataset.busqueda = normalizarBusqueda(`${tituloArchivo} ${fila.dataset.busqueda} ${valores.join(' ')}`);
-  if (metadatos.titulo?.trim()) {
+  // El nombre que puso el usuario manda: los metadatos solo rellenan el título
+  // cuando no hay uno personalizado (aunque su autor y su texto sí se indexan).
+  if (metadatos.titulo?.trim() && fila.dataset.tituloPersonalizado !== 'true') {
     const nombre = fila.querySelector('.nombre');
     nombre.textContent = metadatos.titulo.trim();
     nombre.title = metadatos.titulo.trim();
@@ -1775,6 +1787,28 @@ for (const [idZona, idBoton, clave] of [
   };
   boton.addEventListener('click', alternar);
   zona.querySelector('.encabezado-seccion').addEventListener('click', alternar);
+}
+
+// Cambia el nombre visible del libro (no el archivo: así conserva su posición
+// de lectura). Vacío restablece el nombre del archivo o de los metadatos.
+async function renombrarLibro(id) {
+  const fila = document.querySelector(`[data-id-libro="${CSS.escape(id)}"]`);
+  const actual = fila?.querySelector('.nombre')?.textContent?.trim() ?? '';
+  const respuesta = prompt(t('renameBookPrompt'), actual);
+  if (respuesta === null) return;
+  const nuevo = respuesta.trim();
+  if (nuevo === actual) return;
+  progreso.guardarTitulo(id, nuevo);
+  if (!id.startsWith('local:') && cliente) {
+    try {
+      await progreso.sincronizar(cliente);
+      actualizarEstadoSincronizacion();
+    } catch (error) {
+      actualizarEstadoSincronizacion(error);
+      avisar(t('syncFailed', { error: explicarError(error) }), 7000);
+    }
+  }
+  cargarBiblioteca();
 }
 
 async function alternarTerminado(id, terminado) {
@@ -1984,6 +2018,7 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
         tipo: 'webdav', id, tamano: libro.tamano,
       }),
       alAbrir: () => abrirLibroRemoto(id, libro),
+      alRenombrar: () => renombrarLibro(id),
       alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
       alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
       alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
@@ -2513,6 +2548,7 @@ async function cargarLibrosLocales() {
         tipo: 'local', id: libro.id, tamano: libro.tamano,
       }),
       alAbrir: () => abrirLibroLocal(libro),
+      alRenombrar: () => renombrarLibro(libro.id),
       // Subir a la nube: solo si hay servidor configurado.
       alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
       alMover: () => abrirDialogoMover({ id: libro.id, nombre: libro.nombre }, 'local'),
@@ -2878,7 +2914,7 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
     asegurarMiniatura(id, formatoDe(nombre), datos);
     await abrirEnLector(datos, {
       id,
-      titulo: nombre.replace(/\.(pdf|epub)$/i, ''),
+      titulo: progreso.tituloDe(id) || nombre.replace(/\.(pdf|epub)$/i, ''),
       tipo: 'webdav',
       formato: formatoDe(nombre),
       tamano: datos.byteLength,
@@ -2900,7 +2936,7 @@ async function abrirLibroLocal(libro) {
     asegurarMiniatura(libro.id, formatoDe(libro.nombre), datos);
     await abrirEnLector(datos, {
       id: libro.id,
-      titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
+      titulo: progreso.tituloDe(libro.id) || libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tipo: 'local',
       nombre: libro.nombre,
       formato: formatoDe(libro.nombre),

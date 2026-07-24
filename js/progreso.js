@@ -111,6 +111,7 @@ function normalizarEntrada(entrada = {}) {
   const posicionActualizada = entrada.posicionActualizada ?? entrada.actualizado ?? FECHA_CERO;
   const marcadoresActualizados = fechaColeccion(entrada);
   const terminadoActualizado = entrada.terminadoActualizado ?? FECHA_CERO;
+  const tituloActualizado = entrada.tituloActualizado ?? FECHA_CERO;
   const marcadores = Array.isArray(entrada.marcadores)
     ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
     : [];
@@ -119,12 +120,14 @@ function normalizarEntrada(entrada = {}) {
     posicionActualizada,
     marcadoresActualizados,
     terminadoActualizado,
+    tituloActualizado,
     marcadoresVersion: 2,
     actualizado: fechaMaxima(
       entrada.actualizado,
       posicionActualizada,
       marcadoresActualizados,
       terminadoActualizado,
+      tituloActualizado,
       ...marcadores.map((marcador) => marcador.actualizado),
     ),
   };
@@ -286,6 +289,34 @@ export function progresoDe(idLibro) {
   return cargarLocal().libros[idLibro] ?? null;
 }
 
+// Nombre visible que el usuario ha puesto al libro, o null si no lo ha
+// cambiado (entonces vale el del archivo o el de los metadatos).
+export function tituloDe(idLibro) {
+  const titulo = progresoDe(idLibro)?.titulo;
+  return typeof titulo === 'string' && titulo.trim() ? titulo.trim() : null;
+}
+
+// Cambia (o borra, con cadena vacía) el nombre visible del libro. Se guarda en
+// la entrada de progreso, así que en los libros de la nube viaja con la
+// sincronización; en los locales se queda en el dispositivo, como su lectura.
+export function guardarTitulo(idLibro, titulo) {
+  const datos = cargarLocal();
+  // Sin pagina/paginas: una entrada solo-título no cuenta como lectura y no
+  // debe aparecer en «Continuar leyendo».
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? {});
+  const limpio = String(titulo ?? '').trim();
+  const ahora = new Date().toISOString();
+  if (limpio) entrada.titulo = limpio;
+  else delete entrada.titulo;
+  entrada.tituloActualizado = ahora;
+  entrada.actualizado = fechaMaxima(entrada.actualizado, ahora);
+  entrada.dispositivo = nombreDispositivo();
+  datos.libros[idLibro] = entrada;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return entrada;
+}
+
 export function marcarTerminado(idLibro, terminado) {
   const datos = cargarLocal();
   const entrada = normalizarEntrada(datos.libros[idLibro] ?? { pagina: 0, paginas: 0 });
@@ -390,10 +421,17 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   resultado.terminadoActualizado = finalizacion.terminadoActualizado;
   if (typeof finalizacion.terminado === 'boolean') resultado.terminado = finalizacion.terminado;
   else delete resultado.terminado;
+  // El nombre personalizado gana el último editado, con su propia fecha, para
+  // que renombrar en un dispositivo no dependa de quién leyó después.
+  const titulacion = local.tituloActualizado > remoto.tituloActualizado ? local : remoto;
+  resultado.tituloActualizado = fechaMaxima(local.tituloActualizado, remoto.tituloActualizado);
+  if (typeof titulacion.titulo === 'string' && titulacion.titulo.trim()) resultado.titulo = titulacion.titulo;
+  else delete resultado.titulo;
   resultado.actualizado = fechaMaxima(
     resultado.posicionActualizada,
     resultado.marcadoresActualizados,
     resultado.terminadoActualizado,
+    resultado.tituloActualizado,
     ...marcadores.map((marcador) => marcador.actualizado),
   );
   return resultado;
