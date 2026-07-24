@@ -731,10 +731,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   .barra-lector .btn-pagina { padding-left: 0.45rem; padding-right: 0.45rem; }
   .panel-margenes { position: fixed; top: 4rem; left: 0.5rem; right: 0.5rem; width: auto; }
   .libro { padding: 0.65rem 0.7rem; }
-  .libro .cabecera-libro { align-items: flex-start; }
+  /* En la lista el título va a una sola línea con elipsis: así las fichas
+     quedan más compactas y parejas. La cuadrícula, con su selector más
+     específico, conserva sus dos líneas porque ahí el ancho no da para más. */
   .libro .nombre {
-    display: -webkit-box; flex: 1; white-space: normal; line-height: 1.25;
-    -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2;
+    flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .libro-ejemplo { grid-template-columns: auto 1fr; }
   .botones-libro-ejemplo { grid-column: 1 / -1; }
