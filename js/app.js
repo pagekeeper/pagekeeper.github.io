@@ -1543,6 +1543,30 @@ $('menu-libro').addEventListener('click', (evento) => {
   if (evento.target === $('menu-libro')) cerrarMenuAcciones();
 });
 
+// Con el menú abierto, su fondo tapa la página entera y el siguiente clic
+// derecho ya no llega a las fichas. Se cierra el menú y se le repite el clic a
+// la que quedaba debajo, de modo que el botón derecho salta de una ficha a
+// otra sin dejar salir el menú del navegador. La ficha se busca por su sitio
+// en la pantalla y no con elementFromPoint, porque mientras hay una capa
+// abierta el resto de la página está inerte y no responde al puntero.
+function fichaEnPunto(x, y) {
+  return [...document.querySelectorAll('.libro')].find((ficha) => {
+    const caja = ficha.getBoundingClientRect();
+    return x >= caja.left && x <= caja.right && y >= caja.top && y <= caja.bottom;
+  });
+}
+
+$('menu-libro').addEventListener('contextmenu', (evento) => {
+  evento.preventDefault();
+  if (evento.target !== $('menu-libro')) return;
+  const ficha = fichaEnPunto(evento.clientX, evento.clientY);
+  cerrarMenuAcciones();
+  ficha?.dispatchEvent(new PointerEvent('contextmenu', {
+    bubbles: true, clientX: evento.clientX, clientY: evento.clientY,
+    pointerType: 'mouse', button: 2,
+  }));
+});
+
 // Botón «⋯» que abre el menú de acciones de una ficha. El título se lee al
 // pulsarlo porque los metadatos pueden sustituir el nombre tras crear la fila.
 function crearBotonMenu(ficha, obtenerAcciones) {
@@ -1566,7 +1590,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
   // Sobre el nombre no, porque ahí la pulsación larga ya muestra el título
   // completo y en táctil las dos cosas se dispararían a la vez.
   ficha.addEventListener('contextmenu', (evento) => {
-    if (evento.target.closest('.nombre, .btn-menu-libro')) return;
+    if (evento.target.closest('.nombre')) return;
     evento.preventDefault();
     actualizarEtiqueta();
     abrirMenuAcciones(
@@ -3909,6 +3933,15 @@ function menuLectorContextual({ x, y }) {
 $('area-lectura').addEventListener('contextmenu', (evento) => {
   if (!abrePorRaton(evento) || window.getSelection()?.toString().trim()) return;
   evento.preventDefault();
+  menuLectorContextual({ x: evento.clientX, y: evento.clientY });
+});
+
+// Igual que en la biblioteca: el fondo del menú abierto se come el siguiente
+// clic derecho, así que aquí se atiende y el menú se muda al nuevo punto.
+$('fondo-menu-lector').addEventListener('contextmenu', (evento) => {
+  if (!abrePorRaton(evento)) return;
+  evento.preventDefault();
+  if (evento.target !== $('fondo-menu-lector')) return;
   menuLectorContextual({ x: evento.clientX, y: evento.clientY });
 });
 
