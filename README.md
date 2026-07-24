@@ -88,20 +88,21 @@ libros y sincronizar el progreso de lectura.
   entrega como un único ZIP.
 - 🏷️ **De dónde sale cada libro**: en la vista de cuadrícula, cada ficha lleva
   una chapita con la nube o el dispositivo, porque las dos bibliotecas pueden
-  tener el mismo título y la cabecera de la sección queda lejos al bajar. Justo
-  debajo va otra con el formato, PDF o EPUB; un PDF escaneado, que es solo
-  imágenes y por tanto no se puede buscar, seleccionar ni leer en voz alta, lo
-  avisa con el icono de la fotografía. En
+  tener el mismo título y la cabecera de la sección queda lejos al bajar. Bajo
+  el título va además la etiqueta del formato, la misma que en la lista y en
+  «Continuar leyendo»: PDF, EPUB o «PDF · SIN TEXTO» si el documento está
+  escaneado y por tanto no se puede buscar, seleccionar ni leer en voz alta. En
   pantallas anchas esa cabecera además se queda fija mientras recorres su
   lista. Las carpetas se agrupan en una banda propia encima de los libros, con
   fichas bajas que no gastan el alto de una portada, y el menú «⋯» y el círculo
   de «terminado» solo aparecen al pasar el ratón por encima (en pantallas
   táctiles siguen siempre a la vista).
-- 📝 **Resumen al pasar el ratón**: cuando el archivo trae una sinopsis en sus
+- 📝 **Resumen del libro**: cuando el archivo trae una sinopsis en sus
   metadatos (la descripción del EPUB o el «asunto» del PDF), dejar el ratón
   sobre la ficha la enseña en un recuadro flotante, en «Continuar leyendo» y en
-  las dos bibliotecas. En pantalla táctil no aparece: allí no hay «encima» y el
-  toque abre el libro.
+  las dos bibliotecas. También aparece bajo el título en el menú «⋯», que es
+  como se lee en una pantalla táctil, donde no hay «encima» y el toque abre el
+  libro.
 - 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
   de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación

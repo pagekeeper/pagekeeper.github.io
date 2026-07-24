@@ -579,9 +579,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .vista-cuadricula .libro .portada .icono { width: 2rem; height: 2rem; }
 .vista-cuadricula .libro .autor,
 .vista-cuadricula .libro .detalle,
-.vista-cuadricula .libro .formato,
 .vista-cuadricula .libro .estado-sin-conexion { display: none; }
-.vista-cuadricula .libro .cabecera-libro { align-items: flex-start; }
+/* El formato va debajo del título, con la misma etiqueta que en la lista y en
+   «Continuar leyendo»: en una ficha estrecha no cabe a su lado. */
+.vista-cuadricula .libro .cabecera-libro {
+  flex-direction: column; align-items: flex-start; gap: 0.25rem;
+}
 .vista-cuadricula .libro .nombre {
   white-space: normal; font-size: 0.78rem; line-height: 1.3;
   display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
@@ -597,37 +600,16 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--acento); background: var(--velo-denso);
 }
 
-/* De dónde viene el libro y de qué formato es: la cabecera de la sección dice
-   lo primero, pero al recorrer la cuadrícula se pierde de vista y las dos
-   bibliotecas pueden tener el mismo título; lo segundo no cabe junto al
-   título, que allí ya va recortado a dos líneas. Las dos chapitas van juntas
-   en una esquina de la portada. */
-.marcas-ficha { display: none; }
-/* Una debajo de la otra y no en fila: en una ficha estrecha, la de formato
-   llegaría hasta el botón «⋯» de la esquina contraria, que en pantalla táctil
-   está siempre a la vista. */
-.vista-cuadricula .marcas-ficha {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 0.25rem;
-  position: absolute; top: 0.6rem; left: 0.6rem;
-}
+/* De dónde viene el libro: la cabecera de la sección lo dice, pero al recorrer
+   la cuadrícula se pierde de vista y las dos bibliotecas pueden tener el mismo
+   título. La chapita lo lleva encima cada ficha. */
+.marca-origen { display: none; }
 .vista-cuadricula .marca-origen {
-  display: flex; width: 1.35rem; height: 1.35rem;
-  align-items: center; justify-content: center;
+  display: flex; position: absolute; top: 0.6rem; left: 0.6rem;
+  width: 1.35rem; height: 1.35rem; align-items: center; justify-content: center;
   border-radius: 50%; background: rgba(15, 23, 42, 0.58); color: #e2e8f0;
 }
 .vista-cuadricula .marca-origen .icono { width: 0.85rem; height: 0.85rem; }
-.vista-cuadricula .marca-formato {
-  display: flex; align-items: center; gap: 0.15rem;
-  height: 1.35rem; padding: 0 0.32rem; border-radius: 0.4rem;
-  background: rgba(15, 23, 42, 0.58);
-  font-size: 0.58rem; font-weight: 750; letter-spacing: 0.03em;
-}
-/* Colores claros fijos, no los del tema: la chapita se apoya siempre sobre un
-   velo oscuro, y los tonos del tema claro se apagarían encima de él. */
-.vista-cuadricula .marca-formato.formato-pdf { color: #fda4af; }
-.vista-cuadricula .marca-formato.formato-epub { color: #5eead4; }
-.vista-cuadricula .marca-formato.sin-texto { color: #fcd34d; }
-.vista-cuadricula .marca-formato .icono { width: 0.7rem; height: 0.7rem; }
 
 /* Con ratón, el menú «⋯» y el círculo de terminado solo salen sobre la ficha
    que se está mirando: llenaban la cuadrícula de botones. Donde no hay ratón
@@ -1328,6 +1310,14 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 .menu-libro h2 {
   font-size: 0.85rem; font-weight: 650; color: var(--texto-suave); line-height: 1.35;
   display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* El resumen del libro, bajo su título. Se corta a unas pocas líneas para que
+   el menú no crezca hasta ocupar la pantalla. */
+#resumen-menu-libro {
+  font-size: 0.78rem; line-height: 1.4; color: var(--texto-suave);
+  margin: -0.15rem 0 0.1rem;
+  display: -webkit-box; -webkit-line-clamp: 7; line-clamp: 7; -webkit-box-orient: vertical;
   overflow: hidden;
 }
 .menu-libro ul { list-style: none; display: flex; flex-direction: column; gap: 0.15rem; }

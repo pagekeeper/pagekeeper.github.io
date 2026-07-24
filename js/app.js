@@ -1497,8 +1497,13 @@ function cerrarMenuAcciones() {
   $('menu-libro').classList.add('oculto');
 }
 
-function abrirMenuAcciones(titulo, acciones, ancla) {
+function abrirMenuAcciones(titulo, acciones, ancla, resumen = '') {
   $('titulo-menu-libro').textContent = titulo;
+  // El resumen del libro, si sus metadatos traen uno: en pantalla táctil el
+  // aviso al pasar el ratón no existe, y este menú es la otra forma de leerlo.
+  const textoResumen = $('resumen-menu-libro');
+  textoResumen.textContent = resumen;
+  textoResumen.classList.toggle('oculto', !resumen);
   const lista = $('lista-menu-libro');
   lista.replaceChildren();
   for (const accion of acciones) {
@@ -1584,10 +1589,13 @@ function crearBotonMenu(ficha, obtenerAcciones) {
     menu.setAttribute('aria-label', menu.title);
   };
   actualizarEtiqueta();
+  const resumen = () => ficha.closest('li')?.dataset.resumen ?? '';
   menu.addEventListener('click', (evento) => {
     evento.stopPropagation();
     actualizarEtiqueta();
-    abrirMenuAcciones(ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu);
+    abrirMenuAcciones(
+      ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu, resumen(),
+    );
   });
   // El botón derecho sobre la ficha abre el mismo menú donde está el puntero.
   // Sobre el nombre no, porque ahí la pulsación larga ya muestra el título
@@ -1598,7 +1606,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
     actualizarEtiqueta();
     abrirMenuAcciones(
       ficha.querySelector('.nombre').textContent, obtenerAcciones(),
-      { x: evento.clientX, y: evento.clientY },
+      { x: evento.clientX, y: evento.clientY }, resumen(),
     );
   });
   return menu;
@@ -1652,10 +1660,7 @@ function crearFilaLibro({
   boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
-    <span class="marcas-ficha">
-      <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
-      <span class="marca-formato formato-${formato}"></span>
-    </span>
+    <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
     <span class="datos">
       <span class="cabecera-libro">
         <span class="nombre"></span>
@@ -1685,17 +1690,6 @@ function crearFilaLibro({
     : formato.toUpperCase();
   etiquetaFormato.classList.toggle('sin-texto', sinTexto);
   if (sinTexto) etiquetaFormato.title = t('pdfNoTextTitle');
-  // En la cuadrícula no cabe la etiqueta junto al título, así que el formato
-  // se lleva a una chapita sobre la portada. Un PDF escaneado, que es solo
-  // imágenes, avisa con el icono de la fotografía: allí no hay texto que
-  // buscar, seleccionar ni leer en voz alta.
-  const chapaFormato = boton.querySelector('.marca-formato');
-  chapaFormato.textContent = formato.toUpperCase();
-  chapaFormato.title = sinTexto ? t('pdfNoTextTitle') : formato.toUpperCase();
-  if (sinTexto) {
-    chapaFormato.classList.add('sin-texto');
-    chapaFormato.insertAdjacentHTML('beforeend', icono('image'));
-  }
   const estadoSinConexion = boton.querySelector('.estado-sin-conexion');
   if (sinConexion) {
     estadoSinConexion.textContent = t(copiaDesactualizada ? 'offlineOutdated' : 'availableOffline');
