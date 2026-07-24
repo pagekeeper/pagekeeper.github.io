@@ -89,7 +89,12 @@ libros y sincronizar el progreso de lectura.
 - 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
   de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación
-  larga sigue sirviendo para ver el nombre completo.
+  larga sigue sirviendo para ver el nombre completo. Mientras se lee, el botón
+  derecho sobre la página despliega en el puntero las acciones de lectura
+  (índice, anotaciones, voz alta, modo de página, zoom, papel…). Si hay texto
+  seleccionado se deja pasar el menú del navegador, para poder copiarlo, y en
+  las pantallas táctiles no se toca la pulsación larga, que sirve para
+  seleccionar y resaltar.
 - 🗂️ **Añadir carpetas enteras**: cada sección tiene un botón para elegir una
   carpeta del dispositivo, y también se pueden soltar carpetas arrastrándolas.
   Se recogen todos los PDF y EPUB que haya dentro, subcarpetas incluidas, y se

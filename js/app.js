@@ -10,6 +10,7 @@ import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } fro
 import { LectorVoz } from './tts.js';
 import { iniciarTema, temaElegido, siguienteTema, pasarAlSiguienteTema } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
+import { abrePorRaton } from './menu-contextual.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
@@ -324,6 +325,8 @@ const lectorEpub = new LectorEpub({
   // El texto del libro va en un iframe que se queda los toques: los reenvía
   // para que funcionen igual el arrastre de página y el pellizco.
   alTocar: (toque) => tocarDesdeElLibro(toque),
+  // Y también el botón derecho, que abre el menú de lectura.
+  alMenuContextual: (punto) => menuLectorContextual(punto),
 });
 
 function formatoDe(nombre) {
@@ -1511,11 +1514,15 @@ function abrirMenuAcciones(titulo, acciones, ancla) {
   }
   $('menu-libro').classList.remove('oculto');
 
-  // Despliega el menú junto al botón «⋯»: alineado a su borde derecho y por
-  // debajo; si no cabe en la ventana, se ajusta o se abre hacia arriba.
-  // Cuando el ancla es un punto —el sitio donde se pulsó el botón derecho— el
-  // menú cuelga hacia la derecha de ese punto en vez de acabar en él.
-  const menu = document.querySelector('.menu-libro');
+  colocarMenuFlotante(document.querySelector('.menu-libro'), ancla);
+  lista.querySelector('button')?.focus();
+}
+
+// Despliega un menú junto a su ancla: alineado a su borde derecho y por
+// debajo; si no cabe en la ventana, se ajusta o se abre hacia arriba. El ancla
+// puede ser un elemento (el botón «⋯») o el punto donde se pulsó el botón
+// derecho, y entonces el menú cuelga hacia la derecha en vez de acabar ahí.
+function colocarMenuFlotante(menu, ancla) {
   const caja = ancla instanceof Element
     ? ancla.getBoundingClientRect()
     : { top: ancla.y, bottom: ancla.y, right: ancla.x + menu.offsetWidth };
@@ -1530,7 +1537,6 @@ function abrirMenuAcciones(titulo, acciones, ancla) {
   menu.style.left = `${x}px`;
   menu.style.top = `${y}px`;
   menu.classList.toggle('abre-arriba', abreArriba);
-  lista.querySelector('button')?.focus();
 }
 
 $('menu-libro').addEventListener('click', (evento) => {
@@ -3857,7 +3863,10 @@ function cerrarMenuLector() {
   $('btn-menu-lector').setAttribute('aria-expanded', 'false');
 }
 
-function abrirMenuLector() {
+// Sin punto, el menú se queda donde lo pone el CSS: colgando de su botón «⋯»
+// en la esquina de la barra. Con él —el botón derecho sobre la página— se
+// despliega ahí mismo.
+function abrirMenuLector(punto = null) {
   cerrarBusquedaLibro();
   cerrarIndiceSiFlota();
   cerrarPanelMarcadores();
@@ -3866,6 +3875,14 @@ function abrirMenuLector() {
   cerrarPanelTts();
   actualizarMenuLector();
   $('fondo-menu-lector').classList.remove('oculto');
+  const menu = $('menu-lector');
+  menu.classList.toggle('menu-en-punto', Boolean(punto));
+  if (punto) {
+    colocarMenuFlotante(menu, punto);
+  } else {
+    menu.removeAttribute('style');
+    menu.classList.remove('abre-arriba');
+  }
   $('btn-menu-lector').setAttribute('aria-expanded', 'true');
   // La primera opción que se vea: las que no vienen al caso para este libro
   // están ocultas, y enfocar una oculta deja el foco en el limbo.
@@ -3879,6 +3896,20 @@ $('btn-menu-lector').addEventListener('click', () => {
 });
 $('fondo-menu-lector').addEventListener('click', (evento) => {
   if (evento.target === $('fondo-menu-lector')) cerrarMenuLector();
+});
+
+// El botón derecho sobre la página abre ahí mismo el menú con las acciones de
+// lectura. Con texto seleccionado se deja pasar el menú del navegador, que es
+// el que sirve para copiar; el de resaltar y anotar ya sale con la selección.
+function menuLectorContextual({ x, y }) {
+  cerrarMenuNota();
+  abrirMenuLector({ x, y });
+}
+
+$('area-lectura').addEventListener('contextmenu', (evento) => {
+  if (!abrePorRaton(evento) || window.getSelection()?.toString().trim()) return;
+  evento.preventDefault();
+  menuLectorContextual({ x: evento.clientX, y: evento.clientY });
 });
 
 function enlazarAccionMenu(idMenu, idOriginal) {

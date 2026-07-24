@@ -626,6 +626,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   padding: 0.6rem; box-shadow: 0 10px 32px var(--sombra-fuerte);
   animation: despliegue-menu 0.12s ease-out; transform-origin: top right;
 }
+/* Abierto con el botón derecho: cuelga del puntero, no de la barra. */
+.menu-lector.menu-en-punto {
+  top: auto; right: auto; max-height: calc(100dvh - 3rem); transform-origin: top left;
+}
+.menu-lector.menu-en-punto.abre-arriba { transform-origin: bottom left; }
 .menu-lector h2 {
   padding: 0.15rem 0.7rem 0.45rem; color: var(--texto-suave); font-size: 0.85rem;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

@@ -14,6 +14,7 @@
 // posición en EPUB) más un porcentaje aproximado del libro.
 
 import { posicionVerticalLibre } from './posicion-notas.js';
+import { abrePorRaton } from './menu-contextual.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
@@ -156,7 +157,7 @@ const COLORES_PAGINA = {
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
-    etiquetaOpcionesNota, alTocar }) {
+    etiquetaOpcionesNota, alTocar, alMenuContextual }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
     this.alTeclear = alTeclear;
@@ -169,6 +170,7 @@ export class LectorEpub {
     this.alOcultarNota = alOcultarNota;
     this.etiquetaOpcionesNota = etiquetaOpcionesNota;
     this.alTocar = alTocar;
+    this.alMenuContextual = alMenuContextual;
 
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
@@ -393,6 +395,18 @@ export class LectorEpub {
       this.ocultarNotaHover();
       this.programarIconosNotas();
     }, { passive: true });
+    // El botón derecho sobre el texto del capítulo se queda dentro del iframe:
+    // se reenvía con las coordenadas ya trasladadas al documento de fuera.
+    doc.addEventListener('contextmenu', (evento) => {
+      if (!this.alMenuContextual || !abrePorRaton(evento)) return;
+      if (doc.getSelection?.()?.toString().trim()) return;
+      evento.preventDefault();
+      const marco = doc.defaultView?.frameElement?.getBoundingClientRect();
+      this.alMenuContextual({
+        x: evento.clientX + (marco?.left ?? 0),
+        y: evento.clientY + (marco?.top ?? 0),
+      });
+    });
   }
 
   rangoNota(contents, anotacion) {
