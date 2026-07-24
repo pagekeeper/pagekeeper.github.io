@@ -97,6 +97,11 @@ libros y sincronizar el progreso de lectura.
   fichas bajas que no gastan el alto de una portada, y el menú «⋯» y el círculo
   de «terminado» solo aparecen al pasar el ratón por encima (en pantallas
   táctiles siguen siempre a la vista).
+- 📝 **Resumen al pasar el ratón**: cuando el archivo trae una sinopsis en sus
+  metadatos (la descripción del EPUB o el «asunto» del PDF), dejar el ratón
+  sobre la ficha la enseña en un recuadro flotante, en «Continuar leyendo» y en
+  las dos bibliotecas. En pantalla táctil no aparece: allí no hay «encima» y el
+  toque abre el libro.
 - 🖱️ **Menú con el botón derecho**: pulsar con el botón derecho sobre la ficha
   de un libro o de una carpeta abre ahí mismo el menú «⋯», con las mismas
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación

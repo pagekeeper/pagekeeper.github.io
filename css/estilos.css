@@ -646,6 +646,19 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   }
 }
 
+/* El resumen del libro, al dejar el ratón sobre su ficha. Va suelto sobre la
+   página (position: fixed) porque la ficha lo recortaría. */
+.tip-resumen {
+  position: fixed; z-index: 60; max-width: 22rem;
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding: 0.6rem 0.7rem; border: 1px solid var(--borde); border-radius: 0.6rem;
+  background: var(--fondo-tarjeta); color: var(--texto);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.22);
+  font-size: 0.82rem; line-height: 1.4; pointer-events: none;
+}
+.tip-resumen .titulo-tip { font-size: 0.85rem; font-weight: 700; }
+.tip-resumen .texto-tip { color: var(--texto-suave); }
+
 /* ── Lector ── */
 #vista-lector { background: var(--fondo-lector); height: 100dvh; }
 

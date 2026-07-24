@@ -11,6 +11,7 @@ import { LectorVoz } from './tts.js';
 import { iniciarTema, temaElegido, siguienteTema, pasarAlSiguienteTema } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
+import { resumenDeMetadatos } from './resumen-libro.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
@@ -1818,6 +1819,79 @@ function normalizarBusqueda(texto) {
   return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
 }
 
+// \u2500\u2500 Aviso emergente con el resumen del libro \u2500\u2500
+// Muchos libros traen una sinopsis en sus metadatos que no cabe en la ficha:
+// se ense\u00f1a al dejar el rat\u00f3n encima (o al llegar con el teclado), tanto en
+// \u00abContinuar leyendo\u00bb como en las dos bibliotecas. En pantalla t\u00e1ctil no hay
+// \u00abencima\u00bb, as\u00ed que all\u00ed no aparece y no roba el toque que abre el libro.
+const RETRASO_TIP = 400; // ms; lo justo para no dispararlo de paso
+let tipResumen = null;
+let temporizadorTip = null;
+let fichaConTip = null;
+
+function ocultarTipResumen() {
+  clearTimeout(temporizadorTip);
+  fichaConTip = null;
+  tipResumen?.classList.add('oculto');
+}
+
+function pintarTipResumen(ficha) {
+  if (!tipResumen) {
+    tipResumen = document.createElement('div');
+    tipResumen.className = 'tip-resumen oculto';
+    tipResumen.setAttribute('role', 'tooltip');
+    tipResumen.innerHTML = '<strong class="titulo-tip"></strong><span class="texto-tip"></span>';
+    document.body.append(tipResumen);
+  }
+  tipResumen.querySelector('.titulo-tip').textContent = ficha.querySelector('.nombre')?.textContent ?? '';
+  tipResumen.querySelector('.texto-tip').textContent = ficha.dataset.resumen;
+  tipResumen.classList.remove('oculto');
+
+  // Al lado de la ficha, del lado donde quepa, y siempre dentro de la ventana.
+  const margen = 8;
+  const hueco = ficha.getBoundingClientRect();
+  const { offsetWidth: ancho, offsetHeight: alto } = tipResumen;
+  let izquierda = hueco.right + margen;
+  if (izquierda + ancho > window.innerWidth - margen) izquierda = hueco.left - margen - ancho;
+  if (izquierda < margen) {
+    izquierda = Math.min(Math.max(margen, hueco.left), window.innerWidth - ancho - margen);
+  }
+  const arriba = Math.min(hueco.top, window.innerHeight - alto - margen);
+  tipResumen.style.left = `${Math.round(Math.max(margen, izquierda))}px`;
+  tipResumen.style.top = `${Math.round(Math.max(margen, arriba))}px`;
+}
+
+function prepararTipResumen() {
+  const fichaBajo = (destino) => destino?.closest?.('li[data-id-libro][data-resumen] .libro')?.parentElement;
+  const atender = (ficha) => {
+    if (ficha === fichaConTip) return;
+    clearTimeout(temporizadorTip);
+    if (!ficha) return ocultarTipResumen();
+    fichaConTip = ficha;
+    tipResumen?.classList.add('oculto');
+    temporizadorTip = setTimeout(() => pintarTipResumen(ficha), RETRASO_TIP);
+  };
+
+  document.addEventListener('pointerover', (evento) => {
+    if (evento.pointerType && evento.pointerType !== 'mouse') return;
+    atender(fichaBajo(evento.target));
+  });
+  document.addEventListener('focusin', (evento) => atender(fichaBajo(evento.target)));
+  document.addEventListener('focusout', ocultarTipResumen);
+  // Cualquier cosa que mueva la ficha de sitio o abra otra vista lo retira.
+  document.addEventListener('pointerdown', ocultarTipResumen);
+  document.addEventListener('keydown', ocultarTipResumen);
+  window.addEventListener('resize', ocultarTipResumen);
+  // Al desplazar la página el aviso acompaña a su ficha; si la lista se ha
+  // repintado entretanto y la ficha ya no existe, se retira.
+  window.addEventListener('scroll', () => {
+    if (!fichaConTip || tipResumen?.classList.contains('oculto')) return;
+    if (fichaConTip.isConnected) pintarTipResumen(fichaConTip);
+    else ocultarTipResumen();
+  }, { capture: true, passive: true });
+}
+prepararTipResumen();
+
 async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
   const metadatos = await almacen.obtenerMetadatos(id).catch(() => null);
   if (!metadatos) return;
@@ -1836,6 +1910,14 @@ async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
     autor.textContent = metadatos.autor.trim();
     autor.classList.remove('oculto');
     fila.dataset.autor = normalizarBusqueda(metadatos.autor.trim());
+  }
+  // El resumen no cabe en la ficha: se guarda aquí y sale al pasar el ratón.
+  const resumen = resumenDeMetadatos(metadatos);
+  if (resumen) {
+    fila.dataset.resumen = resumen;
+    // El aviso ya enseña el título entero: dejar además el «title» del nombre
+    // sacaría dos globos, el del navegador encima del nuestro.
+    fila.querySelector('.nombre')?.removeAttribute('title');
   }
   aplicarOrganizacionBiblioteca();
 }
