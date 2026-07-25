@@ -556,6 +556,14 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   line-height: 1.25; white-space: nowrap;
 }
 .estado-sin-conexion.desactualizada { color: var(--aviso); }
+/* De qué carpeta sale un resultado de la búsqueda. En la cuadrícula la ficha
+   es estrecha, así que se le deja recortar el nombre en lugar de desbordar. */
+.carpeta-libro {
+  flex: none; display: inline-flex; align-items: center; gap: 0.2rem; min-width: 0;
+  color: var(--texto-suave); font-size: 0.68rem; line-height: 1.25;
+}
+.carpeta-libro .icono { width: 0.8rem; height: 0.8rem; flex: none; color: var(--aviso); }
+.carpeta-libro span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .libro:hover { border-color: var(--acento); }
 .libro .portada {
   width: 2.7rem; height: 3.6rem; flex: none;
@@ -634,6 +642,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .vista-cuadricula .libro .autor,
 .vista-cuadricula .libro .detalle,
 .vista-cuadricula .libro .estado-sin-conexion { display: none; }
+.vista-cuadricula .libro .carpeta-libro { max-width: 100%; }
 /* El formato va debajo del título, con la misma etiqueta que en la lista y en
    «Continuar leyendo»: en una ficha estrecha no cabe a su lado. */
 .vista-cuadricula .libro .cabecera-libro {

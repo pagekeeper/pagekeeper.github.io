@@ -1224,6 +1224,7 @@ async function anadirLibroEjemplo(ejemplo, boton) {
 
 async function cargarBiblioteca() {
   mostrarLibroEjemplo(false);
+  olvidarIndiceNube(); // la nube puede haber cambiado: se recorrerá otra vez
   const promesaLocales = cargarLibrosLocales();
   versionContinuarLeyendo += 1; // cancela una comprobación remota anterior aún en curso
   $('continuar-leyendo').classList.add('oculto');
@@ -1628,7 +1629,7 @@ function accionDescargarCarpeta(alPulsar) {
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
   alGuardarEnDispositivo, alSinConexion, alRenombrar, sinConexion = false, copiaDesactualizada = false,
-  mostrarTerminado = true, sinTexto = false,
+  mostrarTerminado = true, sinTexto = false, carpeta = '',
 }) {
   const avance = progreso.progresoDe(id);
   // El nombre que puso el usuario manda sobre el del archivo (y, más abajo,
@@ -1643,7 +1644,8 @@ function crearFilaLibro({
 
   const elemento = document.createElement('li');
   elemento.dataset.idLibro = id;
-  elemento.dataset.busqueda = normalizarBusqueda(`${tituloMostrado} ${titulo} ${formato}`);
+  elemento.dataset.busqueda = normalizarBusqueda(
+    `${tituloMostrado} ${titulo} ${formato} ${carpeta.replace(/\//g, ' ')}`);
   elemento.dataset.titulo = normalizarBusqueda(tituloMostrado);
   elemento.dataset.tituloPersonalizado = personalizado ? 'true' : '';
   elemento.dataset.autor = '';
@@ -1666,6 +1668,7 @@ function crearFilaLibro({
         <span class="nombre"></span>
         <span class="formato formato-${formato}"></span>
         <span class="estado-sin-conexion oculto"></span>
+        <span class="carpeta-libro oculto"></span>
       </span>
       <span class="autor oculto"></span>
       <span class="fila-detalle"><span class="detalle"></span></span>
@@ -1690,6 +1693,16 @@ function crearFilaLibro({
     : formato.toUpperCase();
   etiquetaFormato.classList.toggle('sin-texto', sinTexto);
   if (sinTexto) etiquetaFormato.title = t('pdfNoTextTitle');
+  // Un resultado que sale de otra carpeta lleva dicho de cuál: si no, en la
+  // lista aparecen libros que no están donde se está mirando y no hay manera
+  // de saber de dónde han salido.
+  if (carpeta) {
+    const etiqueta = boton.querySelector('.carpeta-libro');
+    etiqueta.innerHTML = `${icono('folder')}<span></span>`;
+    etiqueta.querySelector('span').textContent = carpeta.split('/').pop();
+    etiqueta.title = t('inFolder', { name: carpeta });
+    etiqueta.classList.remove('oculto');
+  }
   const estadoSinConexion = boton.querySelector('.estado-sin-conexion');
   if (sinConexion) {
     estadoSinConexion.textContent = t(copiaDesactualizada ? 'offlineOutdated' : 'availableOffline');
@@ -1954,7 +1967,11 @@ function aplicarOrganizacionBiblioteca() {
     if (coincide && fila.dataset.idLibro) visibles += 1;
   }
   const estado = $('estado-filtro-biblioteca');
-  estado.textContent = (consulta || filtro !== 'todos') && !visibles ? t('noLibraryResults') : '';
+  estado.textContent = (consulta || filtro !== 'todos') && !visibles
+    // Sin nada a la vista, decir «no hay resultados» mientras aún se están
+    // recorriendo las carpetas de la nube sería adelantarse.
+    ? t(promesaIndiceNube ? 'searchingFolders' : 'noLibraryResults')
+    : '';
   estado.classList.toggle('oculto', !estado.textContent);
   actualizarConteosSeccion();
 }
@@ -1985,8 +2002,11 @@ $('buscar-biblioteca').addEventListener('input', () => {
   const hayConsulta = Boolean($('buscar-biblioteca').value.trim());
   if (hayConsulta !== buscandoEnBiblioteca) {
     buscandoEnBiblioteca = hayConsulta;
-    // Entrar o salir de una búsqueda cambia el alcance de la lista local.
+    // Entrar o salir de una búsqueda cambia el alcance de las dos listas: la
+    // local pasa a mirar toda la biblioteca y la de la nube, a recorrer sus
+    // carpetas.
     cargarLibrosLocales();
+    pintarResultadosEnCarpetasNube();
   }
   aplicarOrganizacionBiblioteca();
 });
@@ -2272,32 +2292,112 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
   }
   if (filasPendientes.length && cliente) rellenarConteosNube(rutaNube, filasPendientes, version);
   for (const libro of libros) {
-    const id = idRemoto(libro.nombre);
-    const copia = copiasPorId.get(id);
-    const desactualizada = !soloCopias && almacen.copiaRemotaDesactualizada(copia, libro);
-    lista.append(crearFilaLibro({
-      id,
-      titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
-      tamano: libro.tamano,
-      formato: formatoDe(libro.nombre),
-      sinTexto: formatoDe(libro.nombre) === 'pdf' && pdfSinTextoConocido({
-        tipo: 'webdav', id, tamano: libro.tamano,
-      }),
-      alAbrir: () => abrirLibroRemoto(id, libro),
-      alRenombrar: () => renombrarLibro(id),
-      alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
-      alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
-      alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
-      alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
-      alSinConexion: copia && !desactualizada
-        ? () => quitarCopiaSinConexion(id, libro.nombre)
-        : () => guardarCopiaSinConexion(id, libro),
-      sinConexion: Boolean(copia),
-      copiaDesactualizada: desactualizada,
-    }));
+    lista.append(crearFilaLibroRemoto(libro, copiasPorId.get(idRemoto(libro.nombre)), soloCopias));
   }
   aplicarOrganizacionBiblioteca();
   actualizarVisibilidadBuscadorBiblioteca();
+  pintarResultadosEnCarpetasNube();
+}
+
+// La fila de un libro de la nube. `libro.carpeta` solo viene en los resultados
+// que la búsqueda saca de una subcarpeta; en la carpeta abierta la ruta la
+// pone `idRemoto`.
+function crearFilaLibroRemoto(libro, copia, soloCopias = false) {
+  const carpeta = libro.carpeta ?? '';
+  const id = carpeta ? `${carpeta}/${libro.nombre}` : idRemoto(libro.nombre);
+  const desactualizada = !soloCopias && almacen.copiaRemotaDesactualizada(copia, libro);
+  return crearFilaLibro({
+    id,
+    carpeta,
+    titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
+    tamano: libro.tamano,
+    formato: formatoDe(libro.nombre),
+    sinTexto: formatoDe(libro.nombre) === 'pdf' && pdfSinTextoConocido({
+      tipo: 'webdav', id, tamano: libro.tamano,
+    }),
+    alAbrir: () => abrirLibroRemoto(id, libro),
+    alRenombrar: () => renombrarLibro(id),
+    alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
+    alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
+    alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
+    alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
+    alSinConexion: copia && !desactualizada
+      ? () => quitarCopiaSinConexion(id, libro.nombre)
+      : () => guardarCopiaSinConexion(id, libro),
+    sinConexion: Boolean(copia),
+    copiaDesactualizada: desactualizada,
+  });
+}
+
+// ── Buscar dentro de las carpetas de la nube ──
+// La sección local ya busca en toda la biblioteca; la de la nube solo veía la
+// carpeta abierta, así que meter un libro en una carpeta equivalía a
+// esconderlo del buscador. Aquí se recorren las subcarpetas y sus libros se
+// añaden a la lista mientras dure la búsqueda.
+//
+// El recorrido cuesta una petición por carpeta, así que se hace una sola vez y
+// se guarda: no se puede repetir a cada tecla. `olvidarIndiceNube()` lo tira
+// cuando la biblioteca cambia.
+let indiceNube = null;        // { ruta, libros } ya recorrido
+let promesaIndiceNube = null; // recorrido en curso, para no lanzar dos
+let versionBusquedaNube = 0;
+
+function olvidarIndiceNube() {
+  indiceNube = null;
+  promesaIndiceNube = null;
+}
+
+async function recorrerCarpetasNube(rutaBase) {
+  const encontrados = [];
+  const pendientes = [];
+  const { carpetas } = await cliente.listar(rutaBase);
+  for (const carpeta of carpetas) {
+    pendientes.push(rutaBase ? `${rutaBase}/${carpeta.nombre}` : carpeta.nombre);
+  }
+  while (pendientes.length) {
+    const ruta = pendientes.shift();
+    // Una carpeta que falle (permisos, borrada a media búsqueda) no puede
+    // tumbar el resto del recorrido.
+    let contenido;
+    try { contenido = await cliente.listar(ruta); } catch { continue; }
+    for (const carpeta of contenido.carpetas) pendientes.push(`${ruta}/${carpeta.nombre}`);
+    for (const libro of contenido.libros) encontrados.push({ ...libro, carpeta: ruta });
+  }
+  return encontrados;
+}
+
+function librosEnCarpetasNube() {
+  if (indiceNube && indiceNube.ruta === rutaNube) return Promise.resolve(indiceNube.libros);
+  if (!promesaIndiceNube) {
+    const ruta = rutaNube;
+    promesaIndiceNube = recorrerCarpetasNube(ruta)
+      .then((libros) => { indiceNube = { ruta, libros }; return libros; })
+      .catch(() => [])   // sin conexión no hay nada que recorrer
+      .finally(() => { promesaIndiceNube = null; });
+  }
+  return promesaIndiceNube;
+}
+
+async function pintarResultadosEnCarpetasNube() {
+  const lista = $('lista-libros');
+  for (const fila of lista.querySelectorAll('li[data-en-carpeta]')) fila.remove();
+  const version = ++versionBusquedaNube;
+  if (!cliente || !buscandoEnBiblioteca || $('zona-remota').classList.contains('oculto')) {
+    actualizarConteosSeccion();
+    return;
+  }
+  const copias = await almacen.listarCopiasRemotas(cliente.base).catch(() => []);
+  const libros = await librosEnCarpetasNube();
+  // Mientras se recorría la nube pueden haber cambiado la consulta o la
+  // carpeta: lo que llega tarde ya no vale.
+  if (version !== versionBusquedaNube) return;
+  const copiasPorId = new Map(copias.map((copia) => [copia.id, copia]));
+  for (const libro of libros) {
+    const fila = crearFilaLibroRemoto(libro, copiasPorId.get(`${libro.carpeta}/${libro.nombre}`));
+    fila.dataset.enCarpeta = libro.carpeta;
+    lista.append(fila);
+  }
+  aplicarOrganizacionBiblioteca();
 }
 
 // Cuántos elementos (subcarpetas + libros) cuelgan directamente de `ruta`
@@ -2818,6 +2918,9 @@ async function cargarLibrosLocales() {
   for (const libro of aPintar) {
     const fila = crearFilaLibro({
       id: libro.id,
+      // Solo se dice la carpeta de lo que no está en la que se está mirando,
+      // que es lo que saca a la vista la búsqueda.
+      carpeta: libro.carpeta && libro.carpeta !== rutaLocal ? libro.carpeta : '',
       titulo: libro.nombre.replace(/\.(pdf|epub)$/i, ''),
       tamano: libro.tamano,
       formato: formatoDe(libro.nombre),
