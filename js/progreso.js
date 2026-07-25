@@ -426,6 +426,38 @@ function fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal) {
 // Fusiona por separado la posición y cada marcador. `cambioLocal` contiene
 // tokens que solo viven en este navegador: mientras sigan pendientes, la
 // edición local prevalece aunque el reloj del dispositivo esté desajustado.
+// ¿Se escribió esta posición sabiendo lo que había en el servidor?
+//
+// `visto` guarda qué posición remota conocía este dispositivo la última vez que
+// sincronizó. Si el servidor tiene una posterior, es que se leyó y se avanzó a
+// ciegas —sin cobertura, o con el servidor caído— y entonces «gana la más
+// reciente» es una mala regla: la posición local, por venir de una copia vieja,
+// puede estar mucho más atrás y aun así ser la más nueva, borrando el avance
+// real hecho en otro aparato.
+//
+// En ese caso concreto se conserva la más avanzada. Fuera de él manda la fecha,
+// para que volver atrás a releer un capítulo siga funcionando entre dispositivos.
+function escribioAciegas(local, remoto) {
+  const visto = local.visto ?? FECHA_CERO;
+  return remoto.posicionActualizada > visto;
+}
+
+function sinVisto(entrada) {
+  const { visto, ...resto } = entrada;
+  return resto;
+}
+
+function avance(entrada) {
+  const pagina = Number(entrada?.pagina);
+  return Number.isFinite(pagina) ? pagina : -1;
+}
+
+function escogerPosicion(local, remoto) {
+  const localEsReciente = local.posicionActualizada > remoto.posicionActualizada;
+  if (localEsReciente && escribioAciegas(local, remoto)) return avance(local) >= avance(remoto);
+  return localEsReciente;
+}
+
 export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}) {
   const local = normalizarEntrada(localOriginal);
   const remoto = normalizarEntrada(remotoOriginal);
@@ -433,7 +465,7 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   // pendiente. Dar prioridad incondicional al pendiente hacía que dos
   // dispositivos conservaran posiciones distintas y se sobrescribieran por
   // turnos cada vez que sincronizaban.
-  const posicionLocal = local.posicionActualizada > remoto.posicionActualizada;
+  const posicionLocal = escogerPosicion(local, remoto);
   const posicion = posicionLocal ? { ...local } : remoto;
   const reciente = local.actualizado >= remoto.actualizado ? local : remoto;
   const anterior = reciente === local ? remoto : local;
@@ -501,12 +533,18 @@ async function sincronizarAhora(cliente) {
       if (id.startsWith('local:')) continue;
       const mio = local.libros[id];
       const suyo = remoto.libros[id];
+      // `visto` es la memoria de este dispositivo —qué posición remota llegó a
+      // conocer— y por eso se guarda solo en local: en el archivo compartido
+      // cada aparato pisaría la del anterior y no significaría nada.
       if (mio && suyo) {
         const fusionado = fusionarEntradas(mio, suyo, cambios[id]);
-        local.libros[id] = fusionado;
-        remoto.libros[id] = fusionado;
-      } else if (mio) remoto.libros[id] = normalizarEntrada(mio);
-      else if (suyo) local.libros[id] = normalizarEntrada(suyo);
+        local.libros[id] = { ...fusionado, visto: fusionado.posicionActualizada };
+        remoto.libros[id] = sinVisto(fusionado);
+      } else if (mio) remoto.libros[id] = sinVisto(normalizarEntrada(mio));
+      else if (suyo) {
+        const entrada = normalizarEntrada(suyo);
+        local.libros[id] = { ...entrada, visto: entrada.posicionActualizada };
+      }
       if (cambios[id]) confirmables[id] = structuredClone(cambios[id]);
     }
 
