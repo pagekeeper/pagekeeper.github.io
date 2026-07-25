@@ -4621,9 +4621,13 @@ function cerrarIndiceSiFlota() {
   if (indiceFlotante()) cerrarIndiceLibro();
 }
 
-function cerrarIndiceLibro() {
+// `recordar` distingue el cierre a mano (la ✕, que vale igual que apagar el
+// botón: la barra no vuelve en el siguiente libro) del cierre automático al
+// saltar a un capítulo en pantalla estrecha o al salir del libro.
+function cerrarIndiceLibro({ recordar = false } = {}) {
   $('panel-indice-libro').classList.add('oculto');
   marcarBotonIndice(false);
+  if (recordar) localStorage.setItem(CLAVE_INDICE_ABIERTO, '0');
 }
 
 // El botón se queda pulsado mientras el panel (o la barra lateral) está a la
@@ -5625,7 +5629,7 @@ $('btn-indice-libro').addEventListener('click', () => {
   const activa = panel.querySelector('.entrada-indice-libro[aria-current], .miniatura-pagina[aria-current]');
   (activa ?? panel.querySelector('.entrada-indice-libro, .miniatura-pagina'))?.focus();
 });
-$('cerrar-indice-libro').addEventListener('click', cerrarIndiceLibro);
+$('cerrar-indice-libro').addEventListener('click', () => cerrarIndiceLibro({ recordar: true }));
 $('pestana-indice').addEventListener('click', () => {
   mostrarPestanaPanel('indice');
   marcarEntradaIndiceActual(true);
