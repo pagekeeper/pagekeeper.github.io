@@ -348,6 +348,16 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 .cabecera-continuar { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.7rem; }
 .cabecera-continuar h2 { color: var(--acento); font-size: 1rem; }
 .cabecera-continuar p { color: var(--texto-suave); font-size: 0.78rem; }
+/* El texto empuja los dos botones al extremo y, como toda la cabecera pliega,
+   se comporta como un mando. */
+.texto-continuar { flex: 1; min-width: 0; cursor: pointer; }
+.cabecera-continuar .btn-icono { flex: none; }
+/* Plegado: se queda la cabecera, que es una línea, y la última lectura sigue
+   a un toque de distancia. */
+.continuar-plegado .cabecera-continuar { margin-bottom: 0; }
+.continuar-plegado #libro-continuar,
+.continuar-plegado .btn-mas-recientes { display: none; }
+.continuar-plegado .btn-plegar-seccion .icono { transform: rotate(-90deg); }
 .icono-continuar {
   width: 2.15rem; height: 2.15rem; border-radius: 50%; flex: none;
   display: inline-flex; align-items: center; justify-content: center;

@@ -67,10 +67,16 @@
       <section id="continuar-leyendo" class="continuar-leyendo oculto" aria-labelledby="titulo-continuar">
         <div class="cabecera-continuar">
           <span class="icono-continuar" data-icono="book-open"></span>
-          <div>
+          <div class="texto-continuar">
             <h2 id="titulo-continuar" data-i18n="continueReading">Continuar leyendo</h2>
             <p data-i18n="continueReadingHelp">Tu lectura más reciente, con las demás a un toque</p>
           </div>
+          <button id="btn-plegar-continuar" type="button" class="btn-icono btn-plegar-seccion"
+            data-icono="chevron-down" title="Plegar o desplegar la sección"
+            data-i18n-title="toggleSection" aria-expanded="true" aria-controls="libro-continuar"></button>
+          <button id="btn-quitar-continuar" type="button" class="btn-icono" data-icono="x"
+            title="Quitar «Continuar leyendo» de la biblioteca"
+            data-i18n-title="removeContinue"></button>
         </div>
         <ul id="libro-continuar" class="lista-libros"></ul>
         <button id="btn-mas-recientes" type="button" class="btn-mas-recientes oculto"

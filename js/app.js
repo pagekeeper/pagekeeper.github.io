@@ -76,6 +76,7 @@ const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 // Ausente o distinta de '1' significa visible: el bloque se enseña salvo que
 // se pida lo contrario, así que no hay nada que guardar en el caso normal.
 const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
+const CLAVE_CONTINUAR_PLEGADO = 'lector.continuarPlegado'; // solo de este dispositivo
 
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
@@ -892,6 +893,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
   aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
   sincronizarCasillaContinuar();
+  aplicarPlegadoContinuar();
 }
 
 async function exportarBibliotecaLocal() {
@@ -1370,6 +1372,38 @@ $('casilla-continuar').addEventListener('change', (evento) => {
   if (evento.target.checked) localStorage.removeItem(CLAVE_CONTINUAR_OCULTO);
   else localStorage.setItem(CLAVE_CONTINUAR_OCULTO, '1');
   pintarContinuarLeyendo();
+});
+
+// ── Plegar o quitar «Continuar leyendo» desde la propia biblioteca ──
+// Quitarlo ya se podía en los ajustes, pero es donde nadie lo busca teniendo
+// el recuadro delante. Plegado deja solo su cabecera, que ocupa una línea:
+// para quien quiere la biblioteca a la vista sin renunciar a la última
+// lectura, que sigue a un toque.
+
+function aplicarPlegadoContinuar() {
+  const plegado = localStorage.getItem(CLAVE_CONTINUAR_PLEGADO) === '1';
+  $('continuar-leyendo').classList.toggle('continuar-plegado', plegado);
+  $('btn-plegar-continuar').setAttribute('aria-expanded', String(!plegado));
+}
+
+function alternarPlegadoContinuar() {
+  const plegado = localStorage.getItem(CLAVE_CONTINUAR_PLEGADO) === '1';
+  if (plegado) localStorage.removeItem(CLAVE_CONTINUAR_PLEGADO);
+  else localStorage.setItem(CLAVE_CONTINUAR_PLEGADO, '1');
+  aplicarPlegadoContinuar();
+}
+
+$('btn-plegar-continuar').addEventListener('click', alternarPlegadoContinuar);
+// Toda la cabecera alterna, igual que en las secciones de la biblioteca.
+$('continuar-leyendo').querySelector('.texto-continuar')
+  .addEventListener('click', alternarPlegadoContinuar);
+
+$('btn-quitar-continuar').addEventListener('click', () => {
+  localStorage.setItem(CLAVE_CONTINUAR_OCULTO, '1');
+  sincronizarCasillaContinuar();
+  pintarContinuarLeyendo();
+  // Desaparecer sin decir por dónde vuelve sería dejarlo perdido.
+  avisar(t('continueRemoved'), 6000);
 });
 
 function actualizarDesplegableContinuar() {
@@ -6334,6 +6368,7 @@ document.addEventListener('idioma-cambiado', () => {
 iniciarIdioma();
 iniciarTema();
 sincronizarCasillaContinuar();
+aplicarPlegadoContinuar();
 aplicarTemaPagina(temaPagina());
 aplicarAparienciaModo(modoActual());
 
