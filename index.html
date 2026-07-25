@@ -525,6 +525,10 @@
         </button>
       </div>
     </div>
+    <!-- Los datos de la lectura (capítulo, pantallas, tiempo) al pie, donde
+         caben sin disputarle sitio a los botones de la barra de arriba. Se
+         puede apagar en los ajustes; el contenido lo pone el JavaScript. -->
+    <footer id="barra-estado-lector" class="barra-estado-lector oculto"></footer>
   </section>
 
   <!-- ═══════════ AJUSTES ═══════════ -->
@@ -564,6 +568,15 @@
           <span data-i18n="showContinueReading">Mostrar «Continuar leyendo»</span>
         </label>
         <p class="ayuda" data-i18n="showContinueReadingHelp">El recuadro con tus últimas lecturas, encima de la biblioteca. Al ocultarlo, los libros siguen donde estaban y conservan su página.</p>
+      </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="reader">Lector</h2>
+        <label class="casilla">
+          <input type="checkbox" id="casilla-barra-estado" checked>
+          <span data-i18n="showStatusBar">Mostrar la barra de datos al pie</span>
+        </label>
+        <p class="ayuda" data-i18n="showStatusBarHelp">La línea del final del lector con la página del capítulo, la pantalla del libro, el porcentaje leído y el tiempo que queda. Al ocultarla se gana ese poco de alto para el texto.</p>
       </div>
 
       <div class="tarjeta">

@@ -925,6 +925,29 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   color: var(--acento); background: var(--fondo-tarjeta);
 }
 
+/* Barra de datos al pie. Una sola línea discreta: en el móvil la barra de
+   arriba ya va llena de botones y ahí no cabía nada más. Si no cupiera (letra
+   grande del sistema, pantalla muy estrecha), se desplaza a lo ancho en lugar
+   de partirse en dos líneas y comerse la lectura. */
+.barra-estado-lector {
+  flex: none; display: flex; align-items: center; justify-content: center;
+  gap: 0.7rem; overflow-x: auto; scrollbar-width: none;
+  /* Alto de una línea aunque esté vacía: así no baila el área de lectura. */
+  min-height: 1.15rem;
+  padding: 0.25rem 0.6rem calc(0.25rem + env(safe-area-inset-bottom));
+  background: var(--fondo); border-top: 1px solid var(--borde);
+  color: var(--texto-suave); font-size: 0.72rem; white-space: nowrap;
+}
+.barra-estado-lector::-webkit-scrollbar { display: none; }
+.barra-estado-lector .dato-estado { flex: none; }
+/* El punto de separación es del CSS: así el JavaScript solo pone los datos
+   que tenga, sin preocuparse de cuál es el primero. */
+.barra-estado-lector .dato-estado + .dato-estado::before {
+  content: '·'; margin-right: 0.7rem; color: var(--borde-fuerte);
+}
+/* A pantalla completa no queda nada de interfaz, tampoco esta. */
+#vista-lector.inmersivo .barra-estado-lector { display: none; }
+
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
 /* touch-action reserva el pellizco de dos dedos para el zoom del PDF (sin él,
    el navegador ampliaría toda la interfaz). Solo se le quita al navegador
@@ -1260,10 +1283,12 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
    demás paneles siguen flotando (position: fixed) y no entran en la rejilla. */
 @media (min-width: 64rem) {
   #vista-lector {
-    display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto 1fr;
+    display: grid; grid-template-columns: auto auto 1fr; grid-template-rows: auto 1fr auto;
   }
   #vista-lector > .barra-lector { grid-column: 1 / -1; }
   #vista-lector > #area-lectura { grid-column: 3; grid-row: 2; }
+  /* Cruza también bajo el índice: es información del libro, no del texto. */
+  #vista-lector > .barra-estado-lector { grid-column: 1 / -1; grid-row: 3; }
   #panel-indice-libro {
     position: static; grid-column: 1; grid-row: 2;
     width: var(--ancho-indice, 19rem); max-height: none; min-height: 0;

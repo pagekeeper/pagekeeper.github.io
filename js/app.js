@@ -78,6 +78,8 @@ const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 // se pida lo contrario, así que no hay nada que guardar en el caso normal.
 const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
 const CLAVE_CONTINUAR_PLEGADO = 'lector.continuarPlegado'; // solo de este dispositivo
+// Igual que la de «Continuar leyendo»: ausente o distinta de '1' es visible.
+const CLAVE_BARRA_ESTADO_OCULTA = 'lector.barraEstadoOculta';
 // Cuántas lecturas se enseñan. Ausente significa «las que quepan», que depende
 // del ancho, así que es cosa de cada dispositivo y no viaja con la copia.
 const CLAVE_CONTINUAR_MAXIMO = 'lector.continuarMaximo';
@@ -93,7 +95,7 @@ const CLAVES_PREFERENCIAS_COPIA = [
   // Las dos secciones, no solo una: que la copia restaurara el pliegue del
   // dispositivo y se dejara el de la nube no lo entendía nadie.
   CLAVE_PLEGADA_LOCAL, CLAVE_PLEGADA_NUBE,
-  CLAVE_CONTINUAR_OCULTO,
+  CLAVE_CONTINUAR_OCULTO, CLAVE_BARRA_ESTADO_OCULTA,
 ];
 
 // Un libro de ejemplo por formato e idioma: así quedan representados
@@ -311,6 +313,9 @@ const lector = new Lector({
 const lectorEpub = new LectorEpub({
   contenedor: $('contenedor-epub'),
   alCambiarPosicion: cuandoCambiaPosicionEpub,
+  // Recuento de pantallas rehecho tras cambiar la letra o el ancho: no es un
+  // cambio de posición, solo hay que repintar la barra del pie.
+  alCambiarPantallas: () => pintarBarraEstado(),
   alTeclear: manejarTecla,
   // Los enlaces internos del EPUB los salta epub.js por su cuenta: aquí solo
   // se apunta la posición de partida para poder volver con el historial.
@@ -453,6 +458,7 @@ function cerrarVistaLector() {
   subirPosicionAhora();
   lectorEpub.cerrar();
   libroActual = null;
+  pintarBarraEstado();
   mostrarVista('biblioteca');
   cargarBiblioteca();
 }
@@ -4479,8 +4485,83 @@ function tiempoRestanteEstimado() {
 function pintarTiempoRestante() {
   const texto = tiempoRestanteEstimado();
   $('tiempo-restante').textContent = texto ? `≈ ${texto}` : '';
-  $('tiempo-restante').classList.toggle('oculto', !texto);
+  // Con la barra del pie encendida el tiempo vive allí: repetido arriba solo
+  // gastaba sitio de la barra de herramientas. Si se apaga, vuelve aquí.
+  $('tiempo-restante').classList.toggle('oculto', !texto || !barraEstadoOculta());
+  pintarBarraEstado();
 }
+
+// ───────────── Barra de datos al pie ─────────────
+//
+// En el móvil la barra de arriba va llena de botones y no admite un dato más;
+// abajo queda una línea libre donde caben los que no son de mando, sino de
+// lectura. Se enseña también en pantalla grande: teniendo sitio, mejor un
+// único lugar donde mirar en todos los aparatos que dos costumbres distintas.
+
+function barraEstadoOculta() {
+  return localStorage.getItem(CLAVE_BARRA_ESTADO_OCULTA) === '1';
+}
+
+function datoEstado(texto, titulo) {
+  const span = document.createElement('span');
+  span.className = 'dato-estado';
+  span.textContent = texto;
+  if (titulo) span.title = titulo;
+  return span;
+}
+
+// Qué se cuenta según el formato: del EPUB, la pantalla dentro del capítulo y
+// la del libro entero, porque el porcentaje ya está arriba en el indicador;
+// del PDF, la página y el porcentaje, que arriba solo se ve la página. En
+// ambos, el tiempo que queda.
+function datosBarraEstado() {
+  const datos = [];
+  if (epubAbierto()) {
+    // Un capítulo de una sola pantalla (una portadilla, una dedicatoria) no
+    // tiene nada que contar: «1 / 1» solo ocupa sitio.
+    if (lectorEpub.pantallasCapitulo > 1) {
+      datos.push([t('statusChapter', {
+        page: lectorEpub.pantallaCapitulo, total: lectorEpub.pantallasCapitulo,
+      }), t('statusChapterTitle')]);
+    }
+    const pantallas = lectorEpub.pantallasLibro;
+    if (pantallas) {
+      datos.push([t('statusScreens', { page: lectorEpub.pantallaLibro, total: pantallas }),
+        t('statusScreensTitle')]);
+    }
+  } else if (lector.totalPaginas) {
+    datos.push([t('statusPage', { page: lector.pagina, total: lector.totalPaginas }),
+      t('statusPageTitle')]);
+    const porcentaje = Math.round((lector.pagina / lector.totalPaginas) * 100);
+    datos.push([t('statusRead', { percent: formatearPorcentaje(porcentaje, 0) }),
+      t('statusReadTitle')]);
+  }
+  const tiempo = tiempoRestanteEstimado();
+  if (tiempo) datos.push([`≈ ${tiempo}`, t('timeLeft')]);
+  return datos;
+}
+
+function pintarBarraEstado() {
+  const barra = $('barra-estado-lector');
+  const visible = Boolean(libroActual) && !barraEstadoOculta();
+  // Visible aunque no haya nada que contar (la portada de un EPUB, por
+  // ejemplo): si apareciera y desapareciera sola, el área de lectura cambiaría
+  // de alto a mitad del libro y epub.js repaginaría el capítulo.
+  barra.classList.toggle('oculto', !visible);
+  const datos = visible ? datosBarraEstado() : [];
+  barra.replaceChildren(...datos.map(([texto, titulo]) => datoEstado(texto, titulo)));
+}
+
+function sincronizarCasillaBarraEstado() {
+  $('casilla-barra-estado').checked = !barraEstadoOculta();
+}
+
+$('casilla-barra-estado').addEventListener('change', (evento) => {
+  if (evento.target.checked) localStorage.removeItem(CLAVE_BARRA_ESTADO_OCULTA);
+  else localStorage.setItem(CLAVE_BARRA_ESTADO_OCULTA, '1');
+  // Repinta las dos: el tiempo restante cambia de sitio según esta casilla.
+  pintarTiempoRestante();
+});
 
 function cuandoCambiaPagina(pagina, total) {
   const visible = lector.enDoble() && pagina < total ? `${pagina}-${pagina + 1}` : String(pagina);
@@ -4517,6 +4598,9 @@ function porcentajeDesfasado(cfi, porcentaje) {
 function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   $('btn-indicador').textContent = conLocalizaciones ? `${formatearPorcentaje(porcentaje)}%` : '…';
   marcarEntradaIndiceActual();
+  // Antes de cualquier vuelta atrás: la pantalla del capítulo cambia en todas
+  // ellas, también mientras se recupera la posición o falta el porcentaje.
+  pintarBarraEstado();
   if (!libroActual || !cfi) return;
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
@@ -6916,6 +7000,7 @@ document.addEventListener('idioma-cambiado', () => {
 iniciarIdioma();
 iniciarTema();
 sincronizarCasillaContinuar();
+sincronizarCasillaBarraEstado();
 aplicarPlegadoContinuar();
 sincronizarSelectRecientes();
 aplicarTemaPagina(temaPagina());

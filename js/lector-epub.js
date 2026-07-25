@@ -30,6 +30,16 @@ const RELLENOS_RESALTADO = {
   rosa: '#f472b6',
 };
 
+// Caracteres que se meten en cada localización al repartir el libro. Es lo
+// que se le pasa a locations.generate(), y también lo que permite estimar el
+// tamaño del libro en caracteres a partir del número de localizaciones.
+const CARACTERES_POR_LOCALIZACION = 1000;
+
+// Los capítulos muy cortos (una portada, una dedicatoria, un título suelto)
+// llenan una pantalla con cuatro palabras: como muestra para medir cuánto
+// texto cabe en la pantalla mienten mucho, así que no cuentan.
+const CARACTERES_MINIMOS_MUESTRA = 500;
+
 // Pilas de fuentes de los ajustes tipográficos ('libro' = sin forzar nada).
 const FUENTES = {
   serif: 'Georgia, "Times New Roman", serif',
@@ -157,9 +167,10 @@ const COLORES_PAGINA = {
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
-    etiquetaOpcionesNota, alTocar, alMenuContextual }) {
+    etiquetaOpcionesNota, alTocar, alMenuContextual, alCambiarPantallas }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
+    this.alCambiarPantallas = alCambiarPantallas;
     this.alTeclear = alTeclear;
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
     this.alPulsarContenido = alPulsarContenido;
@@ -184,6 +195,11 @@ export class LectorEpub {
     this.cfi = null;
     this.porcentaje = 0;
     this.conLocalizaciones = false;
+    // Pantallas de este dispositivo (ver «Pantallas del dispositivo»).
+    this.pantallaCapitulo = 0;
+    this.pantallasCapitulo = 0;
+    this.muestrasPantalla = new Map(); // sección → { caracteres, pantallas }
+    this.tempPantallas = null;
     this.anotaciones = [];
     this.cfiAplicados = [];
     this.rangosNotas = new WeakMap();
@@ -201,6 +217,8 @@ export class LectorEpub {
         medida = nueva;
         try { this.vista.resize(); } catch { /* vista a medio montar */ }
         this.programarIconosNotas();
+        // Otro ancho (girar el móvil, abrir el índice) es otra paginación.
+        this.remedirPantallas();
       }, 200);
     }).observe(this.contenedor);
   }
@@ -216,6 +234,9 @@ export class LectorEpub {
     this.cfi = cfiInicial;
     this.porcentaje = 0;
     this.conLocalizaciones = false;
+    this.muestrasPantalla.clear();
+    this.pantallaCapitulo = 0;
+    this.pantallasCapitulo = 0;
 
     const libro = window.ePub(datos.buffer ?? datos);
     this.libro = libro;
@@ -311,7 +332,76 @@ export class LectorEpub {
     this.aplicarAnotaciones();
   }
 
+  // ───────────── Pantallas del dispositivo ─────────────
+  //
+  // Un EPUB no tiene páginas: las hace el aparato. epub.js reparte cada
+  // capítulo en columnas del ancho de la pantalla, así que sabe en cuántas
+  // cabe el capítulo abierto (displayed.total). Contando además sus
+  // caracteres sale cuánto texto entra en una pantalla aquí, con esta letra y
+  // este margen; aplicado al libro entero (que las localizaciones miden en
+  // caracteres) da una estimación de cuántas pantallas tiene en este
+  // dispositivo. Es aproximada a propósito: un capítulo con muchas imágenes o
+  // versos ocupa más pantallas por carácter que uno de prosa, y la media se
+  // afina sola según se van visitando capítulos.
+  //
+  // Todo esto cambia al tocar el tamaño de letra, el interlineado, el margen
+  // o al girar el móvil, así que entonces las muestras se tiran y se remide.
+
+  // Pantalla del libro por la que se va, contando desde 1. Sale del
+  // porcentaje, que es la única posición comparable entre capítulos.
+  get pantallaLibro() {
+    const total = this.pantallasLibro;
+    if (!total) return 0;
+    return Math.min(total, Math.floor((this.porcentaje / 100) * total) + 1);
+  }
+
+  get pantallasLibro() {
+    if (!this.conLocalizaciones || this.modo !== 'pagina') return 0;
+    const localizaciones = this.libro?.locations?.total ?? 0;
+    return estimarPantallas(this.muestrasPantalla.values(),
+      localizaciones * CARACTERES_POR_LOCALIZACION);
+  }
+
+  // Mide el capítulo visible. Devuelve si había algo que medir: en modo
+  // continuo no hay columnas y no se cuentan pantallas.
+  medirPantallas() {
+    if (this.modo !== 'pagina') {
+      this.pantallaCapitulo = 0;
+      this.pantallasCapitulo = 0;
+      return false;
+    }
+    const lugar = this.vista?.currentLocation?.();
+    const inicio = lugar?.start;
+    const columnas = inicio?.displayed?.total;
+    const columna = inicio?.displayed?.page;
+    if (!Number.isFinite(columnas) || !Number.isFinite(columna) || columnas < 1) return false;
+    // Con dos páginas juntas, cada pantalla enseña dos columnas.
+    const porPantalla = lugar.end?.displayed?.page > columna ? 2 : 1;
+    this.pantallasCapitulo = Math.ceil(columnas / porPantalla);
+    this.pantallaCapitulo = Math.min(this.pantallasCapitulo, Math.ceil(columna / porPantalla));
+    if (this.muestrasPantalla.has(inicio.index)) return true;
+    const contenidos = this.vista?.getContents?.() ?? [];
+    const contents = contenidos.find((c) => c.sectionIndex === inicio.index);
+    const caracteres = contents?.document?.body?.textContent?.length ?? 0;
+    if (caracteres >= CARACTERES_MINIMOS_MUESTRA) {
+      this.muestrasPantalla.set(inicio.index, { caracteres, pantallas: this.pantallasCapitulo });
+    }
+    return true;
+  }
+
+  // Tras cambiar la letra, el margen o el tamaño de la ventana, lo medido ya
+  // no vale. La cuenta nueva espera a que epub.js termine de repaginar, que
+  // no avisa de ello con ningún evento propio.
+  remedirPantallas() {
+    this.muestrasPantalla.clear();
+    clearTimeout(this.tempPantallas);
+    this.tempPantallas = setTimeout(() => {
+      if (this.medirPantallas()) this.alCambiarPantallas?.();
+    }, 350);
+  }
+
   notificar() {
+    this.medirPantallas();
     if (this.conLocalizaciones && this.cfi) {
       try {
         // Con un decimal: en un libro de 400 localizaciones, pasar varias
@@ -537,6 +627,7 @@ export class LectorEpub {
     this.tamano = Math.min(300, Math.max(60, this.tamano + delta));
     this.vista?.themes.fontSize(this.tamano + '%');
     this.programarIconosNotas();
+    this.remedirPantallas();
   }
 
   // ───────────── Ajustes tipográficos (fuente e interlineado) ─────────────
@@ -579,6 +670,7 @@ export class LectorEpub {
       this.inyectarTipografia(contents);
     }
     this.programarIconosNotas();
+    this.remedirPantallas();
   }
 
   cambiarFuente(fuente) {
@@ -600,6 +692,7 @@ export class LectorEpub {
   async cambiarModo(modo) {
     if (modo === this.modo || !this.libro) return;
     this.modo = modo;
+    this.muestrasPantalla.clear();
     this.desmontarVista();
     await this.montar(this.cfi);
   }
@@ -609,6 +702,7 @@ export class LectorEpub {
     if (activo === this.doble) return;
     this.doble = activo;
     if (!this.libro) return;
+    this.muestrasPantalla.clear();
     this.desmontarVista();
     await this.montar(this.cfi);
   }
@@ -812,12 +906,32 @@ export class LectorEpub {
   }
 
   cerrar() {
+    clearTimeout(this.tempPantallas);
+    this.pantallaCapitulo = 0;
+    this.pantallasCapitulo = 0;
+    this.muestrasPantalla.clear();
     this.desmontarVista();
     try { this.libro?.destroy(); } catch { /* ya destruido */ }
     this.libro = null;
     this.anotaciones = [];
     this.contenedor.replaceChildren();
   }
+}
+
+// Pantallas que ocuparía un libro de 'caracteresLibro' caracteres al ritmo de
+// las muestras tomadas (capítulos ya vistos con esta letra y este ancho). Se
+// suman los caracteres y las pantallas de todas ellas en lugar de promediar
+// sus cocientes: así un capítulo largo pesa más que uno de dos párrafos, que
+// es justo lo que se quiere.
+export function estimarPantallas(muestras, caracteresLibro) {
+  let caracteres = 0;
+  let pantallas = 0;
+  for (const muestra of muestras) {
+    caracteres += muestra.caracteres;
+    pantallas += muestra.pantallas;
+  }
+  if (!caracteres || !pantallas || !caracteresLibro) return 0;
+  return Math.max(1, Math.round(caracteresLibro / (caracteres / pantallas)));
 }
 
 function fragmentoBusqueda(texto, posicion, longitud) {

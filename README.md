@@ -175,6 +175,12 @@ libros y sincronizar el progreso de lectura.
   En EPUB el texto se reparte en dos columnas cuando el área es ancha.
 - 🔄 **Girar el PDF**: rota el documento 90° cada vez, para escaneos
   torcidos o apaisados. El giro se recuerda por libro en cada dispositivo.
+- 📊 **Barra de datos al pie**: una línea discreta al final del lector con la
+  pantalla dentro del capítulo, la pantalla del libro entero y el tiempo que
+  queda (en PDF, la página y el porcentaje). Un EPUB no tiene páginas fijas:
+  las pantallas se estiman midiendo cuánto texto cabe en la tuya, así que el
+  número cambia —como debe— al tocar el tamaño de letra, el margen o al girar
+  el móvil. Se puede apagar en los ajustes.
 - ⏱️ **Tiempo restante estimado**: tras unos minutos de lectura, la barra
   muestra cuánto falta para terminar el libro según tu ritmo real de
   lectura (medido y guardado solo en el dispositivo). La estimación sigue el
