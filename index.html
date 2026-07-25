@@ -77,12 +77,16 @@
           aria-expanded="false" aria-controls="libro-continuar"></button>
       </section>
 
-      <label class="buscador buscador-biblioteca oculto">
+      <!-- Caja con dos controles (el campo y la «x»), así que no puede ser un
+           label: la etiqueta va aparte, atada al campo por su id. -->
+      <div class="buscador buscador-biblioteca oculto">
         <span data-icono="search"></span>
-        <span class="sr-solo" data-i18n="searchLibrary">Buscar en la biblioteca</span>
+        <label class="sr-solo" for="buscar-biblioteca" data-i18n="searchLibrary">Buscar en la biblioteca</label>
         <input id="buscar-biblioteca" type="search" placeholder="Buscar por título, autor…"
           data-i18n-placeholder="searchLibraryPlaceholder" autocomplete="off">
-      </label>
+        <button type="button" id="btn-limpiar-busqueda" class="btn-limpiar-busqueda oculto"
+          data-icono="x" title="Borrar la búsqueda" data-i18n-title="clearSearch"></button>
+      </div>
 
       <div id="organizacion-biblioteca" class="organizacion-biblioteca oculto">
         <label>

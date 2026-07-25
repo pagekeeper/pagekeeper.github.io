@@ -2008,7 +2008,22 @@ $('buscar-biblioteca').addEventListener('input', () => {
     cargarLibrosLocales();
     pintarResultadosEnCarpetasNube();
   }
+  actualizarBotonLimpiarBusqueda();
   aplicarOrganizacionBiblioteca();
+});
+
+// La «x» solo tiene sentido con algo escrito; en un campo vacío sería un
+// botón que no hace nada.
+function actualizarBotonLimpiarBusqueda() {
+  $('btn-limpiar-busqueda').classList.toggle('oculto', !$('buscar-biblioteca').value);
+}
+
+$('btn-limpiar-busqueda').addEventListener('click', () => {
+  $('buscar-biblioteca').value = '';
+  // El mismo camino que al teclear, para no repetir aquí lo que ya hace el
+  // buscador al quedarse vacío.
+  $('buscar-biblioteca').dispatchEvent(new Event('input'));
+  $('buscar-biblioteca').focus();
 });
 $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
 $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
@@ -2110,6 +2125,7 @@ function actualizarVisibilidadBuscadorBiblioteca() {
     $('estado-filtro-biblioteca').textContent = '';
     $('estado-filtro-biblioteca').classList.add('oculto');
   }
+  actualizarBotonLimpiarBusqueda();
 }
 
 // ── Arrastrar un libro de la nube hasta una carpeta para moverlo ──
