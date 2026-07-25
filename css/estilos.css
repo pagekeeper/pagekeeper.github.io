@@ -220,6 +220,17 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
   background: color-mix(in srgb, var(--peligro) 11%, transparent); color: var(--peligro);
 }
 .fila-seccion > .btn-icono { margin-top: -0.25rem; }
+/* En un móvil esos botones se llevaban el ancho de la fila y el título caía en
+   dos líneas a su lado. Bajan a una fila propia, pegados a la derecha, y el
+   título recupera la suya entera. */
+@media (max-width: 47.99rem) {
+  .fila-seccion { flex-wrap: wrap; }
+  .fila-seccion > .encabezado-seccion { flex: 1 0 100%; }
+  .fila-seccion > .btn-icono { margin-top: 0; }
+  /* Sea botón o etiqueta de subida, el primero tras el título empuja al resto
+     hacia la derecha. */
+  .fila-seccion > .encabezado-seccion + * { margin-left: auto; }
+}
 /* Cuántas carpetas y libros hay a la vista, junto al título: con la sección
    plegada, o con un filtro puesto, es lo único que queda del contenido. */
 .conteo-seccion {
@@ -700,7 +711,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    es hermano de la cabecera y el formato va dentro de ella, de modo que para
    intercalarlos hay que disolver la cabecera: con «display: contents» sus
    piezas pasan a ser hijas de «.datos» y ya se pueden ordenar todas juntas. */
-.vista-cuadricula .libro .cabecera-libro { display: contents; }
+.vista-cuadricula .libro:not(.carpeta) .cabecera-libro { display: contents; }
 .vista-cuadricula .libro .datos { gap: 0.22rem; }
 .vista-cuadricula .libro .nombre { order: 1; }
 .vista-cuadricula .libro .autor { order: 2; }
@@ -1473,11 +1484,31 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   background: color-mix(in srgb, var(--aviso) 12%, var(--fondo));
   border-color: color-mix(in srgb, var(--aviso) 35%, var(--borde));
 }
-/* Una carpeta no necesita el alto de una portada para enseñar un icono: su
-   caja es baja, y como las carpetas van en su propia lista (ver
-   .lista-carpetas) los libros empiezan justo debajo, sin hueco. */
-.vista-cuadricula .libro.carpeta .portada-carpeta { aspect-ratio: 3 / 2; }
-.vista-cuadricula .libro .portada-carpeta .icono { width: 2.4rem; height: 2.4rem; }
+/* Una carpeta no necesita el alto de una portada para enseñar un icono, ni
+   siquiera en la cuadrícula: allí se queda como una tira, con el icono al
+   lado del nombre. Una caja alta y vacía junto a las portadas de los libros
+   ocupaba mucho para lo poco que dice. Como las carpetas van en su propia
+   lista (ver .lista-carpetas), los libros empiezan justo debajo, sin hueco. */
+/* Las tres clases juntas para ganar a la rejilla de libros, que se redefine
+   más abajo con columnas más anchas para las portadas. */
+.lista-libros.lista-carpetas.vista-cuadricula {
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+.vista-cuadricula .libro.carpeta {
+  flex-direction: row; align-items: center; gap: 0.55rem;
+  padding: 0.5rem 0.6rem;
+}
+.vista-cuadricula .libro.carpeta .portada-carpeta {
+  width: 2.1rem; height: 2.1rem; aspect-ratio: auto; flex: none;
+}
+.vista-cuadricula .libro.carpeta .portada-carpeta .icono { width: 1.2rem; height: 1.2rem; }
+.vista-cuadricula .libro.carpeta .datos { gap: 0.1rem; }
+.vista-cuadricula .libro.carpeta .nombre { -webkit-line-clamp: 1; line-clamp: 1; }
+/* El menú vuelve a la fila: en una tira no hay esquina donde flotar. */
+.vista-cuadricula .libro.carpeta .btn-menu-libro {
+  position: static; flex: none; width: 1.7rem; height: 1.7rem;
+  background: transparent; color: var(--texto-suave);
+}
 /* Destino resaltado al arrastrar un libro hasta una carpeta o una miga. */
 .libro.carpeta.destino-mover { border-color: var(--acento); background: var(--fondo-tarjeta); }
 .miga.destino-mover {
