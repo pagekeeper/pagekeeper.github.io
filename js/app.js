@@ -6125,10 +6125,38 @@ function haySeleccionActiva() {
   return false;
 }
 
+// Alto de la barra medido justo antes de recogerla: la animación necesita un
+// número de partida, porque de «auto» a cero el navegador no sabe interpolar.
+let altoBarraLector = 0;
+let finBarraLector = null;
+
+function animarBarraLector(entrando) {
+  const barra = document.querySelector('.barra-lector');
+  if (!barra) return;
+  clearTimeout(finBarraLector);
+  if (entrando) altoBarraLector = barra.offsetHeight;
+  barra.classList.add('barra-animando');
+  barra.style.height = `${entrando ? altoBarraLector : 0}px`;
+  void barra.offsetHeight; // un fotograma con la altura de partida ya aplicada
+  $('vista-lector').classList.toggle('inmersivo', entrando);
+  barra.style.height = `${entrando ? 0 : altoBarraLector}px`;
+  finBarraLector = setTimeout(() => {
+    barra.classList.remove('barra-animando');
+    // Desplegada se le devuelve su altura natural, que la barra crece o
+    // encoge según los botones que haga falta enseñar en cada libro.
+    if (!entrando) barra.style.height = '';
+    // El EPUB se repagina con la altura definitiva: hacerlo a media animación
+    // deja el texto cortado donde estaba la barra.
+    if (epubAbierto()) reflowEpub();
+    else window.dispatchEvent(new Event('resize'));
+  }, 240);
+}
+
 function alternarBarraLector(porGesto = false) {
-  const inmersivo = $('vista-lector').classList.toggle('inmersivo');
-  if (epubAbierto()) reflowEpub();
-  else window.dispatchEvent(new Event('resize'));
+  const inmersivo = !$('vista-lector').classList.contains('inmersivo');
+  // El repaginado lo hace `animarBarraLector` al acabar: repetirlo aquí, con
+  // la barra a medio recoger, es justo lo que se veía brusco.
+  animarBarraLector(inmersivo);
   pintarBotonInmersivo();
   // El aviso explica el gesto, así que solo se da a quien ha llegado por él:
   // desde el botón la salida está a la vista y no hay nada que explicar.
@@ -6161,7 +6189,14 @@ $('btn-inmersivo').addEventListener('click', () => alternarBarraLector());
 $('btn-salir-inmersivo').addEventListener('click', () => alternarBarraLector());
 document.addEventListener('idioma-cambiado', pintarBotonInmersivo);
 
+// Al abrir o cerrar un libro no hay nada que animar: la vista entera cambia.
 function salirModoInmersivo() {
+  clearTimeout(finBarraLector);
+  const barra = document.querySelector('.barra-lector');
+  if (barra) {
+    barra.classList.remove('barra-animando');
+    barra.style.height = '';
+  }
   $('vista-lector').classList.remove('inmersivo');
   pintarBotonInmersivo();
 }

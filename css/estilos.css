@@ -891,8 +891,28 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    se quedaría sin el zoom del sistema. */
 #vista-lector.leyendo-pdf #area-lectura { touch-action: pan-x pan-y; }
 
-/* Modo inmersivo: un toque en el centro oculta la barra; otro la recupera. */
-#vista-lector.inmersivo .barra-lector { display: none; }
+/* Modo inmersivo: un toque en el centro oculta la barra; otro la recupera.
+   La barra se recoge en lugar de desaparecer de golpe. Su altura la pone el
+   JavaScript en un valor concreto justo antes de empezar, porque desde «auto»
+   el navegador no sabe animar. El recorte solo dura la animación: los paneles
+   de texto y de voz cuelgan de la barra hacia abajo y un overflow permanente
+   se los comería. */
+.barra-lector {
+  transition: height 0.22s ease, padding 0.22s ease, opacity 0.16s ease,
+    border-width 0.22s ease, visibility 0s;
+}
+.barra-lector.barra-animando, #vista-lector.inmersivo .barra-lector { overflow: hidden; }
+/* Recogida no basta: sus botones seguirían cogiendo el tabulador. La
+   visibilidad se apaga al terminar de recogerse, no antes. */
+#vista-lector.inmersivo .barra-lector {
+  padding-top: 0; padding-bottom: 0; opacity: 0;
+  border-bottom-width: 0; visibility: hidden;
+  transition: height 0.22s ease, padding 0.22s ease, opacity 0.16s ease,
+    border-width 0.22s ease, visibility 0s linear 0.22s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .barra-lector { transition: none; }
+}
 /* La salida, ya que la barra (y con ella su botón) no está. Se mantiene
    apagada para no competir con la página y se enciende al acercarse. */
 .btn-salir-inmersivo {
