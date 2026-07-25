@@ -319,7 +319,7 @@ const lectorEpub = new LectorEpub({
     cerrarPanelTts();
     cerrarMenuLector();
     cerrarMenuNota();
-    toqueCentroLector(evento?.target);
+    toqueCentroLector(evento?.target, evento);
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
@@ -6093,8 +6093,25 @@ document.addEventListener('keydown', manejarTecla);
 // ───────────────────────── Modo inmersivo ─────────────────────────
 // Un toque en el centro de la página oculta la barra superior para leer a
 // pantalla completa; otro toque la recupera.
+//
+// Solo con el dedo (o el lápiz). Con ratón el gesto estorbaba más que servía:
+// pulsar en la página es lo que uno hace para devolverle el foco, para quitar
+// una selección o sin más al mover el puntero, y la barra desaparecía sola sin
+// que nadie se lo hubiera pedido. En táctil sí tiene sentido: no hay otra
+// forma cómoda de ganar esa franja de pantalla.
 
 let temporizadorToqueCentro = null;
+// El pointerdown del documento no llega cuando se pulsa dentro del iframe del
+// EPUB, así que el tipo del propio evento manda y este es el recurso cuando el
+// navegador no lo trae.
+let tipoUltimoPuntero = '';
+document.addEventListener('pointerdown', (evento) => {
+  tipoUltimoPuntero = evento.pointerType || '';
+}, true);
+
+function vieneDeRaton(evento) {
+  return (evento?.pointerType || tipoUltimoPuntero) === 'mouse';
+}
 
 function haySeleccionActiva() {
   const principal = window.getSelection();
@@ -6120,7 +6137,8 @@ function salirModoInmersivo() {
   $('vista-lector').classList.remove('inmersivo');
 }
 
-function toqueCentroLector(objetivo) {
+function toqueCentroLector(objetivo, evento = null) {
+  if (vieneDeRaton(evento)) return;
   if (seleccionPendiente || haySeleccionActiva()) return;
   if (Date.now() - ultimoPellizco < 600) return;
   // Tras arrastrar la página, el toque que remata el gesto no debe además
@@ -6142,7 +6160,7 @@ $('area-lectura').addEventListener('click', (evento) => {
     clearTimeout(temporizadorToqueCentro);
     return;
   }
-  toqueCentroLector(evento.target);
+  toqueCentroLector(evento.target, evento);
 });
 $('area-lectura').addEventListener('dblclick', () => clearTimeout(temporizadorToqueCentro));
 
