@@ -112,6 +112,7 @@ function normalizarEntrada(entrada = {}) {
   const marcadoresActualizados = fechaColeccion(entrada);
   const terminadoActualizado = entrada.terminadoActualizado ?? FECHA_CERO;
   const tituloActualizado = entrada.tituloActualizado ?? FECHA_CERO;
+  const notaActualizada = entrada.notaActualizada ?? FECHA_CERO;
   const marcadores = Array.isArray(entrada.marcadores)
     ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
     : [];
@@ -121,6 +122,7 @@ function normalizarEntrada(entrada = {}) {
     marcadoresActualizados,
     terminadoActualizado,
     tituloActualizado,
+    notaActualizada,
     marcadoresVersion: 2,
     actualizado: fechaMaxima(
       entrada.actualizado,
@@ -128,6 +130,7 @@ function normalizarEntrada(entrada = {}) {
       marcadoresActualizados,
       terminadoActualizado,
       tituloActualizado,
+      notaActualizada,
       ...marcadores.map((marcador) => marcador.actualizado),
     ),
   };
@@ -317,6 +320,34 @@ export function guardarTitulo(idLibro, titulo) {
   return entrada;
 }
 
+// Nota que el usuario escribe sobre el libro entero (no sobre un fragmento:
+// eso son las anotaciones). Vive en la entrada de progreso, así que en los
+// libros de la nube viaja con la sincronización y se lee desde cualquier
+// dispositivo; en los locales se queda aquí, como su lectura.
+export function notaDe(idLibro) {
+  const nota = progresoDe(idLibro)?.nota;
+  return typeof nota === 'string' && nota.trim() ? nota.trim() : null;
+}
+
+// Cambia (o borra, con cadena vacía) la nota del libro.
+export function guardarNota(idLibro, nota) {
+  const datos = cargarLocal();
+  // Sin pagina/paginas, igual que el título: anotar un libro no es empezarlo,
+  // así que no debe colarlo en «Continuar leyendo».
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? {});
+  const limpio = String(nota ?? '').trim();
+  const ahora = new Date().toISOString();
+  if (limpio) entrada.nota = limpio;
+  else delete entrada.nota;
+  entrada.notaActualizada = ahora;
+  entrada.actualizado = fechaMaxima(entrada.actualizado, ahora);
+  entrada.dispositivo = nombreDispositivo();
+  datos.libros[idLibro] = entrada;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return entrada;
+}
+
 export function marcarTerminado(idLibro, terminado) {
   const datos = cargarLocal();
   const entrada = normalizarEntrada(datos.libros[idLibro] ?? { pagina: 0, paginas: 0 });
@@ -427,11 +458,18 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   resultado.tituloActualizado = fechaMaxima(local.tituloActualizado, remoto.tituloActualizado);
   if (typeof titulacion.titulo === 'string' && titulacion.titulo.trim()) resultado.titulo = titulacion.titulo;
   else delete resultado.titulo;
+  // La nota, con su propia fecha por lo mismo: la escribe quien la escribe,
+  // no quien haya leído después.
+  const anotacion = local.notaActualizada > remoto.notaActualizada ? local : remoto;
+  resultado.notaActualizada = fechaMaxima(local.notaActualizada, remoto.notaActualizada);
+  if (typeof anotacion.nota === 'string' && anotacion.nota.trim()) resultado.nota = anotacion.nota;
+  else delete resultado.nota;
   resultado.actualizado = fechaMaxima(
     resultado.posicionActualizada,
     resultado.marcadoresActualizados,
     resultado.terminadoActualizado,
     resultado.tituloActualizado,
+    resultado.notaActualizada,
     ...marcadores.map((marcador) => marcador.actualizado),
   );
   return resultado;

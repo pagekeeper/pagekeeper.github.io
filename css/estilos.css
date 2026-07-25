@@ -741,6 +741,39 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .tip-resumen .titulo-tip { font-size: 0.85rem; font-weight: 700; }
 .tip-resumen .texto-tip { color: var(--texto-suave); }
+/* La nota propia, separada del resumen del editor: son dos voces distintas. */
+.tip-resumen .nota-tip {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding-left: 0.55rem; border-left: 2px solid var(--acento);
+}
+.tip-resumen .etiqueta-nota-tip {
+  color: var(--acento); font-size: 0.68rem; font-weight: 750;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.tip-resumen .texto-nota-tip { white-space: pre-wrap; }
+
+/* ── Nota sobre el libro ── */
+.nota-menu-libro {
+  padding-left: 0.55rem; border-left: 2px solid var(--acento);
+  color: var(--texto); font-size: 0.82rem; line-height: 1.4; white-space: pre-wrap;
+}
+.nota-libro { flex: none; display: inline-flex; align-items: center; color: var(--acento); }
+.nota-libro .icono { width: 0.85rem; height: 0.85rem; }
+.libro-de-la-nota {
+  margin-top: -0.35rem; color: var(--texto-suave); font-size: 0.85rem;
+  overflow-wrap: anywhere;
+}
+.texto-nota-libro {
+  width: 100%; resize: vertical; min-height: 7rem;
+  padding: 0.55rem 0.7rem; border: 1px solid var(--borde-fuerte); border-radius: 0.5rem;
+  background: var(--fondo); color: var(--texto); font: inherit; line-height: 1.5;
+}
+.texto-nota-libro:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+/* «Borrar» a un lado y las otras dos al otro: no es lo mismo descartar lo
+   escrito ahora que tirar la nota entera. */
+.botones-nota-libro { justify-content: flex-end; }
+.botones-nota-libro .btn-peligro-suave { margin-right: auto; }
+.btn-peligro-suave { color: var(--peligro); }
 
 /* ── Lector ── */
 #vista-lector { background: var(--fondo-lector); height: 100dvh; }

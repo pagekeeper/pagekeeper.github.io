@@ -1556,13 +1556,17 @@ function cerrarMenuAcciones() {
   $('menu-libro').classList.add('oculto');
 }
 
-function abrirMenuAcciones(titulo, acciones, ancla, resumen = '') {
+function abrirMenuAcciones(titulo, acciones, ancla, resumen = '', nota = '') {
   $('titulo-menu-libro').textContent = titulo;
   // El resumen del libro, si sus metadatos traen uno: en pantalla táctil el
   // aviso al pasar el ratón no existe, y este menú es la otra forma de leerlo.
+  // Con la nota propia pasa lo mismo, y va debajo para no mezclarse con él.
   const textoResumen = $('resumen-menu-libro');
   textoResumen.textContent = resumen;
   textoResumen.classList.toggle('oculto', !resumen);
+  const textoNota = $('nota-menu-libro');
+  textoNota.textContent = nota;
+  textoNota.classList.toggle('oculto', !nota);
   const lista = $('lista-menu-libro');
   lista.replaceChildren();
   for (const accion of acciones) {
@@ -1649,11 +1653,12 @@ function crearBotonMenu(ficha, obtenerAcciones) {
   };
   actualizarEtiqueta();
   const resumen = () => ficha.closest('li')?.dataset.resumen ?? '';
+  const nota = () => ficha.closest('li')?.dataset.nota ?? '';
   menu.addEventListener('click', (evento) => {
     evento.stopPropagation();
     actualizarEtiqueta();
     abrirMenuAcciones(
-      ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu, resumen(),
+      ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu, resumen(), nota(),
     );
   });
   // El botón derecho sobre la ficha abre el mismo menú donde está el puntero.
@@ -1665,7 +1670,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
     actualizarEtiqueta();
     abrirMenuAcciones(
       ficha.querySelector('.nombre').textContent, obtenerAcciones(),
-      { x: evento.clientX, y: evento.clientY }, resumen(),
+      { x: evento.clientX, y: evento.clientY }, resumen(), nota(),
     );
   });
   return menu;
@@ -1726,6 +1731,7 @@ function crearFilaLibro({
         <span class="nombre"></span>
         <span class="formato formato-${formato}"></span>
         <span class="estado-sin-conexion oculto"></span>
+        <span class="nota-libro oculto"></span>
         <span class="carpeta-libro oculto"></span>
       </span>
       <span class="autor oculto"></span>
@@ -1849,6 +1855,11 @@ function crearFilaLibro({
       alPulsar: () => alternarTerminado(id, estadoLectura !== 'terminados'),
     });
   }
+  acciones.push({
+    icono: 'notebook-pen',
+    etiqueta: t('actionBookNote'),
+    alPulsar: () => abrirNotaLibro(id, elemento.querySelector('.nombre')?.textContent ?? tituloMostrado),
+  });
   if (alRenombrar) acciones.push({ icono: 'pencil', etiqueta: t('actionRename'), alPulsar: alRenombrar });
   if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
@@ -1876,9 +1887,86 @@ function crearFilaLibro({
   if (acciones.length) boton.append(crearBotonMenu(boton, () => acciones));
 
   elemento.append(boton);
+  aplicarNotaEnFila(elemento, id);
   cargarMetadatosEnFila(elemento, id, titulo);
   return elemento;
 }
+
+// ── Nota sobre el libro entero ──
+// Distinta de las anotaciones, que van pegadas a un fragmento del texto y solo
+// existen dentro del lector. Esta se escribe y se lee desde la biblioteca, sin
+// abrir el libro: de qué va, por dónde ibas, a quién se lo prestaste.
+
+// Deja la nota en la ficha: la chapita que avisa de que la hay, el texto para
+// el aviso emergente y su contenido como texto buscable, que buscar por lo que
+// uno mismo anotó es media gracia de tener notas.
+function aplicarNotaEnFila(fila, id) {
+  const nota = progreso.notaDe(id);
+  const chapita = fila.querySelector('.nota-libro');
+  if (nota) {
+    fila.dataset.nota = nota;
+    // Va aparte de `busqueda` y no concatenada: la nota se reescribe, y al
+    // rehacer la ficha se arrastrarían también las versiones viejas.
+    fila.dataset.notaBusqueda = normalizarBusqueda(nota);
+    chapita.innerHTML = icono('notebook-pen');
+    chapita.title = nota;
+    chapita.classList.remove('oculto');
+  } else {
+    delete fila.dataset.nota;
+    delete fila.dataset.notaBusqueda;
+    chapita.replaceChildren();
+    chapita.removeAttribute('title');
+    chapita.classList.add('oculto');
+  }
+}
+
+// El mismo libro puede estar en varias listas a la vez (la nube, «Continuar
+// leyendo»…): se refrescan todas sus fichas, no solo desde la que se abrió.
+function refrescarNotaEnFichas(id) {
+  for (const fila of document.querySelectorAll(`li[data-id-libro="${CSS.escape(id)}"]`)) {
+    aplicarNotaEnFila(fila, id);
+  }
+}
+
+let libroDeLaNota = null;
+
+function abrirNotaLibro(id, titulo) {
+  libroDeLaNota = id;
+  $('libro-de-la-nota').textContent = titulo;
+  $('texto-nota-libro').value = progreso.notaDe(id) ?? '';
+  $('btn-borrar-nota-libro').classList.toggle('oculto', !progreso.notaDe(id));
+  $('dialogo-nota-libro').classList.remove('oculto');
+  $('texto-nota-libro').focus();
+}
+
+function cerrarNotaLibro() {
+  libroDeLaNota = null;
+  $('dialogo-nota-libro').classList.add('oculto');
+}
+
+function guardarNotaLibro(texto) {
+  const id = libroDeLaNota;
+  if (!id) return;
+  progreso.guardarNota(id, texto);
+  refrescarNotaEnFichas(id);
+  cerrarNotaLibro();
+  // En los libros de la nube la nota viaja a los demás dispositivos; si la red
+  // falla, queda pendiente para la próxima sincronización, como el progreso.
+  if (cliente && !id.startsWith('local:')) progreso.sincronizar(cliente).catch(() => null);
+}
+
+$('form-nota-libro').addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  guardarNotaLibro($('texto-nota-libro').value);
+});
+$('btn-borrar-nota-libro').addEventListener('click', () => guardarNotaLibro(''));
+$('btn-cancelar-nota-libro').addEventListener('click', cerrarNotaLibro);
+$('dialogo-nota-libro').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-nota-libro')) cerrarNotaLibro();
+});
+document.addEventListener('keydown', (evento) => {
+  if (evento.key === 'Escape' && !$('dialogo-nota-libro').classList.contains('oculto')) cerrarNotaLibro();
+});
 
 function normalizarBusqueda(texto) {
   return String(texto ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase();
@@ -1905,11 +1993,20 @@ function pintarTipResumen(ficha) {
     tipResumen = document.createElement('div');
     tipResumen.className = 'tip-resumen oculto';
     tipResumen.setAttribute('role', 'tooltip');
-    tipResumen.innerHTML = '<strong class="titulo-tip"></strong><span class="texto-tip"></span>';
+    tipResumen.innerHTML = '<strong class="titulo-tip"></strong><span class="texto-tip"></span>' +
+      '<span class="nota-tip"><span class="etiqueta-nota-tip"></span><span class="texto-nota-tip"></span></span>';
     document.body.append(tipResumen);
   }
   tipResumen.querySelector('.titulo-tip').textContent = ficha.querySelector('.nombre')?.textContent ?? '';
-  tipResumen.querySelector('.texto-tip').textContent = ficha.dataset.resumen;
+  const texto = tipResumen.querySelector('.texto-tip');
+  texto.textContent = ficha.dataset.resumen ?? '';
+  texto.classList.toggle('oculto', !ficha.dataset.resumen);
+  // La nota propia va debajo del resumen del editor y se distingue de él: son
+  // dos voces distintas y conviene no confundirlas.
+  const nota = tipResumen.querySelector('.nota-tip');
+  nota.querySelector('.etiqueta-nota-tip').textContent = t('bookNote');
+  nota.querySelector('.texto-nota-tip').textContent = ficha.dataset.nota ?? '';
+  nota.classList.toggle('oculto', !ficha.dataset.nota);
   tipResumen.classList.remove('oculto');
 
   // Al lado de la ficha, del lado donde quepa, y siempre dentro de la ventana.
@@ -1927,7 +2024,9 @@ function pintarTipResumen(ficha) {
 }
 
 function prepararTipResumen() {
-  const fichaBajo = (destino) => destino?.closest?.('li[data-id-libro][data-resumen] .libro')?.parentElement;
+  const fichaBajo = (destino) => destino
+    ?.closest?.('li[data-id-libro][data-resumen] .libro, li[data-id-libro][data-nota] .libro')
+    ?.parentElement;
   const atender = (ficha) => {
     if (ficha === fichaConTip) return;
     clearTimeout(temporizadorTip);
@@ -2018,7 +2117,8 @@ function aplicarOrganizacionBiblioteca() {
   const filas = document.querySelectorAll(
     '#lista-libros > li, #lista-locales > li, #lista-carpetas > li, #lista-carpetas-locales > li');
   for (const fila of filas) {
-    const coincideTexto = !consulta || fila.dataset.busqueda?.includes(consulta);
+    const coincideTexto = !consulta || fila.dataset.busqueda?.includes(consulta) ||
+      fila.dataset.notaBusqueda?.includes(consulta);
     const coincideEstado = !fila.dataset.idLibro || filtro === 'todos' || fila.dataset.estadoLectura === filtro;
     const coincide = coincideTexto && coincideEstado;
     fila.classList.toggle('oculto', !coincide);

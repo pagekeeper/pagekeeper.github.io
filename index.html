@@ -922,6 +922,27 @@
     </div>
   </div>
 
+  <!-- Nota sobre el libro entero, escrita y leída desde la biblioteca. Es cosa
+       distinta de las anotaciones, que van pegadas a un fragmento del texto. -->
+  <div id="dialogo-nota-libro" class="dialogo-fondo oculto">
+    <form id="form-nota-libro" class="dialogo" role="dialog" aria-modal="true"
+      aria-labelledby="titulo-nota-libro">
+      <h2 id="titulo-nota-libro" data-i18n="bookNote">Nota del libro</h2>
+      <p id="libro-de-la-nota" class="libro-de-la-nota"></p>
+      <label class="sr-solo" for="texto-nota-libro" data-i18n="bookNoteLabel">Tu nota sobre este libro</label>
+      <textarea id="texto-nota-libro" class="texto-nota-libro" rows="8"
+        placeholder="De qué va, por dónde lo dejaste, qué quieres recordar…"
+        data-i18n-placeholder="bookNotePlaceholder"></textarea>
+      <div class="fila-botones botones-nota-libro">
+        <button type="button" id="btn-borrar-nota-libro" class="btn-secundario btn-peligro-suave"
+          data-i18n="actionDelete">Borrar</button>
+        <button type="button" id="btn-cancelar-nota-libro" class="btn-secundario"
+          data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="btn-primario" data-i18n="save">Guardar</button>
+      </div>
+    </form>
+  </div>
+
   <div id="dialogo-editar-nota" class="dialogo-fondo oculto">
     <form id="form-editar-nota" class="dialogo dialogo-editar-nota" role="dialog"
       aria-modal="true" aria-labelledby="titulo-editar-nota">
@@ -990,6 +1011,9 @@
     <div class="menu-libro" role="menu" aria-labelledby="titulo-menu-libro">
       <h2 id="titulo-menu-libro"></h2>
       <p id="resumen-menu-libro" class="oculto"></p>
+      <!-- En pantalla táctil no hay «pasar el ratón»: este menú es donde se
+           lee la nota del libro sin abrir nada. -->
+      <p id="nota-menu-libro" class="nota-menu-libro oculto"></p>
       <ul id="lista-menu-libro"></ul>
     </div>
   </div>
