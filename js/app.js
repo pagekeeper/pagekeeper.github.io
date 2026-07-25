@@ -4222,11 +4222,27 @@ function prepararSeguimientoEpub(cfiInicial) {
   restaurandoPosicionEpub = Boolean(cfiInicial);
 }
 
-// Sube ya lo que hubiera esperando, sin el respiro de los tres segundos.
-function subirPosicionAhora() {
+// Lo último que se llegó a subir, para no repetir la misma posición. Lleva el
+// libro dentro, así que cambiar de libro nunca se confunde con no haber
+// avanzado.
+let ultimaPosicionSubida = '';
+
+function firmaPosicionActual() {
+  if (!libroActual) return '';
+  const avance = progreso.progresoDe(libroActual.id);
+  return `${libroActual.id}|${avance?.cfi ?? ''}|${avance?.pagina ?? ''}`;
+}
+
+// Sube ya lo que hubiera esperando, sin el respiro de los tres segundos. Con
+// `soloSiCambio` no se molesta al servidor cuando no hay nada nuevo que
+// contarle: salir y entrar de la ventana no debe costar una petición cada vez.
+function subirPosicionAhora({ soloSiCambio = false } = {}) {
   clearTimeout(temporizadorSync);
   clearTimeout(temporizadorSyncAnotaciones);
   if (libroActual?.tipo !== 'webdav' || !cliente) return;
+  const firma = firmaPosicionActual();
+  if (soloSiCambio && firma === ultimaPosicionSubida) return;
+  ultimaPosicionSubida = firma;
   progreso.sincronizar(cliente).catch(() => null);
   anotaciones.sincronizar(libroActual.id, cliente).catch(() => null);
 }
@@ -4238,13 +4254,17 @@ function subirPosicionAhora() {
 // dejaba la última página en este dispositivo hasta la siguiente apertura, y
 // el otro aparato seguía en la página de antes.
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'hidden') subirPosicionAhora();
+  if (document.visibilityState === 'hidden') subirPosicionAhora({ soloSiCambio: true });
 });
+// Irse a otra ventana no oculta la pestaña, así que aquello no basta en un
+// ordenador: se aprovecha también la pérdida de foco.
+window.addEventListener('blur', () => subirPosicionAhora({ soloSiCambio: true }));
 
 function planificarSincronizacion() {
   if (libroActual?.tipo !== 'webdav' || !cliente) return;
   clearTimeout(temporizadorSync);
   temporizadorSync = setTimeout(() => {
+    ultimaPosicionSubida = firmaPosicionActual();
     progreso.sincronizar(cliente)
       .then(() => actualizarEstadoSincronizacion())
       .catch((error) => {
