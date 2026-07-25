@@ -1944,11 +1944,29 @@ function cerrarNotaLibro() {
   $('dialogo-nota-libro').classList.add('oculto');
 }
 
+// La nota tal como se ve dentro del lector, en el panel de anotaciones. Sin
+// nota escrita se dice que no la hay: el botón de al lado es el que invita a
+// escribirla, y un hueco vacío no se entiende.
+function pintarNotaLibroLector() {
+  const seccion = $('nota-libro-lector');
+  if (!libroActual) return seccion.classList.add('oculto');
+  seccion.classList.remove('oculto');
+  const nota = progreso.notaDe(libroActual.id);
+  const texto = $('texto-nota-lector');
+  texto.textContent = nota ?? t('noBookNote');
+  texto.classList.toggle('sin-nota', !nota);
+}
+
+$('btn-editar-nota-lector').addEventListener('click', () => {
+  if (libroActual) abrirNotaLibro(libroActual.id, libroActual.titulo ?? '');
+});
+
 function guardarNotaLibro(texto) {
   const id = libroDeLaNota;
   if (!id) return;
   progreso.guardarNota(id, texto);
   refrescarNotaEnFichas(id);
+  pintarNotaLibroLector();
   cerrarNotaLibro();
   // En los libros de la nube la nota viaja a los demás dispositivos; si la red
   // falla, queda pendiente para la próxima sincronización, como el progreso.
@@ -1963,9 +1981,6 @@ $('btn-borrar-nota-libro').addEventListener('click', () => guardarNotaLibro(''))
 $('btn-cancelar-nota-libro').addEventListener('click', cerrarNotaLibro);
 $('dialogo-nota-libro').addEventListener('click', (evento) => {
   if (evento.target === $('dialogo-nota-libro')) cerrarNotaLibro();
-});
-document.addEventListener('keydown', (evento) => {
-  if (evento.key === 'Escape' && !$('dialogo-nota-libro').classList.contains('oculto')) cerrarNotaLibro();
 });
 
 function normalizarBusqueda(texto) {
@@ -5286,6 +5301,7 @@ function anotacionesOrdenadas() {
 }
 
 function pintarAnotaciones(idEnfocado = null) {
+  pintarNotaLibroLector();
   const lista = $('lista-anotaciones');
   lista.replaceChildren();
   const consulta = normalizarBusqueda($('buscar-anotaciones').value.trim());
@@ -5803,6 +5819,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('dialogo-nota-libro').classList.contains('oculto')) {
+    cerrarNotaLibro();
+    return;
+  }
   if (!$('dialogo-pdf-sin-texto').classList.contains('oculto')) {
     cerrarAvisoPdfSinTexto();
     return;

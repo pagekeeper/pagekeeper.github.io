@@ -753,6 +753,25 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .tip-resumen .texto-nota-tip { white-space: pre-wrap; }
 
 /* ── Nota sobre el libro ── */
+.nota-libro-lector {
+  display: flex; flex-direction: column; gap: 0.3rem;
+  padding: 0.5rem 0.6rem; border: 1px solid var(--borde);
+  border-left: 2px solid var(--acento); border-radius: 0.5rem;
+  background: var(--fondo);
+}
+.cabecera-nota-lector { display: flex; align-items: center; gap: 0.4rem; }
+.cabecera-nota-lector h3 {
+  flex: 1; min-width: 0; color: var(--acento); font-size: 0.7rem; font-weight: 750;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.cabecera-nota-lector .btn-icono { flex: none; }
+.texto-nota-lector {
+  font-size: 0.85rem; line-height: 1.45; white-space: pre-wrap;
+  overflow-wrap: anywhere; max-height: 11rem; overflow-y: auto;
+}
+/* Sin nota escrita el hueco no se entendería: lo dice, y en gris, que es un
+   aviso y no algo que haya escrito el usuario. */
+.texto-nota-lector.sin-nota { color: var(--texto-suave); font-style: italic; }
 .nota-menu-libro {
   padding-left: 0.55rem; border-left: 2px solid var(--acento);
   color: var(--texto); font-size: 0.82rem; line-height: 1.4; white-space: pre-wrap;

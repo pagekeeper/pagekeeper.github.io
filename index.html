@@ -431,6 +431,16 @@
           <button type="button" id="cerrar-anotaciones" class="btn-icono" data-icono="x"
             title="Cerrar" data-i18n-title="close"></button>
         </div>
+        <!-- La nota del libro entero, encima de las anotaciones sueltas: es el
+             sitio donde se buscan los apuntes propios sin salir del lector. -->
+        <section id="nota-libro-lector" class="nota-libro-lector">
+          <div class="cabecera-nota-lector">
+            <h3 data-i18n="bookNote">Nota del libro</h3>
+            <button type="button" id="btn-editar-nota-lector" class="btn-icono" data-icono="notebook-pen"
+              title="Escribir la nota del libro" data-i18n-title="editBookNote"></button>
+          </div>
+          <p id="texto-nota-lector" class="texto-nota-lector"></p>
+        </section>
         <div class="buscador buscador-anotaciones">
           <span data-icono="search"></span>
           <input id="buscar-anotaciones" type="search" placeholder="Buscar en las anotaciones"
