@@ -215,17 +215,6 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
   font-size: 0.65rem; font-weight: 750; line-height: 1.35;
   letter-spacing: 0.025em; text-transform: uppercase; white-space: nowrap;
 }
-.estado-sincronizacion.sincronizado {
-  border-color: color-mix(in srgb, var(--acento) 55%, transparent);
-  background: color-mix(in srgb, var(--acento) 12%, transparent); color: var(--acento);
-}
-/* Guardar un libro solo en este dispositivo es una decisión, no un problema:
-   la chapita va en el gris del texto suave y el ámbar queda para los avisos. */
-.estado-sincronizacion.solo-dispositivo {
-  border-color: var(--borde-fuerte);
-  background: color-mix(in srgb, var(--texto-suave) 12%, transparent);
-  color: var(--texto-suave);
-}
 .estado-sincronizacion.error {
   border-color: color-mix(in srgb, var(--peligro) 65%, transparent);
   background: color-mix(in srgb, var(--peligro) 11%, transparent); color: var(--peligro);
@@ -904,6 +893,16 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 
 /* Modo inmersivo: un toque en el centro oculta la barra; otro la recupera. */
 #vista-lector.inmersivo .barra-lector { display: none; }
+/* La salida, ya que la barra (y con ella su botón) no está. Se mantiene
+   apagada para no competir con la página y se enciende al acercarse. */
+.btn-salir-inmersivo {
+  position: fixed; z-index: 30;
+  top: max(0.5rem, env(safe-area-inset-top)); right: 0.5rem;
+  background: var(--fondo-tarjeta); border: 1px solid var(--borde);
+  border-radius: 50%; opacity: 0.32; transition: opacity 0.15s;
+}
+.btn-salir-inmersivo:hover, .btn-salir-inmersivo:focus-visible { opacity: 1; }
+#vista-lector:not(.inmersivo) .btn-salir-inmersivo { display: none; }
 #area-lectura canvas { cursor: grab; }
 #area-lectura.arrastrando, #area-lectura.arrastrando canvas,
 #area-lectura.arrastrando .capa-texto { cursor: grabbing; }

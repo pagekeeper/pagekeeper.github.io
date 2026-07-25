@@ -1147,9 +1147,10 @@ $('btn-cerrar-ajustes').addEventListener('click', () => {
 function actualizarEstadoSincronizacion(error = null) {
   const estado = document.querySelector('#zona-remota .estado-sincronizacion');
   if (!estado) return;
-  estado.classList.toggle('sincronizado', !error);
-  estado.classList.toggle('error', Boolean(error));
-  estado.textContent = t(error ? 'syncError' : 'syncYes');
+  // La chapita solo habla cuando hay algo que decir: que la nube va bien es lo
+  // que se espera de ella, y anunciarlo en cada carga era ruido.
+  estado.classList.toggle('oculto', !error);
+  estado.textContent = error ? t('syncError') : '';
   estado.title = error ? explicarError(error) : '';
 }
 
@@ -4400,6 +4401,7 @@ for (const [idMenu, idOriginal] of [
   ['menu-recorte', 'btn-recorte'],
   ['menu-zoom-mas', 'btn-zoom-mas'],
   ['menu-noche', 'btn-noche'],
+  ['menu-inmersivo', 'btn-inmersivo'],
 ]) enlazarAccionMenu(idMenu, idOriginal);
 
 // Apunta una posición de partida en el historial sin navegar (el salto ya
@@ -6123,18 +6125,45 @@ function haySeleccionActiva() {
   return false;
 }
 
-function alternarBarraLector() {
+function alternarBarraLector(porGesto = false) {
   const inmersivo = $('vista-lector').classList.toggle('inmersivo');
   if (epubAbierto()) reflowEpub();
   else window.dispatchEvent(new Event('resize'));
-  if (inmersivo && localStorage.getItem(CLAVE_AVISO_INMERSIVO) !== '1') {
+  pintarBotonInmersivo();
+  // El aviso explica el gesto, así que solo se da a quien ha llegado por él:
+  // desde el botón la salida está a la vista y no hay nada que explicar.
+  if (porGesto && inmersivo && localStorage.getItem(CLAVE_AVISO_INMERSIVO) !== '1') {
     localStorage.setItem(CLAVE_AVISO_INMERSIVO, '1');
     avisar(t('immersiveHint'), 4000);
   }
 }
 
+// El botón de la barra dice en qué estado está y cómo se sale: es la única
+// entrada al modo inmersivo cuando se lee con ratón, donde el toque en el
+// centro no lo activa.
+function pintarBotonInmersivo() {
+  const inmersivo = $('vista-lector').classList.contains('inmersivo');
+  for (const id of ['btn-inmersivo', 'menu-inmersivo']) {
+    const boton = $(id);
+    if (!boton) continue;
+    const dibujo = boton.querySelector('[data-icono]') ?? boton;
+    dibujo.dataset.icono = inmersivo ? 'shrink' : 'expand';
+    dibujo.innerHTML = icono(inmersivo ? 'shrink' : 'expand');
+    boton.setAttribute('aria-pressed', String(inmersivo));
+    const etiqueta = t(inmersivo ? 'immersiveExit' : 'immersive');
+    boton.title = etiqueta;
+    boton.setAttribute('aria-label', etiqueta);
+    boton.querySelector('span:last-child:not([data-icono])')?.replaceChildren(etiqueta);
+  }
+}
+
+$('btn-inmersivo').addEventListener('click', () => alternarBarraLector());
+$('btn-salir-inmersivo').addEventListener('click', () => alternarBarraLector());
+document.addEventListener('idioma-cambiado', pintarBotonInmersivo);
+
 function salirModoInmersivo() {
   $('vista-lector').classList.remove('inmersivo');
+  pintarBotonInmersivo();
 }
 
 function toqueCentroLector(objetivo, evento = null) {
@@ -6151,7 +6180,7 @@ function toqueCentroLector(objetivo, evento = null) {
   clearTimeout(temporizadorToqueCentro);
   temporizadorToqueCentro = setTimeout(() => {
     if (seleccionPendiente || haySeleccionActiva()) return;
-    alternarBarraLector();
+    alternarBarraLector(true);
   }, 280);
 }
 

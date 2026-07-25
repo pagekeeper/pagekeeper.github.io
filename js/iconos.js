@@ -47,6 +47,8 @@ const TRAZADOS = {
   'folder-input': '<path d="M2 9V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H20a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1"/> <path d="M2 13h10"/> <path d="m9 16 3-3-3-3"/>',
   'bookmark-plus': '<path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/> <line x1="12" x2="12" y1="7" y2="13"/> <line x1="15" x2="9" y1="10" y2="10"/>',
   'highlighter': '<path d="m9 11-6 6v3h9l3-3"/> <path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-7.2-7.2a2 2 0 0 1 0-2.8L12 2z"/>',
+  'expand': '<path d="m15 15 6 6"/> <path d="m15 9 6-6"/> <path d="M21 16v5h-5"/> <path d="M21 8V3h-5"/> <path d="M3 16v5h5"/> <path d="m3 21 6-6"/> <path d="M3 8V3h5"/> <path d="M9 9 3 3"/>',
+  'shrink': '<path d="m15 15 6 6"/> <path d="M15 19.8V15h4.8"/> <path d="M4.2 9H9V4.2"/> <path d="M9 9 3 3"/> <path d="m15 9 6-6"/> <path d="M15 4.2V9h4.8"/> <path d="M4.2 15H9v4.8"/> <path d="m9 15-6 6"/>',
   'notebook-pen': '<path d="M13.4 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7.4"/> <path d="M2 6h4"/> <path d="M2 10h4"/> <path d="M2 14h4"/> <path d="M2 18h4"/> <path d="M21.378 5.626a1 1 0 1 0-3.004-3.004l-5.01 5.012a2 2 0 0 0-.506.854l-.837 2.87a.5.5 0 0 0 .62.62l2.87-.837a2 2 0 0 0 .854-.506z"/>',
   'message-square-text':'<path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/> <path d="M8 8h8"/> <path d="M8 12h6"/>',
   'pencil': '<path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/> <path d="m15 5 4 4"/>',

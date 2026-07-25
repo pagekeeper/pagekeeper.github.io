@@ -146,7 +146,9 @@
           <div class="encabezado-seccion">
             <div class="titulo-y-estado-seccion">
               <h2 id="titulo-carpeta"><span class="icono-seccion" data-icono="cloud"></span><span data-i18n="cloud">En la nube</span></h2>
-              <span class="estado-sincronizacion sincronizado" data-i18n="syncYes">Se sincronizan</span>
+              <!-- Solo aparece cuando la sincronización falla: decir que todo va bien
+                   no hacía falta, avisar de que no va sí. -->
+              <span class="estado-sincronizacion error oculto"></span>
               <span id="conteo-nube" class="conteo-seccion"></span>
             </div>
             <p data-i18n="cloudScope">Libros y progreso disponibles en todos tus dispositivos</p>
@@ -176,7 +178,6 @@
           <div class="encabezado-seccion">
             <div class="titulo-y-estado-seccion">
               <h2><span class="icono-seccion" data-icono="smartphone"></span><span data-i18n="device">En este dispositivo</span></h2>
-              <span class="estado-sincronizacion solo-dispositivo" data-i18n="syncNo">Solo aquí</span>
               <span id="conteo-local" class="conteo-seccion"></span>
             </div>
             <p data-i18n="localScope">Libros guardados únicamente en este dispositivo</p>
@@ -337,6 +338,8 @@
       <button id="btn-recorte" class="btn-icono" data-icono="crop" title="Recortar los márgenes"
         data-i18n-title="cropMargins" aria-pressed="false"></button>
       <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
+      <button id="btn-inmersivo" class="btn-icono" data-icono="expand"
+        title="Leer a pantalla completa" data-i18n-title="immersive" aria-pressed="false"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
       <button id="btn-imagenes-noche" class="btn-icono oculto" data-icono="image"
         title="Imágenes en su color" aria-pressed="false"></button>
@@ -384,6 +387,9 @@
                   title="Ampliar" data-i18n-title="zoomIn"></button>
               </div>
             </li>
+            <li><button type="button" id="menu-inmersivo" class="item-menu-lector">
+              <span data-icono="expand"></span><span data-i18n="immersive">Leer a pantalla completa</span>
+            </button></li>
             <li><button type="button" id="menu-noche" class="item-menu-lector"></button></li>
             <li id="fila-menu-tiempo" class="fila-tiempo-menu oculto">
               <span data-icono="clock"></span><span id="tiempo-restante-menu"></span>
@@ -392,6 +398,12 @@
         </nav>
       </div>
     </header>
+    <!-- En modo inmersivo la barra no está, así que la salida vive aquí fuera:
+         sin ella, con ratón se entraría a pantalla completa sin manera visible
+         de volver. Discreta hasta que se le acerca el puntero. -->
+    <button type="button" id="btn-salir-inmersivo" class="btn-icono btn-salir-inmersivo"
+      data-icono="shrink" title="Salir de la pantalla completa"
+      data-i18n-title="immersiveExit"></button>
     <aside id="panel-indice-libro" class="panel-flotante-lector panel-indice-libro oculto">
       <div class="cabecera-panel-lector">
         <h2 id="titulo-panel-indice" data-i18n="bookIndex">Índice del libro</h2>
