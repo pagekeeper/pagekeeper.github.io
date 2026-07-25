@@ -1981,7 +1981,10 @@ function guardarNotaLibro(texto) {
   refrescarNotaEnFichas(id);
   pintarNotaCarpetaAbierta('nube');
   pintarNotaCarpetaAbierta('local');
-  pintarNotaLibroLector();
+  // Repintar el panel entero, y no solo la nota, porque el botón de exportar
+  // aparece o desaparece con ella.
+  if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
+  else pintarNotaLibroLector();
   cerrarNotaLibro();
   // En los libros de la nube la nota viaja a los demás dispositivos; si la red
   // falla, queda pendiente para la próxima sincronización, como el progreso.
@@ -2503,6 +2506,7 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
 }
 
 function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false } = {}) {
+  nubeSoloCopias = soloCopias;
   pintarRutaNube();
   const version = ++versionConteosNube; // cancela conteos de una lista anterior
   const lista = $('lista-libros');
@@ -2575,6 +2579,30 @@ function crearFilaLibroRemoto(libro, copia, soloCopias = false) {
 let indiceNube = null;        // { ruta, libros } ya recorrido
 let promesaIndiceNube = null; // recorrido en curso, para no lanzar dos
 let versionBusquedaNube = 0;
+let nubeSoloCopias = false;   // la sección se está pintando sin conexión
+
+// Sin conexión no hay carpetas que recorrer, pero sí lo que se guardó para
+// leer sin red: su identificador es la ruta completa dentro de la nube, así
+// que las copias que cuelgan de una subcarpeta se reconocen por ahí. Buscar
+// desde la raíz sigue encontrándolas, que es de lo que se trata.
+function librosDeCopiasEnSubcarpetas(copias) {
+  const prefijo = rutaNube ? `${rutaNube}/` : '';
+  const encontrados = [];
+  for (const copia of copias) {
+    if (!copia.id.startsWith(prefijo)) continue;
+    const resto = copia.id.slice(prefijo.length);
+    if (!resto.includes('/')) continue; // está en la carpeta abierta, ya pintado
+    const corte = resto.lastIndexOf('/');
+    encontrados.push({
+      nombre: resto.slice(corte + 1),
+      carpeta: prefijo + resto.slice(0, corte),
+      tamano: copia.tamano,
+      etag: copia.etag,
+      modificado: copia.modificado,
+    });
+  }
+  return encontrados;
+}
 
 function olvidarIndiceNube() {
   indiceNube = null;
@@ -2621,13 +2649,16 @@ async function pintarResultadosEnCarpetasNube() {
     return;
   }
   const copias = await almacen.listarCopiasRemotas(cliente.base).catch(() => []);
-  const libros = await librosEnCarpetasNube();
+  const libros = nubeSoloCopias
+    ? librosDeCopiasEnSubcarpetas(copias)
+    : await librosEnCarpetasNube();
   // Mientras se recorría la nube pueden haber cambiado la consulta o la
   // carpeta: lo que llega tarde ya no vale.
   if (version !== versionBusquedaNube) return;
   const copiasPorId = new Map(copias.map((copia) => [copia.id, copia]));
   for (const libro of libros) {
-    const fila = crearFilaLibroRemoto(libro, copiasPorId.get(`${libro.carpeta}/${libro.nombre}`));
+    const fila = crearFilaLibroRemoto(
+      libro, copiasPorId.get(`${libro.carpeta}/${libro.nombre}`), nubeSoloCopias);
     fila.dataset.enCarpeta = libro.carpeta;
     lista.append(fila);
   }
@@ -5371,7 +5402,8 @@ function pintarAnotaciones(idEnfocado = null) {
   const consulta = normalizarBusqueda($('buscar-anotaciones').value.trim());
   const ordenadas = anotacionesOrdenadas().filter((anotacion) =>
     !consulta || normalizarBusqueda(`${anotacion.texto ?? ''} ${anotacion.nota ?? ''}`).includes(consulta));
-  $('btn-exportar-anotaciones').classList.toggle('oculto', !anotacionesActuales.length);
+  $('btn-exportar-anotaciones').classList.toggle('oculto',
+    !anotacionesActuales.length && !(libroActual && progreso.notaDe(libroActual.id)));
   const sinAnotaciones = $('sin-anotaciones');
   sinAnotaciones.textContent = t(anotacionesActuales.length ? 'noAnnotationResults' : 'noAnnotations');
   sinAnotaciones.classList.toggle('oculto', ordenadas.length > 0);
@@ -5453,6 +5485,10 @@ function markdownAnotaciones() {
     `${t('exportSource')} · ${fecha}`,
     '',
   ];
+  // La nota del libro va primero y entera: habla del libro, no de un pasaje,
+  // así que no encaja en la lista de subrayados que viene detrás.
+  const nota = progreso.notaDe(libroActual.id);
+  if (nota) lineas.push(`## ${t('bookNote')}`, '', nota, '');
   for (const anotacion of anotacionesOrdenadas()) {
     lineas.push('---', '');
     const cita = (anotacion.texto ?? '').trim();
@@ -5468,7 +5504,8 @@ function markdownAnotaciones() {
 }
 
 function exportarAnotaciones() {
-  if (!libroActual || !anotacionesActuales.length) return;
+  // Con nota y sin subrayados también hay algo que llevarse.
+  if (!libroActual || !(anotacionesActuales.length || progreso.notaDe(libroActual.id))) return;
   const titulo = libroActual.titulo.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
   const nombre = `${titulo || 'libro'} - ${t('annotations').toLowerCase()}.md`;
   entregarDescarga(nombre, markdownAnotaciones(), 'text/markdown');
