@@ -164,6 +164,17 @@ body {
 .encabezado-seccion > p {
   margin-top: 0.2rem; color: var(--texto-suave); font-size: 0.8rem; line-height: 1.35;
 }
+/* En un móvil esa descripción cae en tres líneas y hay que bajar media
+   pantalla para ver el primer libro; es texto de la primera visita, y a la
+   tercera ya no dice nada que no digan el título, la chapita y el color de la
+   sección. Se va de la vista, pero no del documento: quien navegue con un
+   lector de pantalla la sigue oyendo, que ahí no estorba. */
+@media (max-width: 47.99rem) {
+  .encabezado-seccion > p {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+  }
+}
 /* Secciones plegables: la cabecera alterna y el resto del contenido se
    oculta, salvo cuando hay una búsqueda o un filtro activos. */
 .encabezado-seccion { cursor: pointer; }
