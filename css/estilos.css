@@ -352,6 +352,18 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
    se comporta como un mando. */
 .texto-continuar { flex: 1; min-width: 0; cursor: pointer; }
 .cabecera-continuar .btn-icono { flex: none; }
+/* Cuántas lecturas enseñar. Solo donde la cabecera tiene sitio de sobra: en un
+   móvil ya va justa, y allí el botón «ver N más» hace este mismo papel. */
+.select-recientes { display: none; }
+@media (min-width: 48rem) {
+  .select-recientes {
+    display: block; flex: none; max-width: 9rem;
+    padding: 0.25rem 0.4rem; border: 1px solid var(--borde-fuerte);
+    border-radius: 0.45rem; background: var(--fondo-tarjeta);
+    color: var(--texto-suave); font: inherit; font-size: 0.78rem; cursor: pointer;
+  }
+  .select-recientes:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+}
 /* Plegado: se queda la cabecera, que es una línea, y la última lectura sigue
    a un toque de distancia. */
 .continuar-plegado .cabecera-continuar { margin-bottom: 0; }
@@ -1557,6 +1569,9 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
     grid-template-columns: none;
     grid-auto-flow: column; grid-auto-columns: 12rem;
     justify-content: start; gap: 0.6rem; align-items: stretch;
+    /* Pidiendo ocho lecturas la fila puede pasarse del ancho de la pantalla:
+       antes que encoger las fichas o romper la rejilla, la fila se desliza. */
+    overflow-x: auto; padding-bottom: 0.2rem;
   }
   #libro-continuar > li { display: block; }
   #libro-continuar .libro {

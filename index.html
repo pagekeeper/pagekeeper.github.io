@@ -71,6 +71,16 @@
             <h2 id="titulo-continuar" data-i18n="continueReading">Continuar leyendo</h2>
             <p data-i18n="continueReadingHelp">Tu lectura más reciente, con las demás a un toque</p>
           </div>
+          <label class="sr-solo" for="cuantas-recientes" data-i18n="recentCount">Cuántas lecturas mostrar</label>
+          <select id="cuantas-recientes" class="select-recientes" title="Cuántas lecturas mostrar"
+            data-i18n-title="recentCount">
+            <option value="auto" data-i18n="recentAuto">Las que quepan</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+          </select>
           <button id="btn-plegar-continuar" type="button" class="btn-icono btn-plegar-seccion"
             data-icono="chevron-down" title="Plegar o desplegar la sección"
             data-i18n-title="toggleSection" aria-expanded="true" aria-controls="libro-continuar"></button>

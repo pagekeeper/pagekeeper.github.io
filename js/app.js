@@ -77,6 +77,9 @@ const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 // se pida lo contrario, así que no hay nada que guardar en el caso normal.
 const CLAVE_CONTINUAR_OCULTO = 'lector.continuarOculto';
 const CLAVE_CONTINUAR_PLEGADO = 'lector.continuarPlegado'; // solo de este dispositivo
+// Cuántas lecturas se enseñan. Ausente significa «las que quepan», que depende
+// del ancho, así que es cosa de cada dispositivo y no viaja con la copia.
+const CLAVE_CONTINUAR_MAXIMO = 'lector.continuarMaximo';
 
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
@@ -894,6 +897,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
   sincronizarCasillaContinuar();
   aplicarPlegadoContinuar();
+  sincronizarSelectRecientes();
 }
 
 async function exportarBibliotecaLocal() {
@@ -1349,9 +1353,29 @@ const PANTALLA_ANCHA = window.matchMedia?.('(min-width: 64rem)');
 
 // Cuántas lecturas recientes se enseñan: una más en cuanto hay cuadrícula,
 // donde las cuatro fichas caben en una fila ya desde el ancho mínimo.
+const RECIENTES_POSIBLES = [2, 3, 4, 6, 8];
+
 function maximoRecientes() {
+  const elegido = Number(localStorage.getItem(CLAVE_CONTINUAR_MAXIMO));
+  if (RECIENTES_POSIBLES.includes(elegido)) return elegido;
   return PANTALLA_ANCHA?.matches ? 4 : 3;
 }
+
+function sincronizarSelectRecientes() {
+  const elegido = Number(localStorage.getItem(CLAVE_CONTINUAR_MAXIMO));
+  $('cuantas-recientes').value = RECIENTES_POSIBLES.includes(elegido) ? String(elegido) : 'auto';
+  // «2» a secas, al lado del título, no dice de qué habla.
+  for (const opcion of $('cuantas-recientes').options) {
+    if (opcion.value !== 'auto') opcion.textContent = t('recentN', { count: opcion.value });
+  }
+}
+document.addEventListener('idioma-cambiado', sincronizarSelectRecientes);
+
+$('cuantas-recientes').addEventListener('change', (evento) => {
+  if (evento.target.value === 'auto') localStorage.removeItem(CLAVE_CONTINUAR_MAXIMO);
+  else localStorage.setItem(CLAVE_CONTINUAR_MAXIMO, evento.target.value);
+  pintarContinuarLeyendo();
+});
 
 // «Continuar leyendo» se puede apagar del todo desde los ajustes. A quien
 // abre siempre el mismo libro, o lee de un tirón, el bloque no le aporta y le
@@ -6369,6 +6393,7 @@ iniciarIdioma();
 iniciarTema();
 sincronizarCasillaContinuar();
 aplicarPlegadoContinuar();
+sincronizarSelectRecientes();
 aplicarTemaPagina(temaPagina());
 aplicarAparienciaModo(modoActual());
 
