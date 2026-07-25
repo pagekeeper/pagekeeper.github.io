@@ -1904,6 +1904,7 @@ function crearFilaLibro({
 function aplicarNotaEnFila(fila, id) {
   const nota = progreso.notaDe(id);
   const chapita = fila.querySelector('.nota-libro');
+  if (!chapita) return;
   if (nota) {
     fila.dataset.nota = nota;
     // Va aparte de `busqueda` y no concatenada: la nota se reescribe, y al
@@ -1924,15 +1925,26 @@ function aplicarNotaEnFila(fila, id) {
 // El mismo libro puede estar en varias listas a la vez (la nube, «Continuar
 // leyendo»…): se refrescan todas sus fichas, no solo desde la que se abrió.
 function refrescarNotaEnFichas(id) {
-  for (const fila of document.querySelectorAll(`li[data-id-libro="${CSS.escape(id)}"]`)) {
+  const escapado = CSS.escape(id);
+  for (const fila of document.querySelectorAll(
+    `li[data-id-libro="${escapado}"], li[data-id-nota="${escapado}"]`)) {
     aplicarNotaEnFila(fila, id);
   }
 }
 
+// Las carpetas también tienen nota, guardada en el mismo sitio que la de los
+// libros. Su identificador lleva delante lo que es y, en las del dispositivo,
+// el «local:» que la sincronización ya sabe que no debe subir a la nube.
+function idNotaCarpeta(ruta, ambito) {
+  return ambito === 'local' ? `local:carpeta:${ruta}` : `carpeta:${ruta}`;
+}
+
 let libroDeLaNota = null;
 
-function abrirNotaLibro(id, titulo) {
+function abrirNotaLibro(id, titulo, esCarpeta = false) {
   libroDeLaNota = id;
+  $('titulo-nota-libro').textContent = t(esCarpeta ? 'folderNote' : 'bookNote');
+  $('texto-nota-libro').placeholder = t(esCarpeta ? 'folderNotePlaceholder' : 'bookNotePlaceholder');
   $('libro-de-la-nota').textContent = titulo;
   $('texto-nota-libro').value = progreso.notaDe(id) ?? '';
   $('btn-borrar-nota-libro').classList.toggle('oculto', !progreso.notaDe(id));
@@ -2020,7 +2032,9 @@ function pintarTipResumen(ficha) {
   // La nota propia va debajo del resumen del editor y se distingue de él: son
   // dos voces distintas y conviene no confundirlas.
   const nota = tipResumen.querySelector('.nota-tip');
-  nota.querySelector('.etiqueta-nota-tip').textContent = t('bookNote');
+  // Solo las carpetas llevan `idNota`: los libros se identifican por el suyo.
+  nota.querySelector('.etiqueta-nota-tip').textContent =
+    t(ficha.dataset.idNota ? 'folderNote' : 'bookNote');
   nota.querySelector('.texto-nota-tip').textContent = ficha.dataset.nota ?? '';
   nota.classList.toggle('oculto', !ficha.dataset.nota);
   tipResumen.classList.remove('oculto');
@@ -2041,7 +2055,7 @@ function pintarTipResumen(ficha) {
 
 function prepararTipResumen() {
   const fichaBajo = (destino) => destino
-    ?.closest?.('li[data-id-libro][data-resumen] .libro, li[data-id-libro][data-nota] .libro')
+    ?.closest?.('li[data-id-libro][data-resumen] .libro, li[data-nota] .libro')
     ?.parentElement;
   const atender = (ficha) => {
     if (ficha === fichaConTip) return;
@@ -2426,9 +2440,12 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
   boton.title = t('openFolder', { name: nombre });
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
-    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span><span class="conteo-carpeta"></span></span>`;
+    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span><span class="nota-libro oculto"></span></span><span class="conteo-carpeta"></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
   ponerConteoCarpeta(boton, conteo);
+  const ruta = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  const idNota = idNotaCarpeta(ruta, 'nube');
+  elemento.dataset.idNota = idNota;
   const abrir = () => {
     rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
     registrarCarpetas();
@@ -2445,6 +2462,11 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
 
   if (!soloLectura) {
     boton.append(crearBotonMenu(boton, () => [
+      {
+        icono: 'notebook-pen',
+        etiqueta: t('actionFolderNote'),
+        alPulsar: () => abrirNotaLibro(idNota, nombre, true),
+      },
       accionDescargarCarpeta(() => descargarCarpetaRemota(nombre)),
       {
         icono: 'trash-2',
@@ -2455,6 +2477,7 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
     ]));
   }
   elemento.append(boton);
+  aplicarNotaEnFila(elemento, idNota);
   return elemento;
 }
 
@@ -2653,8 +2676,10 @@ async function borrarCarpetaRemota(nombre) {
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     await cliente.borrar(ruta);
-    // Limpia el progreso de todos los libros que colgaban de la carpeta.
+    // Limpia el progreso de todos los libros que colgaban de la carpeta, y la
+    // nota de la propia carpeta, que ya no describe nada.
     await progreso.olvidarPorPrefijo(ruta + '/', cliente).catch(() => null);
+    await progreso.olvidar(idNotaCarpeta(ruta, 'nube'), cliente).catch(() => null);
     await almacen.borrarCopiasRemotasPorPrefijo(cliente.base, ruta + '/').catch(() => null);
     await anotaciones.olvidarPorPrefijo(cliente.base, ruta + '/').catch(() => null);
     avisar(t('folderDeleted'));
@@ -2745,9 +2770,11 @@ function crearFilaCarpetaLocal(nombre, conteo = null) {
   etiquetarPorTitulo(boton);
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
-    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span></span><span class="conteo-carpeta"></span></span>`;
+    <span class="datos"><span class="cabecera-libro"><span class="nombre"></span><span class="nota-libro oculto"></span></span><span class="conteo-carpeta"></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
   ponerConteoCarpeta(boton, conteo);
+  const idNota = idNotaCarpeta(rutaLocalDe(nombre), 'local');
+  elemento.dataset.idNota = idNota;
   const abrir = () => navegarCarpetaLocal(rutaLocalDe(nombre));
   boton.addEventListener('click', abrir);
   boton.addEventListener('keydown', (evento) => {
@@ -2765,6 +2792,11 @@ function crearFilaCarpetaLocal(nombre, conteo = null) {
   });
   boton.addEventListener('dragend', () => { carpetaArrastrada = ''; });
   boton.append(crearBotonMenu(boton, () => [
+    {
+      icono: 'notebook-pen',
+      etiqueta: t('actionFolderNote'),
+      alPulsar: () => abrirNotaLibro(idNota, nombre, true),
+    },
     {
       icono: 'folder-input',
       etiqueta: t('actionMoveFolder'),
@@ -2786,6 +2818,7 @@ function crearFilaCarpetaLocal(nombre, conteo = null) {
     },
   ]));
   elemento.append(boton);
+  aplicarNotaEnFila(elemento, idNota);
   return elemento;
 }
 
@@ -2830,6 +2863,7 @@ async function renombrarCarpetaLocal(nombre) {
   }
   try {
     await almacen.renombrarCarpetaLocal(rutaLocalDe(nombre), destino);
+    progreso.renombrar(idNotaCarpeta(rutaLocalDe(nombre), 'local'), idNotaCarpeta(destino, 'local'));
     avisar(t('folderRenamed'));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -2842,6 +2876,7 @@ async function borrarCarpetaLocal(nombre) {
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     const borrados = await almacen.borrarCarpetaLocal(rutaLocalDe(nombre));
+    await progreso.olvidar(idNotaCarpeta(rutaLocalDe(nombre), 'local')).catch(() => null);
     // El progreso y las anotaciones se guardan por id de libro, así que hay
     // que limpiarlos uno a uno: no cuelgan de la carpeta.
     for (const id of borrados) {
@@ -2863,6 +2898,11 @@ async function moverCarpetaLocalA(origen, rutaDestino) {
   const nombre = origen.split('/').pop();
   try {
     if (!await almacen.moverCarpetaLocal(origen, rutaDestino)) return;
+    // La nota describe la carpeta, así que viaja con ella.
+    progreso.renombrar(
+      idNotaCarpeta(origen, 'local'),
+      idNotaCarpeta(rutaDestino ? `${rutaDestino}/${nombre}` : nombre, 'local'),
+    );
     avisar(t('folderMoved', { name: nombre }));
     // Si estábamos dentro de la carpeta movida, se sigue donde estaba.
     if (rutaLocal === origen || rutaLocal.startsWith(`${origen}/`)) {
