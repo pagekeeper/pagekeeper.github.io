@@ -292,7 +292,12 @@ export class LectorEpub {
   notificar() {
     if (this.conLocalizaciones && this.cfi) {
       try {
-        this.porcentaje = Math.round(this.libro.locations.percentageFromCfi(this.cfi) * 100);
+        // Con un decimal: en un libro de 400 localizaciones, pasar varias
+        // páginas mueve décimas, y redondeando a entero parecía que la lectura
+        // se quedaba clavada en el mismo número durante minutos. Más de un
+        // decimal no aporta nada legible ni medible.
+        const fraccion = this.libro.locations.percentageFromCfi(this.cfi);
+        this.porcentaje = Math.round(fraccion * 1000) / 10;
       } catch { /* CFI fuera de las localizaciones: se conserva el anterior */ }
     }
     this.alCambiarPosicion?.(this.cfi, this.porcentaje, this.conLocalizaciones);

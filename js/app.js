@@ -1525,9 +1525,11 @@ PANTALLA_ANCHA?.addEventListener('change', () => {
 });
 
 function lecturaTerminada(avance, porcentaje = null) {
-  const pct = porcentaje ?? (avance?.paginas
-    ? Math.round((avance.pagina / avance.paginas) * 100)
-    : 0);
+  // Se redondea antes de comparar: el porcentaje de los EPUB lleva decimales y
+  // un 99,6 % es un libro terminado, no uno al que le falta algo.
+  const pct = Math.round(porcentaje ?? (avance?.paginas
+    ? (avance.pagina / avance.paginas) * 100
+    : 0));
   return avance?.terminado === true || (avance?.terminado !== false && pct >= 100);
 }
 
@@ -4499,13 +4501,21 @@ function cuandoCambiaPagina(pagina, total) {
 // ¿El porcentaje anotado dice otra cosa que la posición anotada? Se compara
 // contra la misma posición, no contra cualquiera: un progreso de otro punto
 // del libro no es un desfase, es una lectura más reciente de otro sitio.
+// Un porcentaje con decimales para la lectura, redondeado para la biblioteca:
+// en la ficha de un libro las décimas no dicen nada y solo estorban.
+function formatearPorcentaje(valor, decimales = 1) {
+  return Number(valor ?? 0).toLocaleString(idiomaActual(), {
+    maximumFractionDigits: decimales,
+  });
+}
+
 function porcentajeDesfasado(cfi, porcentaje) {
   const avance = progreso.progresoDe(libroActual.id);
   return Boolean(avance) && avance.cfi === cfi && avance.pagina !== porcentaje;
 }
 
 function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
-  $('btn-indicador').textContent = conLocalizaciones ? `${porcentaje}%` : '…';
+  $('btn-indicador').textContent = conLocalizaciones ? `${formatearPorcentaje(porcentaje)}%` : '…';
   marcarEntradaIndiceActual();
   if (!libroActual || !cfi) return;
   if (restaurandoPosicionEpub) {
@@ -5199,7 +5209,7 @@ function posicionMarcadorActual() {
 
 function etiquetaMarcador(marcador) {
   if (marcador.pagina) return `${t('page')} ${marcador.pagina}`;
-  if (Number.isFinite(marcador.porcentaje)) return `${marcador.porcentaje} %`;
+  if (Number.isFinite(marcador.porcentaje)) return `${formatearPorcentaje(marcador.porcentaje)} %`;
   return t('bookmark');
 }
 
@@ -6237,8 +6247,10 @@ $('btn-pagina-completa').addEventListener('click', async () => {
 function pedirPosicionLibro() {
   if (epubAbierto()) {
     if (!lectorEpub.conLocalizaciones) return;
-    const respuesta = prompt(t('goPercent'), String(lectorEpub.porcentaje));
-    const numero = parseInt(respuesta, 10);
+    const respuesta = prompt(t('goPercent'), formatearPorcentaje(lectorEpub.porcentaje));
+    // Se admite la coma decimal: es lo que se ofrece de partida en español y
+    // en catalán, y sería absurdo no aceptar de vuelta lo que se propone.
+    const numero = parseFloat(String(respuesta ?? '').replace(',', '.'));
     if (!Number.isNaN(numero)) {
       saltarConHistorial(lectorEpub.destinoPorcentaje(numero))
         .catch((error) => avisar(error.message, 5000));
