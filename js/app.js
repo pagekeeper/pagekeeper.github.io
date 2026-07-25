@@ -449,12 +449,7 @@ function cerrarVistaLector() {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
-  clearTimeout(temporizadorSync);
-  clearTimeout(temporizadorSyncAnotaciones);
-  if (libroActual?.tipo === 'webdav' && cliente) {
-    progreso.sincronizar(cliente).catch(() => null);
-    anotaciones.sincronizar(libroActual.id, cliente).catch(() => null);
-  }
+  subirPosicionAhora();
   lectorEpub.cerrar();
   libroActual = null;
   mostrarVista('biblioteca');
@@ -4226,6 +4221,25 @@ function prepararSeguimientoEpub(cfiInicial) {
   // depende del ancho y la tipografía del dispositivo y no es un avance real.
   restaurandoPosicionEpub = Boolean(cfiInicial);
 }
+
+// Sube ya lo que hubiera esperando, sin el respiro de los tres segundos.
+function subirPosicionAhora() {
+  clearTimeout(temporizadorSync);
+  clearTimeout(temporizadorSyncAnotaciones);
+  if (libroActual?.tipo !== 'webdav' || !cliente) return;
+  progreso.sincronizar(cliente).catch(() => null);
+  anotaciones.sincronizar(libroActual.id, cliente).catch(() => null);
+}
+
+// Cerrar la pestaña, cambiar de aplicación o bloquear el móvil no avisa de
+// ninguna otra forma: «beforeunload» no llega en Android y la página puede
+// descartarse sin más. Pasar a oculta es el último momento fiable para subir
+// la posición; sin esto, terminar de leer y cerrar sin volver a la biblioteca
+// dejaba la última página en este dispositivo hasta la siguiente apertura, y
+// el otro aparato seguía en la página de antes.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') subirPosicionAhora();
+});
 
 function planificarSincronizacion() {
   if (libroActual?.tipo !== 'webdav' || !cliente) return;
