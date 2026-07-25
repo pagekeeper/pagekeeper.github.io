@@ -1660,7 +1660,7 @@ function crearFilaLibro({
   boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
-    <span class="marca-origen" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
+    <span class="marca-origen ${enLaNube ? 'origen-nube' : 'origen-dispositivo'}" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
     <span class="datos">
       <span class="cabecera-libro">
         <span class="nombre"></span>
@@ -1956,6 +1956,28 @@ function aplicarOrganizacionBiblioteca() {
   const estado = $('estado-filtro-biblioteca');
   estado.textContent = (consulta || filtro !== 'todos') && !visibles ? t('noLibraryResults') : '';
   estado.classList.toggle('oculto', !estado.textContent);
+  actualizarConteosSeccion();
+}
+
+// Lo que hay a la vista en cada sección, contado sobre la propia lista para que
+// siga a la búsqueda y al filtro. Va en la cabecera porque es lo único que se
+// ve de una sección plegada. Sin nada que contar no se escribe «vacía»: la
+// nube empieza vacía mientras carga y sería una respuesta falsa.
+function actualizarConteosSeccion() {
+  for (const [destino, carpetas, libros] of [
+    ['conteo-nube', 'lista-carpetas', 'lista-libros'],
+    ['conteo-local', 'lista-carpetas-locales', 'lista-locales'],
+  ]) {
+    const partes = [];
+    for (const [lista, unaClave, variasClave] of [
+      [carpetas, 'sectionFoldersOne', 'sectionFolders'],
+      [libros, 'sectionBooksOne', 'sectionBooks'],
+    ]) {
+      const n = $(lista).querySelectorAll(':scope > li:not(.oculto)').length;
+      if (n) partes.push(n === 1 ? t(unaClave) : t(variasClave, { count: n }));
+    }
+    $(destino).textContent = partes.join(' · ');
+  }
 }
 
 let buscandoEnBiblioteca = false;

@@ -21,6 +21,10 @@
   --aviso: #a16207;
   --formato-pdf: #be123c;
   --formato-epub: #0f766e;
+  /* Los dos ámbitos de la biblioteca. El del dispositivo va en pizarra, no en
+     un color de aviso: guardar algo solo aquí es una elección, no un fallo. */
+  --ambito-nube: #0369a1;
+  --ambito-dispositivo: #64748b;
   --borde: #cbd5e1;        /* separadores y marcos suaves */
   /* Contorno de los campos: con el borde suave se pierden sobre la tarjeta.
      Los dos temas llegan al 3:1 que pide un control (4,76:1 y 3,35:1). */
@@ -46,6 +50,8 @@
   --aviso: #fbbf24;
   --formato-pdf: #fb7185;
   --formato-epub: #2dd4bf;
+  --ambito-nube: #38bdf8;
+  --ambito-dispositivo: #94a3b8;
   --borde: #334155;
   --borde-fuerte: #6b7a90;
   --velo: rgba(15, 23, 42, 0.7);
@@ -146,7 +152,10 @@ body {
 @media (min-width: 48rem) {
   .fila-seccion {
     position: sticky; top: 0; z-index: 4;
-    background: var(--fondo); padding: 0.5rem 0; margin-top: -0.5rem;
+    background: var(--fondo-seccion, var(--fondo));
+    /* Se desborda hasta los lados de la sección para que lo que pasa por
+       debajo no asome por el hueco del acolchado. */
+    padding: 0.5rem 0.7rem; margin: -0.5rem -0.7rem 0;
   }
 }
 .encabezado-seccion { flex: 1; min-width: 0; }
@@ -172,15 +181,49 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
   border-color: color-mix(in srgb, var(--acento) 55%, transparent);
   background: color-mix(in srgb, var(--acento) 12%, transparent); color: var(--acento);
 }
-.estado-sincronizacion.no-sincronizado {
-  border-color: color-mix(in srgb, var(--aviso) 55%, transparent);
-  background: color-mix(in srgb, var(--aviso) 10%, transparent); color: var(--aviso);
+/* Guardar un libro solo en este dispositivo es una decisión, no un problema:
+   la chapita va en el gris del texto suave y el ámbar queda para los avisos. */
+.estado-sincronizacion.solo-dispositivo {
+  border-color: var(--borde-fuerte);
+  background: color-mix(in srgb, var(--texto-suave) 12%, transparent);
+  color: var(--texto-suave);
 }
 .estado-sincronizacion.error {
   border-color: color-mix(in srgb, var(--peligro) 65%, transparent);
   background: color-mix(in srgb, var(--peligro) 11%, transparent); color: var(--peligro);
 }
 .fila-seccion > .btn-icono { margin-top: -0.25rem; }
+/* Cuántas carpetas y libros hay a la vista, junto al título: con la sección
+   plegada, o con un filtro puesto, es lo único que queda del contenido. */
+.conteo-seccion {
+  color: var(--texto-suave); font-size: 0.78rem; font-variant-numeric: tabular-nums;
+}
+.conteo-seccion:empty { display: none; }
+
+/* ── Los dos ámbitos: la nube y el dispositivo ──
+   Con el mismo fondo y el mismo marco, las dos bibliotecas solo se distinguían
+   por su cabecera, y en cuanto se baja un poco esta se pierde de vista. Cada
+   una tiene ahora su color, repetido en el icono del título, en un filete
+   lateral que recorre toda la sección y en la chapita de cada ficha. */
+#zona-remota { --ambito: var(--ambito-nube); }
+#zona-local  { --ambito: var(--ambito-dispositivo); }
+#zona-remota, #zona-local {
+  /* Opaco, y no un tinte transparente, porque la cabecera pegajosa se pinta
+     encima con este mismo color y las dos capas tienen que coincidir. */
+  --fondo-seccion: color-mix(in srgb, var(--ambito) 6%, var(--fondo));
+  background: var(--fondo-seccion);
+  border-left: 3px solid color-mix(in srgb, var(--ambito) 60%, transparent);
+  /* En un móvil no se le quita ancho al contenido por el lado derecho: la
+     cabecera ya va justa y el título se partiría en dos líneas. */
+  padding: 0.2rem 0 0.85rem 0.6rem;
+  border-radius: 0 0.75rem 0.75rem 0;
+}
+@media (min-width: 48rem) {
+  #zona-remota, #zona-local { padding: 0.2rem 0.7rem 0.9rem; }
+}
+/* Un poco más de aire entre las dos que entre el resto de bloques. */
+#zona-local { margin-top: 0.5rem; }
+#zona-remota .icono-seccion, #zona-local .icono-seccion { color: var(--ambito); }
 
 /* ── Tarjetas y botones ── */
 .tarjeta {
@@ -607,8 +650,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .vista-cuadricula .marca-origen {
   display: flex; position: absolute; top: 0.6rem; left: 0.6rem;
   width: 1.35rem; height: 1.35rem; align-items: center; justify-content: center;
-  border-radius: 50%; background: rgba(15, 23, 42, 0.58); color: #e2e8f0;
+  border-radius: 50%; background: rgba(15, 23, 42, 0.62); color: #e2e8f0;
 }
+/* El círculo se queda oscuro en los dos temas, que va encima de la portada;
+   el color del ámbito lo lleva el icono. */
+.vista-cuadricula .marca-origen.origen-nube { color: #7dd3fc; }
+.vista-cuadricula .marca-origen.origen-dispositivo { color: #cbd5e1; }
 .vista-cuadricula .marca-origen .icono { width: 0.85rem; height: 0.85rem; }
 
 /* Con ratón, el menú «⋯» y el círculo de terminado solo salen sobre la ficha
