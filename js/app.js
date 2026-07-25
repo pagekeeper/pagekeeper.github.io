@@ -4311,6 +4311,14 @@ function cuandoCambiaPagina(pagina, total) {
   planificarSincronizacion();
 }
 
+// ¿El porcentaje anotado dice otra cosa que la posición anotada? Se compara
+// contra la misma posición, no contra cualquiera: un progreso de otro punto
+// del libro no es un desfase, es una lectura más reciente de otro sitio.
+function porcentajeDesfasado(cfi, porcentaje) {
+  const avance = progreso.progresoDe(libroActual.id);
+  return Boolean(avance) && avance.cfi === cfi && avance.pagina !== porcentaje;
+}
+
 function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   $('btn-indicador').textContent = conLocalizaciones ? `${porcentaje}%` : '…';
   marcarEntradaIndiceActual();
@@ -4334,7 +4342,14 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   if (cfi === cfiEpubGuardado) {
     // Si el usuario se movió antes de que terminara el cálculo del porcentaje,
     // se completa ahora el mismo cambio. En una apertura normal no se escribe.
-    if (!(conLocalizaciones && cfiEpubPendientePorcentaje === cfi)) return;
+    //
+    // Salvo que el porcentaje guardado no case con la posición guardada, que
+    // es lo que pasa cuando una sesión anterior se cerró con el reparto del
+    // libro a medio calcular: allí se anotó la posición nueva con el
+    // porcentaje viejo, y sin esta corrección el número se quedaba clavado
+    // para siempre, diciendo un 6 % con el libro abierto por el 4 %.
+    if (!(conLocalizaciones && cfiEpubPendientePorcentaje === cfi) &&
+        !(conLocalizaciones && porcentajeDesfasado(cfi, porcentaje))) return;
     cfiEpubPendientePorcentaje = null;
   } else {
     cfiEpubGuardado = cfi;
