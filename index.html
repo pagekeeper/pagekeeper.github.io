@@ -88,9 +88,13 @@
             title="Quitar «Continuar leyendo» de la biblioteca"
             data-i18n-title="removeContinue"></button>
         </div>
-        <ul id="libro-continuar" class="lista-libros"></ul>
-        <button id="btn-mas-recientes" type="button" class="btn-mas-recientes oculto"
-          aria-expanded="false" aria-controls="libro-continuar"></button>
+        <!-- Envoltorio doble: el de fuera anima su altura (grid 1fr → 0fr) y el
+             de dentro es el que se recorta mientras encoge. -->
+        <div class="cuerpo-plegable"><div class="interior-plegable">
+          <ul id="libro-continuar" class="lista-libros"></ul>
+          <button id="btn-mas-recientes" type="button" class="btn-mas-recientes oculto"
+            aria-expanded="false" aria-controls="libro-continuar"></button>
+        </div></div>
       </section>
 
       <!-- Caja con dos controles (el campo y la «x»), así que no puede ser un
@@ -158,10 +162,12 @@
             title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
             aria-expanded="true" aria-controls="zona-remota"></button>
         </div>
-        <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
-        <div id="estado-remoto" class="estado" role="status"></div>
-        <ul id="lista-carpetas" class="lista-libros lista-carpetas"></ul>
-        <ul id="lista-libros" class="lista-libros"></ul>
+        <div class="cuerpo-plegable"><div class="interior-plegable">
+          <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
+          <div id="estado-remoto" class="estado" role="status"></div>
+          <ul id="lista-carpetas" class="lista-libros lista-carpetas"></ul>
+          <ul id="lista-libros" class="lista-libros"></ul>
+        </div></div>
       </div>
 
       <div id="zona-local" class="destino-arrastre">
@@ -186,18 +192,20 @@
             title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
             aria-expanded="true" aria-controls="zona-local"></button>
         </div>
-        <nav id="ruta-carpeta-local" class="ruta-carpeta oculto" aria-label="Carpeta actual"
-          data-i18n-aria-label="currentFolder"></nav>
-        <p id="estado-local" class="estado oculto" role="status"></p>
-        <button type="button" id="aviso-local-vacio" class="carga-local-vacia oculto">
-          <span class="icono-carga-local" data-icono="plus"></span>
-          <span class="texto-carga-local">
-            <strong data-i18n="emptyLocalAction">Añadir libros solo a este dispositivo</strong>
-            <span data-i18n="emptyLocalHelp">No se sincronizarán. Selecciona archivos PDF o EPUB, o arrástralos aquí.</span>
-          </span>
-        </button>
-        <ul id="lista-carpetas-locales" class="lista-libros lista-carpetas"></ul>
-        <ul id="lista-locales" class="lista-libros"></ul>
+        <div class="cuerpo-plegable"><div class="interior-plegable">
+          <nav id="ruta-carpeta-local" class="ruta-carpeta oculto" aria-label="Carpeta actual"
+            data-i18n-aria-label="currentFolder"></nav>
+          <p id="estado-local" class="estado oculto" role="status"></p>
+          <button type="button" id="aviso-local-vacio" class="carga-local-vacia oculto">
+            <span class="icono-carga-local" data-icono="plus"></span>
+            <span class="texto-carga-local">
+              <strong data-i18n="emptyLocalAction">Añadir libros solo a este dispositivo</strong>
+              <span data-i18n="emptyLocalHelp">No se sincronizarán. Selecciona archivos PDF o EPUB, o arrástralos aquí.</span>
+            </span>
+          </button>
+          <ul id="lista-carpetas-locales" class="lista-libros lista-carpetas"></ul>
+          <ul id="lista-locales" class="lista-libros"></ul>
+        </div></div>
       </div>
 
       <footer class="pie">

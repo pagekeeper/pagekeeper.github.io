@@ -180,8 +180,35 @@ body {
 .encabezado-seccion { cursor: pointer; }
 .btn-plegar-seccion .icono { transition: transform 0.15s; }
 .seccion-plegada .btn-plegar-seccion .icono { transform: rotate(-90deg); }
-body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador-arrastre) {
-  display: none;
+/* Plegar y desplegar, con el contenido deslizándose en lugar de desaparecer
+   de golpe. La altura se anima con una rejilla de una fila que pasa de 1fr a
+   0fr: es la única forma de ir «hasta lo que mida el contenido» sin medirlo a
+   mano en JavaScript ni inventarse un máximo que descuadre el ritmo. */
+.cuerpo-plegable {
+  display: grid; grid-template-rows: 1fr;
+  transition: grid-template-rows 0.24s ease;
+}
+/* Sin display propio: los hijos siguen colocándose como antes de envolverlos. */
+.interior-plegable {
+  min-height: 0; overflow: hidden;
+  transition: opacity 0.18s ease, visibility 0s;
+}
+body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable,
+.continuar-plegado > .cuerpo-plegable {
+  grid-template-rows: 0fr;
+}
+/* Recortado no basta: a diferencia del «display: none» de antes, lo que queda
+   dentro seguiría cogiendo el tabulador y saliendo en un lector de pantalla.
+   La visibilidad se apaga al terminar de encoger, no antes, para que se vea
+   deslizarse. */
+body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-plegable,
+.continuar-plegado > .cuerpo-plegable > .interior-plegable {
+  opacity: 0; visibility: hidden;
+  transition: opacity 0.18s ease, visibility 0s linear 0.24s;
+}
+/* Quien pide menos animación no la recibe: el plegado sigue siendo instantáneo. */
+@media (prefers-reduced-motion: reduce) {
+  .cuerpo-plegable, .interior-plegable { transition: none; }
 }
 .estado-sincronizacion {
   padding: 0.1rem 0.45rem; border: 1px solid; border-radius: 999px;
@@ -345,7 +372,12 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
     var(--fondo-tarjeta));
   box-shadow: 0 0.4rem 1.4rem var(--sombra);
 }
-.cabecera-continuar { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.7rem; }
+.cabecera-continuar {
+  display: flex; align-items: center; gap: 0.65rem; margin-bottom: 0.7rem;
+  /* Acompaña al plegado: si el hueco de debajo saltara de golpe, la animación
+     de la lista no serviría de nada. */
+  transition: margin-bottom 0.24s ease;
+}
 .cabecera-continuar h2 { color: var(--acento); font-size: 1rem; }
 .cabecera-continuar p { color: var(--texto-suave); font-size: 0.78rem; }
 /* El texto empuja los dos botones al extremo y, como toda la cabecera pliega,
@@ -367,8 +399,6 @@ body:not(.filtrado-biblioteca) .seccion-plegada > :not(.fila-seccion, .indicador
 /* Plegado: se queda la cabecera, que es una línea, y la última lectura sigue
    a un toque de distancia. */
 .continuar-plegado .cabecera-continuar { margin-bottom: 0; }
-.continuar-plegado #libro-continuar,
-.continuar-plegado .btn-mas-recientes { display: none; }
 .continuar-plegado .btn-plegar-seccion .icono { transform: rotate(-90deg); }
 .icono-continuar {
   width: 2.15rem; height: 2.15rem; border-radius: 50%; flex: none;
