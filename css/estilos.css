@@ -1480,6 +1480,9 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 .separador-miga { color: var(--texto-suave); }
 .miga-actual { color: var(--texto); font-weight: 600; padding: 0.1rem 0.25rem; }
 .libro .portada-carpeta {
+  /* Cuadrado y no con la proporción de una portada: dentro solo hay un icono,
+     y de paso la fila queda más baja. */
+  width: 2.4rem; height: 2.4rem;
   color: var(--aviso);
   background: color-mix(in srgb, var(--aviso) 12%, var(--fondo));
   border-color: color-mix(in srgb, var(--aviso) 35%, var(--borde));
@@ -1708,6 +1711,12 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   /* Las listas se reparten en columnas. Con «auto-fill» y un mínimo por
      tarjeta el número de columnas lo decide el ancho disponible, sin fijar
      cuántas hay en cada tramo. */
+  /* Una carpeta enseña su nombre y cuántas cosas tiene: no necesita el ancho
+     de un libro, que trae además autor, tamaño y progreso. Con la mitad caben
+     el doble por fila y la banda de carpetas deja de comerse la pantalla. */
+  .lista-libros.lista-carpetas:not(.vista-cuadricula) {
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr));
+  }
   .lista-libros:not(.vista-cuadricula) {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(24rem, 1fr));
@@ -1790,6 +1799,9 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 @media (min-width: 100rem) {
   .lista-libros:not(.vista-cuadricula) {
     grid-template-columns: repeat(auto-fill, minmax(26rem, 1fr));
+  }
+  .lista-libros.lista-carpetas:not(.vista-cuadricula) {
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
   }
   .lista-libros.vista-cuadricula {
     grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
