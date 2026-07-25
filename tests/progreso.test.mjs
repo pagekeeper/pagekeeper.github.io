@@ -193,7 +193,7 @@ test('una posición remota más reciente prevalece aunque haya un cambio local p
   assert.equal(resultado.posicionActualizada, remoto.posicionActualizada);
 });
 
-test('relee, fusiona y reintenta cuando falla una escritura por conflicto', async () => {
+test('relee y conserva el avance remoto al reintentar una escritura con conflicto', async () => {
   const memoria = new Map();
   globalThis.localStorage = {
     getItem: (clave) => memoria.get(clave) ?? null,
@@ -237,8 +237,11 @@ test('relee, fusiona y reintenta cuando falla una escritura por conflicto', asyn
   const resultado = await sincronizar(cliente);
   assert.equal(lecturas, 2);
   assert.equal(escrituras, 2);
-  assert.equal(resultado.libros['libro.pdf'].pagina, 25);
-  assert.equal(remoto.libros['libro.pdf'].pagina, 25);
+  // Este dispositivo no había llegado a ver la posición remota. Al aparecer
+  // durante el conflicto un avance mayor, se conserva para no borrarlo con
+  // una lectura local que partió a ciegas desde una copia anterior.
+  assert.equal(resultado.libros['libro.pdf'].pagina, 90);
+  assert.equal(remoto.libros['libro.pdf'].pagina, 90);
 });
 
 test('no sobrescribe una página cambiada mientras esperaba la respuesta remota', async () => {

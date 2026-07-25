@@ -217,16 +217,22 @@ export class LectorEpub {
     this.porcentaje = 0;
     this.conLocalizaciones = false;
 
-    this.libro = window.ePub(datos.buffer ?? datos);
-    await this.libro.ready;
-    this.libro.spine.hooks.content.register(sanitizarDocumentoEpub);
+    const libro = window.ePub(datos.buffer ?? datos);
+    this.libro = libro;
+    await libro.ready;
+    // Una apertura puede haber sustituido a esta mientras el EPUB terminaba
+    // de prepararse. Sus tareas atrasadas no deben montar nada sobre el libro
+    // nuevo ni recuperar la posición de la sesión anterior.
+    if (this.libro !== libro) return;
+    libro.spine.hooks.content.register(sanitizarDocumentoEpub);
     if (localizaciones) {
       try {
-        const cargadas = this.libro.locations.load(localizaciones);
+        const cargadas = libro.locations.load(localizaciones);
         this.conLocalizaciones = Array.isArray(cargadas) && cargadas.length > 1;
       } catch { /* caché ilegible: se recalcula abajo */ }
     }
     await this.montar(cfiInicial);
+    if (this.libro !== libro) return;
 
     // Las localizaciones permiten calcular el % del libro; se generan en
     // segundo plano porque en libros grandes tardan unos segundos.
@@ -234,18 +240,22 @@ export class LectorEpub {
       this.notificar();
       return;
     }
-    this.libro.locations.generate(1000).then(() => {
-      if (!this.libro) return;
+    libro.locations.generate(1000).then(() => {
+      // `cerrar()` y una reapertura pueden ocurrir antes de que acabe este
+      // cálculo. Comprobar solo que haya algún libro confundía el recién
+      // abierto con el que inició la tarea.
+      if (this.libro !== libro) return;
       this.conLocalizaciones = true;
       this.notificar();
-      try { alGuardarLocalizaciones?.(this.libro.locations.save()); } catch { /* sin caché */ }
+      try { alGuardarLocalizaciones?.(libro.locations.save()); } catch { /* sin caché */ }
     }).catch(() => null);
   }
 
   async montar(posicion) {
     this.contenedor.replaceChildren();
     const continuo = this.modo === 'continuo';
-    this.vista = this.libro.renderTo(this.contenedor, {
+    const libro = this.libro;
+    const vista = libro.renderTo(this.contenedor, {
       width: '100%',
       height: '100%',
       flow: continuo ? 'scrolled' : 'paginated',
@@ -258,34 +268,46 @@ export class LectorEpub {
       spread: this.doble && !continuo ? 'auto' : 'none',
       allowScriptedContent: true,
     });
-    this.vista.hooks.content.register(inyectarMathJax);
-    this.vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
-    this.vista.hooks.content.register((contents) => this.registrarInteraccionesNotas(contents));
+    this.vista = vista;
+    vista.hooks.content.register(inyectarMathJax);
+    vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
+    vista.hooks.content.register((contents) => this.registrarInteraccionesNotas(contents));
     // Los enlaces internos del libro (notas al pie, índice propio) los salta
     // epub.js por su cuenta; se avisa antes del salto con la posición actual
     // para que quede apuntada en el historial de navegación.
-    this.vista.hooks.content.register((contents) => {
+    vista.hooks.content.register((contents) => {
       contents.on('linkClicked', () => this.alPulsarEnlaceInterno?.(this.cfi));
     });
     this.aplicarTemas();
-    this.vista.on('relocated', (lugar) => {
+    vista.on('relocated', (lugar) => {
+      // destroy() no cancela necesariamente los eventos que epub.js ya dejó
+      // en cola. Si entretanto se abrió otra vista, este CFI es obsoleto.
+      if (this.vista !== vista || this.libro !== libro) return;
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
       this.notificar();
       this.ocultarNotaHover();
       this.programarIconosNotas();
     });
-    this.vista.on('resized', () => this.programarIconosNotas());
+    vista.on('resized', () => {
+      if (this.vista === vista) this.programarIconosNotas();
+    });
     // Las teclas pulsadas dentro del capítulo (iframe) no llegan al
     // documento principal: se reenvían para mantener los atajos.
-    this.vista.on('keydown', (evento) => this.alTeclear?.(evento));
+    vista.on('keydown', (evento) => {
+      if (this.vista === vista) this.alTeclear?.(evento);
+    });
     // Con los clics pasa lo mismo: se avisa (con el evento) para que la app
     // pueda cerrar sus paneles o alternar el modo inmersivo.
-    this.vista.on('click', (evento) => this.alPulsarContenido?.(evento));
-    this.vista.on('selected', (cfi, contents) => {
+    vista.on('click', (evento) => {
+      if (this.vista === vista) this.alPulsarContenido?.(evento);
+    });
+    vista.on('selected', (cfi, contents) => {
+      if (this.vista !== vista) return;
       const texto = contents?.window?.getSelection?.().toString().replace(/\s+/g, ' ').trim();
       if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
     });
-    await this.vista.display(posicion ?? undefined);
+    await vista.display(posicion ?? undefined);
+    if (this.vista !== vista || this.libro !== libro) return;
     this.aplicarAnotaciones();
   }
 
