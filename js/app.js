@@ -4,6 +4,7 @@ import { LectorEpub, cargarZip } from './lector-epub.js';
 import * as progreso from './progreso.js';
 import * as almacen from './almacen.js';
 import * as anotaciones from './anotaciones.js';
+import * as registro from './registro.js';
 import { asegurarMiniatura } from './portadas.js';
 import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
@@ -618,6 +619,7 @@ function abrirAjustes(registrar = true) {
   $('campo-clave').value = config.clave ?? '';
   $('resultado-prueba').textContent = '';
   $('resultado-prueba').className = 'estado';
+  pintarResumenRegistro();
   mostrarVista('ajustes');
   if (registrar) registrarVista('ajustes');
 }
@@ -693,6 +695,82 @@ function decodificarConfig(texto) {
   const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
   return JSON.parse(new TextDecoder().decode(bytes));
 }
+
+// ───────────── Registro de actividad ─────────────
+
+// El resumen en Ajustes dice de un vistazo si hay algo que mirar, para no
+// tener que abrir el registro cada vez por si acaso.
+function pintarResumenRegistro() {
+  const zona = $('resumen-registro');
+  const eventos = registro.listar();
+  const errores = eventos.filter((evento) => evento.nivel === 'error').length;
+  zona.className = errores ? 'estado error' : 'estado';
+  zona.textContent = !eventos.length ? t('logEmpty')
+    : errores ? t('logWithErrors', { errores })
+    : t('logNoErrors', { total: eventos.length });
+}
+
+function pintarListaRegistro() {
+  const lista = $('lista-registro');
+  const eventos = registro.listar();
+  lista.replaceChildren();
+  $('registro-vacio').classList.toggle('oculto', eventos.length > 0);
+  for (const evento of eventos) {
+    const elemento = document.createElement('li');
+    elemento.className = `evento-registro nivel-${evento.nivel}`;
+    const cuando = document.createElement('time');
+    cuando.dateTime = evento.cuando;
+    cuando.textContent = new Date(evento.cuando).toLocaleString(idiomaActual());
+    const que = document.createElement('span');
+    que.className = 'que-paso';
+    que.textContent = evento.evento + (evento.veces > 1 ? ` ×${evento.veces}` : '');
+    elemento.append(cuando, que);
+    if (evento.detalle) {
+      const detalle = document.createElement('p');
+      detalle.className = 'detalle-registro';
+      detalle.textContent = evento.detalle;
+      elemento.append(detalle);
+    }
+    lista.append(elemento);
+  }
+}
+
+function abrirRegistro() {
+  pintarListaRegistro();
+  $('dialogo-registro').classList.remove('oculto');
+  $('btn-cerrar-registro').focus();
+}
+
+function cerrarRegistro() {
+  $('dialogo-registro').classList.add('oculto');
+  pintarResumenRegistro();
+  $('btn-ver-registro').focus();
+}
+
+$('btn-ver-registro').addEventListener('click', abrirRegistro);
+$('btn-cerrar-registro').addEventListener('click', cerrarRegistro);
+$('dialogo-registro').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-registro')) cerrarRegistro();
+});
+$('btn-borrar-registro').addEventListener('click', () => {
+  registro.limpiar();
+  pintarListaRegistro();
+  pintarResumenRegistro();
+});
+$('btn-copiar-registro').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(registro.comoTexto());
+    avisar(t('logCopied'));
+  } catch {
+    // Sin permiso de portapapeles queda la descarga, que no lo necesita.
+    avisar(t('logCopyFailed'), 5000);
+  }
+});
+$('btn-descargar-registro').addEventListener('click', () => {
+  const fecha = new Date().toISOString().slice(0, 10);
+  entregarDescarga(`pagekeeper-registro-${fecha}.txt`,
+    new TextEncoder().encode(registro.comoTexto()), 'text/plain');
+});
 
 $('btn-copiar-config').addEventListener('click', async () => {
   const resultado = $('resultado-copia');
@@ -4243,9 +4321,78 @@ function subirPosicionAhora({ soloSiCambio = false } = {}) {
   const firma = firmaPosicionActual();
   if (soloSiCambio && firma === ultimaPosicionSubida) return;
   ultimaPosicionSubida = firma;
-  progreso.sincronizar(cliente).catch(() => null);
-  anotaciones.sincronizar(libroActual.id, cliente).catch(() => null);
+  const donde = libroActual.id;
+  progreso.sincronizar(cliente).then(subidaConseguida).catch((error) => {
+    // Sin aviso: aquí la aplicación ya se está yendo a segundo plano y nadie
+    // vería el cartel. Lo que importa es que quede apuntado y se reintente.
+    apuntarSubidaPendiente(error, donde);
+  });
+  anotaciones.sincronizar(donde, cliente).catch(() => null);
 }
+
+// ───────────── Subidas pendientes ─────────────
+//
+// Antes, una subida que fallaba se quedaba en un aviso de siete segundos y
+// nada más: la siguiente oportunidad era pasar de página otra vez. Leyendo
+// media hora sin cobertura, eso significaba media hora de avance que no salía
+// nunca del dispositivo. Ahora el fallo se recuerda y se reintenta solo, con
+// esperas cada vez más largas para no castigar a un servidor caído.
+const ESPERAS_REINTENTO = [5000, 15000, 45000, 120000, 300000];
+let temporizadorReintento = null;
+let intentosFallidos = 0;
+let libroPendiente = null;
+
+function apuntarSubidaPendiente(error, idLibro = null) {
+  libroPendiente = idLibro ?? libroPendiente;
+  actualizarEstadoSincronizacion(error);
+  registro.anotar('error', 'subida', explicarError(error));
+  const espera = ESPERAS_REINTENTO[Math.min(intentosFallidos, ESPERAS_REINTENTO.length - 1)];
+  intentosFallidos += 1;
+  clearTimeout(temporizadorReintento);
+  temporizadorReintento = setTimeout(reintentarSubida, espera);
+}
+
+function subidaConseguida() {
+  if (intentosFallidos > 0) {
+    registro.anotar('ok', 'recuperada', t('logRecovered', { intentos: intentosFallidos }));
+    avisar(t('syncRecovered'), 4000);
+  } else {
+    // Sin detalle a propósito: así las subidas seguidas se agrupan en una sola
+    // línea con su cuenta y su hora, y el registro no se llena de rutina. Sin
+    // esto, un registro vacío no distinguiría «subió bien» de «no se intentó».
+    registro.anotar('ok', 'subida');
+  }
+  clearTimeout(temporizadorReintento);
+  intentosFallidos = 0;
+  libroPendiente = null;
+  actualizarEstadoSincronizacion();
+}
+
+// El reintento no depende de que siga habiendo un libro abierto: lo que quedó
+// sin subir es el archivo de progreso entero, y sigue haciendo falta subirlo
+// aunque ya estés en la biblioteca o en otro libro.
+function reintentarSubida() {
+  clearTimeout(temporizadorReintento);
+  if (!intentosFallidos || !cliente) return;
+  if (!navigator.onLine) {
+    // Sin red no se gasta un intento: ya volverá el evento «online».
+    registro.anotar('aviso', 'reintento', t('logOffline'));
+    return;
+  }
+  registro.anotar('aviso', 'reintento', t('logRetrying', { intentos: intentosFallidos }));
+  progreso.sincronizar(cliente).then(() => {
+    subidaConseguida();
+    if (libroPendiente) anotaciones.sincronizar(libroPendiente, cliente).catch(() => null);
+  }).catch((error) => apuntarSubidaPendiente(error));
+}
+
+// Recuperar la red o volver a la aplicación son los dos momentos en que un
+// reintento tiene más posibilidades de salir bien que el temporizador.
+window.addEventListener('online', () => {
+  registro.anotar('aviso', 'conexión', t('logBackOnline'));
+  if (intentosFallidos) reintentarSubida();
+});
+window.addEventListener('offline', () => registro.anotar('aviso', 'conexión', t('logWentOffline')));
 
 // Cerrar la pestaña, cambiar de aplicación o bloquear el móvil no avisa de
 // ninguna otra forma: «beforeunload» no llega en Android y la página puede
@@ -4255,6 +4402,7 @@ function subirPosicionAhora({ soloSiCambio = false } = {}) {
 // el otro aparato seguía en la página de antes.
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') subirPosicionAhora({ soloSiCambio: true });
+  else if (intentosFallidos) reintentarSubida();
 });
 // Irse a otra ventana no oculta la pestaña, así que aquello no basta en un
 // ordenador: se aprovecha también la pérdida de foco.
@@ -4265,11 +4413,14 @@ function planificarSincronizacion() {
   clearTimeout(temporizadorSync);
   temporizadorSync = setTimeout(() => {
     ultimaPosicionSubida = firmaPosicionActual();
+    const donde = libroActual?.id ?? null;
     progreso.sincronizar(cliente)
-      .then(() => actualizarEstadoSincronizacion())
+      .then(subidaConseguida)
       .catch((error) => {
-        actualizarEstadoSincronizacion(error);
-        avisar(t('syncFailed', { error: explicarError(error) }), 7000);
+        // El cartel solo la primera vez: reintentando cada pocos segundos,
+        // repetirlo sería un martilleo. El estado y el registro se mantienen.
+        if (!intentosFallidos) avisar(t('syncFailed', { error: explicarError(error) }), 7000);
+        apuntarSubidaPendiente(error, donde);
       });
   }, 3000);
 }
@@ -5976,6 +6127,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (!$('dialogo-registro').classList.contains('oculto')) {
+    cerrarRegistro();
+    return;
+  }
   if (!$('dialogo-nota-libro').classList.contains('oculto')) {
     cerrarNotaLibro();
     return;

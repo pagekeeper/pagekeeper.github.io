@@ -1534,6 +1534,25 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
 .pasos-ocr { margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; }
 .dialogo-pdf-sin-texto .fila-botones { justify-content: flex-end; }
 .dialogo-editar-nota { width: min(32rem, 100%); }
+
+/* Registro de actividad: una lista larga que se lee de arriba abajo, con el
+   error destacado por color porque es lo que se viene a buscar. */
+.dialogo-registro { width: min(40rem, 100%); max-height: min(40rem, 90dvh); }
+.botones-registro { justify-content: flex-end; flex-wrap: wrap; }
+.botones-registro .btn-peligro-suave { margin-right: auto; }
+.lista-registro {
+  list-style: none; margin: 0; padding: 0; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.evento-registro {
+  border-left: 3px solid var(--borde); padding: 0.3rem 0 0.3rem 0.6rem;
+  font-size: 0.85rem; line-height: 1.35;
+}
+.evento-registro time { color: var(--texto-suave); font-variant-numeric: tabular-nums; }
+.evento-registro .que-paso { margin-left: 0.5rem; font-weight: 600; }
+.evento-registro.nivel-error { border-left-color: var(--peligro); }
+.evento-registro.nivel-ok { border-left-color: var(--exito, var(--acento)); }
+.detalle-registro { margin: 0.15rem 0 0; color: var(--texto-suave); word-break: break-word; }
 .fragmento-editar-nota {
   color: var(--texto-suave); font-size: 0.85rem; line-height: 1.35;
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3;

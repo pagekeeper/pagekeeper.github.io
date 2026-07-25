@@ -580,6 +580,16 @@
         <div id="resultado-copia" class="estado" role="status"></div>
       </div>
 
+      <div class="tarjeta">
+        <h2 data-i18n="activityLog">Registro de actividad</h2>
+        <p class="ayuda" data-i18n="activityLogHelp">Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí y nunca sale de este aparato.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-ver-registro" class="btn-secundario"
+            data-i18n="viewLog">Ver el registro</button>
+        </div>
+        <div id="resumen-registro" class="estado" role="status"></div>
+      </div>
+
     </main>
   </section>
 
@@ -966,6 +976,25 @@
 
   <!-- Nota sobre el libro entero, escrita y leída desde la biblioteca. Es cosa
        distinta de las anotaciones, que van pegadas a un fragmento del texto. -->
+  <div id="dialogo-registro" class="dialogo-fondo oculto">
+    <div class="dialogo dialogo-registro" role="dialog" aria-modal="true"
+      aria-labelledby="titulo-dialogo-registro">
+      <h2 id="titulo-dialogo-registro" data-i18n="activityLog">Registro de actividad</h2>
+      <ol id="lista-registro" class="lista-registro"></ol>
+      <p id="registro-vacio" class="ayuda oculto" data-i18n="logEmpty">Todavía no hay nada registrado.</p>
+      <div class="fila-botones botones-registro">
+        <button type="button" id="btn-borrar-registro" class="btn-secundario btn-peligro-suave"
+          data-i18n="clearLog">Vaciar</button>
+        <button type="button" id="btn-copiar-registro" class="btn-secundario"
+          data-i18n="copyLog">Copiar</button>
+        <button type="button" id="btn-descargar-registro" class="btn-secundario"
+          data-i18n="downloadLog">Guardar</button>
+        <button type="button" id="btn-cerrar-registro" class="btn-primario"
+          data-i18n="close">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="dialogo-nota-libro" class="dialogo-fondo oculto">
     <form id="form-nota-libro" class="dialogo" role="dialog" aria-modal="true"
       aria-labelledby="titulo-nota-libro">
