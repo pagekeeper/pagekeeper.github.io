@@ -1,7 +1,7 @@
 // Miniaturas de portada para la biblioteca.
 //
 // PDF: se dibuja la primera página. EPUB: se usa la imagen de cubierta
-// declarada en el libro (si no hay, se conserva el icono genérico).
+// declarada en el libro y, si no la declara, se dibuja una con su título.
 // Las miniaturas se guardan en IndexedDB (almacén 'portadas'), también para
 // los libros de la nube: se generan la primera vez que se abre o se sube el
 // libro, que es cuando sus bytes están disponibles.
@@ -72,7 +72,9 @@ async function deEpub(datos) {
       descripcion: aTexto(metadata.description),
     };
     const url = await libro.coverUrl();
-    if (!url) return { blob: null, metadatos };
+    // Muchos EPUB no declaran cubierta (los de Calibre, por ejemplo, traen una
+    // página de título con su propio logo, que no es la portada del libro).
+    if (!url) return { blob: await portadaDeTitulo(metadatos.titulo, metadatos.autor), metadatos };
     const imagen = await new Promise((resolver, rechazar) => {
       const img = new Image();
       img.onload = () => resolver(img);
@@ -93,6 +95,107 @@ async function deEpub(datos) {
 
 function aJpeg(lienzo) {
   return new Promise((resolver) => lienzo.toBlob(resolver, 'image/jpeg', 0.82));
+}
+
+// PNG y no JPEG: es texto plano sobre un color liso, donde el JPEG ensucia los
+// bordes de las letras y encima ocupa más.
+function aPng(lienzo) {
+  return new Promise((resolver) => lienzo.toBlob(resolver, 'image/png'));
+}
+
+// ── Portada dibujada para los libros que no traen ninguna ──
+// Con el icono genérico todos se veían iguales, y una cuadrícula de fichas
+// idénticas no hay manera de recorrerla con la vista. Se dibuja el título, que
+// es lo que distingue a un libro, sobre un color sacado de ese mismo título:
+// el mismo libro cae siempre en el mismo tono, así que se reconoce por el
+// color antes incluso de leerlo.
+//
+// Los colores son una lista corta y elegida, no un tono al azar: el azar da
+// fucsias y amarillos ilegibles, y aquí encima hay texto encima.
+const PALETA_PORTADAS = [
+  ['#1e3a5f', '#dbeafe'], ['#3f2b56', '#ede9fe'], ['#14453d', '#d1fae5'],
+  ['#5b2333', '#fee2e2'], ['#1f3a34', '#ccfbf1'], ['#4a3311', '#fef3c7'],
+  ['#2c3e50', '#e2e8f0'], ['#402a2a', '#fde8e8'],
+];
+
+function colorDeTitulo(texto) {
+  let suma = 0;
+  for (const caracter of texto) suma = (Math.imul(suma, 31) + caracter.codePointAt(0)) >>> 0;
+  return PALETA_PORTADAS[suma % PALETA_PORTADAS.length];
+}
+
+function repartirEnLineas(contexto, texto, ancho) {
+  const lineas = [];
+  let actual = '';
+  for (const palabra of texto.split(/\s+/).filter(Boolean)) {
+    const intento = actual ? `${actual} ${palabra}` : palabra;
+    if (actual && contexto.measureText(intento).width > ancho) {
+      lineas.push(actual);
+      actual = palabra;
+    } else {
+      actual = intento;
+    }
+  }
+  if (actual) lineas.push(actual);
+  return lineas;
+}
+
+const LINEAS_TITULO = 5;
+
+async function portadaDeTitulo(titulo, autor) {
+  const texto = (titulo || '').trim();
+  if (!texto) return null; // sin título no hay nada que dibujar: queda el icono
+  const alto = Math.round(ANCHO * 1.5);
+  const lienzo = document.createElement('canvas');
+  lienzo.width = ANCHO;
+  lienzo.height = alto;
+  const contexto = lienzo.getContext('2d');
+  const [fondo, tinta] = colorDeTitulo(texto);
+  contexto.fillStyle = fondo;
+  contexto.fillRect(0, 0, ANCHO, alto);
+  // Un filete por dentro, que es lo que hace que se lea como una tapa y no
+  // como un rectángulo de color.
+  contexto.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+  contexto.lineWidth = 1;
+  contexto.strokeRect(8.5, 8.5, ANCHO - 17, alto - 17);
+
+  const margen = 22;
+  const util = ANCHO - margen * 2;
+  contexto.fillStyle = tinta;
+  contexto.textBaseline = 'top';
+  // El cuerpo baja hasta que el título quepa: un título largo en letra grande
+  // se comería la tapa entera.
+  let cuerpo = 24;
+  let lineas = [];
+  while (cuerpo > 12) {
+    contexto.font = `600 ${cuerpo}px Georgia, "Times New Roman", serif`;
+    lineas = repartirEnLineas(contexto, texto, util);
+    if (lineas.length <= LINEAS_TITULO) break;
+    cuerpo -= 2;
+  }
+  if (lineas.length > LINEAS_TITULO) {
+    lineas = lineas.slice(0, LINEAS_TITULO);
+    lineas[LINEAS_TITULO - 1] = `${lineas[LINEAS_TITULO - 1]}…`;
+  }
+  const interlineado = Math.round(cuerpo * 1.25);
+  let y = Math.round(alto * 0.16);
+  for (const linea of lineas) {
+    contexto.fillText(linea, margen, y);
+    y += interlineado;
+  }
+
+  const nombre = (autor || '').trim();
+  if (nombre) {
+    contexto.font = '500 13px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+    const [autorRecortado] = repartirEnLineas(contexto, nombre, util);
+    const base = alto - margen - 18;
+    contexto.globalAlpha = 0.5;
+    contexto.fillRect(margen, base - 14, Math.min(util, 48), 1);
+    contexto.globalAlpha = 0.85;
+    contexto.fillText(autorRecortado, margen, base);
+    contexto.globalAlpha = 1;
+  }
+  return aPng(lienzo);
 }
 
 function aTexto(valor) {
