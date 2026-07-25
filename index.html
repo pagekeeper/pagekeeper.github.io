@@ -166,6 +166,13 @@
         </div>
         <div class="cuerpo-plegable"><div class="interior-plegable">
           <nav id="ruta-carpeta" class="ruta-carpeta oculto" aria-label="Carpeta actual" data-i18n-aria-label="currentFolder"></nav>
+          <!-- La nota de la carpeta en la que se ha entrado: describe lo que
+               hay dentro, así que es dentro donde más falta hace. -->
+          <section id="nota-carpeta-nube" class="nota-carpeta-abierta oculto">
+            <p class="texto-nota-carpeta"></p>
+            <button type="button" class="btn-icono btn-editar-nota-carpeta" data-icono="notebook-pen"
+              title="Nota de la carpeta" data-i18n-title="actionFolderNote"></button>
+          </section>
           <div id="estado-remoto" class="estado" role="status"></div>
           <ul id="lista-carpetas" class="lista-libros lista-carpetas"></ul>
           <ul id="lista-libros" class="lista-libros"></ul>
@@ -196,6 +203,11 @@
         <div class="cuerpo-plegable"><div class="interior-plegable">
           <nav id="ruta-carpeta-local" class="ruta-carpeta oculto" aria-label="Carpeta actual"
             data-i18n-aria-label="currentFolder"></nav>
+          <section id="nota-carpeta-local" class="nota-carpeta-abierta oculto">
+            <p class="texto-nota-carpeta"></p>
+            <button type="button" class="btn-icono btn-editar-nota-carpeta" data-icono="notebook-pen"
+              title="Nota de la carpeta" data-i18n-title="actionFolderNote"></button>
+          </section>
           <p id="estado-local" class="estado oculto" role="status"></p>
           <button type="button" id="aviso-local-vacio" class="carga-local-vacia oculto">
             <span class="icono-carga-local" data-icono="plus"></span>

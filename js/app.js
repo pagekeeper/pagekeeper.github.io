@@ -1979,6 +1979,8 @@ function guardarNotaLibro(texto) {
   if (!id) return;
   progreso.guardarNota(id, texto);
   refrescarNotaEnFichas(id);
+  pintarNotaCarpetaAbierta('nube');
+  pintarNotaCarpetaAbierta('local');
   pintarNotaLibroLector();
   cerrarNotaLibro();
   // En los libros de la nube la nota viaja a los demás dispositivos; si la red
@@ -2411,6 +2413,25 @@ function pintarRutaNube() {
     registrarCarpetas();
     cargarBiblioteca();
   }, true);
+  pintarNotaCarpetaAbierta('nube');
+}
+
+// La nota de la carpeta en la que se acaba de entrar. Describe lo que guarda,
+// así que dentro es donde más falta hace: en la raíz no hay carpeta que
+// describir y el bloque no sale. Sin nota escrita se dice, para que el botón
+// de al lado se entienda como la invitación a escribirla.
+function pintarNotaCarpetaAbierta(ambito) {
+  const ruta = ambito === 'nube' ? rutaNube : rutaLocal;
+  const seccion = $(ambito === 'nube' ? 'nota-carpeta-nube' : 'nota-carpeta-local');
+  seccion.classList.toggle('oculto', !ruta);
+  if (!ruta) return;
+  const id = idNotaCarpeta(ruta, ambito);
+  const nota = progreso.notaDe(id);
+  const texto = seccion.querySelector('.texto-nota-carpeta');
+  texto.textContent = nota ?? t('noFolderNote');
+  texto.classList.toggle('sin-nota', !nota);
+  seccion.querySelector('.btn-editar-nota-carpeta').onclick =
+    () => abrirNotaLibro(id, ruta.split('/').pop(), true);
 }
 
 // Texto del contador de una carpeta según cuántos elementos contiene.
@@ -2715,6 +2736,7 @@ function pintarRutaLocal() {
   for (const boton of nav.querySelectorAll('.miga')) {
     hacerDestinoDeLibroLocal(boton, boton.dataset.rutaMiga ?? '');
   }
+  pintarNotaCarpetaAbierta('local');
 }
 
 // Convierte un elemento en destino de la biblioteca del dispositivo: un libro

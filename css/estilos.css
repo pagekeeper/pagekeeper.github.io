@@ -692,14 +692,30 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .vista-cuadricula .libro .portada { width: 100%; height: auto; aspect-ratio: 2 / 3; }
 .vista-cuadricula .libro .portada .icono { width: 2rem; height: 2rem; }
-.vista-cuadricula .libro .autor,
 .vista-cuadricula .libro .detalle,
 .vista-cuadricula .libro .estado-sin-conexion { display: none; }
 .vista-cuadricula .libro .carpeta-libro { max-width: 100%; }
-/* El formato va debajo del título, con la misma etiqueta que en la lista y en
-   «Continuar leyendo»: en una ficha estrecha no cabe a su lado. */
-.vista-cuadricula .libro .cabecera-libro {
-  flex-direction: column; align-items: flex-start; gap: 0.25rem;
+/* ── Fichas verticales: título, autor y debajo el formato ──
+   En una ficha estrecha nada de esto cabe en línea, así que se apila. El autor
+   es hermano de la cabecera y el formato va dentro de ella, de modo que para
+   intercalarlos hay que disolver la cabecera: con «display: contents» sus
+   piezas pasan a ser hijas de «.datos» y ya se pueden ordenar todas juntas. */
+.vista-cuadricula .libro .cabecera-libro { display: contents; }
+.vista-cuadricula .libro .datos { gap: 0.22rem; }
+.vista-cuadricula .libro .nombre { order: 1; }
+.vista-cuadricula .libro .autor { order: 2; }
+.vista-cuadricula .libro .formato { order: 3; }
+.vista-cuadricula .libro .nota-libro,
+.vista-cuadricula .libro .carpeta-libro { order: 4; }
+.vista-cuadricula .libro .fila-detalle { order: 5; }
+.vista-cuadricula .libro .barra-progreso { order: 6; }
+/* Las chapitas no se estiran de lado a lado: se ciñen a su texto. */
+.vista-cuadricula .libro .formato,
+.vista-cuadricula .libro .nota-libro,
+.vista-cuadricula .libro .carpeta-libro { align-self: flex-start; }
+.vista-cuadricula .libro .autor {
+  font-size: 0.72rem; line-height: 1.3; white-space: normal;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
 }
 .vista-cuadricula .libro .nombre {
   white-space: normal; font-size: 0.78rem; line-height: 1.3;
@@ -772,6 +788,20 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .tip-resumen .texto-nota-tip { white-space: pre-wrap; }
 
 /* ── Nota sobre el libro ── */
+/* La nota de la carpeta abierta, bajo su ruta. */
+.nota-carpeta-abierta {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  padding: 0.45rem 0.55rem; border-left: 2px solid var(--acento);
+  border-radius: 0 0.4rem 0.4rem 0;
+  background: color-mix(in srgb, var(--acento) 6%, transparent);
+}
+.texto-nota-carpeta {
+  flex: 1; min-width: 0; font-size: 0.85rem; line-height: 1.45;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.texto-nota-carpeta.sin-nota { color: var(--texto-suave); font-style: italic; }
+.btn-editar-nota-carpeta { flex: none; }
+
 .nota-libro-lector {
   display: flex; flex-direction: column; gap: 0.3rem;
   padding: 0.5rem 0.6rem; border: 1px solid var(--borde);
@@ -1683,7 +1713,22 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
     width: 100%; height: auto; aspect-ratio: 2 / 3;
   }
   #libro-continuar .libro .portada .icono { width: 2.2rem; height: 2.2rem; }
-  #libro-continuar .libro .cabecera-libro { align-items: flex-start; flex-wrap: wrap; }
+  /* Fichas verticales también aquí, y con el mismo orden que en la cuadrícula
+     (ver «.vista-cuadricula»): título, autor y debajo el formato. */
+  #libro-continuar .libro .cabecera-libro { display: contents; }
+  #libro-continuar .libro .datos { gap: 0.22rem; }
+  #libro-continuar .libro .nombre { order: 1; }
+  #libro-continuar .libro .autor { order: 2; }
+  #libro-continuar .libro .formato { order: 3; }
+  #libro-continuar .libro .estado-sin-conexion,
+  #libro-continuar .libro .nota-libro,
+  #libro-continuar .libro .carpeta-libro { order: 4; }
+  #libro-continuar .libro .fila-detalle { order: 5; }
+  #libro-continuar .libro .barra-progreso { order: 6; }
+  #libro-continuar .libro .formato,
+  #libro-continuar .libro .estado-sin-conexion,
+  #libro-continuar .libro .nota-libro,
+  #libro-continuar .libro .carpeta-libro { align-self: flex-start; }
   #libro-continuar .libro .nombre {
     white-space: normal; font-size: 0.85rem; line-height: 1.3;
   }
