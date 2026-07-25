@@ -12,16 +12,30 @@
 
 const CLAVE_REGISTRO = 'lector.registro';
 const MAXIMO = 300; // unas cuantas sesiones de lectura; el JSON ronda 40 KB
+// Una semana es lo que se tarda en notar que un libro se quedó atrás en otro
+// dispositivo y venir a mirar por qué. Más allá, un error de hace un mes ya no
+// explica nada de lo que está pasando hoy y solo entorpece la lectura.
+const DIAS = 7;
 
 // Los eventos se guardan del más nuevo al más viejo: es el orden en que se
 // leen y así recortar la cola es quitar del final.
 function cargar() {
   try {
     const crudo = JSON.parse(localStorage.getItem(CLAVE_REGISTRO) ?? '[]');
-    return Array.isArray(crudo) ? crudo : [];
+    if (!Array.isArray(crudo)) return [];
+    return crudo.filter(vigente);
   } catch {
     return []; // registro corrupto o almacenamiento bloqueado: se empieza de cero
   }
+}
+
+// La caducidad se aplica al leer y se consolida al escribir: así no hace falta
+// ningún temporizador ni repasar el registro en cada arranque. Una fecha
+// ilegible se conserva en lugar de tirarse, por si dice algo el detalle.
+function vigente(evento) {
+  const cuando = Date.parse(evento?.cuando);
+  if (!Number.isFinite(cuando)) return true;
+  return Date.now() - cuando < DIAS * 24 * 60 * 60 * 1000;
 }
 
 function guardar(eventos) {
