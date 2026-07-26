@@ -4942,6 +4942,20 @@ $('fondo-menu-lector').addEventListener('contextmenu', (evento) => {
   menuLectorContextual({ x: evento.clientX, y: evento.clientY });
 });
 
+// El altavoz de la barra pausa mientras se lee, así que el menú no puede
+// delegar en él: desde aquí siempre se abre el panel.
+$('menu-tts').addEventListener('click', (evento) => {
+  evento.stopPropagation();
+  cerrarMenuLector();
+  queueMicrotask(() => {
+    if (!vozLectura.disponible()) {
+      avisar(t('ttsNoSupport'), 6000);
+      return;
+    }
+    abrirPanelTts();
+  });
+});
+
 function enlazarAccionMenu(idMenu, idOriginal) {
   $(idMenu).addEventListener('click', (evento) => {
     evento.stopPropagation();
@@ -4956,7 +4970,6 @@ for (const [idMenu, idOriginal] of [
   ['menu-subir', 'btn-subir'],
   ['menu-indice', 'btn-indice-libro'],
   ['menu-anotaciones', 'btn-anotaciones'],
-  ['menu-tts', 'btn-tts'],
   ['menu-modo', 'btn-modo'],
   ['menu-doble', 'btn-doble'],
   ['menu-rotar', 'btn-rotar'],
@@ -6319,13 +6332,67 @@ function pintarEstadoVoz() {
   const activo = estado !== 'parado';
   // Pausada se conserva la marca (dice por dónde iba); parada, se retira.
   if (!activo) limpiarSeguimientoVoz();
-  $('btn-tts').setAttribute('aria-pressed', String(activo));
   const etiqueta = estado === 'leyendo' ? 'ttsPause' : (estado === 'pausado' ? 'ttsResume' : 'ttsPlay');
   $('btn-tts-leer').innerHTML =
     icono(estado === 'leyendo' ? 'pause' : 'play') + `<span>${t(etiqueta)}</span>`;
   $('btn-tts-detener').disabled = !activo;
   $('btn-tts-detener').innerHTML = icono('square') + `<span>${t('ttsStop')}</span>`;
+  pintarBotonVoz();
+  pintarControlVoz();
 }
+
+// El control flotante solo existe mientras la lectura está en marcha: es la
+// pausa que se ve sin abrir nada, también en las pantallas donde el altavoz
+// está guardado en el menú «⋯».
+function pintarControlVoz() {
+  const estado = vozLectura.estado;
+  $('control-voz').hidden = estado === 'parado';
+  if (estado === 'parado') return;
+  const leyendo = estado === 'leyendo';
+  const etiqueta = t(leyendo ? 'ttsPause' : 'ttsResume');
+  const boton = $('btn-voz-pausa');
+  boton.innerHTML = icono(leyendo ? 'pause' : 'play') + `<span>${etiqueta}</span>`;
+  boton.title = etiqueta;
+  boton.setAttribute('aria-label', etiqueta);
+}
+
+// Los toques en el control no son toques en la página: sin esto pasarían hoja.
+for (const id of ['btn-voz-pausa', 'btn-voz-detener']) {
+  $(id).addEventListener('pointerdown', (evento) => evento.stopPropagation());
+}
+
+$('btn-voz-pausa').addEventListener('click', (evento) => {
+  evento.stopPropagation();
+  if (vozLectura.estado === 'leyendo') vozLectura.pausar();
+  else vozLectura.reanudar();
+});
+
+$('btn-voz-detener').addEventListener('click', (evento) => {
+  evento.stopPropagation();
+  detenerLecturaVoz();
+});
+
+document.addEventListener('idioma-cambiado', pintarControlVoz);
+
+// Mientras suena la lectura, el altavoz de la barra pausa y reanuda: con el
+// panel retirado para no tapar el texto, pausar tiene que estar a un toque. El
+// icono y el título dicen en cada momento qué va a hacer, y los ajustes (voz,
+// velocidad, detener) siguen en su panel, que abre el menú «⋯».
+function pintarBotonVoz() {
+  const estado = vozLectura.estado;
+  const boton = $('btn-tts');
+  const dibujo = boton.querySelector('[data-icono]') ?? boton;
+  const nombre = estado === 'leyendo' ? 'pause' : estado === 'pausado' ? 'play' : 'volume-2';
+  dibujo.dataset.icono = nombre;
+  dibujo.innerHTML = icono(nombre);
+  const titulo = estado === 'leyendo' ? t('ttsPause')
+    : estado === 'pausado' ? t('ttsResume') : t('readAloud');
+  boton.title = titulo;
+  boton.setAttribute('aria-label', titulo);
+  boton.setAttribute('aria-pressed', String(estado !== 'parado'));
+}
+
+document.addEventListener('idioma-cambiado', pintarBotonVoz);
 
 function pintarVocesTts() {
   const selector = $('voz-tts');
@@ -6374,21 +6441,27 @@ function cerrarPanelTts() {
   $('btn-tts').setAttribute('aria-expanded', 'false');
 }
 
+function abrirPanelTts(abrir = true) {
+  cerrarPanelTexto();
+  $('panel-tts').hidden = !abrir;
+  $('btn-tts').setAttribute('aria-expanded', String(abrir));
+  if (!abrir) return;
+  pintarVocesTts();
+  pintarEstadoVoz();
+  $('velocidad-tts').value = String(velocidadTtsGuardada());
+  $('btn-tts-leer').focus();
+}
+
 $('btn-tts').addEventListener('click', () => {
   if (!vozLectura.disponible()) {
     avisar(t('ttsNoSupport'), 6000);
     return;
   }
-  const abrir = $('panel-tts').hidden;
-  cerrarPanelTexto();
-  $('panel-tts').hidden = !abrir;
-  $('btn-tts').setAttribute('aria-expanded', String(abrir));
-  if (abrir) {
-    pintarVocesTts();
-    pintarEstadoVoz();
-    $('velocidad-tts').value = String(velocidadTtsGuardada());
-    $('btn-tts-leer').focus();
-  }
+  // Con la lectura en marcha el altavoz es el botón de pausa; parada, abre el
+  // panel para empezar y elegir voz y velocidad.
+  if (vozLectura.estado === 'leyendo') return void vozLectura.pausar();
+  if (vozLectura.estado === 'pausado') return void vozLectura.reanudar();
+  abrirPanelTts($('panel-tts').hidden);
 });
 
 // Algunos navegadores cargan la lista de voces en diferido.

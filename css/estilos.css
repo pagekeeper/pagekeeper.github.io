@@ -948,6 +948,35 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* A pantalla completa no queda nada de interfaz, tampoco esta. */
 #vista-lector.inmersivo .barra-estado-lector { display: none; }
 
+/* Control de la lectura en voz alta mientras suena. Flota sobre el texto, sin
+   estorbarlo: pequeño, translúcido y abajo, donde la vista no está leyendo.
+   Sigue a la vista en el modo inmersivo, porque allí no hay barras a las que
+   volver. */
+/* El contenedor del control: así se va con el lector cuando se cierra, en vez
+   de quedar flotando sobre la biblioteca. */
+#vista-lector { position: relative; }
+.control-voz {
+  position: absolute; z-index: 6;
+  left: 50%; transform: translateX(-50%);
+  bottom: calc(0.9rem + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 0.3rem;
+  padding: 0.25rem; border: 1px solid var(--borde); border-radius: 999px;
+  background: color-mix(in srgb, var(--fondo) 88%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.control-voz[hidden] { display: none; }
+.btn-voz {
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.35rem 0.75rem; border: 0; border-radius: 999px;
+  background: transparent; color: var(--texto);
+  font: inherit; font-size: 0.82rem; cursor: pointer;
+}
+.btn-voz svg { width: 1.05em; height: 1.05em; }
+.btn-voz:hover { background: color-mix(in srgb, var(--texto) 10%, transparent); }
+.btn-voz:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+.btn-voz-icono { padding: 0.35rem 0.5rem; color: var(--texto-suave); }
+
 #area-lectura { flex: 1; min-height: 0; position: relative; overflow: auto; }
 /* touch-action reserva el pellizco de dos dedos para el zoom del PDF (sin él,
    el navegador ampliaría toda la interfaz). Solo se le quita al navegador

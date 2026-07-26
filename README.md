@@ -146,7 +146,9 @@ libros y sincronizar el progreso de lectura.
   y velocidad. La frase que suena se resalta y la vista la sigue: cuando la voz
   llega al final de lo que hay en pantalla, el lector pasa de página o de
   capítulo solo, así que se puede leer escuchando. El panel de la voz se retira
-  al empezar para no tapar el texto.
+  al empezar para no tapar el texto: mientras suena queda un control pequeño
+  abajo para pausar, continuar y detener (en pantalla ancha, el propio botón del
+  altavoz pausa y reanuda).
 - ✂️ **Texto y enlaces en PDF**: se puede seleccionar y copiar el texto del
   PDF, y sus enlaces funcionan: los internos (índice, referencias) saltan a
   su página y los externos se abren en otra pestaña.

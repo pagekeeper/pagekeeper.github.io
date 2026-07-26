@@ -537,6 +537,16 @@
          caben sin disputarle sitio a los botones de la barra de arriba. Se
          puede apagar en los ajustes; el contenido lo pone el JavaScript. -->
     <footer id="barra-estado-lector" class="barra-estado-lector oculto"></footer>
+    <!-- Mientras suena la lectura en voz alta: pausar está a un toque sin
+         volver a abrir el panel, que taparía el texto que se está siguiendo.
+         En pantalla pequeña el altavoz vive en el menú «⋯», así que este es el
+         único sitio donde la pausa se ve siempre. -->
+    <div id="control-voz" class="control-voz" hidden>
+      <button type="button" id="btn-voz-pausa" class="btn-voz"></button>
+      <button type="button" id="btn-voz-detener" class="btn-voz btn-voz-icono"
+        data-icono="square" title="Detener" data-i18n-title="ttsStop"
+        aria-label="Detener" data-i18n-aria-label="ttsStop"></button>
+    </div>
   </section>
 
   <!-- ═══════════ AJUSTES ═══════════ -->
@@ -866,9 +876,11 @@
           frase que suena se va resaltando para poder seguirla con la vista, y
           la página avanza sola cuando la voz llega al final de lo que se ve, así
           que también puedes leer mirando. El panel se retira al empezar para no
-          tapar el texto; el mismo botón lo abre otra vez para pausar, elegir la
-          voz o ajustar la velocidad. Pasar de página a mano detiene la lectura.
-          En los PDF escaneados sin texto no funciona.</li>
+          tapar el texto: mientras suena, un control pequeño abajo permite
+          pausar, continuar y detener, y en pantalla ancha el propio altavoz
+          pausa y reanuda. Los ajustes (voz y velocidad) vuelven a abrirse desde
+          el menú «⋯». Pasar de página a mano detiene la lectura. En los PDF
+          escaneados sin texto no funciona.</li>
           <li><strong>Texto y enlaces del PDF:</strong> puedes seleccionar y
           copiar texto, y los enlaces del propio PDF funcionan: los internos
           (índice, referencias) saltan a su página y los externos se abren en
