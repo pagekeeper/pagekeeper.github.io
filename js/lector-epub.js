@@ -848,15 +848,29 @@ export class LectorEpub {
     let cfi = null;
     try { cfi = contents.cfiFromRange(encontrado.rango); } catch { /* sin CFI no hay marca */ }
     if (cfi) {
-      this.limpiarVoz();
-      try {
-        this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-voz',
-          { fill: RELLENO_VOZ, 'fill-opacity': '0.38', 'mix-blend-mode': 'multiply' });
-        this.cfiVoz = cfi;
-      } catch { /* un CFI que epub.js no acepta: se sigue leyendo sin marca */ }
+      this.marcarVoz(cfi);
       if (!this.cfiVisible(cfi)) await this.irAVoz(cfi);
     }
     return encontrado.fin;
+  }
+
+  // Deja marcada esta frase y solo esta. Antes de pintar se retira también la
+  // marca de la misma posición, si la hubiera: epub.js guarda las anotaciones
+  // por CFI, así que dos «highlight» del mismo sitio dejan una que el «remove»
+  // siguiente ya no alcanza, y esa se quedaba encendida para siempre.
+  marcarVoz(cfi) {
+    this.limpiarVoz();
+    this.quitarMarcaVoz(cfi);
+    try {
+      this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-voz',
+        { fill: RELLENO_VOZ, 'fill-opacity': '0.38', 'mix-blend-mode': 'multiply' });
+      this.cfiVoz = cfi;
+    } catch { /* un CFI que epub.js no acepta: se sigue leyendo sin marca */ }
+  }
+
+  quitarMarcaVoz(cfi) {
+    if (!cfi) return;
+    try { this.vista?.annotations?.remove(cfi, 'highlight'); } catch { /* ya no está */ }
   }
 
   // El capítulo por el que se va, que con varios montados a la vez no es
@@ -887,13 +901,9 @@ export class LectorEpub {
     this.movimientoVoz = Date.now();
     try {
       await this.vista.display(cfi);
-      // El resaltado se pierde al montar la página nueva.
-      if (this.cfiVoz === cfi) {
-        try {
-          this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-voz',
-            { fill: RELLENO_VOZ, 'fill-opacity': '0.38', 'mix-blend-mode': 'multiply' });
-        } catch { /* si no se puede repintar, la voz sigue igual */ }
-      }
+      // Montar la página nueva puede llevarse el resaltado por delante, así que
+      // se rehace; marcarVoz() se encarga de que siga habiendo uno solo.
+      if (this.cfiVoz === cfi) this.marcarVoz(cfi);
     } catch { /* un CFI que no se puede mostrar no debe cortar la lectura */ } finally {
       // Se vuelve a marcar al terminar: entre medias epub.js sigue reubicando.
       this.movimientoVoz = Date.now();
@@ -901,9 +911,13 @@ export class LectorEpub {
   }
 
   limpiarVoz() {
-    if (!this.cfiVoz) return;
-    try { this.vista?.annotations?.remove(this.cfiVoz, 'highlight'); } catch { /* ya no está */ }
+    this.quitarMarcaVoz(this.cfiVoz);
     this.cfiVoz = null;
+    // Red de seguridad: si alguna marca se quedó suelta (una anotación que
+    // epub.js ya no relaciona con su CFI), se retira del dibujo.
+    for (const marca of this.contenedor?.querySelectorAll('.pagekeeper-voz') ?? []) {
+      marca.remove();
+    }
   }
 
   irA(destino) { return this.vista?.display(destino); }
