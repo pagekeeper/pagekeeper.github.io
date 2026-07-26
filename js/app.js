@@ -682,6 +682,7 @@ function abrirAjustes(registrar = true, pestana = null) {
   $('resultado-prueba').textContent = '';
   $('resultado-prueba').className = 'estado';
   pintarResumenRegistro();
+  sincronizarSelectRecientes();
   pintarAjustesTexto();
   aplicarMargenEpub();
   mostrarPestanaAjustes(pestana ?? localStorage.getItem(CLAVE_PESTANA_AJUSTES) ?? 'nube');
@@ -1507,10 +1508,12 @@ function maximoRecientes() {
 function sincronizarSelectRecientes() {
   const elegido = Number(localStorage.getItem(CLAVE_CONTINUAR_MAXIMO));
   $('cuantas-recientes').value = RECIENTES_POSIBLES.includes(elegido) ? String(elegido) : 'auto';
-  // «2» a secas, al lado del título, no dice de qué habla.
+  // «2» a secas no dice de qué habla.
   for (const opcion of $('cuantas-recientes').options) {
     if (opcion.value !== 'auto') opcion.textContent = t('recentN', { count: opcion.value });
   }
+  // Sin el recuadro no hay lecturas que contar.
+  $('cuantas-recientes').disabled = continuarDesactivado();
 }
 document.addEventListener('idioma-cambiado', sincronizarSelectRecientes);
 
@@ -1538,6 +1541,7 @@ function sincronizarCasillaContinuar() {
 $('casilla-continuar').addEventListener('change', (evento) => {
   if (evento.target.checked) localStorage.removeItem(CLAVE_CONTINUAR_OCULTO);
   else localStorage.setItem(CLAVE_CONTINUAR_OCULTO, '1');
+  sincronizarSelectRecientes();
   pintarContinuarLeyendo();
 });
 
