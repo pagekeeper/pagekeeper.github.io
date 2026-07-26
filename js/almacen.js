@@ -441,6 +441,31 @@ export async function moverAnotaciones(ambito, libroViejo, libroNuevo) {
   return true;
 }
 
+// Recoloca los documentos de anotaciones que colgaban de una carpeta de la
+// nube renombrada: allí el libro se identifica por su ruta, así que cambia con
+// ella.
+export async function moverAnotacionesPorPrefijo(ambito, prefijoViejo, prefijoNuevo) {
+  const bd = await abrirBd();
+  try {
+    const documentos = await esperar(
+      bd.transaction('anotaciones').objectStore('anotaciones').index('ambito').getAll(ambito),
+    );
+    const tx = bd.transaction('anotaciones', 'readwrite');
+    const destino = tx.objectStore('anotaciones');
+    for (const documento of documentos) {
+      if (!documento.libro.startsWith(prefijoViejo)) continue;
+      destino.delete([ambito, documento.libro]);
+      destino.put({
+        ...documento,
+        libro: prefijoNuevo + documento.libro.slice(prefijoViejo.length),
+      });
+    }
+    await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
 export async function borrarAnotacionesPorPrefijo(ambito, prefijo) {
   const bd = await abrirBd();
   try {
@@ -632,6 +657,36 @@ export async function moverCopiaRemota(servidor, idViejo, idNuevo) {
   }, copia.datos);
   await borrarCopiaRemota(servidor, idViejo);
   return true;
+}
+
+// Recoloca todo lo que este dispositivo guarda de los libros que colgaban de
+// una carpeta de la nube renombrada: la caché de portadas y metadatos y, si
+// estaban descargados, su copia sin conexión.
+export async function moverCacheRemotaPorPrefijo(servidor, prefijoViejo, prefijoNuevo) {
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction(['portadas', 'metadatos'], 'readwrite');
+    // Los dos almacenes se recorren a la vez: sus peticiones salen en el mismo
+    // turno y la transacción no se cierra antes de tiempo.
+    await Promise.all(['portadas', 'metadatos'].map(async (nombre) => {
+      const tienda = tx.objectStore(nombre);
+      const claves = (await esperar(tienda.getAllKeys()))
+        .filter((clave) => typeof clave === 'string' && clave.startsWith(prefijoViejo));
+      const valores = await Promise.all(claves.map((clave) => esperar(tienda.get(clave))));
+      claves.forEach((clave, i) => {
+        tienda.delete(clave);
+        tienda.put(valores[i], prefijoNuevo + clave.slice(prefijoViejo.length));
+      });
+    }));
+    await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+  const copias = await listarCopiasRemotas(servidor);
+  for (const copia of copias) {
+    if (!copia.id.startsWith(prefijoViejo)) continue;
+    await moverCopiaRemota(servidor, copia.id, prefijoNuevo + copia.id.slice(prefijoViejo.length));
+  }
 }
 
 export async function borrarCopiasRemotasPorPrefijo(servidor, prefijo) {

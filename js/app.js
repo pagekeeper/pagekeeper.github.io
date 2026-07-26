@@ -2575,6 +2575,11 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
         etiqueta: t('actionFolderNote'),
         alPulsar: () => abrirNotaLibro(idNota, nombre, true),
       },
+      {
+        icono: 'pencil',
+        etiqueta: t('actionRenameFolder'),
+        alPulsar: () => renombrarCarpetaRemota(nombre),
+      },
       accionDescargarCarpeta(() => descargarCarpetaRemota(nombre)),
       {
         icono: 'trash-2',
@@ -2805,6 +2810,54 @@ async function crearCarpetaRemota() {
 
 $('btn-carpeta-nueva').addEventListener('click', crearCarpetaRemota);
 
+// En la nube el id de cada libro es su ruta, así que cambiarle el nombre a una
+// carpeta cambia el de todo lo que contiene: en el servidor basta un MOVE (que
+// se lleva también los JSON laterales de anotaciones), pero en este dispositivo
+// hay que reetiquetar el progreso, las anotaciones y la caché.
+async function renombrarCarpetaRemota(nombre) {
+  if (!cliente) return;
+  const respuesta = prompt(t('folderRenamePrompt'), nombre);
+  if (respuesta === null) return;
+  const nuevo = respuesta.trim();
+  if (nuevo === nombre) return;
+  if (!almacen.nombreCarpetaValido(nuevo)) {
+    avisar(t('invalidFolderName'));
+    return;
+  }
+  const origen = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  const destino = rutaNube ? `${rutaNube}/${nuevo}` : nuevo;
+  mostrarCarga(t('renamingFolder', { name: nombre }));
+  try {
+    if (await cliente.existe(destino)) {
+      avisar(t('folderExists'));
+      return;
+    }
+    // Con el progreso y las anotaciones al día, el traslado de los ids es un
+    // renombrado local: lo que quede sin subir se perdería al cambiar la ruta.
+    await progreso.sincronizar(cliente).catch(() => null);
+    await anotaciones.sincronizarPendientes(cliente).catch(() => null);
+    await cliente.mover(origen, destino);
+    await progreso.renombrarPorPrefijo(`${origen}/`, `${destino}/`, cliente).catch(() => null);
+    // Las notas de la carpeta y de sus subcarpetas describen lo que guardan, así
+    // que viajan con ellas.
+    progreso.renombrar(idNotaCarpeta(origen, 'nube'), idNotaCarpeta(destino, 'nube'));
+    await progreso.olvidar(idNotaCarpeta(origen, 'nube'), cliente).catch(() => null);
+    await progreso.renombrarPorPrefijo(
+      `${idNotaCarpeta(origen, 'nube')}/`, `${idNotaCarpeta(destino, 'nube')}/`, cliente,
+    ).catch(() => null);
+    await anotaciones.moverPorPrefijo(cliente.base, `${origen}/`, `${destino}/`).catch(() => null);
+    await almacen.moverCacheRemotaPorPrefijo(cliente.base, `${origen}/`, `${destino}/`)
+      .catch(() => null);
+    avisar(t('folderRenamed'));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
+    pintarContinuarLeyendo();
+  }
+}
+
 async function borrarCarpetaRemota(nombre) {
   if (!cliente) return;
   if (!confirm(t('deleteFolderConfirm', { name: nombre }))) return;
@@ -3000,7 +3053,13 @@ async function renombrarCarpetaLocal(nombre) {
   }
   try {
     await almacen.renombrarCarpetaLocal(rutaLocalDe(nombre), destino);
+    // La nota describe la carpeta, así que viaja con ella; las de sus
+    // subcarpetas, igual. El progreso de los libros no se toca: aquí el id no
+    // es la ruta.
     progreso.renombrar(idNotaCarpeta(rutaLocalDe(nombre), 'local'), idNotaCarpeta(destino, 'local'));
+    await progreso.renombrarPorPrefijo(
+      `${idNotaCarpeta(rutaLocalDe(nombre), 'local')}/`, `${idNotaCarpeta(destino, 'local')}/`,
+    ).catch(() => null);
     avisar(t('folderRenamed'));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -3035,15 +3094,17 @@ async function moverCarpetaLocalA(origen, rutaDestino) {
   const nombre = origen.split('/').pop();
   try {
     if (!await almacen.moverCarpetaLocal(origen, rutaDestino)) return;
-    // La nota describe la carpeta, así que viaja con ella.
-    progreso.renombrar(
-      idNotaCarpeta(origen, 'local'),
-      idNotaCarpeta(rutaDestino ? `${rutaDestino}/${nombre}` : nombre, 'local'),
-    );
+    // La nota describe la carpeta, así que viaja con ella; las de sus
+    // subcarpetas, igual.
+    const llegada = rutaDestino ? `${rutaDestino}/${nombre}` : nombre;
+    progreso.renombrar(idNotaCarpeta(origen, 'local'), idNotaCarpeta(llegada, 'local'));
+    await progreso.renombrarPorPrefijo(
+      `${idNotaCarpeta(origen, 'local')}/`, `${idNotaCarpeta(llegada, 'local')}/`,
+    ).catch(() => null);
     avisar(t('folderMoved', { name: nombre }));
     // Si estábamos dentro de la carpeta movida, se sigue donde estaba.
     if (rutaLocal === origen || rutaLocal.startsWith(`${origen}/`)) {
-      rutaLocal = (rutaDestino ? `${rutaDestino}/${nombre}` : nombre) + rutaLocal.slice(origen.length);
+      rutaLocal = llegada + rutaLocal.slice(origen.length);
     }
     pintarContinuarLeyendo();
   } catch (error) {

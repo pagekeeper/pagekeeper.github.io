@@ -234,6 +234,10 @@ export function mover(ambito, libroViejo, libroNuevo) {
   return almacen.moverAnotaciones(ambito, libroViejo, libroNuevo);
 }
 
+export function moverPorPrefijo(ambito, prefijoViejo, prefijoNuevo) {
+  return almacen.moverAnotacionesPorPrefijo(ambito, prefijoViejo, prefijoNuevo);
+}
+
 export function olvidar(ambito, libro) {
   return almacen.borrarAnotaciones(ambito, libro);
 }

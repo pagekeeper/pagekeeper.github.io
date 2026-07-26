@@ -591,6 +591,25 @@ export function renombrar(idViejo, idNuevo) {
   completarBorradoPendiente(idNuevo);
 }
 
+// Traspasa a otra ruta todas las entradas que cuelgan de un prefijo: lo que
+// hace falta al renombrar una carpeta de la nube, donde el id del libro es su
+// ruta. Es renombrar() en bloque, más la limpieza de los ids viejos en el
+// archivo remoto, donde esa carpeta ya no existe.
+export async function renombrarPorPrefijo(prefijoViejo, prefijoNuevo, cliente = null) {
+  // Primero se importa lo que solo estuviera en remoto: si no, el renombrado
+  // dejaría atrás los libros que este dispositivo no había visto.
+  if (cliente) await sincronizar(cliente).catch(() => null);
+  const ids = Object.keys(cargarLocal().libros).filter((id) => id.startsWith(prefijoViejo));
+  if (!ids.length) return;
+  for (const id of ids) {
+    renombrar(id, prefijoNuevo + id.slice(prefijoViejo.length));
+    descartarCambiosPendientes(id);
+  }
+  if (!cliente) return;
+  for (const id of ids) marcarBorradoPendiente(id, cliente);
+  await sincronizar(cliente);
+}
+
 // Elimina el progreso de todos los libros bajo un prefijo de ruta (una
 // carpeta borrada con su contenido), en local y en el archivo remoto.
 export async function olvidarPorPrefijo(prefijo, cliente = null) {

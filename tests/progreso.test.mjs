@@ -8,6 +8,7 @@ import {
   librosRecientes,
   marcarTerminado,
   progresoDe,
+  renombrarPorPrefijo,
   sincronizar,
   tituloDe,
   ultimoLibroLeido,
@@ -242,6 +243,29 @@ test('relee y conserva el avance remoto al reintentar una escritura con conflict
   // una lectura local que partió a ciegas desde una copia anterior.
   assert.equal(resultado.libros['libro.pdf'].pagina, 90);
   assert.equal(remoto.libros['libro.pdf'].pagina, 90);
+});
+
+test('al renombrar una carpeta lleva el progreso a las rutas nuevas y limpia las viejas', async () => {
+  conAlmacenamiento();
+  anotarPagina('Curso/tema.pdf', 12, 100);
+  anotarPagina('Curso/Bloque/anexo.epub', 7, 100);
+  anotarPagina('Otra/aparte.pdf', 3, 100);
+  let remoto = { version: 2, libros: {} };
+  const cliente = {
+    base: 'https://nube.test/libros',
+    async leerProgreso() { return structuredClone(remoto); },
+    async escribirProgreso(datos) { remoto = structuredClone(datos); },
+  };
+
+  await renombrarPorPrefijo('Curso/', 'Temario/', cliente);
+
+  assert.equal(progresoDe('Temario/tema.pdf').pagina, 12);
+  assert.equal(progresoDe('Temario/Bloque/anexo.epub').pagina, 7);
+  assert.equal(progresoDe('Curso/tema.pdf'), null);
+  assert.equal(progresoDe('Otra/aparte.pdf').pagina, 3);
+  assert.deepEqual(Object.keys(remoto.libros).sort(), [
+    'Otra/aparte.pdf', 'Temario/Bloque/anexo.epub', 'Temario/tema.pdf',
+  ]);
 });
 
 test('no sobrescribe una página cambiada mientras esperaba la respuesta remota', async () => {

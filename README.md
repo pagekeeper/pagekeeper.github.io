@@ -119,10 +119,13 @@ libros y sincronizar el progreso de lectura.
   crean en el servidor). Se ignoran las carpetas ocultas y los archivos de
   otros formatos.
 - 📁 **Subcarpetas en la nube**: la biblioteca muestra las carpetas de tu
-  nube y permite navegar por ellas, crear carpetas nuevas, borrarlas y mover
+  nube y permite navegar por ellas, crear carpetas nuevas, cambiarles el
+  nombre, borrarlas y mover
   libros de una carpeta a otra (con el botón de mover o arrastrando el libro
   hasta la carpeta) conservando el progreso y los marcadores. Las subidas
-  van a la carpeta que tengas abierta.
+  van a la carpeta que tengas abierta. Al renombrar una carpeta, todo lo que
+  guarda se recoloca solo: los libros de dentro y sus subcarpetas conservan la
+  página, los marcadores, las anotaciones y las notas.
 - 🔖 **Marcadores**: guarda las posiciones que quieras de cada libro y vuelve
   a ellas desde un panel. En los libros de la nube se sincronizan entre
   dispositivos junto con la posición de lectura.

@@ -30,8 +30,13 @@ class Proxy(http.server.BaseHTTPRequestHandler):
         cuerpo = self.rfile.read(largo) if largo else None
         peticion = urllib.request.Request(TARGET + self.path, data=cuerpo, method=self.command)
         for clave, valor in self.headers.items():
-            if clave.lower() not in ('host', 'connection', 'content-length', 'origin'):
-                peticion.add_header(clave, valor)
+            if clave.lower() in ('host', 'connection', 'content-length', 'origin'):
+                continue
+            # El MOVE apunta el destino al proxy; rclone solo acepta destinos
+            # de su propio servidor.
+            if clave.lower() == 'destination':
+                valor = valor.replace(f'http://{self.headers.get("Host")}', TARGET)
+            peticion.add_header(clave, valor)
         try:
             respuesta = urllib.request.urlopen(peticion)
         except urllib.error.HTTPError as error:
