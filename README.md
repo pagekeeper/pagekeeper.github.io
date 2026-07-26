@@ -308,10 +308,14 @@ Cómo está montado:
 - `js/analytics.js` registra la visita en segundo plano (JSONP, con
   `requestIdleCallback` y un timeout de 4 s), así que si el servidor falla el
   lector sigue funcionando igual;
-- una visita por navegador cada 30 minutos: el resto de cargas piden solo el
-  resumen con `summary_only=1`;
-- no se cuenta nada en `localhost`, `127.0.0.1` ni con `file://`;
-- el pie muestra el total y las visitas de hoy solo si el servidor responde.
+- una visita por navegador cada 30 minutos: el resto de cargas envían
+  `summary_only=1`, que no registra nada;
+- no se cuenta nada en `localhost`, `127.0.0.1` ni con `file://`.
+
+**Las cifras no se muestran nunca en la interfaz.** No hay contador, ni badge,
+ni enlace al panel: la respuesta del servidor se descarta. Lo único visible es
+el aviso de «Privacidad» del pie. Las estadísticas se consultan solo desde el
+panel privado.
 
 Nada de esto afecta a tus libros ni a tu progreso de lectura, que siguen
 únicamente en tu dispositivo y en tu nube WebDAV.

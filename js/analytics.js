@@ -1,9 +1,10 @@
 // Contador de visitas con el sistema propio de estadísticas en IONOS.
-// Lee los metadatos analytics-* del HTML, registra la visita en segundo
-// plano (JSONP con timeout) y, si la página tiene el resumen del pie
-// ([data-analytics-summary]), muestra los totales. Una visita por
-// navegador cada 30 minutos; el resto de cargas piden solo el resumen
-// con summary_only=1. Sin IP, sin cookies de analítica.
+// Lee los metadatos analytics-* del HTML y registra la visita en segundo
+// plano (JSONP con timeout). Una visita por navegador cada 30 minutos.
+// Sin IP, sin cookies de analítica.
+//
+// Las cifras no se muestran nunca en la interfaz: se consultan solo desde
+// el panel privado. La respuesta del servidor se descarta.
 //
 // No es un módulo: se carga con «defer» y se ejecuta al margen de app.js,
 // para que un fallo del servidor de estadísticas nunca frene al lector.
@@ -17,9 +18,10 @@
     return node ? String(node.getAttribute('content') || '').trim() : '';
   }
 
+  // «analytics-stats-url» también está en el HTML, pero apunta al panel
+  // privado: no se usa desde aquí.
   var cfg = {
     endpoint: meta('analytics-endpoint'),
-    statsUrl: meta('analytics-stats-url'),
     siteId: meta('analytics-site-id')
   };
   if (!cfg.endpoint || !cfg.siteId) return;
@@ -47,20 +49,6 @@
     try { window.localStorage.setItem(storageKey, String(Date.now())); } catch (err) { /* sin almacenamiento */ }
   }
 
-  function updateSummary(data) {
-    var box = document.querySelector('[data-analytics-summary]');
-    if (!box) return;
-    var total = parseInt(data && data.total, 10);
-    var today = parseInt(data && data.today, 10);
-    if (isNaN(total) || isNaN(today)) return;
-    var elTotal = box.querySelector('[data-analytics-total]');
-    var elToday = box.querySelector('[data-analytics-today]');
-    if (elTotal) elTotal.textContent = String(total);
-    if (elToday) elToday.textContent = String(today);
-    box.hidden = false;
-    box.style.removeProperty('display');
-  }
-
   function load() {
     var callbackName = '__pkAnalyticsCb_' + Date.now() + '_' + Math.floor(Math.random() * 100000);
     var script = document.createElement('script');
@@ -85,7 +73,6 @@
 
     window[callbackName] = function (payload) {
       try {
-        updateSummary(payload || {});
         if (countVisit && payload && payload.ok) rememberVisit();
       } finally {
         cleanup();
