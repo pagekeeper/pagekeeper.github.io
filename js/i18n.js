@@ -748,28 +748,325 @@ const ayudas = {
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
       aria-label="Biblioteca" tabindex="0" hidden>
-<div class="tarjeta"><h2>La biblioteca</h2><ul class="lista-ayuda"><li><strong>Continua llegint:</strong> a dalt de tot apareixen les teves últimes lectures, amb la portada gran, per reprendre-les d’un toc. Pots treure’n les que ja no vulguis veure; a <em>⚙️ Configuració → Biblioteca</em> es tria quantes se’n mostren i s’apaga el requadre sencer. El menú «⋯» de cada fitxa ofereix el mateix que a la biblioteca (canviar el nom, moure, pujar o desar, sense connexió, esborrar…).</li><li><strong>Portades:</strong> es creen automàticament a partir de la coberta de l’EPUB o de la primera pàgina del PDF i mostren el progrés. El cercador filtra per nom, títol, autor, format i altres metadades. Al mòbil, mantén premut un títol tallat per veure’l complet.</li><li><strong>Resum del llibre:</strong> si el fitxer porta una sinopsi a les metadades (la descripció de l’EPUB o l’«assumpte» del PDF), surt en un requadre en deixar el rató sobre la fitxa, tant a «Continua llegint» com a les dues biblioteques, i també sota el títol al menú «⋯», que és com es llegeix en pantalla tàctil.</li><li><strong>Pujar al núvol:</strong> el botó del núvol copia un llibre local a la carpeta remota sense perdre el punt de lectura; també pots arrossegar fitxers a «Al núvol», o arrossegar un llibre d’«En aquest dispositiu» fins al núvol o una de les seves carpetes. Tot es puja a la carpeta que tinguis oberta.</li><li><strong>Carpetes del dispositiu:</strong> la secció «En aquest dispositiu» també es pot organitzar en carpetes amb el botó de la carpeta amb «+». Hi entres prement-les (la ruta apareix a sobre de la llista per tornar), en canvies el nom o les esborres des del seu menú «⋯», i mous un llibre amb l’opció «Mou a una altra carpeta» o arrossegant-lo fins a la carpeta. Les carpetes també es mouen: amb «Mou la carpeta» o arrossegant-les fins a una altra carpeta o fins a un tram de la ruta, amb tot el que contenen. Moure un llibre aquí no l’afecta gens: conserva la pàgina, els marcadors i les anotacions. Els llibres nous van a la carpeta que tinguis oberta i el cercador els continua trobant siguin on siguin.</li><li><strong>Portar llibres d’un costat a l’altre:</strong> un llibre del núvol es pot desar al dispositiu amb «Desa en aquest dispositiu» o arrossegant-lo fins a la secció (o la carpeta) local; i un del dispositiu es puja al núvol amb el seu botó o arrossegant-lo fins a «Al núvol». En tots dos casos se’n fa una còpia: l’original es queda on era i cada biblioteca porta el seu propi progrés.</li><li><strong>Carpetes:</strong> la secció «Al núvol» mostra les subcarpetes i permet entrar-hi (la ruta apareix a sobre de la llista per tornar). Pots crear carpetes noves, canviar-los el nom o esborrar-les des del seu menú «⋯» (en esborrar-les també se n’elimina el contingut) i moure un llibre d’una carpeta a una altra amb el seu botó de moure o arrossegant-lo fins a una carpeta de la llista (o fins a un tram de la ruta), conservant el progrés i els marcadors. Les carpetes també es mouen: fes servir «Mou la carpeta» o arrossega-les fins a una altra carpeta o fins a un tram de la ruta, i s’enduen tot el que hi ha dins. Ni movent-les ni canviant-los el nom es perd res: els llibres de dins conserven la pàgina, els marcadors, les anotacions i la nota, i les subcarpetes igual.</li><li><strong>Enrere:</strong> el botó (o el gest) de tornar enrere del navegador puja un nivell de carpeta en comptes de sortir del PageKeeper: des d’una subcarpeta porta a l’anterior i des de l’arrel sí que surt. També tanca el lector, l’ajuda o la configuració.</li><li><strong>Baixar una carpeta sencera:</strong> el menú «⋯» de cada carpeta la desa completa, amb les subcarpetes i tots els llibres. Al Chrome, l’Edge i l’Opera d’escriptori tries on posar-la i es copia tal qual; a la resta de navegadors (Firefox, Safari, mòbils) es baixa com un únic fitxer ZIP.</li><li><strong>Baixar:</strong> desa una còpia del PDF o EPUB al dispositiu.</li><li><strong>Esborrar:</strong> la paperera l’elimina del servidor o d’aquest dispositiu, segons l’origen.</li></ul></div>
-    </div>
+      <div class="tarjeta">
+        <h2>Els llibres a la vista</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Continua llegint:</strong>
+        el darrer llibre apareix destacat. En pantalla ampla les lectures recents es
+        veuen com a fitxes amb la portada gran i el títol sencer, totes alhora; en
+        pantalla estreta es despleguen amb «Veure’n més». Pots treure’n les que ja no
+        vulguis veure; a <em>⚙️ Configuració → Biblioteca</em> es tria quantes se’n
+        mostren i s’apaga el requadre sencer, si prefereixes anar directament als
+        llibres. Només surt a la pantalla inicial: en entrar en una carpeta es retira
+        per deixar lloc al que hi ha dins. Un llibre descartat torna a aparèixer quan
+        l’obres de nou. Els acabats i els fitxers que ja no existeixen queden fora
+        d’aquesta llista. El menú «⋯» de cada fitxa ofereix el mateix que a la
+        biblioteca (canviar el nom, moure, pujar o desar, sense connexió, esborrar…),
+        així que no cal baixar a buscar el llibre per fer-li res.</li>
+        <li><strong>Ordre i estats:</strong>
+        pots ordenar per lectura recent, títol, autor o progrés, filtrar els llibres
+        pendents, en lectura o acabats i marcar-ne qualsevol com a acabat. Prem la
+        mateixa etiqueta «Acabat» per treure-la; també desapareix sola si tornes a
+        obrir el llibre, sense perdre el progrés. Un llibre amb un 0 % llegit es
+        considera pendent encara que s’hagi obert.</li>
+        <li><strong>Portades:</strong>
+        es generen soles (la coberta de l’EPUB o la primera pàgina del PDF) i mostren
+        l’avenç de lectura de cada llibre. El cercador de la biblioteca filtra per nom,
+        títol, autor, format i altres metadades disponibles. Al mòbil, mantén premut un
+        títol tallat per veure’l sencer.</li>
+        <li><strong>Resum del llibre:</strong>
+        si el fitxer porta una sinopsi a les metadades (la descripció de l’EPUB o
+        l’«assumpte» del PDF), apareix en un requadre en deixar-hi el ratolí a sobre,
+        tant a «Continua llegint» com a les dues biblioteques, i també sota el títol al
+        menú «⋯», que és com es llegeix en pantalla tàctil.</li>
+        <li><strong>Llibre d’exemple:</strong>
+        quan la biblioteca és completament buida pots afegir i obrir una obra de mostra
+        en l’idioma de la interfície. Després funciona com qualsevol llibre local.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Carpetes</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Carpetes del dispositiu:</strong>
+        la secció «En aquest dispositiu» també es pot organitzar en carpetes amb el
+        botó de la carpeta amb «+». Hi entres prement-les (la ruta apareix sobre la
+        llista per tornar), canvies el nom o les esborres des del seu menú «⋯», i mous
+        un llibre amb l’opció «Mou a una altra carpeta» o arrossegant-lo fins a la
+        carpeta. Les carpetes també es mouen: amb «Mou la carpeta» o arrossegant-les
+        fins a una altra carpeta o fins a un tram de la ruta, i s’enduen tot el que hi
+        ha dins. Moure un llibre aquí no l’afecta gens: conserva la pàgina, els
+        marcadors i les anotacions. Els llibres nous van a parar a la carpeta que
+        tinguis oberta, i el cercador els continua trobant siguin on siguin.</li>
+        <li><strong>Carpetes al núvol:</strong>
+        la secció «Al núvol» mostra les subcarpetes de la teva carpeta i permet
+        entrar-hi (la ruta apareix sobre la llista per tornar). Pots crear carpetes
+        noves, canviar-los el nom o esborrar-les des del seu menú «⋯» (en esborrar-les
+        també se n’elimina el contingut) i moure un llibre d’una carpeta a una altra
+        amb el seu botó de moure o arrossegant-lo fins a una carpeta de la llista (o
+        fins a un tram de la ruta), conservant el progrés i els marcadors. Les carpetes
+        també es mouen: fes servir «Mou la carpeta» o arrossega-les fins a una altra
+        carpeta o fins a un tram de la ruta, i s’enduen tot el que guarden. Ni
+        movent-les ni canviant-los el nom es perd res: els llibres de dins conserven la
+        pàgina, els marcadors, les anotacions i la nota, i les subcarpetes igual.</li>
+        <li><strong>Baixar una carpeta sencera:</strong>
+        el menú «⋯» de cada carpeta la desa completa, amb les subcarpetes i tots els
+        llibres. Al Chrome, l’Edge i l’Opera d’escriptori tries on posar-la i es copia
+        tal qual; a la resta de navegadors (Firefox, Safari, mòbils) es baixa com un
+        únic fitxer ZIP.</li>
+        <li><strong>Enrere:</strong>
+        el botó (o el gest) de tornar enrere del navegador puja un nivell de carpeta en
+        comptes de sortir de PageKeeper: des d’una subcarpeta porta a l’anterior i des
+        de l’arrel sí que surt. També tanca el lector, l’ajuda o la configuració.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Moure, desar i esborrar</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Pujar al núvol:</strong>
+        amb un núvol configurat, el botó del núvol de cada llibre local el copia a la
+        teva carpeta remota conservant la pàgina per la qual vas; també pots pujar un
+        fitxer amb el «+» o arrossegar-lo fins a la secció «Al núvol»; i també pots
+        arrossegar un llibre d’«En aquest dispositiu» fins al núvol o fins a una de les
+        seves carpetes. Tot es puja a la carpeta que tinguis oberta.</li>
+        <li><strong>Portar llibres d’un costat a l’altre:</strong>
+        un llibre del núvol es pot desar al dispositiu amb «Desa en aquest dispositiu»
+        o arrossegant-lo fins a la secció (o la carpeta) local; i un del dispositiu es
+        puja al núvol amb el seu botó o arrossegant-lo fins a «Al núvol». En tots dos
+        casos se’n fa una còpia: l’original es queda on era i cada biblioteca porta el
+        seu propi progrés.</li>
+        <li><strong>Disponible sense connexió:</strong>
+        el botó del núvol amb fletxa desa una còpia gestionada del llibre remot. Si la
+        xarxa falla, PageKeeper la mostra i l’obre automàticament. El botó verd permet
+        treure només aquesta còpia sense esborrar el llibre del núvol.</li>
+        <li><strong>Baixar:</strong>
+        el botó de baixada desa una còpia del fitxer (PDF o EPUB) al dispositiu, vingui
+        del núvol o de la biblioteca local.</li>
+        <li><strong>Esborrar:</strong>
+        la paperera de cada llibre l’elimina (del servidor si és del núvol, o d’aquest
+        dispositiu si és local).</li>
+        <li><strong>Importar i exportar:</strong>
+        el botó de la carpeta amb fletxa de la capçalera obre una pantalla des d’on
+        pots afegir llibres i baixar o restaurar còpies ZIP. Hi ha una còpia per als
+        llibres d’«En aquest dispositiu» i una altra per a tota la biblioteca WebDAV,
+        incloses les subcarpetes. Totes dues conserven el progrés, els marcadors i les
+        anotacions; cap no conté la contrasenya. Per desar a part l’URL, l’usuari i la
+        contrasenya d’aplicació, fes servir <em>Configuració → Porta la configuració a
+        un altre dispositiu</em>.</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
       aria-label="Lector" tabindex="0" hidden>
-<div class="tarjeta"><h2>Controls del lector</h2><ul class="lista-ayuda"><li><strong>Mode de lectura:</strong> pàgina a pàgina o pàgines contínues amb desplaçament vertical.</li><li><strong>Pantalla completa:</strong> un toc al centre de la pàgina amaga la barra superior per llegir sense distraccions; un altre toc la recupera.</li><li><strong>Dues pàgines juntes:</strong> en mode pàgina a pàgina, el botó de les dues columnes mostra les pàgines de dos en dos (ideal en pantalles amples); un altre toc torna a una sola pàgina.</li><li><strong>Gira la pàgina (només PDF):</strong> el botó de girar rota el document 90° cada vegada, útil per a documents escanejats de costat. El gir es recorda per a cada llibre en aquest dispositiu.</li><li><strong>Temps restant:</strong> després d’uns minuts de lectura apareix una estimació del temps que queda per acabar el llibre, calculada amb el teu ritme real en aquest dispositiu.</li><li><strong>Zoom:</strong> les lupes amplien el PDF o canvien la mida de lletra de l’EPUB; ↔ torna a l’amplada automàtica. En pantalla tàctil pots pessigar amb dos dits per ampliar: als PDF canvia el zoom i als EPUB, la mida de la lletra.</li><li><strong>Passa pàgina amb el dit:</strong> arrossega cap als costats i la pàgina acompanya el dit deixant veure on vas; si te’n penedeixes a mig camí, torna sola al seu lloc. Als PDF s’hi veu de debò la pàgina veïna.</li><li><strong>Configuració del text (només EPUB):</strong> el botó de la lletra permet triar el tipus de lletra (la del llibre, amb serifa o sense), l’alineació, l’interlineat, el marge de tots dos costats i si les paraules es parteixen al final de línia. Els mateixos ajustos són a <em>⚙️ Configuració → Lector</em>, per veure’ls i canviar-los sense obrir cap llibre; els dos llocs mostren sempre el mateix. Partir-les ve activat: en pantalla estreta, i encara més amb el text justificat, és el que evita els buits grans entre paraules. Ho fa el navegador segons l’idioma del llibre, així que pot no estar disponible per a tots els idiomes; també es pot deixar com vingui a cada llibre, o no partir mai.</li><li><strong>Paper del llibre:</strong> el botó del sol, la tassa o la lluna recorre els tres modes de lectura: paper clar, sèpia (torrat, més descansat per a estones llargues) i mode nit. És independent del tema de l’aplicació. En EPUB es canvien els colors del text, així que les il·lustracions es veuen tal qual; en PDF, que és una imatge ja dibuixada, es tenyeix la pàgina sencera.</li><li><strong>Imatges en mode nit (només PDF):</strong> en invertir la pàgina, les fotos i els logotips queden en negatiu. El botó de la imatge, que apareix al costat del paper quan llegeixes un PDF en mode nit, els torna el color. Es recorda d’un llibre a un altre. Les pàgines escanejades no es toquen: allà el full sencer és una imatge i tornar-li el color deixaria el paper en blanc.</li><li><strong>Ves a un punt:</strong> toca l’indicador de pàgina o percentatge.</li><li><strong>Índex i miniatures:</strong> el botó del plafó obre el que porti el llibre, i el text ho diu: l’índex, les miniatures de les pàgines o totes dues coses. En obrir-lo, el capítol on ets apareix ressaltat i a la vista. En pantalla ampla la barra lateral es queda oberta d’un llibre a un altre fins que la tanquis tu.</li><li><strong>Marcadors:</strong> el botó del marcador desa la posició actual per tornar-hi quan vulguis. Als llibres del núvol, els marcadors se sincronitzen entre dispositius juntament amb la posició de lectura.</li><li><strong>Ressaltats i notes:</strong> selecciona text del PDF o EPUB i tria un color de ressaltat (groc, verd, blau o rosa) o afegeix-hi una nota. El color es pot canviar després en editar l’anotació. Als llibres del núvol també se sincronitzen després de treballar sense connexió.</li><li><strong>Exporta les anotacions:</strong> el botó de descàrrega del panell d’anotacions desa tots els ressaltats i notes del llibre en un fitxer Markdown (.md), amb la pàgina o posició de cadascun, a punt per als teus apunts o per a aplicacions com Obsidian.</li><li><strong>Lectura en veu alta:</strong> el botó de l’altaveu llegeix el llibre amb la veu del navegador, començant a la pàgina actual. La frase que sona es va ressaltant per poder seguir-la amb la vista, i la pàgina avança sola quan la veu arriba al final del que es veu, així que també pots llegir mirant. El panell es retira en començar per no tapar el text: mentre sona, un control petit a baix permet fer pausa, continuar i aturar, i en pantalla ampla el mateix altaveu fa pausa i continua. En continuar, la frase que s’ha tallat es repeteix sencera. Els ajustos (veu i velocitat) es tornen a obrir des del menú «⋯». Passar de pàgina a mà atura la lectura. Als PDF escanejats sense text no funciona.</li><li><strong>Text i enllaços del PDF:</strong> pots seleccionar i copiar text, i els enllaços del PDF funcionen: els interns salten a la seva pàgina i els externs s’obren en una altra pestanya.</li><li><strong>Torna després d’un salt:</strong> després d’usar l’índex, la cerca o el selector de posició apareixen botons per tornar enrere o avançar de nou. En mòbil queden integrats a banda i banda de l’indicador de pàgina o percentatge.</li><li><strong>Cerca dins del llibre:</strong> la lupa troba paraules o frases, porta al punt exacte del resultat i el deixa ressaltat uns segons.</li><li>El mode, el zoom, la mida i el tipus de lletra, l’interlineat i els marges es recorden en cada dispositiu.</li></ul></div>
-    </div>
+      <div class="tarjeta">
+        <h2>Veure la pàgina</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Mode de lectura:</strong>
+        pàgina a pàgina (com un llibre) o pàgines contínues amb desplaçament vertical.</li>
+        <li><strong>Passa pàgina amb el dit:</strong>
+        arrossega cap als costats i la pàgina acompanya el dit deixant veure on vas; si
+        te’n penedeixes a mig camí, torna sola al seu lloc. Als PDF s’hi veu de debò la
+        pàgina veïna.</li>
+        <li><strong>Dues pàgines juntes:</strong>
+        en mode pàgina a pàgina, el botó de les dues columnes mostra les pàgines de
+        dues en dues (ideal en pantalles amples); un altre toc torna a una sola pàgina.</li>
+        <li><strong>Gira la pàgina (només PDF):</strong>
+        el botó de girar fa rotar el document 90° cada vegada, útil per a escanejos
+        torts o apaïsats. El gir es recorda per a cada llibre en aquest dispositiu.</li>
+        <li><strong>Pantalla completa:</strong>
+        un toc al centre de la pàgina amaga la barra superior per llegir sense
+        distraccions; un altre toc la recupera.</li>
+        <li><strong>Ajust i zoom:</strong>
+        als PDF, ↔ encaixa la pàgina a l’amplada i el botó de les quatre cantonades
+        mostra la pàgina sencera. Les lupes amplien o redueixen des d’aquell punt; amb
+        zoom pots arrossegar la pàgina amb el ratolí o el dit. Als EPUB, ↔ restableix
+        la mida de lletra. En pantalla tàctil pots pessigar per ampliar: als PDF canvia
+        el zoom i als EPUB, la mida de la lletra.</li>
+        <li><strong>Temps restant:</strong>
+        després d’uns minuts de lectura apareix una estimació del temps que falta per
+        acabar el llibre, calculada amb el teu ritme real en aquest dispositiu.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Text i color</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Configuració del text (només EPUB):</strong>
+        el botó de la lletra permet triar el tipus de lletra (la del llibre, amb serifa
+        o sense), l’alineació, l’interlineat, el marge de tots dos costats i si les
+        paraules es parteixen al final de línia. Els mateixos ajustos són a <em>⚙️
+        Configuració → Lector</em>, per veure’ls i canviar-los sense obrir cap llibre;
+        els dos llocs mostren sempre el mateix. Partir-les ve activat: en pantalla
+        estreta, i encara més amb el text justificat, és el que evita els buits grans
+        entre paraules. Ho fa el navegador segons l’idioma del llibre, així que pot no
+        estar disponible per a tots els idiomes; també es pot deixar com vingui a cada
+        llibre, o no partir mai.</li>
+        <li><strong>Paper del llibre:</strong>
+        el botó del sol, la tassa o la lluna recorre els tres modes de lectura: paper
+        clar, sèpia (torrat, més descansat per a estones llargues) i mode nit. És
+        independent del tema de l’aplicació: pots tenir la interfície fosca i llegir en
+        sèpia. Als EPUB es canvien els colors del text, així que les il·lustracions es
+        veuen tal qual; als PDF, que són una imatge ja dibuixada, es tenyeix la pàgina
+        sencera.</li>
+        <li><strong>Imatges en mode nit (només PDF):</strong>
+        en invertir la pàgina, les fotos i els logotips queden en negatiu. El botó de
+        la imatge, que surt al costat del del paper quan llegeixes un PDF en mode nit,
+        els torna el color. Es recorda d’un llibre a l’altre. Les pàgines escanejades
+        no es toquen: allà el full sencer és una imatge i tornar-li el color deixaria
+        el paper en blanc, que és justament el que es vol evitar de nit.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Moure’s pel llibre</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Ves a un punt:</strong>
+        toca l’indicador de pàgina (o el percentatge als EPUB) per saltar-hi
+        directament.</li>
+        <li><strong>Índex i miniatures:</strong>
+        el botó del plafó obre el que porti el llibre, i el seu text ho diu: l’índex,
+        les miniatures de les pàgines o totes dues coses. En obrir-lo, el capítol pel
+        qual vas apareix ressaltat i a la vista, sense buscar-lo. En pantalla ampla la
+        barra lateral es queda oberta d’un llibre a l’altre fins que la tanquis tu.</li>
+        <li><strong>Marcadors:</strong>
+        el botó del marcador desa la posició actual per tornar-hi quan vulguis. Pots
+        posar-li un nom i canviar-lo més tard. Als llibres del núvol, els marcadors se
+        sincronitzen entre dispositius juntament amb la posició de lectura.</li>
+        <li><strong>Torna després d’un salt:</strong>
+        després de fer servir l’índex, la cerca o el selector de posició apareixen
+        botons per tornar enrere o avançar de nou. Al mòbil queden integrats a banda i
+        banda de l’indicador de pàgina o percentatge.</li>
+        <li><strong>Cerca dins del llibre:</strong>
+        la lupa troba paraules o frases, porta al punt exacte del resultat i el deixa
+        ressaltat uns segons per localitzar-lo d’un cop d’ull.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Anotar i escoltar</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Ressaltats i notes:</strong>
+        selecciona text del PDF o de l’EPUB i tria un color de ressaltat (groc, verd,
+        blau o rosa) o afegeix-hi una nota. El color es pot canviar després en editar
+        l’anotació. El botó del retolador mostra totes les anotacions del llibre. Als
+        llibres del núvol se sincronitzen també quan treballes sense connexió.</li>
+        <li><strong>Exporta les anotacions:</strong>
+        el botó de baixada del plafó d’anotacions desa tots els ressaltats i notes del
+        llibre en un fitxer Markdown (.md), amb la pàgina o la posició, a punt per als
+        teus apunts o per a aplicacions com Obsidian.</li>
+        <li><strong>Lectura en veu alta:</strong>
+        el botó de l’altaveu llegeix el llibre amb la veu del navegador, començant a la
+        pàgina actual. La frase que sona es va ressaltant per poder seguir-la amb la
+        vista, i la pàgina avança sola quan la veu arriba al final del que es veu, així
+        que també pots llegir mirant. El panell es retira en començar per no tapar el
+        text: mentre sona, un control petit a baix permet fer pausa, continuar i
+        aturar, i en pantalla ampla el mateix altaveu fa pausa i continua. En
+        continuar, la frase que s’ha tallat es repeteix sencera. Els ajustos (veu i
+        velocitat) es tornen a obrir des del menú «⋯». Passar de pàgina a mà atura la
+        lectura. Als PDF escanejats sense text no funciona.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Sobre els PDF</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Text i enllaços del PDF:</strong>
+        pots seleccionar i copiar text, i els enllaços del mateix PDF funcionen: els
+        interns (índex, referències) salten a la seva pàgina i els externs s’obren en
+        una altra pestanya.</li>
+        <li><strong>PDF protegits:</strong>
+        si un PDF està xifrat, PageKeeper en demana la contrasenya per obrir-lo. La
+        contrasenya no es desa.</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
       aria-label="Núvol" tabindex="0" hidden>
-<div class="tarjeta"><h2>Què és WebDAV?</h2><p>És una manera estàndard d’accedir per internet als fitxers d’un servidor com si fos una carpeta remota. PageKeeper el fa servir per llegir els llibres i desar el progrés al teu propi núvol.</p></div>
+      <div class="tarjeta">
+        <h2>Què és WebDAV?</h2>
+        <p>És una manera estàndard d’accedir per internet als fitxers desats en
+        un servidor, com si fos una carpeta remota. PageKeeper l’utilitza per
+        llegir els teus llibres i per desar la posició de lectura al teu propi
+        núvol, de manera que puguis continuar des d’un altre dispositiu.</p>
+      </div>
 
-<div class="tarjeta importante"><h2>⚠️ Important: no serveix qualsevol núvol</h2><p>El navegador només es pot connectar si el servidor ho autoritza explícitament amb <em>CORS</em>. Per això la majoria de serveis comercials no funcionen.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox i OneDrive:</strong> no ofereixen un WebDAV usable aquí.</li><li><strong>Koofr, pCloud, Yandex i semblants:</strong> tenen WebDAV però bloquegen l’accés des de pàgines web.</li><li><strong>Nextcloud o ownCloud amb el permís activat:</strong> és l’opció que funciona a la pràctica.</li></ul></div>
+      <div class="tarjeta importante">
+        <h2>⚠️ Important: no serveix qualsevol núvol</h2>
+        <p>El lector funciona dins del navegador i, per seguretat, el navegador
+        només permet connectar amb un servidor si aquest servidor ho autoritza
+        expressament (una regla tècnica anomenada <em>CORS</em>). Això deixa
+        fora gairebé tots els serveis comercials:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> no serveixen; no
+          ofereixen un WebDAV utilitzable d’aquesta manera.</li>
+          <li><strong>Koofr, pCloud, Yandex i similars:</strong> tenen WebDAV,
+          però bloquegen l’accés des de pàgines web, i no ho pots canviar perquè
+          el servidor no és teu.</li>
+          <li><strong>Nextcloud o ownCloud amb el permís activat:</strong>
+          aquesta és, a la pràctica, l’única opció que funciona per
+          sincronitzar.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>No tinc servidor propi</h2><p>Pots demanar accés a un Nextcloud d’un familiar, centre o equip: necessites l’<em>URL de la carpeta WebDAV</em>, l’<em>usuari</em> i una <em>contrasenya d’aplicació</em>. Si no en tens, afegeix llibres a «En aquest dispositiu»: es llegeixen igual, però sense sincronització automàtica.</p></div>
+      <div class="tarjeta">
+        <h2>No tinc servidor propi (el més habitual)</h2>
+        <p>Gairebé ningú no té el seu propi servidor, i no passa res. Tens dos
+        camins:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Que algú et doni accés al seu Nextcloud</strong> (un
+          familiar, el teu centre d’estudis, el teu equip de feina…). Demana-li
+          tres dades: l’<em>URL de la teva carpeta WebDAV</em>, el teu
+          <em>usuari</em> i una <em>contrasenya d’aplicació</em>. Amb això ja
+          sincronitzes entre dispositius, sense muntar res tu.</li>
+          <li><strong>Que ningú no et doni accés:</strong> afegeix els llibres
+          amb el «+» d’«En aquest dispositiu». Es llegeixen igual de bé; només
+          perds la sincronització automàtica entre aparells.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>Tinc o administro un Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector (<code id="ayuda-dominio">aquest lloc</code>) als orígens permesos.</li><li>Crea una <strong>contrasenya d’aplicació</strong> a Configuració → Seguretat; no facis servir la principal.</li><li>A <strong>⚙️ Configuració</strong>, indica l’URL de la carpeta, l’usuari i la contrasenya.</li></ul></div>
+      <div class="tarjeta">
+        <h2>Tinc o administro un Nextcloud / ownCloud</h2>
+        <p>Per permetre que PageKeeper s’hi connecti:</p>
+        <ul class="lista-ayuda">
+          <li>Instal·la l’aplicació <strong>WebAppPassword</strong> i afegeix el
+          domini d’aquest lector (<code id="ayuda-dominio">aquest lloc</code>)
+          als orígens permesos.</li>
+          <li>Crea una <strong>contrasenya d’aplicació</strong> (Configuració →
+          Seguretat). No facis servir la contrasenya principal.</li>
+          <li>A <strong>⚙️ Configuració</strong> d’aquest lector, posa l’URL de
+          la teva carpeta (per exemple
+          <code>https://el-teu-nuvol.com/remote.php/dav/files/USUARI/Llibres</code>),
+          el teu usuari i aquesta contrasenya.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>Porta la configuració a un altre dispositiu</h2><p>A <strong>⚙️ Configuració → «Copia l’enllaç de configuració»</strong> obtens un enllaç amb l’URL, l’usuari i la contrasenya. Obre’l a l’altre dispositiu i comparteix-lo només per canals privats; esborra’l després.</p></div>
+      <div class="tarjeta">
+        <h2>Porta la configuració a un altre dispositiu</h2>
+        <p>Un cop configurat el núvol, a <strong>⚙️ Configuració → «Copia
+        l’enllaç de configuració»</strong> obtens un enllaç que ho porta tot
+        (URL, usuari i contrasenya). Obre’l en un altre dispositiu i quedarà
+        configurat a l’instant. Comparteix-lo només per canals privats i
+        esborra’l després de fer-lo servir.</p>
+      </div>
 
-<div class="tarjeta destacado"><h2>🤖 Tens dubtes? Pregunta a una IA</h2><p>ChatGPT, Claude o Gemini et poden guiar per configurar el servidor. Per exemple: «Tinc un servidor Nextcloud. Com instal·lo <em>WebAppPassword</em> i permeto l’accés WebDAV des d’una web allotjada a <code id="ayuda-dominio-ia">aquest lloc</code>?»</p></div>
-    </div>
+      <div class="tarjeta destacado">
+        <h2>🤖 Tens dubtes en configurar? Pregunta a una IA</h2>
+        <p>Configurar un servidor té la seva feina, però una intel·ligència
+        artificial (ChatGPT, Claude, Gemini…) t’hi guia pas a pas. Copia i
+        enganxa preguntes com aquestes:</p>
+        <ul class="lista-ayuda">
+          <li>«Tinc un servidor Nextcloud. Com hi instal·lo l’aplicació
+          <em>WebAppPassword</em> i permeto l’accés WebDAV des d’un web allotjat
+          a <code id="ayuda-dominio-ia">aquest lloc</code>?»</li>
+          <li>«Com creo una contrasenya d’aplicació al Nextcloud?»</li>
+          <li>«El servei de núvol <em>[nom]</em> permet accés WebDAV des del
+          navegador (CORS) per a un web extern?»</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
       aria-label="Privadesa" tabindex="0" hidden>
@@ -798,35 +1095,334 @@ const ayudas = {
 
     <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
       aria-label="Getting started" tabindex="0">
-<div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works immediately without accounts. The book is stored only in that browser. You can also drag one or more files onto the local section.</li><li><strong>Add a whole folder:</strong> the folder button with the arrow (and dragging a folder onto the section) copies every PDF and EPUB inside it, subfolders included, and rebuilds the same structure in your library. It works the same with the cloud, where the folders are created on the server.</li><li><strong>Connect cloud storage (WebDAV):</strong> books and reading position sync between your devices.</li></ul></div>
+<div class="tarjeta"><h2>What does PageKeeper do?</h2><p>It reads PDF and EPUB books, including mathematical formulas, on a phone, tablet or computer and remembers your reading position.</p><ul class="lista-ayuda"><li><strong>Add a book from your device (“+” button):</strong> it works
+        instantly, with no accounts and no settings. The book is stored in that
+        browser’s library and it remembers where you left off. The one catch:
+        everything is kept on that device only. You can also drag one or more
+        PDFs or EPUBs onto the local section.</li><li><strong>Add a whole folder:</strong> the folder button with the arrow (and dragging a folder onto the section) copies every PDF and EPUB inside it, subfolders included, and rebuilds the same structure in your library. It works the same with the cloud, where the folders are created on the server.</li><li><strong>Connect cloud storage (WebDAV):</strong> your books and your
+        reading position sync across all your devices. It needs some setting up
+        first, explained further down.</li></ul></div>
 
 <div class="tarjeta"><h2>Light and dark mode</h2><p>The theme button in the header steps through three states each time you press it: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun) and <strong>dark</strong> (moon). The icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">Do not confuse it with the reader’s <strong>night mode</strong>, which darkens the book page and is stored separately.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
       aria-label="Library" tabindex="0" hidden>
-<div class="tarjeta"><h2>The library</h2><ul class="lista-ayuda"><li><strong>Continue reading:</strong> your latest reads sit at the top, with large covers, so you can pick one up in a single tap. You can drop the ones you no longer want; under <em>⚙️ Settings → Library</em> you choose how many to show and switch the whole box off. Each card’s “⋯” menu offers the same as in the library (rename, move, upload or save, offline, delete…).</li><li><strong>Covers:</strong> are automatically created from the EPUB cover or first PDF page and show reading progress. The search box filters by filename, title, author, format and other metadata. On mobile, press and hold a truncated title to see it in full.</li><li><strong>Book summary:</strong> if the file carries a synopsis in its metadata (the EPUB description or the PDF subject), it appears in a small box when you hover over the card, both in “Continue reading” and in either library, and under the title in the “⋯” menu, which is how you read it on a touch screen.</li><li><strong>Upload to the cloud:</strong> the cloud button copies a local book to the remote folder without losing your position; you can also drag files onto “In the cloud”, or drag a book from “On this device” onto the cloud or one of its folders. Everything is uploaded to the folder you have open.</li><li><strong>Folders on this device:</strong> the “On this device” section can also be organised into folders with the folder-plus button. Tap a folder to open it (the path appears above the list so you can go back), rename or delete it from its “⋯” menu, and move a book with its “Move to another folder” option or by dragging it onto the folder. Folders move too: use “Move folder” or drag them onto another folder or onto a step of the path, and everything inside travels with them. Moving a book here changes nothing else: it keeps its page, bookmarks and annotations. New books land in whichever folder is open, and the search box still finds them wherever they are.</li><li><strong>Moving books between libraries:</strong> a cloud book can be stored on the device with “Save to this device” or by dragging it onto the local section (or one of its folders); a device book goes up with its own button or by dragging it onto “In the cloud”. Either way it is a copy: the original stays put and each library keeps its own reading position.</li><li><strong>Folders:</strong> the “In the cloud” section shows subfolders and lets you enter them (the path appears above the list so you can go back). You can create new folders, rename them or delete them from their “⋯” menu (deleting one removes its contents too) and move a book from one folder to another with its move button or by dragging it onto a folder in the list (or onto a breadcrumb segment), keeping progress and bookmarks. Folders move too: use “Move folder” or drag them onto another folder or onto a breadcrumb segment, and everything inside travels with them. Neither moving nor renaming costs anything to what they hold: the books inside keep their page, bookmarks, annotations and note, and so do the subfolders.</li><li><strong>Going back:</strong> the browser’s back button (or gesture) moves up one folder instead of leaving PageKeeper: from a subfolder it goes to the previous one, and from the root it does leave. It also closes the reader, the help or the settings.</li><li><strong>Download a whole folder:</strong> each folder’s “⋯” menu saves it complete, with its subfolders and every book inside. On desktop Chrome, Edge and Opera you choose where to put it and it is copied as is; on other browsers (Firefox, Safari, mobile) it is downloaded as a single ZIP file.</li><li><strong>Download:</strong> saves a PDF or EPUB copy to the device.</li><li><strong>Delete:</strong> the bin removes it from the server or this device, depending on its origin.</li></ul></div>
-    </div>
+      <div class="tarjeta">
+        <h2>Your books at a glance</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Continue reading:</strong>
+        your latest read sits at the top. On a wide screen the recent reads appear as
+        cards with a large cover and the full title, all at once; on a narrow screen
+        they unfold under “Show more”. You can drop the ones you no longer want; under
+        <em>⚙️ Settings → Library</em> you choose how many to show and switch the whole
+        box off, if you would rather go straight to your books. It only appears on the
+        opening screen: entering a folder puts it away to make room for what is inside.
+        A dismissed book comes back when you open it again. Finished books and files
+        that no longer exist stay out of this list. Each card’s “⋯” menu offers the
+        same as the library (rename, move, upload or save, offline, delete…), so you
+        never have to scroll down to find the book to act on it.</li>
+        <li><strong>Sorting and states:</strong>
+        you can sort by recent read, title, author or progress, filter books that are
+        pending, in progress or finished, and mark any of them as finished. Tap the
+        “Finished” tag itself to remove it; it also goes away on its own if you open
+        the book again, without losing your progress. A book at 0 % counts as pending
+        even if it has been opened.</li>
+        <li><strong>Covers:</strong>
+        are created automatically (the EPUB cover or the first PDF page) and show each
+        book’s reading progress. The library search box filters by filename, title,
+        author, format and other available metadata. On mobile, press and hold a
+        truncated title to see it in full.</li>
+        <li><strong>Book summary:</strong>
+        if the file carries a synopsis in its metadata (the EPUB description or the PDF
+        subject), it appears in a small box when you hover over the card, both in
+        “Continue reading” and in either library, and also under the title in the “⋯”
+        menu, which is how you read it on a touch screen.</li>
+        <li><strong>Sample book:</strong>
+        when the library is completely empty you can add and open a sample work in the
+        interface language. After that it behaves like any other local book.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Folders</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Folders on this device:</strong>
+        the “On this device” section can also be organised into folders with the
+        folder-plus button. Tap a folder to open it (the path appears above the list so
+        you can go back), rename or delete it from its “⋯” menu, and move a book with
+        its “Move to another folder” option or by dragging it onto the folder. Folders
+        move too: use “Move folder” or drag them onto another folder or onto a step of
+        the path, and everything inside travels with them. Moving a book here changes
+        nothing else: it keeps its page, bookmarks and annotations. New books land in
+        whichever folder is open, and the search box still finds them wherever they
+        are.</li>
+        <li><strong>Folders in the cloud:</strong>
+        the “In the cloud” section shows the subfolders of your folder and lets you
+        enter them (the path appears above the list so you can go back). You can create
+        new folders, rename them or delete them from their “⋯” menu (deleting one
+        removes its contents too) and move a book from one folder to another with its
+        move button or by dragging it onto a folder in the list (or onto a step of the
+        path), keeping progress and bookmarks. Folders move too: use “Move folder” or
+        drag them onto another folder or onto a step of the path, and everything inside
+        travels with them. Neither moving nor renaming costs anything to what they
+        hold: the books inside keep their page, bookmarks, annotations and note, and so
+        do the subfolders.</li>
+        <li><strong>Download a whole folder:</strong>
+        each folder’s “⋯” menu saves it complete, with its subfolders and every book
+        inside. On desktop Chrome, Edge and Opera you choose where to put it and it is
+        copied as is; on other browsers (Firefox, Safari, mobile) it is downloaded as a
+        single ZIP file.</li>
+        <li><strong>Going back:</strong>
+        the browser’s back button (or gesture) moves up one folder instead of leaving
+        PageKeeper: from a subfolder it goes to the previous one, and from the root it
+        does leave. It also closes the reader, the help or the settings.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Move, save and delete</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Upload to the cloud:</strong>
+        with a cloud set up, each local book’s cloud button copies it to your remote
+        folder keeping the page you are on; you can also upload a file with the “+” or
+        drag it onto the “In the cloud” section, and you can drag a book from “On this
+        device” onto the cloud or onto one of its folders. Everything is uploaded to
+        whichever folder is open.</li>
+        <li><strong>Moving books between libraries:</strong>
+        a cloud book can be stored on the device with “Save to this device” or by
+        dragging it onto the local section (or one of its folders); and a device book
+        goes up with its own button or by dragging it onto “In the cloud”. Either way
+        it is a copy: the original stays put and each library keeps its own reading
+        position.</li>
+        <li><strong>Available offline:</strong>
+        the cloud-with-arrow button saves a managed copy of the remote book. If the
+        network fails, PageKeeper shows it and opens it automatically. The green button
+        removes just that copy without deleting the book from the cloud.</li>
+        <li><strong>Download:</strong>
+        the download button saves a copy of the file (PDF or EPUB) to the device,
+        whether it comes from the cloud or from the local library.</li>
+        <li><strong>Delete:</strong>
+        each book’s bin removes it (from the server if it is a cloud book, or from this
+        device if it is local).</li>
+        <li><strong>Import and export:</strong>
+        the folder-with-arrow button in the header opens a screen where you can add
+        books and download or restore ZIP backups. There is one backup for the books
+        under “On this device” and another for the whole WebDAV library, subfolders
+        included. Both keep progress, bookmarks and annotations; neither contains your
+        password. To save the URL, username and app password separately, use
+        <em>Settings → Move configuration to another device</em>.</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
       aria-label="Reader" tabindex="0" hidden>
-<div class="tarjeta"><h2>Reader controls</h2><ul class="lista-ayuda"><li><strong>Reading mode:</strong> one page at a time or continuous pages with vertical scrolling.</li><li><strong>Full screen:</strong> tapping the centre of the page hides the top bar for distraction-free reading; another tap brings it back.</li><li><strong>Two pages side by side:</strong> in page mode, the two-column button shows pages in pairs (great on wide screens); tap again to go back to a single page.</li><li><strong>Rotate the page (PDF only):</strong> the rotate button turns the document 90° each time, handy for sideways scans. The rotation is remembered per book on this device.</li><li><strong>Time left:</strong> after a few minutes of reading, an estimate of the time left to finish the book appears, based on your actual pace on this device.</li><li><strong>Zoom:</strong> the magnifiers enlarge PDFs or change EPUB text size; ↔ returns to fit-to-width. On touch screens you can pinch with two fingers to zoom: in PDFs it changes the zoom, in EPUBs the text size.</li><li><strong>Turning pages with your finger:</strong> drag sideways and the page follows your finger, showing where you are heading; change your mind halfway and it slides back. In PDFs the neighbouring page really does peek in.</li><li><strong>Text settings (EPUB only):</strong> the font button lets you choose the typeface (the book’s own, serif or sans serif), the alignment, the line spacing, the margin on both sides and whether words break at the end of a line. The same settings live in <em>⚙️ Settings → Reader</em>, so you can see and change them without opening a book; both places always show the same. Breaking is on by default: on a narrow screen, and more so with justified text, it is what avoids the wide gaps between words. The browser does it from the book’s language, so it may not be available for every language; you can also leave it as each book has it, or never break.</li><li><strong>Book paper:</strong> the sun, cup or moon button steps through the three reading modes: light paper, sepia (warm, easier on the eyes for long sessions) and night mode. It is independent of the app theme. In EPUB the text colours change, so illustrations stay as they are; in PDF, which is an already-drawn image, the whole page is tinted.</li><li><strong>Images in night mode (PDF only):</strong> inverting the page leaves photos and logos as negatives. The image button, which appears next to the paper one while you read a PDF in night mode, gives them their colours back. It is remembered from one book to the next. Scanned pages are left alone: there the whole sheet is one image, and restoring its colours would leave the paper white.</li><li><strong>Go to a point:</strong> tap the page or percentage indicator.</li><li><strong>Contents and thumbnails:</strong> the panel button opens whatever the book has, and its label says so: the table of contents, the page thumbnails, or both. On opening it, the chapter you are on is highlighted and scrolled into view. On wide screens the sidebar stays open from one book to the next until you close it.</li><li><strong>Bookmarks:</strong> the bookmark button saves the current position so you can return to it any time. For cloud books, bookmarks sync between devices along with the reading position.</li><li><strong>Highlights and notes:</strong> select PDF or EPUB text and pick a highlight colour (yellow, green, blue or pink) or add a note. The colour can be changed later when editing the annotation. For cloud books, they also sync after working offline.</li><li><strong>Export annotations:</strong> the download button in the annotations panel saves every highlight and note of the book to a Markdown (.md) file, each with its page or position, ready for your notes or apps like Obsidian.</li><li><strong>Read aloud:</strong> the speaker button reads the book with the browser’s voice, starting on the current page. The sentence being read is highlighted so you can follow it with your eyes, and the page turns by itself once the voice reaches the end of what is on screen, so you can read along too. The panel steps aside when reading starts so it does not cover the text: while it plays, a small control at the bottom pauses, resumes and stops, and on a wide screen the speaker button itself pauses and resumes. When you resume, the interrupted sentence is read again from the start. The settings (voice and speed) reopen from the “⋯” menu. Turning a page by hand stops the reading. It does not work on scanned PDFs without text.</li><li><strong>PDF text and links:</strong> you can select and copy text, and the PDF’s own links work: internal ones jump to their page and external ones open in a new tab.</li><li><strong>Return after a jump:</strong> after using the contents, search or position selector, buttons appear to go back or forward again. On mobile they are integrated on either side of the page or percentage indicator.</li><li><strong>Search inside the book:</strong> the magnifier finds words or phrases, jumps to the exact spot and briefly highlights it.</li><li>Mode, zoom, font size and family, line spacing and margins are remembered on each device.</li></ul></div>
-    </div>
+      <div class="tarjeta">
+        <h2>Viewing the page</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Reading mode:</strong>
+        page by page (like a book) or continuous pages with vertical scrolling.</li>
+        <li><strong>Turning pages with your finger:</strong>
+        drag sideways and the page follows your finger, showing where you are heading;
+        change your mind halfway and it slides back. In PDFs the neighbouring page
+        really does peek in.</li>
+        <li><strong>Two pages side by side:</strong>
+        in page-by-page mode, the two-column button shows pages in pairs (ideal on wide
+        screens); another tap returns to a single page.</li>
+        <li><strong>Rotate the page (PDF only):</strong>
+        the rotate button turns the document 90° each time, handy for crooked or
+        landscape scans. The rotation is remembered per book on this device.</li>
+        <li><strong>Full screen:</strong>
+        a tap in the middle of the page hides the top bar so you can read without
+        distractions; another tap brings it back.</li>
+        <li><strong>Fit and zoom:</strong>
+        in PDFs, ↔ fits the page to the width and the four-corners button shows the
+        whole page. The magnifiers enlarge or reduce from there; while zoomed you can
+        drag the page with the mouse or your finger. In EPUBs, ↔ resets the text size.
+        On touch screens you can pinch to zoom: in PDFs it changes the zoom, in EPUBs
+        the text size.</li>
+        <li><strong>Time left:</strong>
+        after a few minutes of reading, an estimate of the time left to finish the book
+        appears, worked out from your actual pace on this device.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Text and colour</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Text settings (EPUB only):</strong>
+        the font button lets you choose the typeface (the book’s own, serif or sans
+        serif), the alignment, the line spacing, the margin on both sides and whether
+        words break at the end of a line. The same settings live in <em>⚙️ Settings →
+        Reader</em>, so you can see and change them without opening a book; both places
+        always show the same. Breaking is on by default: on a narrow screen, and more
+        so with justified text, it is what avoids the wide gaps between words. The
+        browser does it from the book’s language, so it may not be available for every
+        language; you can also leave it as each book has it, or never break.</li>
+        <li><strong>Book paper:</strong>
+        the sun, cup or moon button cycles through the three reading modes: light
+        paper, sepia (warm, easier on the eyes for long sessions) and night mode. It is
+        independent of the app theme: you can have a dark interface and read in sepia.
+        In EPUBs the text colours change, so illustrations look untouched; in PDFs,
+        which are already drawn images, the whole page is tinted.</li>
+        <li><strong>Images in night mode (PDF only):</strong>
+        when the page is inverted, photos and logos end up as negatives. The image
+        button, which appears next to the paper one when you read a PDF in night mode,
+        gives them their colour back. It is remembered from one book to the next.
+        Scanned pages are left alone: there the whole sheet is an image and restoring
+        its colour would leave the paper white, which is exactly what you are avoiding
+        at night.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Getting around the book</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Go to a point:</strong>
+        tap the page indicator (or the percentage in EPUBs) to jump straight there.</li>
+        <li><strong>Contents and thumbnails:</strong>
+        the panel button opens whatever the book carries, and its label says which: the
+        table of contents, the page thumbnails or both. When it opens, the chapter you
+        are on is highlighted and in view, without looking for it. On a wide screen the
+        sidebar stays open from one book to the next until you close it.</li>
+        <li><strong>Bookmarks:</strong>
+        the bookmark button saves the current position so you can come back to it
+        whenever you like. You can give it a name and change it later. In cloud books,
+        bookmarks sync across devices along with the reading position.</li>
+        <li><strong>Return after a jump:</strong>
+        after using the contents, the search or the position picker, buttons appear to
+        go back or forward again. On mobile they sit on either side of the page or
+        percentage indicator.</li>
+        <li><strong>Search inside the book:</strong>
+        the magnifier finds words or phrases, takes you to the exact spot and leaves it
+        highlighted for a few seconds so you can spot it at a glance.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Annotating and listening</h2>
+        <ul class="lista-ayuda">
+        <li><strong>Highlights and notes:</strong>
+        select text in a PDF or EPUB and pick a highlight colour (yellow, green, blue
+        or pink) or add a note. The colour can be changed later when you edit the
+        annotation. The marker button shows every annotation in the book. In cloud
+        books they sync even when you work offline.</li>
+        <li><strong>Export annotations:</strong>
+        the download button in the annotations panel saves every highlight and note in
+        the book to a Markdown file (.md), with its page or position, ready for your
+        notes or for apps like Obsidian.</li>
+        <li><strong>Read aloud:</strong>
+        the speaker button reads the book with the browser’s voice, starting on the
+        current page. The sentence being read is highlighted so you can follow it with
+        your eyes, and the page turns by itself once the voice reaches the end of what
+        is on screen, so you can read along too. The panel steps aside when reading
+        starts so it does not cover the text: while it plays, a small control at the
+        bottom pauses, resumes and stops, and on a wide screen the speaker button
+        itself pauses and resumes. When you resume, the interrupted sentence is read
+        again from the start. The settings (voice and speed) reopen from the “⋯” menu.
+        Turning a page by hand stops the reading. It does not work on scanned PDFs
+        without text.</li>
+        </ul>
+      </div>
+
+      <div class="tarjeta">
+        <h2>About PDFs</h2>
+        <ul class="lista-ayuda">
+        <li><strong>PDF text and links:</strong>
+        you can select and copy text, and the PDF’s own links work: internal ones
+        (contents, references) jump to their page and external ones open in another
+        tab.</li>
+        <li><strong>Protected PDFs:</strong>
+        if a PDF is encrypted, PageKeeper asks for its password to open it. The
+        password is not stored.</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
       aria-label="Cloud" tabindex="0" hidden>
-<div class="tarjeta"><h2>What is WebDAV?</h2><p>It is a standard way to access files on an internet server as though it were a remote folder. PageKeeper uses it to read books and store progress in your own cloud.</p></div>
+      <div class="tarjeta">
+        <h2>What is WebDAV?</h2>
+        <p>It is a standard way of reaching files stored on a server over the
+        internet, as if it were a remote folder. PageKeeper uses it to read your
+        books and to save your reading position in your own cloud, so you can
+        carry on from another device.</p>
+      </div>
 
-<div class="tarjeta importante"><h2>⚠️ Important: not every cloud works</h2><p>The browser can connect only when a server explicitly permits it through <em>CORS</em>. This rules out most commercial services.</p><ul class="lista-ayuda"><li><strong>Google Drive, Dropbox and OneDrive:</strong> do not provide usable WebDAV here.</li><li><strong>Koofr, pCloud, Yandex and similar:</strong> have WebDAV but block access from web pages.</li><li><strong>Nextcloud or ownCloud with permission enabled:</strong> is the practical working option.</li></ul></div>
+      <div class="tarjeta importante">
+        <h2>⚠️ Important: not every cloud works</h2>
+        <p>The reader runs inside the browser and, for safety, the browser only
+        allows a connection to a server if that server expressly permits it (a
+        technical rule called <em>CORS</em>). That rules out almost every
+        commercial service:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> no good; they do
+          not offer a WebDAV that can be used this way.</li>
+          <li><strong>Koofr, pCloud, Yandex and the like:</strong> they do have
+          WebDAV, but they block access from web pages, and you cannot change
+          that because the server is not yours.</li>
+          <li><strong>Nextcloud or ownCloud with the permission enabled:</strong>
+          in practice, this is the only option that works for syncing.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>I do not have my own server</h2><p>You can ask for access to a family, school or work Nextcloud. You need the <em>WebDAV folder URL</em>, <em>username</em> and an <em>app password</em>. Otherwise, add books under “On this device”: reading works the same, but without automatic sync.</p></div>
+      <div class="tarjeta">
+        <h2>I do not have my own server (the usual case)</h2>
+        <p>Hardly anyone has their own server, and that is fine. You have two
+        options:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Someone gives you access to their Nextcloud</strong> (a
+          relative, your school, your team at work…). Ask them for three things:
+          the <em>URL of your WebDAV folder</em>, your <em>username</em> and an
+          <em>app password</em>. With those you already sync across devices,
+          without setting anything up yourself.</li>
+          <li><strong>Nobody gives you access:</strong> add your books with the
+          “+” under “On this device”. Reading works just as well; you only lose
+          automatic syncing between devices.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>I have or administer Nextcloud / ownCloud</h2><ul class="lista-ayuda"><li>Install <strong>WebAppPassword</strong> and add this reader’s domain (<code id="ayuda-dominio">this site</code>) to the allowed origins.</li><li>Create an <strong>app password</strong> in Settings → Security; do not use your main password.</li><li>Under this reader’s <strong>⚙️ Settings</strong>, enter the folder URL, username and password.</li></ul></div>
+      <div class="tarjeta">
+        <h2>I have or administer Nextcloud / ownCloud</h2>
+        <p>To let PageKeeper connect:</p>
+        <ul class="lista-ayuda">
+          <li>Install the <strong>WebAppPassword</strong> app and add this
+          reader’s domain (<code id="ayuda-dominio">this site</code>) to the
+          allowed origins.</li>
+          <li>Create an <strong>app password</strong> (Settings → Security). Do
+          not use your main password.</li>
+          <li>In this reader’s <strong>⚙️ Settings</strong>, enter your folder
+          URL (for example
+          <code>https://your-cloud.com/remote.php/dav/files/USER/Books</code>),
+          your username and that password.</li>
+        </ul>
+      </div>
 
-<div class="tarjeta"><h2>Move configuration to another device</h2><p>Under <strong>⚙️ Settings → “Copy configuration link”</strong>, you get a link containing the URL, username and password. Open it on the other device, share it only through private channels and delete it afterwards.</p></div>
+      <div class="tarjeta">
+        <h2>Move configuration to another device</h2>
+        <p>Once your cloud is set up, <strong>⚙️ Settings → “Copy configuration
+        link”</strong> gives you a link that carries everything (URL, username
+        and password). Open it on another device and it will be configured at
+        once. Share it only through private channels and delete it after
+        use.</p>
+      </div>
 
-<div class="tarjeta destacado"><h2>🤖 Need help? Ask an AI</h2><p>ChatGPT, Claude or Gemini can guide you through server setup. For example: “I have a Nextcloud server. How do I install <em>WebAppPassword</em> and allow WebDAV access from a website hosted at <code id="ayuda-dominio-ia">this site</code>?”</p></div>
-    </div>
+      <div class="tarjeta destacado">
+        <h2>🤖 Stuck setting it up? Ask an AI</h2>
+        <p>Setting up a server takes some doing, but an artificial intelligence
+        (ChatGPT, Claude, Gemini…) will walk you through it. Copy and paste
+        questions like these:</p>
+        <ul class="lista-ayuda">
+          <li>“I have a Nextcloud server. How do I install the
+          <em>WebAppPassword</em> app and allow WebDAV access from a site hosted
+          at <code id="ayuda-dominio-ia">this site</code>?”</li>
+          <li>“How do I create an app password in Nextcloud?”</li>
+          <li>“Does the cloud service <em>[name]</em> allow WebDAV access from
+          the browser (CORS) for an external website?”</li>
+        </ul>
+      </div>
+      </div>
 
     <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
       aria-label="Privacy" tabindex="0" hidden>

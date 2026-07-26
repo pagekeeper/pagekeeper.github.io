@@ -1263,18 +1263,26 @@ $('selector-restaurar-nube').addEventListener('change', (evento) => {
 
 // ───────────────────────── Ayuda ─────────────────────────
 
+// El dominio de este lector, que la ayuda cita para configurar el servidor.
+function ponerDominioEnAyuda() {
+  for (const id of ['ayuda-dominio', 'ayuda-dominio-ia']) {
+    const hueco = $(id);
+    if (hueco) hueco.textContent = location.origin;
+  }
+}
+
 function abrirAyuda(registrar = true, pestana = null) {
-  const dominio = location.origin;
-  for (const id of ['ayuda-dominio', 'ayuda-dominio-ia']) $(id).textContent = dominio;
+  ponerDominioEnAyuda();
   mostrarPestana('ayuda', pestana ?? pestanaRecordada('ayuda', 'empezar'));
   mostrarVista('ayuda');
   if (registrar) registrarVista('ayuda');
 }
 
-// La ayuda se rehace entera en el idioma nuevo, con su primera pestaña abierta:
-// se vuelve a la que se estaba leyendo.
+// La ayuda se rehace entera en el idioma nuevo, con su primera pestaña abierta
+// y sin el dominio: se vuelve a la que se estaba leyendo y se rellena de nuevo.
 document.addEventListener('idioma-cambiado', () => {
   mostrarPestana('ayuda', pestanaRecordada('ayuda', 'empezar'));
+  ponerDominioEnAyuda();
 });
 
 $('btn-ayuda').addEventListener('click', () => abrirAyuda());
