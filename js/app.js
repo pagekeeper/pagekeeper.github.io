@@ -2410,6 +2410,7 @@ function actualizarVisibilidadBuscadorBiblioteca() {
 const TIPO_ARRASTRE_LIBRO = 'application/x-pagekeeper-libro';       // libro de la nube: mover
 const TIPO_ARRASTRE_LOCAL = 'application/x-pagekeeper-libro-local'; // libro local: subir (copia)
 const TIPO_ARRASTRE_CARPETA = 'application/x-pagekeeper-carpeta-local'; // carpeta local: mover
+const TIPO_ARRASTRE_CARPETA_NUBE = 'application/x-pagekeeper-carpeta-nube'; // carpeta de la nube: mover
 
 function tiposArrastreLibro(evento) {
   const tipos = Array.from(evento.dataTransfer?.types ?? []);
@@ -2417,8 +2418,14 @@ function tiposArrastreLibro(evento) {
     nube: tipos.includes(TIPO_ARRASTRE_LIBRO),
     local: tipos.includes(TIPO_ARRASTRE_LOCAL),
     carpeta: tipos.includes(TIPO_ARRASTRE_CARPETA),
+    carpetaNube: tipos.includes(TIPO_ARRASTRE_CARPETA_NUBE),
   };
 }
+
+// Ruta de la carpeta de la nube que se está arrastrando. Va aparte del
+// dataTransfer porque durante el «dragover» los datos no se pueden leer y aquí
+// hacen falta para saber si el destino es válido.
+let carpetaNubeArrastrada = '';
 
 // Lee el libro local serializado en un arrastre ({ id, nombre }).
 function libroLocalArrastrado(evento) {
@@ -2430,30 +2437,37 @@ function libroLocalArrastrado(evento) {
   }
 }
 
-// Convierte un elemento en destino donde soltar un libro arrastrado: un
-// libro de la nube se mueve a la carpeta indicada; uno local se sube (copia).
+// Convierte un elemento en destino donde soltar algo arrastrado: un libro de la
+// nube o una de sus carpetas se mueven a la carpeta indicada; un libro local se
+// sube (copia).
 function hacerDestinoDeLibro(elemento, rutaDestino) {
+  // Una carpeta no se puede soltar sobre sí misma ni sobre lo que contiene:
+  // ahí ni se resalta el destino ni se acepta la caída.
+  const admiteCarpeta = (evento) => tiposArrastreLibro(evento).carpetaNube &&
+    almacen.movimientoDeCarpetaValido(carpetaNubeArrastrada, rutaDestino);
   elemento.addEventListener('dragover', (evento) => {
     const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
+    if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
-    evento.dataTransfer.dropEffect = nube ? 'move' : 'copy';
+    evento.dataTransfer.dropEffect = local ? 'copy' : 'move';
     elemento.classList.add('destino-mover');
   });
   elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
   elemento.addEventListener('drop', (evento) => {
     const { nube, local } = tiposArrastreLibro(evento);
-    if (!nube && !local) return;
+    if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
     elemento.classList.remove('destino-mover');
     if (nube) {
       const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
       if (id) moverLibroA(id, rutaDestino);
-    } else {
+    } else if (local) {
       const libro = libroLocalArrastrado(evento);
       if (libro) subirLibroLocalANube(libro, rutaDestino);
+    } else {
+      moverCarpetaRemotaA(carpetaNubeArrastrada, rutaDestino);
     }
   });
 }
@@ -2551,11 +2565,11 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
     <span class="datos"><span class="cabecera-libro"><span class="nombre"></span><span class="nota-libro oculto"></span></span><span class="conteo-carpeta"></span></span>`;
   boton.querySelector('.nombre').textContent = nombre;
   ponerConteoCarpeta(boton, conteo);
-  const ruta = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  const ruta = rutaNubeDe(nombre);
   const idNota = idNotaCarpeta(ruta, 'nube');
   elemento.dataset.idNota = idNota;
   const abrir = () => {
-    rutaNube = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+    rutaNube = ruta;
     registrarCarpetas();
     cargarBiblioteca();
   };
@@ -2566,14 +2580,26 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
     evento.preventDefault();
     abrir();
   });
-  hacerDestinoDeLibro(boton, rutaNube ? `${rutaNube}/${nombre}` : nombre);
+  hacerDestinoDeLibro(boton, ruta);
 
   if (!soloLectura) {
+    boton.draggable = true;
+    boton.addEventListener('dragstart', (evento) => {
+      carpetaNubeArrastrada = ruta;
+      evento.dataTransfer.setData(TIPO_ARRASTRE_CARPETA_NUBE, ruta);
+      evento.dataTransfer.effectAllowed = 'move';
+    });
+    boton.addEventListener('dragend', () => { carpetaNubeArrastrada = ''; });
     boton.append(crearBotonMenu(boton, () => [
       {
         icono: 'notebook-pen',
         etiqueta: t('actionFolderNote'),
         alPulsar: () => abrirNotaLibro(idNota, nombre, true),
+      },
+      {
+        icono: 'folder-input',
+        etiqueta: t('actionMoveFolder'),
+        alPulsar: () => abrirDialogoMover({ id: ruta, nombre }, 'carpeta-nube'),
       },
       {
         icono: 'pencil',
@@ -2781,6 +2807,11 @@ async function rellenarConteosNube(rutaBase, filas, version) {
 
 // ───────────────────────── Gestión de carpetas ─────────────────────────
 
+// Ruta completa de una carpeta que cuelga de la que está abierta en la nube.
+function rutaNubeDe(nombre) {
+  return rutaNube ? `${rutaNube}/${nombre}` : nombre;
+}
+
 function pedirNombreCarpeta() {
   const respuesta = prompt(t('folderNamePrompt'));
   if (respuesta === null) return null;
@@ -2798,7 +2829,7 @@ async function crearCarpetaRemota() {
   if (!nombre) return;
   mostrarCarga(t('creatingFolder', { name: nombre }));
   try {
-    await cliente.crearCarpeta(rutaNube ? `${rutaNube}/${nombre}` : nombre);
+    await cliente.crearCarpeta(rutaNubeDe(nombre));
     avisar(t('folderCreated', { name: nombre }));
   } catch (error) {
     avisar(explicarError(error), 6000);
@@ -2810,10 +2841,35 @@ async function crearCarpetaRemota() {
 
 $('btn-carpeta-nueva').addEventListener('click', crearCarpetaRemota);
 
-// En la nube el id de cada libro es su ruta, así que cambiarle el nombre a una
-// carpeta cambia el de todo lo que contiene: en el servidor basta un MOVE (que
-// se lleva también los JSON laterales de anotaciones), pero en este dispositivo
-// hay que reetiquetar el progreso, las anotaciones y la caché.
+// Renombrar y mover son la misma operación en la nube: cambiar la ruta de la
+// carpeta. Y como allí el id de cada libro es su ruta, eso cambia también la de
+// todo lo que contiene: en el servidor basta un MOVE (que se lleva las
+// subcarpetas y los JSON laterales de anotaciones), pero en este dispositivo hay
+// que reetiquetar el progreso, las notas, las anotaciones y la caché.
+async function trasladarCarpetaRemota(origen, destino) {
+  if (await cliente.existe(destino)) {
+    avisar(t('folderExists'));
+    return false;
+  }
+  // Con el progreso y las anotaciones al día, el traslado de los ids es un
+  // renombrado local: lo que quede sin subir se perdería al cambiar la ruta.
+  await progreso.sincronizar(cliente).catch(() => null);
+  await anotaciones.sincronizarPendientes(cliente).catch(() => null);
+  await cliente.mover(origen, destino);
+  await progreso.renombrarPorPrefijo(`${origen}/`, `${destino}/`, cliente).catch(() => null);
+  // Las notas de la carpeta y de sus subcarpetas describen lo que guardan, así
+  // que viajan con ellas.
+  progreso.renombrar(idNotaCarpeta(origen, 'nube'), idNotaCarpeta(destino, 'nube'));
+  await progreso.olvidar(idNotaCarpeta(origen, 'nube'), cliente).catch(() => null);
+  await progreso.renombrarPorPrefijo(
+    `${idNotaCarpeta(origen, 'nube')}/`, `${idNotaCarpeta(destino, 'nube')}/`, cliente,
+  ).catch(() => null);
+  await anotaciones.moverPorPrefijo(cliente.base, `${origen}/`, `${destino}/`).catch(() => null);
+  await almacen.moverCacheRemotaPorPrefijo(cliente.base, `${origen}/`, `${destino}/`)
+    .catch(() => null);
+  return true;
+}
+
 async function renombrarCarpetaRemota(nombre) {
   if (!cliente) return;
   const respuesta = prompt(t('folderRenamePrompt'), nombre);
@@ -2824,31 +2880,35 @@ async function renombrarCarpetaRemota(nombre) {
     avisar(t('invalidFolderName'));
     return;
   }
-  const origen = rutaNube ? `${rutaNube}/${nombre}` : nombre;
-  const destino = rutaNube ? `${rutaNube}/${nuevo}` : nuevo;
   mostrarCarga(t('renamingFolder', { name: nombre }));
   try {
-    if (await cliente.existe(destino)) {
-      avisar(t('folderExists'));
-      return;
+    const hecho = await trasladarCarpetaRemota(rutaNubeDe(nombre), rutaNubeDe(nuevo));
+    if (hecho) avisar(t('folderRenamed'));
+  } catch (error) {
+    avisar(explicarError(error), 6000);
+  } finally {
+    ocultarCarga();
+    cargarBiblioteca();
+    pintarContinuarLeyendo();
+  }
+}
+
+// Lleva una carpeta de la nube (con todo lo que contiene) dentro de otra.
+async function moverCarpetaRemotaA(origen, rutaDestino) {
+  if (!cliente || !origen) return;
+  if (!almacen.movimientoDeCarpetaValido(origen, rutaDestino)) return;
+  const nombre = origen.split('/').pop();
+  const destino = rutaDestino ? `${rutaDestino}/${nombre}` : nombre;
+  mostrarCarga(t('moving', { title: nombre }));
+  try {
+    if (await trasladarCarpetaRemota(origen, destino)) {
+      avisar(t('folderMoved', { name: nombre }));
+      // Si estábamos dentro de la carpeta movida, se sigue donde estaba.
+      if (rutaNube === origen || rutaNube.startsWith(`${origen}/`)) {
+        rutaNube = destino + rutaNube.slice(origen.length);
+        registrarCarpetas();
+      }
     }
-    // Con el progreso y las anotaciones al día, el traslado de los ids es un
-    // renombrado local: lo que quede sin subir se perdería al cambiar la ruta.
-    await progreso.sincronizar(cliente).catch(() => null);
-    await anotaciones.sincronizarPendientes(cliente).catch(() => null);
-    await cliente.mover(origen, destino);
-    await progreso.renombrarPorPrefijo(`${origen}/`, `${destino}/`, cliente).catch(() => null);
-    // Las notas de la carpeta y de sus subcarpetas describen lo que guardan, así
-    // que viajan con ellas.
-    progreso.renombrar(idNotaCarpeta(origen, 'nube'), idNotaCarpeta(destino, 'nube'));
-    await progreso.olvidar(idNotaCarpeta(origen, 'nube'), cliente).catch(() => null);
-    await progreso.renombrarPorPrefijo(
-      `${idNotaCarpeta(origen, 'nube')}/`, `${idNotaCarpeta(destino, 'nube')}/`, cliente,
-    ).catch(() => null);
-    await anotaciones.moverPorPrefijo(cliente.base, `${origen}/`, `${destino}/`).catch(() => null);
-    await almacen.moverCacheRemotaPorPrefijo(cliente.base, `${origen}/`, `${destino}/`)
-      .catch(() => null);
-    avisar(t('folderRenamed'));
   } catch (error) {
     avisar(explicarError(error), 6000);
   } finally {
@@ -2861,7 +2921,7 @@ async function renombrarCarpetaRemota(nombre) {
 async function borrarCarpetaRemota(nombre) {
   if (!cliente) return;
   if (!confirm(t('deleteFolderConfirm', { name: nombre }))) return;
-  const ruta = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  const ruta = rutaNubeDe(nombre);
   mostrarCarga(t('deleting', { title: nombre }));
   try {
     await cliente.borrar(ruta);
@@ -3132,23 +3192,33 @@ function cerrarDialogoMover() {
   $('dialogo-mover').classList.add('oculto');
 }
 
+// ¿El movimiento ocurre en la nube, sea de un libro o de una carpeta?
+function movimientoEnNube() {
+  return movimiento.ambito === 'nube' || movimiento.ambito === 'carpeta-nube';
+}
+
+function movimientoDeCarpeta() {
+  return movimiento.ambito === 'carpeta-local' || movimiento.ambito === 'carpeta-nube';
+}
+
 // Carpeta donde está ahora el libro que se va a mover. En la nube va dentro
 // del id; en el dispositivo es un campo del registro.
 async function carpetaActualDelMovimiento() {
-  if (movimiento.ambito === 'nube') return carpetaDeId(movimiento.id);
+  if (movimientoEnNube()) return carpetaDeId(movimiento.id);
   // Una carpeta: su sitio actual es el de su padre.
-  if (movimiento.ambito === 'carpeta-local') return carpetaDeId(movimiento.id);
+  if (movimientoDeCarpeta()) return carpetaDeId(movimiento.id);
   const libros = await almacen.listarLibros().catch(() => []);
   const libro = libros.find((registro) => registro.id === movimiento.id);
   return almacen.normalizarCarpeta(libro?.carpeta);
 }
 
 const TITULOS_MOVER = {
-  nube: 'moveBook', local: 'moveToDeviceFolder', 'carpeta-local': 'moveFolderTo',
+  nube: 'moveBook', local: 'moveToDeviceFolder',
+  'carpeta-local': 'moveFolderTo', 'carpeta-nube': 'moveFolderTo',
 };
 
 async function abrirDialogoMover(libro, ambito = 'nube') {
-  if (ambito === 'nube' && !cliente) return;
+  if ((ambito === 'nube' || ambito === 'carpeta-nube') && !cliente) return;
   movimiento = { id: libro.id, nombre: libro.nombre, ambito, ruta: '' };
   movimiento.ruta = await carpetaActualDelMovimiento();
   $('titulo-mover').textContent = t(TITULOS_MOVER[ambito], { title: libro.nombre, name: libro.nombre });
@@ -3159,14 +3229,17 @@ async function abrirDialogoMover(libro, ambito = 'nube') {
 // Subcarpetas de una ruta, vengan de la nube o del dispositivo. Al mover una
 // carpeta se esconde ella misma: entrar ahí sería meterla dentro de sí misma.
 async function subcarpetasDe(ruta) {
-  if (movimiento.ambito === 'nube') return (await cliente.listar(ruta)).carpetas;
+  const propia = (hijas) => {
+    if (!movimientoDeCarpeta()) return hijas;
+    const prefijo = ruta ? `${ruta}/` : '';
+    return hijas.filter((carpeta) => prefijo + carpeta.nombre !== movimiento.id);
+  };
+  if (movimientoEnNube()) return propia((await cliente.listar(ruta)).carpetas);
   const [libros, carpetas] = await Promise.all([
     almacen.listarLibros(), almacen.listarCarpetasLocales(),
   ]);
   const { carpetas: hijas } = almacen.bibliotecaLocal(libros, carpetas, ruta);
-  if (movimiento.ambito !== 'carpeta-local') return hijas;
-  const prefijo = ruta ? `${ruta}/` : '';
-  return hijas.filter((carpeta) => prefijo + carpeta.nombre !== movimiento.id);
+  return propia(hijas);
 }
 
 // Explorador de carpetas del diálogo: migas + subcarpetas de la ruta actual.
@@ -3177,7 +3250,7 @@ async function pintarDialogoMover() {
   pintarMigas($('ruta-mover'), movimiento.ruta, (destino) => {
     movimiento.ruta = destino;
     pintarDialogoMover();
-  }, false, t(movimiento.ambito === 'nube' ? 'cloudRoot' : 'deviceRoot'));
+  }, false, t(movimientoEnNube() ? 'cloudRoot' : 'deviceRoot'));
   lista.replaceChildren();
   estado.textContent = t('loadingFolders');
   $('btn-confirmar-mover').disabled = true;
@@ -3201,7 +3274,7 @@ async function pintarDialogoMover() {
       lista.append(li);
     }
     // Mover a donde ya está (o meter una carpeta dentro de sí misma) no vale.
-    $('btn-confirmar-mover').disabled = movimiento.ambito === 'carpeta-local'
+    $('btn-confirmar-mover').disabled = movimientoDeCarpeta()
       ? !almacen.movimientoDeCarpetaValido(movimiento.id, movimiento.ruta)
       : movimiento.ruta === await carpetaActualDelMovimiento();
   } catch (error) {
@@ -3254,9 +3327,10 @@ async function moverLibroA(id, rutaDestino) {
 $('btn-confirmar-mover').addEventListener('click', async () => {
   if (!movimiento) return;
   const { id, nombre, ruta, ambito } = movimiento;
-  if (ambito === 'nube' && !cliente) return;
+  if (movimientoEnNube() && !cliente) return;
   cerrarDialogoMover();
   if (ambito === 'nube') await moverLibroA(id, ruta);
+  else if (ambito === 'carpeta-nube') await moverCarpetaRemotaA(id, ruta);
   else if (ambito === 'carpeta-local') await moverCarpetaLocalA(id, ruta);
   else await moverLibroLocalA({ id, nombre }, ruta);
 });
@@ -3268,12 +3342,12 @@ $('dialogo-mover').addEventListener('click', (evento) => {
 
 $('btn-carpeta-nueva-mover').addEventListener('click', async () => {
   if (!movimiento) return;
-  if (movimiento.ambito === 'nube' && !cliente) return;
+  if (movimientoEnNube() && !cliente) return;
   const nombre = pedirNombreCarpeta();
   if (!nombre) return;
   const destino = movimiento.ruta ? `${movimiento.ruta}/${nombre}` : nombre;
   try {
-    if (movimiento.ambito === 'nube') await cliente.crearCarpeta(destino);
+    if (movimientoEnNube()) await cliente.crearCarpeta(destino);
     else await almacen.crearCarpetaLocal(destino);
     await pintarDialogoMover();
   } catch (error) {
@@ -3673,7 +3747,7 @@ async function descargarCarpetaLocal(nombre) {
 
 async function descargarCarpetaRemota(nombre) {
   if (!cliente) return;
-  const ruta = rutaNube ? `${rutaNube}/${nombre}` : nombre;
+  const ruta = rutaNubeDe(nombre);
   mostrarCarga(t('packingFolder'));
   let entradas = [];
   try {
@@ -4099,6 +4173,8 @@ for (const [id, alSoltar] of [
 
 // Soltar un libro local sobre la sección de la nube lo sube a la carpeta
 // abierta (las carpetas de la lista tienen su propio destino más específico).
+// Las carpetas de la nube no entran aquí: la lista solo muestra las hijas de la
+// carpeta abierta, así que soltarlas en la sección sería dejarlas donde ya están.
 {
   const zona = $('zona-remota');
   zona.addEventListener('dragover', (evento) => {
