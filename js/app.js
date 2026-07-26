@@ -637,42 +637,56 @@ function crearCliente() {
 //
 // La nube, la biblioteca, el lector y las copias no se parecen en nada y solo
 // se toca una cosa cada vez: separarlas evita recorrer la lista entera. La
-// última abierta se recuerda, que quien viene a cambiar el texto suele volver.
-const CLAVE_PESTANA_AJUSTES = 'lector.pestanaAjustes';
-
-function pestanasAjustes() {
-  return [...document.querySelectorAll('.pestana-ajustes')];
+// ayuda va igual, que es todavía más larga. La última abierta de cada grupo se
+// recuerda, que quien viene a cambiar el texto suele volver.
+//
+// Los mandos se buscan cada vez en lugar de guardarse: la ayuda se rehace
+// entera al cambiar de idioma y los botones de entonces ya no existen. Por eso
+// los eventos se escuchan en el documento, no en cada pestaña.
+function pestanasDe(grupo) {
+  return [...document.querySelectorAll(`.pestanas[data-grupo="${grupo}"] .pestana`)];
 }
 
-function mostrarPestanaAjustes(nombre, mover = false) {
-  const pestanas = pestanasAjustes();
+function mostrarPestana(grupo, nombre, mover = false) {
+  const pestanas = pestanasDe(grupo);
   const elegida = pestanas.find((pestana) => pestana.dataset.panel === nombre) ?? pestanas[0];
   if (!elegida) return;
   for (const pestana of pestanas) {
     const activa = pestana === elegida;
     pestana.setAttribute('aria-selected', String(activa));
     pestana.tabIndex = activa ? 0 : -1;
-    $(`panel-ajustes-${pestana.dataset.panel}`).hidden = !activa;
+    const panel = document.getElementById(pestana.getAttribute('aria-controls'));
+    if (panel) panel.hidden = !activa;
   }
-  localStorage.setItem(CLAVE_PESTANA_AJUSTES, elegida.dataset.panel);
+  localStorage.setItem(`lector.pestana.${grupo}`, elegida.dataset.panel);
   if (mover) elegida.focus();
 }
 
-for (const pestana of pestanasAjustes()) {
-  pestana.addEventListener('click', () => mostrarPestanaAjustes(pestana.dataset.panel));
-  pestana.addEventListener('keydown', (evento) => {
-    const pestanas = pestanasAjustes();
-    const indice = pestanas.indexOf(pestana);
-    const salto = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
-    let destino = null;
-    if (salto) destino = pestanas[(indice + salto + pestanas.length) % pestanas.length];
-    else if (evento.key === 'Home') destino = pestanas[0];
-    else if (evento.key === 'End') destino = pestanas.at(-1);
-    if (!destino) return;
-    evento.preventDefault();
-    mostrarPestanaAjustes(destino.dataset.panel, true);
-  });
+function pestanaRecordada(grupo, inicial) {
+  return localStorage.getItem(`lector.pestana.${grupo}`) ?? inicial;
 }
+
+document.addEventListener('click', (evento) => {
+  const pestana = evento.target.closest('.pestana');
+  if (!pestana) return;
+  mostrarPestana(pestana.closest('.pestanas').dataset.grupo, pestana.dataset.panel);
+});
+
+document.addEventListener('keydown', (evento) => {
+  const pestana = evento.target.closest?.('.pestana');
+  if (!pestana) return;
+  const grupo = pestana.closest('.pestanas').dataset.grupo;
+  const pestanas = pestanasDe(grupo);
+  const indice = pestanas.indexOf(pestana);
+  const salto = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
+  let destino = null;
+  if (salto) destino = pestanas[(indice + salto + pestanas.length) % pestanas.length];
+  else if (evento.key === 'Home') destino = pestanas[0];
+  else if (evento.key === 'End') destino = pestanas.at(-1);
+  if (!destino) return;
+  evento.preventDefault();
+  mostrarPestana(grupo, destino.dataset.panel, true);
+});
 
 function abrirAjustes(registrar = true, pestana = null) {
   const config = cargarConfig() ?? {};
@@ -685,7 +699,7 @@ function abrirAjustes(registrar = true, pestana = null) {
   sincronizarSelectRecientes();
   pintarAjustesTexto();
   aplicarMargenEpub();
-  mostrarPestanaAjustes(pestana ?? localStorage.getItem(CLAVE_PESTANA_AJUSTES) ?? 'nube');
+  mostrarPestana('ajustes', pestana ?? pestanaRecordada('ajustes', 'nube'));
   mostrarVista('ajustes');
   if (registrar) registrarVista('ajustes');
 }
@@ -1249,14 +1263,21 @@ $('selector-restaurar-nube').addEventListener('change', (evento) => {
 
 // ───────────────────────── Ayuda ─────────────────────────
 
-function abrirAyuda(registrar = true) {
+function abrirAyuda(registrar = true, pestana = null) {
   const dominio = location.origin;
   for (const id of ['ayuda-dominio', 'ayuda-dominio-ia']) $(id).textContent = dominio;
+  mostrarPestana('ayuda', pestana ?? pestanaRecordada('ayuda', 'empezar'));
   mostrarVista('ayuda');
   if (registrar) registrarVista('ayuda');
 }
 
-$('btn-ayuda').addEventListener('click', abrirAyuda);
+// La ayuda se rehace entera en el idioma nuevo, con su primera pestaña abierta:
+// se vuelve a la que se estaba leyendo.
+document.addEventListener('idioma-cambiado', () => {
+  mostrarPestana('ayuda', pestanaRecordada('ayuda', 'empezar'));
+});
+
+$('btn-ayuda').addEventListener('click', () => abrirAyuda());
 $('btn-cerrar-ayuda').addEventListener('click', () => {
   if (history.state?.[ESTADO_VISTA] === 'ayuda') history.back();
   else {
@@ -1264,10 +1285,12 @@ $('btn-cerrar-ayuda').addEventListener('click', () => {
     cargarBiblioteca();
   }
 });
+// Quien pregunta «¿qué pongo aquí?» desde la configuración va a la pestaña de
+// la nube, que es donde está la respuesta.
 for (const id of ['enlace-ayuda-aviso', 'enlace-ayuda-ajustes']) {
   $(id).addEventListener('click', (evento) => {
     evento.preventDefault();
-    abrirAyuda();
+    abrirAyuda(true, 'nube');
   });
 }
 // Los enlaces del aviso inicial se regeneran al cambiar de idioma.
@@ -1275,7 +1298,7 @@ document.addEventListener('click', (evento) => {
   const enlace = evento.target.closest('#enlace-configurar, #enlace-ayuda-aviso, #enlace-ayuda-ajustes');
   if (!enlace) return;
   evento.preventDefault();
-  if (enlace.id === 'enlace-configurar') abrirAjustes(true, 'nube'); else abrirAyuda();
+  if (enlace.id === 'enlace-configurar') abrirAjustes(true, 'nube'); else abrirAyuda(true, 'nube');
 });
 $('btn-cerrar-ajustes').addEventListener('click', () => {
   if (history.state?.[ESTADO_VISTA] === 'ajustes') history.back();

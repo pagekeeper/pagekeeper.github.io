@@ -556,23 +556,23 @@
       <!-- Los ajustes van por pestañas: en una sola lista, la nube, la
            biblioteca, el lector y las copias se mezclaban y había que
            recorrerla entera para encontrar cualquier cosa. -->
-      <div class="pestanas-ajustes" role="tablist" aria-label="Secciones de los ajustes"
+      <div class="pestanas" data-grupo="ajustes" role="tablist" aria-label="Secciones de los ajustes"
         data-i18n-aria-label="settingsSections">
-        <button type="button" id="pestana-ajustes-nube" class="pestana-ajustes" role="tab"
+        <button type="button" id="pestana-ajustes-nube" class="pestana" role="tab"
           aria-controls="panel-ajustes-nube" aria-selected="true" data-panel="nube"
           data-i18n="webdavShort">Nube</button>
-        <button type="button" id="pestana-ajustes-datos" class="pestana-ajustes" role="tab"
+        <button type="button" id="pestana-ajustes-datos" class="pestana" role="tab"
           aria-controls="panel-ajustes-datos" aria-selected="false" tabindex="-1"
           data-panel="datos" data-i18n="settingsData">Datos</button>
-        <button type="button" id="pestana-ajustes-biblioteca" class="pestana-ajustes" role="tab"
+        <button type="button" id="pestana-ajustes-biblioteca" class="pestana" role="tab"
           aria-controls="panel-ajustes-biblioteca" aria-selected="false" tabindex="-1"
           data-panel="biblioteca" data-i18n="library">Biblioteca</button>
-        <button type="button" id="pestana-ajustes-lector" class="pestana-ajustes" role="tab"
+        <button type="button" id="pestana-ajustes-lector" class="pestana" role="tab"
           aria-controls="panel-ajustes-lector" aria-selected="false" tabindex="-1"
           data-panel="lector" data-i18n="reader">Lector</button>
       </div>
 
-      <div id="panel-ajustes-nube" class="panel-ajustes" role="tabpanel"
+      <div id="panel-ajustes-nube" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-nube" tabindex="0">
       <form id="formulario-webdav" class="tarjeta">
         <h2 data-i18n="webdav">Nube (WebDAV)</h2>
@@ -598,7 +598,7 @@
       </form>
       </div>
 
-      <div id="panel-ajustes-datos" class="panel-ajustes" role="tabpanel"
+      <div id="panel-ajustes-datos" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-datos" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
@@ -625,7 +625,7 @@
       </div>
       </div>
 
-      <div id="panel-ajustes-biblioteca" class="panel-ajustes" role="tabpanel"
+      <div id="panel-ajustes-biblioteca" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-biblioteca" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="library">Biblioteca</h2>
@@ -648,7 +648,7 @@
       </div>
       </div>
 
-      <div id="panel-ajustes-lector" class="panel-ajustes" role="tabpanel"
+      <div id="panel-ajustes-lector" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-lector" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="epubTextSettings">Texto de los EPUB</h2>
@@ -771,8 +771,28 @@
       <h1 tabindex="-1" data-foco-vista data-i18n="help">Ayuda</h1>
     </header>
     <main id="contenido-ayuda" class="contenido" tabindex="-1" data-contenido-vista data-i18n-ayuda>
+      <div class="pestanas" data-grupo="ayuda" role="tablist"
+        aria-label="Secciones de la ayuda">
+        <button type="button" class="pestana" role="tab"
+          aria-controls="panel-ayuda-empezar" data-panel="empezar"
+          aria-selected="true">Primeros pasos</button>
+        <button type="button" class="pestana" role="tab"
+          aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+          aria-selected="false" tabindex="-1">Biblioteca</button>
+        <button type="button" class="pestana" role="tab"
+          aria-controls="panel-ayuda-lector" data-panel="lector"
+          aria-selected="false" tabindex="-1">Lector</button>
+        <button type="button" class="pestana" role="tab"
+          aria-controls="panel-ayuda-nube" data-panel="nube"
+          aria-selected="false" tabindex="-1">Nube</button>
+        <button type="button" class="pestana" role="tab"
+          aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+          aria-selected="false" tabindex="-1">Privacidad</button>
+      </div>
 
-      <div class="tarjeta">
+      <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+        aria-label="Primeros pasos" tabindex="0">
+<div class="tarjeta">
         <h2>¿Qué hace PageKeeper?</h2>
         <p>Lee tus libros en PDF y EPUB (con fórmulas matemáticas incluidas)
         desde el móvil, la tablet o el ordenador y recuerda por dónde vas.
@@ -794,7 +814,22 @@
         </ul>
       </div>
 
-      <div class="tarjeta">
+<div class="tarjeta">
+        <h2>Modo claro y modo oscuro</h2>
+        <p>El botón del tema, en la cabecera, va pasando por los tres estados
+        cada vez que lo pulsas: <strong>el del sistema</strong> (círculo mitad
+        claro mitad oscuro), <strong>claro</strong> (sol) y <strong>oscuro</strong>
+        (luna). El icono te dice en cuál estás y tu elección se recuerda en ese
+        navegador. De partida se usa el del sistema, así que la aplicación se
+        aclara u oscurece cuando lo hace el resto del dispositivo.</p>
+        <p class="ayuda">No lo confundas con el <strong>modo noche</strong> del
+        lector: aquel oscurece la página del libro y se guarda por separado.</p>
+      </div>
+      </div>
+
+      <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+        aria-label="Biblioteca" tabindex="0" hidden>
+<div class="tarjeta">
         <h2>La biblioteca</h2>
         <ul class="lista-ayuda">
           <li><strong>Continuar leyendo:</strong> el último libro aparece destacado.
@@ -895,8 +930,11 @@
           <em>Configuración → Llevar la configuración a otro dispositivo</em>.</li>
         </ul>
       </div>
+      </div>
 
-      <div class="tarjeta">
+      <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+        aria-label="Lector" tabindex="0" hidden>
+<div class="tarjeta">
         <h2>Controles del lector</h2>
         <ul class="lista-ayuda">
           <li><strong>Modo de lectura:</strong> página a página (como un
@@ -995,8 +1033,11 @@
           interlineado y márgenes) se recuerdan solo en cada dispositivo.</li>
         </ul>
       </div>
+      </div>
 
-      <div class="tarjeta">
+      <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+        aria-label="Nube" tabindex="0" hidden>
+<div class="tarjeta">
         <h2>¿Qué es WebDAV?</h2>
         <p>Es una forma estándar de acceder por internet a los archivos
         guardados en un servidor, como si fuese una carpeta remota. PageKeeper
@@ -1004,7 +1045,7 @@
         propia nube, de modo que puedas continuar desde otro dispositivo.</p>
       </div>
 
-      <div class="tarjeta importante">
+<div class="tarjeta importante">
         <h2>⚠️ Importante: no vale cualquier nube</h2>
         <p>El lector funciona dentro del navegador y, por seguridad, el
         navegador solo permite conectar con un servidor si ese servidor lo
@@ -1022,7 +1063,7 @@
         </ul>
       </div>
 
-      <div class="tarjeta">
+<div class="tarjeta">
         <h2>No tengo servidor propio (lo más habitual)</h2>
         <p>Casi nadie tiene su propio servidor, y no pasa nada. Tienes dos
         caminos:</p>
@@ -1038,7 +1079,7 @@
         </ul>
       </div>
 
-      <div class="tarjeta">
+<div class="tarjeta">
         <h2>Tengo o administro un Nextcloud / ownCloud</h2>
         <p>Para permitir que PageKeeper se conecte:</p>
         <ul class="lista-ayuda">
@@ -1054,7 +1095,7 @@
         </ul>
       </div>
 
-      <div class="tarjeta">
+<div class="tarjeta">
         <h2>Llevar la configuración a otro dispositivo</h2>
         <p>Una vez configurada tu nube, en <strong>⚙️ Ajustes → «Copiar enlace
         de configuración»</strong> obtienes un enlace que lo lleva todo (URL,
@@ -1063,7 +1104,7 @@
         bórralo después de usarlo.</p>
       </div>
 
-      <div class="tarjeta destacado">
+<div class="tarjeta destacado">
         <h2>🤖 ¿Dudas al configurar? Pregunta a una IA</h2>
         <p>Configurar un servidor tiene su miga, pero una inteligencia
         artificial (ChatGPT, Claude, Gemini…) te guía paso a paso. Copia y
@@ -1077,26 +1118,17 @@
           desde el navegador (CORS) para una web externa?»</li>
         </ul>
       </div>
-
-      <div class="tarjeta">
-        <h2>Modo claro y modo oscuro</h2>
-        <p>El botón del tema, en la cabecera, va pasando por los tres estados
-        cada vez que lo pulsas: <strong>el del sistema</strong> (círculo mitad
-        claro mitad oscuro), <strong>claro</strong> (sol) y <strong>oscuro</strong>
-        (luna). El icono te dice en cuál estás y tu elección se recuerda en ese
-        navegador. De partida se usa el del sistema, así que la aplicación se
-        aclara u oscurece cuando lo hace el resto del dispositivo.</p>
-        <p class="ayuda">No lo confundas con el <strong>modo noche</strong> del
-        lector: aquel oscurece la página del libro y se guarda por separado.</p>
       </div>
 
-      <div class="tarjeta">
+      <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+        aria-label="Privacidad" tabindex="0" hidden>
+<div class="tarjeta">
         <h2>Privacidad</h2>
         <p>No hay ningún servidor intermedio. Tu navegador se conecta
         directamente con tu nube, y la URL, el usuario y la contraseña se
         guardan únicamente en este navegador.</p>
       </div>
-
+      </div>
     </main>
   </section>
 

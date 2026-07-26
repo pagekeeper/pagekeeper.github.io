@@ -1035,30 +1035,30 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: var(--fondo-tarjeta); color: var(--texto);
   box-shadow: 0 10px 32px var(--sombra);
 }
-/* ── Ajustes por pestañas ──
-   La lista entera de ajustes obligaba a recorrerlo todo para dar con una
-   casilla. Las pestañas caben en una línea en cualquier pantalla; si no,
+/* ── Pestañas (ajustes y ayuda) ──
+   Una lista entera obligaba a recorrerlo todo para dar con una casilla o con
+   un párrafo. Las pestañas caben en una línea en cualquier pantalla; si no,
    se deslizan. */
-.pestanas-ajustes {
+.pestanas {
   display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
   padding: 0.25rem; border: 1px solid var(--borde); border-radius: 999px;
   background: var(--fondo-tarjeta);
 }
-.pestanas-ajustes::-webkit-scrollbar { display: none; }
-.pestana-ajustes {
+.pestanas::-webkit-scrollbar { display: none; }
+.pestana {
   flex: 1; white-space: nowrap;
   padding: 0.5rem 0.85rem; border: 0; border-radius: 999px;
   background: transparent; color: var(--texto-suave);
   font: inherit; font-size: 0.92rem; font-weight: 650; cursor: pointer;
 }
-.pestana-ajustes:hover { background: color-mix(in srgb, var(--texto) 8%, transparent); }
-.pestana-ajustes[aria-selected="true"] {
+.pestana:hover { background: color-mix(in srgb, var(--texto) 8%, transparent); }
+.pestana[aria-selected="true"] {
   background: var(--acento-oscuro); color: var(--sobre-acento);
 }
-.pestana-ajustes:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
-.panel-ajustes { display: flex; flex-direction: column; gap: 1rem; }
-.panel-ajustes[hidden] { display: none; }
-.panel-ajustes:focus-visible { outline: none; }
+.pestana:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.panel-pestana { display: flex; flex-direction: column; gap: 1rem; }
+.panel-pestana[hidden] { display: none; }
+.panel-pestana:focus-visible { outline: none; }
 /* Los desplegables del texto, en dos columnas cuando hay sitio: en una sola
    fila por ajuste, la tarjeta se hacía muy alta. */
 .rejilla-ajustes {
@@ -1933,8 +1933,7 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
    o dos tarjetas, y repartirlas dejaba las pestañas en una columna y su
    contenido en la otra. */
 @media (min-width: 72rem) {
-  #vista-archivos .contenido,
-  #vista-ayuda .contenido {
+  #vista-archivos .contenido {
     max-width: 76rem;
     display: block;   /* deja de ser una columna flexible */
     columns: 2;
@@ -1943,15 +1942,11 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   /* Columnas de periódico y no una rejilla: las tarjetas tienen alturas muy
      dispares y una rejilla por filas dejaría huecos enormes. Así se reparten
      solas y el orden de lectura sigue siendo el del documento. */
-  #vista-archivos .contenido > *,
-  #vista-ayuda .contenido > * {
+  #vista-archivos .contenido > * {
     break-inside: avoid;
     margin-bottom: 1rem;
   }
 }
-
-/* Con sitio de sobra, una tercera columna deja la ayuda casi de un vistazo
-   sin bajar de las 24rem por columna, que siguen siendo cómodas de leer. */
-@media (min-width: 105rem) {
-  #vista-ayuda .contenido { max-width: 96rem; columns: 3; }
-}
+/* La ayuda ya no se reparte en columnas: desde que va por pestañas, cada una
+   enseña lo suyo sin bajar media pantalla, y a 76rem las líneas salían tan
+   largas que costaba seguirlas. Se queda al ancho de lectura de siempre. */
