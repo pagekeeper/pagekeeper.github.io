@@ -1936,13 +1936,15 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   }
 }
 
-/* ── Ajustes, Ayuda e Importar/Exportar en pantallas anchas ──
+/* ── Ayuda e Importar/Exportar en pantallas anchas ──
    Son tarjetas independientes, así que en vez de una tira vertical larguísima
    se reparten en dos columnas. Cada columna sigue midiendo unas 36rem, que es
    ancho de lectura cómodo; el reparto es por filas (izquierda y luego derecha),
-   de modo que lo que se ve coincide con el orden del documento. */
+   de modo que lo que se ve coincide con el orden del documento.
+   Los ajustes se quedan fuera: desde que van por pestañas, cada una enseña una
+   o dos tarjetas, y repartirlas dejaba las pestañas en una columna y su
+   contenido en la otra. */
 @media (min-width: 72rem) {
-  #vista-ajustes .contenido,
   #vista-archivos .contenido,
   #vista-ayuda .contenido {
     max-width: 76rem;
@@ -1953,7 +1955,6 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   /* Columnas de periódico y no una rejilla: las tarjetas tienen alturas muy
      dispares y una rejilla por filas dejaría huecos enormes. Así se reparten
      solas y el orden de lectura sigue siendo el del documento. */
-  #vista-ajustes .contenido > *,
   #vista-archivos .contenido > *,
   #vista-ayuda .contenido > * {
     break-inside: avoid;
