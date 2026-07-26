@@ -4750,7 +4750,7 @@ function cuandoCambiaPagina(pagina, total) {
   pintarTiempoRestante();
   // Navegar a mano mientras suena la lectura en voz alta la detiene; los
   // avances del propio TTS y los remontados (zoom, resize) no.
-  if (ttsAvanzando) ttsUltimaPosicion = pagina;
+  if (vistaMovidaPorLaVoz()) ttsUltimaPosicion = pagina;
   else if (vozLectura.estado !== 'parado' && pagina !== ttsUltimaPosicion) vozLectura.detener();
   planificarSincronizacion();
 }
@@ -4782,10 +4782,10 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
     cfiEpubGuardado = cfi;
     return;
   }
-  if (ttsAvanzando) {
-    // epub.js reubica varias veces tras mostrar un capítulo (afina el CFI):
-    // mientras dura la ventana de avance se acepta cada reubicación como
-    // parte del salto; la bandera la limpia el temporizador del avance.
+  if (vistaMovidaPorLaVoz()) {
+    // epub.js reubica varias veces tras mostrar un capítulo o una página
+    // (afina el CFI): mientras dura la ventana del avance o del seguimiento se
+    // acepta cada reubicación como parte del mismo movimiento.
     ttsUltimaPosicion = cfi;
   } else if (vozLectura.estado !== 'parado' && cfi !== ttsUltimaPosicion) {
     vozLectura.detener();
@@ -6226,6 +6226,35 @@ document.addEventListener('click', (evento) => {
 
 let ttsAvanzando = false;      // el propio TTS está pasando de página o capítulo
 let ttsUltimaPosicion = null;  // posición que el TTS está leyendo
+let cursorVoz = 0;             // dónde acabó la frase anterior en la página o capítulo
+
+// El seguimiento mueve la vista solo, y esos movimientos no son «navegar a
+// mano»: la voz no debe detenerse por ellos. Se mira cuándo movió de verdad
+// —no cada frase—, con margen para el desplazamiento suave y para las
+// reubicaciones con las que epub.js afina el CFI después.
+function vistaMovidaPorLaVoz() {
+  if (ttsAvanzando) return true;
+  const movimiento = epubAbierto() ? lectorEpub?.movimientoVoz : lector?.movimientoVoz;
+  return Boolean(movimiento) && Date.now() - movimiento < 1500;
+}
+
+// Resalta la frase que empieza a sonar y, si se ha salido de la vista, la trae:
+// en un EPUB paginado eso pasa las páginas al ritmo de la voz.
+async function seguirFraseConLaVista(frase, { nuevaPagina } = {}) {
+  if (nuevaPagina) cursorVoz = 0;
+  try {
+    const fin = epubAbierto()
+      ? await lectorEpub.seguirVoz(frase, cursorVoz)
+      : lector.seguirVoz(frase, cursorVoz);
+    if (fin !== null && fin !== undefined) cursorVoz = fin;
+  } catch { /* no poder seguir el texto no debe cortar la lectura */ }
+}
+
+function limpiarSeguimientoVoz() {
+  cursorVoz = 0;
+  try { lector?.limpiarVoz?.(); } catch { /* sin PDF montado */ }
+  try { lectorEpub?.limpiarVoz?.(); } catch { /* sin EPUB montado */ }
+}
 
 function velocidadTtsGuardada() {
   const valor = parseFloat(localStorage.getItem(CLAVE_VELOCIDAD_TTS));
@@ -6278,6 +6307,7 @@ const vozLectura = new LectorVoz({
   avanzar: avanzarLecturaVoz,
   alCambiarEstado: () => pintarEstadoVoz(),
   alFallo: (clave) => avisar(t(clave), 6000),
+  alLeerFrase: (frase, datos) => { seguirFraseConLaVista(frase, datos); },
 });
 
 function detenerLecturaVoz() {
@@ -6287,6 +6317,8 @@ function detenerLecturaVoz() {
 function pintarEstadoVoz() {
   const estado = vozLectura.estado;
   const activo = estado !== 'parado';
+  // Pausada se conserva la marca (dice por dónde iba); parada, se retira.
+  if (!activo) limpiarSeguimientoVoz();
   $('btn-tts').setAttribute('aria-pressed', String(activo));
   const etiqueta = estado === 'leyendo' ? 'ttsPause' : (estado === 'pausado' ? 'ttsResume' : 'ttsPlay');
   $('btn-tts-leer').innerHTML =
@@ -6330,6 +6362,10 @@ function aplicarAjustesVoz() {
 function empezarLecturaVoz() {
   aplicarAjustesVoz();
   ttsUltimaPosicion = posicionActualLibro();
+  cursorVoz = 0;
+  // El panel se retira: lo que hay debajo es justo el texto que se va a leer y
+  // a seguir con la vista. El botón del altavoz lo vuelve a abrir.
+  cerrarPanelTts();
   vozLectura.iniciar().catch(() => vozLectura.detener());
 }
 

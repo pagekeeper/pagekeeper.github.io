@@ -12,6 +12,7 @@ import { componerMatriz, soloIlustraciones } from './imagenes-pdf.js';
 import {
   cajaDeContenido, cajaRepresentativa, unir, conAire, ajustarRecorte, paginasAMuestrear,
 } from './recorte.js';
+import { rangoDeFrase } from './seguimiento-voz.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
@@ -67,6 +68,7 @@ export class Lector {
     this.pendiente = null;
     this.anotaciones = [];
     this.notaBajoPuntero = null;
+    this.movimientoVoz = 0; // cuándo movió la vista el seguimiento de la voz
 
     // Se vigila el área, no la ventana: también cambia de tamaño al abrir o
     // cerrar la barra lateral del índice. Se compara con la medida del último
@@ -915,6 +917,82 @@ export class Lector {
     }
     // Debajo de la capa de texto para no impedir nuevas selecciones.
     envoltorio.insertBefore(capa, envoltorio.querySelector('.capa-texto, .capa-enlaces'));
+  }
+
+  // ─────────── Seguir con la vista lo que lee la voz ───────────
+
+  // Páginas que la voz está leyendo: la actual y su pareja en la vista doble.
+  envoltoriosDeVoz() {
+    const numeros = [this.pagina];
+    if (this.enDoble() && this.pagina + 1 <= this.totalPaginas) numeros.push(this.pagina + 1);
+    const candidatos = this.modo === 'continuo' ? this.paginas : this.envoltorios;
+    return numeros
+      .map((numero) => (candidatos ?? []).find((envoltorio) =>
+        Number(envoltorio?.dataset.num) === numero))
+      .filter(Boolean);
+  }
+
+  // Resalta la frase que suena y la trae a la vista. `desde` es donde acabó la
+  // anterior; devuelve ese punto para la siguiente, o null si no se encontró
+  // (un escaneo sin capa de texto, o texto que no cuadra con lo extraído).
+  seguirVoz(frase, desde = 0) {
+    let cursor = desde;
+    for (const envoltorio of this.envoltoriosDeVoz()) {
+      const capa = envoltorio.querySelector('.capa-texto');
+      if (!capa) continue;
+      const encontrado = rangoDeFrase(capa, frase, cursor);
+      // En la vista doble la frase puede haber pasado ya a la página de al
+      // lado, que empieza por su principio.
+      if (!encontrado) { cursor = 0; continue; }
+      this.marcarVoz(envoltorio, encontrado.rango);
+      return encontrado.fin;
+    }
+    this.limpiarVoz();
+    return null;
+  }
+
+  marcarVoz(envoltorio, rango) {
+    this.limpiarVoz();
+    const caja = envoltorio.getBoundingClientRect();
+    if (!caja.width || !caja.height) return;
+    const capa = document.createElement('div');
+    capa.className = 'capa-resaltados capa-voz';
+    for (const rectangulo of rango.getClientRects()) {
+      if (!rectangulo.width || !rectangulo.height) continue;
+      const marca = document.createElement('span');
+      marca.className = 'voz';
+      marca.style.left = `${((rectangulo.left - caja.left) / caja.width) * 100}%`;
+      marca.style.top = `${((rectangulo.top - caja.top) / caja.height) * 100}%`;
+      marca.style.width = `${(rectangulo.width / caja.width) * 100}%`;
+      marca.style.height = `${(rectangulo.height / caja.height) * 100}%`;
+      capa.append(marca);
+    }
+    if (!capa.children.length) return;
+    // Debajo de la capa de texto, como los demás resaltados, para no estorbar
+    // a la selección.
+    envoltorio.insertBefore(capa, envoltorio.querySelector('.capa-texto, .capa-enlaces'));
+    this.acercarVoz(rango);
+  }
+
+  // Con la página entera a la vista no hay nada que mover; en continuo, o con
+  // zoom, la frase puede quedar fuera y se centra sin sobresaltos.
+  acercarVoz(rango) {
+    const rectangulo = rango.getBoundingClientRect();
+    const vista = this.area?.getBoundingClientRect();
+    if (!vista || !rectangulo.height) return;
+    const margen = Math.min(vista.height * 0.3, 160);
+    if (rectangulo.top >= vista.top + margen && rectangulo.bottom <= vista.bottom - margen / 2) {
+      return;
+    }
+    this.movimientoVoz = Date.now();
+    this.area.scrollTo({
+      top: this.area.scrollTop + (rectangulo.top - vista.top) - margen,
+      behavior: 'smooth',
+    });
+  }
+
+  limpiarVoz() {
+    for (const capa of this.contenedor?.querySelectorAll('.capa-voz') ?? []) capa.remove();
   }
 
   detectarNotaHover(x, y) {

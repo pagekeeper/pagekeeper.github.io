@@ -15,6 +15,7 @@
 
 import { posicionVerticalLibre } from './posicion-notas.js';
 import { abrePorRaton } from './menu-contextual.js';
+import { rangoDeFrase } from './seguimiento-voz.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
@@ -23,6 +24,10 @@ const ATRIBUTOS_URL = new Set(['href', 'src', 'xlink:href', 'action', 'formactio
 
 // Rellenos de la paleta de resaltado. Las anotaciones sin color (anteriores
 // a la paleta) conservan su aspecto histórico: amarillo, o azul con nota.
+// El resaltado de la frase que se está leyendo en voz alta: naranja, distinto
+// de la paleta de resaltados para no confundirlo con uno guardado.
+const RELLENO_VOZ = '#fb923c';
+
 const RELLENOS_RESALTADO = {
   amarillo: '#facc15',
   verde: '#4ade80',
@@ -202,6 +207,8 @@ export class LectorEpub {
     this.tempPantallas = null;
     this.anotaciones = [];
     this.cfiAplicados = [];
+    this.cfiVoz = null; // frase que la voz está leyendo, resaltada aparte
+    this.movimientoVoz = 0; // cuándo movió la página el seguimiento de la voz
     this.rangosNotas = new WeakMap();
     this.notaBajoPuntero = null;
     this.cancelarEsperaUbicacion = null;
@@ -823,6 +830,80 @@ export class LectorEpub {
       }
     }
     return false;
+  }
+
+  // Resalta la frase que suena y, si ha quedado en otra página, pasa a ella:
+  // así la vista acompaña a la voz en vez de esperar el salto de capítulo.
+  // `desde` es donde acabó la frase anterior; devuelve ese punto para la
+  // siguiente, o null si no se pudo localizar.
+  async seguirVoz(frase, desde = 0) {
+    const contents = this.contenidoActual();
+    const doc = contents?.document;
+    if (!doc?.body) return null;
+    const encontrado = rangoDeFrase(doc.body, frase, desde);
+    if (!encontrado) {
+      this.limpiarVoz();
+      return null;
+    }
+    let cfi = null;
+    try { cfi = contents.cfiFromRange(encontrado.rango); } catch { /* sin CFI no hay marca */ }
+    if (cfi) {
+      this.limpiarVoz();
+      try {
+        this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-voz',
+          { fill: RELLENO_VOZ, 'fill-opacity': '0.38', 'mix-blend-mode': 'multiply' });
+        this.cfiVoz = cfi;
+      } catch { /* un CFI que epub.js no acepta: se sigue leyendo sin marca */ }
+      if (!this.cfiVisible(cfi)) await this.irAVoz(cfi);
+    }
+    return encontrado.fin;
+  }
+
+  // El capítulo por el que se va, que con varios montados a la vez no es
+  // necesariamente el primero de la lista.
+  contenidoActual() {
+    const indice = this.vista?.currentLocation()?.start?.index;
+    const contenidos = this.vista?.getContents?.() ?? [];
+    return contenidos.find((c) => c.sectionIndex === indice) ?? contenidos[0] ?? null;
+  }
+
+  // ¿La posición cae dentro de lo que se ve ahora mismo? Se compara con los
+  // CFI de la propia localización de epub.js, que sabe dónde empieza y acaba
+  // la página, en vez de medir geometrías dentro del iframe.
+  cfiVisible(cfi) {
+    const localizacion = this.vista?.currentLocation();
+    const inicio = localizacion?.start?.cfi;
+    const fin = localizacion?.end?.cfi ?? inicio;
+    if (!cfi || !inicio) return false;
+    try {
+      const comparador = new window.ePub.CFI();
+      return comparador.compare(cfi, inicio) >= 0 && comparador.compare(cfi, fin) <= 0;
+    } catch {
+      return false;
+    }
+  }
+
+  async irAVoz(cfi) {
+    this.movimientoVoz = Date.now();
+    try {
+      await this.vista.display(cfi);
+      // El resaltado se pierde al montar la página nueva.
+      if (this.cfiVoz === cfi) {
+        try {
+          this.vista.annotations.highlight(cfi, {}, null, 'pagekeeper-voz',
+            { fill: RELLENO_VOZ, 'fill-opacity': '0.38', 'mix-blend-mode': 'multiply' });
+        } catch { /* si no se puede repintar, la voz sigue igual */ }
+      }
+    } catch { /* un CFI que no se puede mostrar no debe cortar la lectura */ } finally {
+      // Se vuelve a marcar al terminar: entre medias epub.js sigue reubicando.
+      this.movimientoVoz = Date.now();
+    }
+  }
+
+  limpiarVoz() {
+    if (!this.cfiVoz) return;
+    try { this.vista?.annotations?.remove(this.cfiVoz, 'highlight'); } catch { /* ya no está */ }
+    this.cfiVoz = null;
   }
 
   irA(destino) { return this.vista?.display(destino); }

@@ -1158,9 +1158,20 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .capa-resaltados span[data-color="verde"] { --tinte: 74, 222, 128; }
 .capa-resaltados span[data-color="azul"] { --tinte: 56, 189, 248; }
 .capa-resaltados span[data-color="rosa"] { --tinte: 244, 114, 182; }
+/* La frase que suena en la lectura en voz alta. Naranja, para no confundirla
+   con un resaltado guardado, y por encima de ellos: es lo que se está mirando
+   ahora mismo. */
+.capa-voz { z-index: 3; }
+.capa-voz span.voz {
+  --tinte: 251, 146, 60;
+  background: rgba(var(--tinte), 0.38);
+  box-shadow: inset 0 -2px 0 rgba(var(--tinte), 0.95);
+  transition: opacity 0.12s ease-in;
+}
 .modo-noche .capa-resaltados span {
   background: rgba(var(--tinte), 0.46); mix-blend-mode: screen;
 }
+.modo-noche .capa-voz span.voz { background: rgba(var(--tinte), 0.5); }
 .modo-noche .capa-resaltados span.nota {
   background: rgba(var(--tinte), 0.42);
   border-bottom-color: rgba(var(--tinte), 0.95);

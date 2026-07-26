@@ -33,11 +33,15 @@ export class LectorVoz {
   // avanzar(): pasa a la página o capítulo siguiente; false al final del libro.
   // alCambiarEstado(estado): 'parado' | 'leyendo' | 'pausado'.
   // alFallo(clave): clave i18n del problema ('ttsNoText').
-  constructor({ obtenerTexto, avanzar, alCambiarEstado, alFallo }) {
+  // alLeerFrase(frase, { nuevaPagina }): la frase que empieza a sonar, para que
+  //   quien escuche pueda seguirla en la página. `nuevaPagina` avisa de que es
+  //   la primera de una página o capítulo recién abierto.
+  constructor({ obtenerTexto, avanzar, alCambiarEstado, alFallo, alLeerFrase }) {
     this.obtenerTexto = obtenerTexto;
     this.avanzar = avanzar;
     this.alCambiarEstado = alCambiarEstado;
     this.alFallo = alFallo;
+    this.alLeerFrase = alLeerFrase;
 
     this.sintesis = typeof window !== 'undefined' ? window.speechSynthesis ?? null : null;
     this.estado = 'parado';
@@ -46,6 +50,9 @@ export class LectorVoz {
     this.voz = null;      // SpeechSynthesisVoice elegida, o null para automática
     this.idioma = null;   // idioma del libro cuando no hay voz elegida
     this.velocidad = 1;
+    // La frase que suena es la primera de una página o capítulo nuevo: quien
+    // sigue el texto tiene que empezar a buscar desde arriba.
+    this.estrenandoPagina = true;
     // Cada inicio o parada invalida la sesión anterior: los eventos de las
     // locuciones antiguas que lleguen tarde no deben reanudar nada.
     this.sesion = 0;
@@ -71,6 +78,7 @@ export class LectorVoz {
     const sesion = ++this.sesion;
     this.frases = trocearTexto(await this.obtenerTexto());
     this.indice = 0;
+    this.estrenandoPagina = true;
     if (sesion !== this.sesion) return;
     this.cambiarEstado('leyendo');
     if (!this.frases.length) return this.avanzarYSeguir(sesion, 1);
@@ -80,7 +88,12 @@ export class LectorVoz {
   hablarSiguiente(sesion) {
     if (sesion !== this.sesion) return;
     if (this.indice >= this.frases.length) return void this.avanzarYSeguir(sesion, 0);
-    const locucion = new SpeechSynthesisUtterance(this.frases[this.indice++]);
+    const frase = this.frases[this.indice++];
+    try {
+      this.alLeerFrase?.(frase, { nuevaPagina: this.estrenandoPagina });
+    } catch { /* seguir el texto es un extra: si falla, la voz sigue */ }
+    this.estrenandoPagina = false;
+    const locucion = new SpeechSynthesisUtterance(frase);
     if (this.voz) locucion.voice = this.voz;
     else if (this.idioma) locucion.lang = this.idioma;
     locucion.rate = this.velocidad;
@@ -110,6 +123,7 @@ export class LectorVoz {
       }
       this.frases = trocearTexto(await this.obtenerTexto());
       this.indice = 0;
+      this.estrenandoPagina = true;
       if (sesion !== this.sesion) return;
       if (this.frases.length) return this.hablarSiguiente(sesion);
       vaciasSeguidas += 1;
