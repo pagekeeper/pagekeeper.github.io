@@ -328,6 +328,13 @@
               <option value="izquierda" data-i18n="unjustifiedAlignment">Sin justificar</option>
             </select>
           </label>
+          <label class="campo-texto-epub"><span data-i18n="hyphenation">Partir palabras</span>
+            <select id="guionado-epub">
+              <option value="auto" data-i18n="hyphenationAuto">Sí, al final de línea</option>
+              <option value="libro" data-i18n="hyphenationBook">Como el libro</option>
+              <option value="nunca" data-i18n="hyphenationNever">No partir</option>
+            </select>
+          </label>
           <label class="campo-texto-epub"><span data-i18n="lineSpacing">Interlineado</span>
             <select id="interlineado-epub">
               <option value="libro" data-i18n="bookSpacing">El del libro</option>
@@ -834,7 +841,13 @@
           cambia el zoom y en los EPUB, el tamaño de la letra.</li>
           <li><strong>Ajustes de texto (solo EPUB):</strong> el botón de la
           letra permite elegir el tipo de letra (la del libro, con serifa o
-          sin serifa), el interlineado y el margen de ambos lados.</li>
+          sin serifa), la alineación, el interlineado, el margen de ambos lados
+          y si se parten las palabras al final de línea. Partirlas viene puesto:
+          en pantalla estrecha, y más con el texto justificado, es lo que evita
+          los huecos grandes entre palabras. Lo hace el navegador según el
+          idioma del libro, así que puede no estar disponible para todos los
+          idiomas; también se puede dejar como venga en cada libro, o no partir
+          nunca.</li>
           <li><strong>Papel del libro:</strong> el botón del sol, la taza o la
           luna recorre los tres modos de lectura: papel claro, sepia (tostado,
           más descansado para ratos largos) y modo noche. Es independiente del

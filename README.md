@@ -212,8 +212,12 @@ libros y sincronizar el progreso de lectura.
   lugar de dejar un hueco vacío hasta terminar el gesto. Si el recorrido se
   queda corto, la página vuelve a su sitio y no se pasa nada.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
-  sin serifa), interlineado y margen lateral, con las preferencias guardadas
-  localmente en cada dispositivo.
+  sin serifa), alineación, interlineado, margen lateral y partido de palabras
+  al final de línea, con las preferencias guardadas localmente en cada
+  dispositivo. El partido viene activado y se aplica aunque el EPUB no lo
+  contemple (lo hace el navegador con el diccionario del idioma del libro, que
+  se toma de sus metadatos si el capítulo no lo declara); se puede dejar como
+  venga en cada libro o desactivarlo.
 - 🔗 **Configuración portátil**: desde Ajustes puedes copiar un enlace que
   lleva la configuración de la nube (URL, usuario y contraseña, codificados
   en el fragmento `#cfg=…`, que nunca se envía a ningún servidor). Al abrirlo

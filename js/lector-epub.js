@@ -196,6 +196,7 @@ export class LectorEpub {
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
     this.alineacion = 'libro'; // 'libro' | 'izquierda' (sin justificar)
+    this.guionado = 'auto';    // 'auto' | 'libro' | 'nunca'
     this.temaPagina = 'claro';
     this.cfi = null;
     this.porcentaje = 0;
@@ -680,6 +681,7 @@ export class LectorEpub {
   inyectarTipografia(contents) {
     const doc = contents?.document;
     if (!doc?.head) return;
+    this.asegurarIdioma(doc);
     let estilo = doc.getElementById('pagekeeper-tipografia');
     if (!estilo) {
       estilo = doc.createElement('style');
@@ -696,6 +698,15 @@ export class LectorEpub {
     if (this.interlineado) {
       reglas.push(`body, p, li, blockquote, dd, dt { line-height: ${this.interlineado} !important; }`);
     }
+    // Partir palabras es cosa del navegador, no del libro: con `hyphens: auto`
+    // parte aunque su CSS no lo pidiera, y con `manual` deja de partir aunque
+    // lo pida (los guiones suaves que traiga escritos siguen valiendo). Se
+    // respetan el código y las fórmulas, como con la fuente.
+    if (this.guionado !== 'libro') {
+      const modo = this.guionado === 'nunca' ? 'manual' : 'auto';
+      const salvados = 'pre, pre *, code, code *, kbd, samp, var, tt, math, math *';
+      reglas.push(`body :not(${salvados}) { hyphens: ${modo} !important; -webkit-hyphens: ${modo} !important; }`);
+    }
     if (this.alineacion === 'izquierda') {
       // Quita el justificado (evita huecos grandes en pantallas estrechas).
       // 'start' respeta los idiomas RTL y se dejan en paz los elementos
@@ -704,6 +715,22 @@ export class LectorEpub {
       reglas.push(`body, p${centrado}, li${centrado}, blockquote${centrado}, dd, dt { text-align: start !important; }`);
     }
     estilo.textContent = reglas.join('\n');
+  }
+
+  // El guionado automático necesita saber en qué idioma está el texto: sin
+  // `lang` el navegador no tiene diccionario y no parte nada. Muchos EPUB no lo
+  // ponen en el capítulo, pero sí en sus metadatos, así que se copia de ahí.
+  asegurarIdioma(doc) {
+    const raiz = doc?.documentElement;
+    if (!raiz || raiz.getAttribute('lang') || raiz.getAttribute('xml:lang')) return;
+    const idioma = this.libro?.packaging?.metadata?.language;
+    if (!idioma) return;
+    raiz.setAttribute('lang', idioma);
+  }
+
+  cambiarGuionado(valor) {
+    this.guionado = ['auto', 'libro', 'nunca'].includes(valor) ? valor : 'auto';
+    this.aplicarTipografia();
   }
 
   aplicarTipografia() {

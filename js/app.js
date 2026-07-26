@@ -66,6 +66,7 @@ const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
 const CLAVE_ALINEACION_EPUB = 'lector.alineacionEpub'; // solo de este dispositivo
+const CLAVE_GUIONADO_EPUB = 'lector.guionadoEpub';     // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
 const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
@@ -90,7 +91,7 @@ const CLAVES_PREFERENCIAS_COPIA = [
   'lector.idioma', CLAVE_NOCHE, CLAVE_TEMA_PAGINA, CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
   CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
-  CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_ORDEN_BIBLIOTECA,
+  CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_GUIONADO_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA,
   // Las dos secciones, no solo una: que la copia restaurara el pliegue del
   // dispositivo y se dejara el de la nube no lo entendía nadie.
@@ -158,6 +159,14 @@ function interlineadoEpubGuardado() {
 
 function alineacionEpubGuardada() {
   return localStorage.getItem(CLAVE_ALINEACION_EPUB) === 'izquierda' ? 'izquierda' : 'libro';
+}
+
+// Partir palabras viene puesto: en pantalla estrecha, y más con el texto
+// justificado, es lo que evita los ríos de espacios. Quien prefiera lo que diga
+// cada libro, o no partir nunca, lo cambia y se recuerda.
+function guionadoEpubGuardado() {
+  const valor = localStorage.getItem(CLAVE_GUIONADO_EPUB);
+  return valor === 'libro' || valor === 'nunca' ? valor : 'auto';
 }
 
 function zoomPdfGuardado() {
@@ -4319,6 +4328,7 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.fuente = fuenteEpubGuardada();
       lectorEpub.interlineado = interlineadoEpubGuardado();
       lectorEpub.alineacion = alineacionEpubGuardada();
+      lectorEpub.guionado = guionadoEpubGuardado();
       lectorEpub.doble = dobleGuardado();
       prepararSeguimientoEpub(avance?.cfi ?? null);
       // El reparto del libro en localizaciones se reaprovecha entre sesiones:
@@ -6177,6 +6187,7 @@ function pintarAjustesTexto() {
   const interlineado = interlineadoEpubGuardado();
   $('interlineado-epub').value = interlineado === null ? 'libro' : String(interlineado);
   $('alineacion-epub').value = alineacionEpubGuardada();
+  $('guionado-epub').value = guionadoEpubGuardado();
 }
 
 $('btn-texto').addEventListener('click', () => {
@@ -6212,6 +6223,14 @@ $('alineacion-epub').addEventListener('change', (evento) => {
   reflowEpub();
 });
 
+$('guionado-epub').addEventListener('change', (evento) => {
+  const valor = evento.target.value;
+  if (valor === 'auto') localStorage.removeItem(CLAVE_GUIONADO_EPUB);
+  else localStorage.setItem(CLAVE_GUIONADO_EPUB, valor);
+  lectorEpub.cambiarGuionado(valor);
+  reflowEpub();
+});
+
 $('margen-epub').addEventListener('input', (evento) => {
   const valor = Number(evento.target.value);
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
@@ -6223,11 +6242,13 @@ $('btn-restablecer-texto').addEventListener('click', () => {
   localStorage.removeItem(CLAVE_FUENTE_EPUB);
   localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
   localStorage.removeItem(CLAVE_ALINEACION_EPUB);
+  localStorage.removeItem(CLAVE_GUIONADO_EPUB);
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
   pintarAjustesTexto();
   lectorEpub.cambiarFuente('libro');
   lectorEpub.cambiarInterlineado(null);
   lectorEpub.cambiarAlineacion('libro');
+  lectorEpub.cambiarGuionado('auto');
   reflowEpub();
 });
 
