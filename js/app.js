@@ -6240,6 +6240,8 @@ document.addEventListener('click', (evento) => {
 let ttsAvanzando = false;      // el propio TTS está pasando de página o capítulo
 let ttsUltimaPosicion = null;  // posición que el TTS está leyendo
 let cursorVoz = 0;             // dónde acabó la frase anterior en la página o capítulo
+let cursorVozPrevio = 0;       // y dónde empezó a buscarse esa misma frase
+let fraseVoz = '';             // la última frase anunciada por la voz
 
 // El seguimiento mueve la vista solo, y esos movimientos no son «navegar a
 // mano»: la voz no debe detenerse por ellos. Se mira cuándo movió de verdad
@@ -6254,17 +6256,29 @@ function vistaMovidaPorLaVoz() {
 // Resalta la frase que empieza a sonar y, si se ha salido de la vista, la trae:
 // en un EPUB paginado eso pasa las páginas al ritmo de la voz.
 async function seguirFraseConLaVista(frase, { nuevaPagina } = {}) {
-  if (nuevaPagina) cursorVoz = 0;
+  if (nuevaPagina) {
+    cursorVoz = 0;
+    cursorVozPrevio = 0;
+  }
+  // Al continuar tras una pausa se repite la frase interrumpida: hay que
+  // buscarla donde ya estaba, no a partir de su propio final.
+  const desde = frase === fraseVoz ? cursorVozPrevio : cursorVoz;
+  fraseVoz = frase;
   try {
     const fin = epubAbierto()
-      ? await lectorEpub.seguirVoz(frase, cursorVoz)
-      : lector.seguirVoz(frase, cursorVoz);
-    if (fin !== null && fin !== undefined) cursorVoz = fin;
+      ? await lectorEpub.seguirVoz(frase, desde)
+      : lector.seguirVoz(frase, desde);
+    if (fin !== null && fin !== undefined) {
+      cursorVozPrevio = desde;
+      cursorVoz = fin;
+    }
   } catch { /* no poder seguir el texto no debe cortar la lectura */ }
 }
 
 function limpiarSeguimientoVoz() {
   cursorVoz = 0;
+  cursorVozPrevio = 0;
+  fraseVoz = '';
   try { lector?.limpiarVoz?.(); } catch { /* sin PDF montado */ }
   try { lectorEpub?.limpiarVoz?.(); } catch { /* sin EPUB montado */ }
 }

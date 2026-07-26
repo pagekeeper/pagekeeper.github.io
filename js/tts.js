@@ -130,28 +130,43 @@ export class LectorVoz {
     }
   }
 
+  // La pausa no usa pause()/resume() de la síntesis: en Android, y con las
+  // voces del sistema en Linux, pause() corta la locución y resume() no revive
+  // nada, así que la lectura se quedaba parada para siempre. En su lugar se
+  // cancela y se recuerda por dónde iba; continuar vuelve a hablar desde la
+  // frase interrumpida, que se repite entera.
   pausar() {
     if (this.estado !== 'leyendo') return;
-    this.sintesis.pause();
+    // La sesión nueva descarta los eventos de la locución que se corta: si no,
+    // su onend encadenaría la frase siguiente por su cuenta.
+    this.sesion += 1;
+    this.indice = Math.max(0, this.indice - 1);
+    this.cancelarSintesis();
     this.cambiarEstado('pausado');
   }
 
   reanudar() {
     if (this.estado !== 'pausado') return;
-    this.sintesis.resume();
+    const sesion = ++this.sesion;
     this.cambiarEstado('leyendo');
+    if (!this.frases.length) return void this.avanzarYSeguir(sesion, 0);
+    this.hablarSiguiente(sesion);
   }
 
-  detener() {
-    this.sesion += 1;
-    this.frases = [];
-    this.indice = 0;
+  cancelarSintesis() {
     try {
       this.sintesis?.cancel();
       // Un cancel() con la síntesis pausada deja bloqueados algunos motores.
       this.sintesis?.resume?.();
       this.sintesis?.cancel();
     } catch { /* sin síntesis no hay nada que cancelar */ }
+  }
+
+  detener() {
+    this.sesion += 1;
+    this.frases = [];
+    this.indice = 0;
+    this.cancelarSintesis();
     this.cambiarEstado('parado');
   }
 }
