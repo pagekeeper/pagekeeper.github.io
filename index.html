@@ -571,15 +571,15 @@
         <button type="button" id="pestana-ajustes-nube" class="pestana-ajustes" role="tab"
           aria-controls="panel-ajustes-nube" aria-selected="true" data-panel="nube"
           data-i18n="webdavShort">Nube</button>
+        <button type="button" id="pestana-ajustes-datos" class="pestana-ajustes" role="tab"
+          aria-controls="panel-ajustes-datos" aria-selected="false" tabindex="-1"
+          data-panel="datos" data-i18n="settingsData">Datos</button>
         <button type="button" id="pestana-ajustes-biblioteca" class="pestana-ajustes" role="tab"
           aria-controls="panel-ajustes-biblioteca" aria-selected="false" tabindex="-1"
           data-panel="biblioteca" data-i18n="library">Biblioteca</button>
         <button type="button" id="pestana-ajustes-lector" class="pestana-ajustes" role="tab"
           aria-controls="panel-ajustes-lector" aria-selected="false" tabindex="-1"
           data-panel="lector" data-i18n="reader">Lector</button>
-        <button type="button" id="pestana-ajustes-datos" class="pestana-ajustes" role="tab"
-          aria-controls="panel-ajustes-datos" aria-selected="false" tabindex="-1"
-          data-panel="datos" data-i18n="settingsData">Datos</button>
       </div>
 
       <div id="panel-ajustes-nube" class="panel-ajustes" role="tabpanel"
@@ -606,6 +606,33 @@
         </div>
         <div id="resultado-prueba" class="estado" role="status"></div>
       </form>
+      </div>
+
+      <div id="panel-ajustes-datos" class="panel-ajustes" role="tabpanel"
+        aria-labelledby="pestana-ajustes-datos" tabindex="0">
+      <div class="tarjeta">
+        <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
+        <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-copiar-config" class="btn-secundario" data-i18n="copyConfig">Copiar enlace de configuración</button>
+          <button type="button" id="btn-descargar-config" class="btn-secundario"
+            data-i18n="exportConfigFile">Guardar configuración</button>
+          <label for="selector-importar-config" class="btn-secundario"
+            data-i18n="importConfigFile">Restaurar configuración</label>
+          <input type="file" id="selector-importar-config" accept=".json,application/json" hidden>
+        </div>
+        <div id="resultado-copia" class="estado" role="status"></div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="activityLog">Registro de actividad</h2>
+        <p class="ayuda" data-i18n="activityLogHelp">Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí, nunca sale de este aparato y se borra solo al cabo de una semana.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-ver-registro" class="btn-secundario"
+            data-i18n="viewLog">Ver el registro</button>
+        </div>
+        <div id="resumen-registro" class="estado" role="status"></div>
+      </div>
       </div>
 
       <div id="panel-ajustes-biblioteca" class="panel-ajustes" role="tabpanel"
@@ -678,33 +705,6 @@
           <span data-i18n="showStatusBar">Mostrar la barra de datos al pie</span>
         </label>
         <p class="ayuda" data-i18n="showStatusBarHelp">La línea del final del lector con la página del capítulo, la pantalla del libro, el porcentaje leído y el tiempo que queda. Al ocultarla se gana ese poco de alto para el texto.</p>
-      </div>
-      </div>
-
-      <div id="panel-ajustes-datos" class="panel-ajustes" role="tabpanel"
-        aria-labelledby="pestana-ajustes-datos" tabindex="0">
-      <div class="tarjeta">
-        <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
-        <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
-        <div class="fila-botones">
-          <button type="button" id="btn-copiar-config" class="btn-secundario" data-i18n="copyConfig">Copiar enlace de configuración</button>
-          <button type="button" id="btn-descargar-config" class="btn-secundario"
-            data-i18n="exportConfigFile">Guardar configuración</button>
-          <label for="selector-importar-config" class="btn-secundario"
-            data-i18n="importConfigFile">Restaurar configuración</label>
-          <input type="file" id="selector-importar-config" accept=".json,application/json" hidden>
-        </div>
-        <div id="resultado-copia" class="estado" role="status"></div>
-      </div>
-
-      <div class="tarjeta">
-        <h2 data-i18n="activityLog">Registro de actividad</h2>
-        <p class="ayuda" data-i18n="activityLogHelp">Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí, nunca sale de este aparato y se borra solo al cabo de una semana.</p>
-        <div class="fila-botones">
-          <button type="button" id="btn-ver-registro" class="btn-secundario"
-            data-i18n="viewLog">Ver el registro</button>
-        </div>
-        <div id="resumen-registro" class="estado" role="status"></div>
       </div>
       </div>
 
