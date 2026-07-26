@@ -327,6 +327,53 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
   font-size: 0.92rem;
 }
 .lista-ayuda li { padding-left: 0.2rem; }
+/* Los apartados de la ayuda, plegados: cada pestaña se ve entera de un vistazo
+   y se abre solo lo que se busca. Con <details>, el propio navegador se ocupa
+   de abrir, cerrar y anunciar el estado, y el buscador del navegador (Ctrl+F)
+   encuentra el texto de dentro en los que estén abiertos. */
+.puntos-ayuda { display: flex; flex-direction: column; }
+.punto-ayuda { border-top: 1px solid var(--borde); }
+.punto-ayuda:first-child { border-top: 0; }
+.punto-ayuda > summary {
+  display: flex; align-items: center; gap: 0.5rem;
+  padding: 0.55rem 0.2rem; cursor: pointer;
+  font-size: 0.92rem; font-weight: 650;
+  list-style: none; /* el triángulo se dibuja aparte, alineado con el texto */
+}
+.punto-ayuda > summary::-webkit-details-marker { display: none; }
+.punto-ayuda > summary::before {
+  content: '›'; flex: none; width: 0.7rem;
+  color: var(--acento); font-size: 1.15em; line-height: 1;
+  transition: transform 0.15s ease;
+}
+.punto-ayuda[open] > summary::before { transform: rotate(90deg); }
+.punto-ayuda > summary:hover { color: var(--acento); }
+.punto-ayuda > summary:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.punto-ayuda > p {
+  margin: 0 0 0.7rem; padding-left: 1.2rem;
+  color: var(--texto-suave); font-size: 0.9rem;
+}
+/* Tarjetas que se pliegan enteras: las guías de configuración de la nube, que
+   solo interesan a quien va a montarla. Su resumen hace de título. */
+.tarjeta-plegable { gap: 0; }
+.tarjeta-plegable > summary {
+  display: flex; align-items: center; gap: 0.5rem;
+  cursor: pointer; font-size: 1rem; font-weight: 650;
+  list-style: none;
+}
+.tarjeta-plegable > summary::-webkit-details-marker { display: none; }
+.tarjeta-plegable > summary::before {
+  content: '›'; flex: none; width: 0.7rem;
+  color: var(--acento); font-size: 1.2em; line-height: 1;
+  transition: transform 0.15s ease;
+}
+.tarjeta-plegable[open] > summary::before { transform: rotate(90deg); }
+.tarjeta-plegable[open] > summary { margin-bottom: 0.75rem; }
+.tarjeta-plegable > summary:hover { color: var(--acento); }
+.tarjeta-plegable > summary:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.tarjeta-plegable > :not(summary) { margin-bottom: 0.75rem; }
+.tarjeta-plegable > :last-child { margin-bottom: 0; }
+.tarjeta-plegable.destacado > summary { color: var(--acento); }
 .tarjeta code {
   background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.35rem;
   padding: 0.05rem 0.35rem; font-size: 0.85em; word-break: break-all;
