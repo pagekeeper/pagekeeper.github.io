@@ -308,6 +308,9 @@ Cómo está montado:
 - `js/analytics.js` registra la visita en segundo plano (JSONP, con
   `requestIdleCallback` y un timeout de 4 s), así que si el servidor falla el
   lector sigue funcionando igual;
+- la petición se inyecta siempre **después** del evento `load`: un `<script
+  async>` insertado antes lo retrasaría hasta que la petición terminase, y con
+  el servidor colgado `load` no llegaría a dispararse nunca;
 - una visita por navegador cada 30 minutos: el resto de cargas envían
   `summary_only=1`, que no registra nada;
 - no se cuenta nada en `localhost`, `127.0.0.1` ni con `file://`.

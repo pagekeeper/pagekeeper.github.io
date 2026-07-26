@@ -87,12 +87,22 @@
   }
 
   if (!shouldTrack()) return;
+
+  // Un <script async> insertado antes de que se dispare «load» retrasa ese
+  // evento hasta que la petición termina. Si el servidor de estadísticas se
+  // queda colgado, eso dejaría «load» sin dispararse y la pestaña cargando
+  // para siempre. Por eso se espera SIEMPRE a «load» antes de inyectar nada.
   var run = function () { window.setTimeout(load, 0); };
-  if (typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(run, { timeout: 2500 });
-  } else if (document.readyState === 'complete') {
-    window.setTimeout(run, 0);
+  var arrancar = function () {
+    if (typeof window.requestIdleCallback === 'function') {
+      window.requestIdleCallback(run, { timeout: 2500 });
+    } else {
+      window.setTimeout(run, 0);
+    }
+  };
+  if (document.readyState === 'complete') {
+    arrancar();
   } else {
-    window.addEventListener('load', run, { once: true });
+    window.addEventListener('load', arrancar, { once: true });
   }
 })();
