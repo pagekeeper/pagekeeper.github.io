@@ -227,10 +227,15 @@ export class LectorEpub {
   // (lo que devolvió alGuardarLocalizaciones); reutilizarlo evita repetir un
   // cálculo de varios segundos cada vez que se abre el libro.
   async abrir(datos, cfiInicial = null, modo = 'pagina',
-    { localizaciones = null, alGuardarLocalizaciones = null } = {}) {
+    { localizaciones = null, alGuardarLocalizaciones = null, temaPagina = this.temaPagina } = {}) {
     await cargarLibrerias();
     this.cerrar();
     this.modo = modo;
+    // El papel y la tinta deben estar fijados antes de que epub.js muestre el
+    // CFI guardado. Aplicarlos después remaqueta el capítulo y puede emitir
+    // una reubicación tardía al inicio de la página visual; la aplicación la
+    // confundiría con un avance real y sustituiría el progreso recién leído.
+    this.aplicarTemaPagina(temaPagina);
     this.cfi = cfiInicial;
     this.porcentaje = 0;
     this.conLocalizaciones = false;

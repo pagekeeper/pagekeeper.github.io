@@ -4154,6 +4154,7 @@ async function abrirEnLector(datos, libro) {
       try {
         await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual(), {
           localizaciones: guardadas,
+          temaPagina: temaPagina(),
           alGuardarLocalizaciones: (json) => {
             almacen.guardarLocalizaciones(clave, datos.byteLength, json).catch(() => null);
           },
@@ -4161,7 +4162,6 @@ async function abrirEnLector(datos, libro) {
       } finally {
         restaurandoPosicionEpub = false;
       }
-      lectorEpub.aplicarTemaPagina(temaPagina());
       if (avance?.cfi) avisar(t('continuing'));
     } else {
       lectorEpub.cerrar();
