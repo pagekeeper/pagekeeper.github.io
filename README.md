@@ -295,6 +295,27 @@ node --test
   empaquetadores.
 - Service worker + manifiesto PWA para instalación y uso sin conexión.
 
+## Estadísticas de uso
+
+PageKeeper recoge únicamente estadísticas de uso **agregadas**, con un sistema
+propio alojado en `bilateria.org`, para saber cuánto se utiliza la aplicación.
+No se almacenan direcciones IP ni se usan cookies de analítica.
+
+Cómo está montado:
+
+- los metadatos `analytics-endpoint`, `analytics-stats-url` y
+  `analytics-site-id` en `index.html` apuntan al backend;
+- `js/analytics.js` registra la visita en segundo plano (JSONP, con
+  `requestIdleCallback` y un timeout de 4 s), así que si el servidor falla el
+  lector sigue funcionando igual;
+- una visita por navegador cada 30 minutos: el resto de cargas piden solo el
+  resumen con `summary_only=1`;
+- no se cuenta nada en `localhost`, `127.0.0.1` ni con `file://`;
+- el pie muestra el total y las visitas de hoy solo si el servidor responde.
+
+Nada de esto afecta a tus libros ni a tu progreso de lectura, que siguen
+únicamente en tu dispositivo y en tu nube WebDAV.
+
 ## Licencia
 
 © 2026 Juan José de Haro. Código propio bajo licencia MIT.

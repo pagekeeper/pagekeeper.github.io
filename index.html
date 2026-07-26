@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f8fafc">
   <title>PageKeeper</title>
+  <meta name="analytics-endpoint" content="https://bilateria.org/app/estadistica/pagekeeper/track.php">
+  <meta name="analytics-stats-url" content="https://bilateria.org/app/estadistica/pagekeeper/admin-stats.php">
+  <meta name="analytics-site-id" content="pagekeeper">
   <link rel="stylesheet" href="css/estilos.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
@@ -235,7 +238,18 @@
             <summary data-i18n="credits">Créditos</summary>
             <p data-i18n-html="creditsHtml">Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconos <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).</p>
           </details>
+          <span aria-hidden="true">·</span>
+          <details class="creditos-pie">
+            <summary data-i18n="privacy">Privacidad</summary>
+            <p data-i18n="analyticsNotice">Esta aplicación recoge únicamente estadísticas de uso agregadas con un sistema propio para conocer su utilización y mejorar la herramienta. No se almacenan direcciones IP ni se usan cookies de analítica para los visitantes.</p>
+          </details>
         </div>
+        <!-- Solo se muestra si el servidor de estadísticas responde. -->
+        <p class="pie-visitas" data-analytics-summary hidden>
+          <span data-i18n="visits">Visitas</span>&nbsp;<strong data-analytics-total>–</strong>
+          <span aria-hidden="true">·</span>
+          <span data-i18n="today">Hoy</span>&nbsp;<strong data-analytics-today>–</strong>
+        </p>
       </footer>
     </main>
   </section>
@@ -1109,5 +1123,6 @@
   <span id="anuncio-cargando" class="sr-solo" role="status"></span>
 
   <script type="module" src="js/app.js"></script>
+  <script src="js/analytics.js" defer></script>
 </body>
 </html>
