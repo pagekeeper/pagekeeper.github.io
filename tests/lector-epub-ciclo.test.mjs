@@ -15,6 +15,7 @@ function vistaFalsa({
   reubicacion = Promise.resolve(),
 } = {}) {
   const eventos = {};
+  let aperturas = 0;
   return {
     eventos,
     hooks: { content: { register() {} } },
@@ -29,8 +30,12 @@ function vistaFalsa({
     },
     on(nombre, manejador) { eventos[nombre] = manejador; },
     async display(destino) {
-      alMostrar?.();
-      reubicacion.then((cfi) => {
+      aperturas += 1;
+      alMostrar?.(destino, aperturas);
+      const resultado = typeof reubicacion === 'function'
+        ? reubicacion(destino, aperturas)
+        : reubicacion;
+      Promise.resolve(resultado).then((cfi) => {
         eventos.relocated?.({ start: { cfi: cfi ?? destino } });
       });
     },
@@ -98,6 +103,26 @@ test('abrir espera la reubicación tardía del CFI antes de terminar la restaura
   await apertura;
   assert.equal(abierta, true);
   assert.equal(lector.cfi, 'normalizado');
+});
+
+test('el modo continuo recoloca el CFI después de rellenar las vistas', async () => {
+  const destinos = [];
+  const vista = vistaFalsa({
+    alMostrar: (destino) => destinos.push(destino),
+    reubicacion: (_destino, apertura) => apertura === 1 ? 'desfasado' : 'guardado',
+  });
+  prepararEntorno([libroFalso({ vista })]);
+  const lector = new LectorEpub({
+    contenedor: contenedorFalso(),
+    alCambiarPosicion() {},
+  });
+
+  await lector.abrir(new Uint8Array(), 'guardado', 'continuo', {
+    localizaciones: 'cache',
+  });
+
+  assert.deepEqual(destinos, ['guardado', 'guardado']);
+  assert.equal(lector.cfi, 'guardado');
 });
 
 function prepararEntorno(libros) {

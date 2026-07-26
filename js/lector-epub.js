@@ -282,19 +282,12 @@ export class LectorEpub {
     this.contenedor.replaceChildren();
     const continuo = this.modo === 'continuo';
     const libro = this.libro;
-    let ubicacionInicialCompletada = false;
-    let resolverUbicacionInicial = null;
-    const completarUbicacionInicial = () => {
-      if (ubicacionInicialCompletada) return;
-      ubicacionInicialCompletada = true;
-      resolverUbicacionInicial?.();
+    const esperasUbicacion = [];
+    const esperarUbicacion = () => new Promise((resolver) => esperasUbicacion.push(resolver));
+    const completarUbicacion = () => esperasUbicacion.shift()?.();
+    this.cancelarEsperaUbicacion = () => {
+      while (esperasUbicacion.length) esperasUbicacion.shift()();
     };
-    const ubicacionInicial = posicion
-      ? new Promise((resolver) => {
-        resolverUbicacionInicial = resolver;
-        this.cancelarEsperaUbicacion = completarUbicacionInicial;
-      })
-      : null;
     const vista = libro.renderTo(this.contenedor, {
       width: '100%',
       height: '100%',
@@ -323,12 +316,12 @@ export class LectorEpub {
       // destroy() no cancela necesariamente los eventos que epub.js ya dejó
       // en cola. Si entretanto se abrió otra vista, este CFI es obsoleto.
       if (this.vista !== vista || this.libro !== libro) {
-        completarUbicacionInicial();
+        completarUbicacion();
         return;
       }
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
       this.notificar();
-      completarUbicacionInicial();
+      completarUbicacion();
       this.ocultarNotaHover();
       this.programarIconosNotas();
     });
@@ -350,15 +343,25 @@ export class LectorEpub {
       const texto = contents?.window?.getSelection?.().toString().replace(/\s+/g, ' ').trim();
       if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
     });
+    const primeraUbicacion = posicion ? esperarUbicacion() : null;
     await vista.display(posicion ?? undefined);
     if (this.vista !== vista || this.libro !== libro) return;
     // epub.js resuelve display(CFI) antes de emitir `relocated`. La aplicación
     // mantiene protegida la restauración mientras `abrir()` no haya terminado:
     // esperar aquí evita que ese evento tardío se guarde como una lectura nueva.
-    if (ubicacionInicial) await ubicacionInicial;
-    if (this.cancelarEsperaUbicacion === completarUbicacionInicial) {
-      this.cancelarEsperaUbicacion = null;
+    if (primeraUbicacion) await primeraUbicacion;
+    if (this.vista !== vista || this.libro !== libro) return;
+    if (continuo && posicion) {
+      // El gestor continuo rellena el espacio visible después de situar el
+      // destino. Al añadir capítulos antes del actual puede desplazar el
+      // contenedor y dejarlo en otra parte del capítulo. Con las vistas ya
+      // estabilizadas, un segundo display recoloca exactamente el CFI.
+      const ubicacionEstable = esperarUbicacion();
+      await vista.display(posicion);
+      if (this.vista !== vista || this.libro !== libro) return;
+      await ubicacionEstable;
     }
+    this.cancelarEsperaUbicacion = null;
     if (this.vista !== vista || this.libro !== libro) return;
     this.aplicarAnotaciones();
   }
