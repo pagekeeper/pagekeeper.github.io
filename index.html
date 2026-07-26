@@ -563,6 +563,27 @@
       <h1 tabindex="-1" data-foco-vista data-i18n="settings">Ajustes</h1>
     </header>
     <main class="contenido" tabindex="-1" data-contenido-vista>
+      <!-- Los ajustes van por pestañas: en una sola lista, la nube, la
+           biblioteca, el lector y las copias se mezclaban y había que
+           recorrerla entera para encontrar cualquier cosa. -->
+      <div class="pestanas-ajustes" role="tablist" aria-label="Secciones de los ajustes"
+        data-i18n-aria-label="settingsSections">
+        <button type="button" id="pestana-ajustes-nube" class="pestana-ajustes" role="tab"
+          aria-controls="panel-ajustes-nube" aria-selected="true" data-panel="nube"
+          data-i18n="webdavShort">Nube</button>
+        <button type="button" id="pestana-ajustes-biblioteca" class="pestana-ajustes" role="tab"
+          aria-controls="panel-ajustes-biblioteca" aria-selected="false" tabindex="-1"
+          data-panel="biblioteca" data-i18n="library">Biblioteca</button>
+        <button type="button" id="pestana-ajustes-lector" class="pestana-ajustes" role="tab"
+          aria-controls="panel-ajustes-lector" aria-selected="false" tabindex="-1"
+          data-panel="lector" data-i18n="reader">Lector</button>
+        <button type="button" id="pestana-ajustes-datos" class="pestana-ajustes" role="tab"
+          aria-controls="panel-ajustes-datos" aria-selected="false" tabindex="-1"
+          data-panel="datos" data-i18n="settingsData">Datos</button>
+      </div>
+
+      <div id="panel-ajustes-nube" class="panel-ajustes" role="tabpanel"
+        aria-labelledby="pestana-ajustes-nube" tabindex="0">
       <form id="formulario-webdav" class="tarjeta">
         <h2 data-i18n="webdav">Nube (WebDAV)</h2>
         <p class="ayuda" data-i18n-html="webdavHelpHtml">Compatible con Nextcloud, ownCloud y cualquier servidor WebDAV. Los PDF de la carpeta indicada aparecerán en tu biblioteca y la posición de lectura se sincronizará entre todos tus dispositivos. ¿No sabes qué poner aquí? <a href="#" id="enlace-ayuda-ajustes">Lee la ayuda</a>.</p>
@@ -585,7 +606,10 @@
         </div>
         <div id="resultado-prueba" class="estado" role="status"></div>
       </form>
+      </div>
 
+      <div id="panel-ajustes-biblioteca" class="panel-ajustes" role="tabpanel"
+        aria-labelledby="pestana-ajustes-biblioteca" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="library">Biblioteca</h2>
         <label class="casilla">
@@ -594,16 +618,71 @@
         </label>
         <p class="ayuda" data-i18n="showContinueReadingHelp">El recuadro con tus últimas lecturas, encima de la biblioteca. Al ocultarlo, los libros siguen donde estaban y conservan su página.</p>
       </div>
+      </div>
+
+      <div id="panel-ajustes-lector" class="panel-ajustes" role="tabpanel"
+        aria-labelledby="pestana-ajustes-lector" tabindex="0">
+      <div class="tarjeta">
+        <h2 data-i18n="epubTextSettings">Texto de los EPUB</h2>
+        <p class="ayuda" data-i18n="epubTextSettingsHelp">Cómo se compone el texto de los libros EPUB (los PDF llegan ya maquetados y no admiten estos cambios). Los mismos ajustes están a mano mientras lees, en el botón de la letra.</p>
+        <div class="rejilla-ajustes">
+          <label class="campo-ajuste"><span data-i18n="fontFamily">Tipo de letra</span>
+            <select id="fuente-epub-ajustes">
+              <option value="libro" data-i18n="bookFont">La del libro</option>
+              <option value="serif" data-i18n="serifFont">Con serifa</option>
+              <option value="sans" data-i18n="sansFont">Sin serifa</option>
+            </select>
+          </label>
+          <label class="campo-ajuste"><span data-i18n="hyphenation">Partir palabras</span>
+            <select id="guionado-epub-ajustes">
+              <option value="auto" data-i18n="hyphenationAuto">Sí, al final de línea</option>
+              <option value="libro" data-i18n="hyphenationBook">Como el libro</option>
+              <option value="nunca" data-i18n="hyphenationNever">No partir</option>
+            </select>
+          </label>
+          <label class="campo-ajuste"><span data-i18n="textAlignment">Alineación</span>
+            <select id="alineacion-epub-ajustes">
+              <option value="libro" data-i18n="bookAlignment">La del libro</option>
+              <option value="izquierda" data-i18n="unjustifiedAlignment">Sin justificar</option>
+            </select>
+          </label>
+          <label class="campo-ajuste"><span data-i18n="lineSpacing">Interlineado</span>
+            <select id="interlineado-epub-ajustes">
+              <option value="libro" data-i18n="bookSpacing">El del libro</option>
+              <option value="1.3" data-i18n="spacingCompact">Compacto</option>
+              <option value="1.5" data-i18n="spacingNormal">Normal</option>
+              <option value="1.8" data-i18n="spacingWide">Amplio</option>
+              <option value="2.1" data-i18n="spacingWider">Muy amplio</option>
+            </select>
+          </label>
+        </div>
+        <div class="cabecera-margenes">
+          <label for="margen-epub-ajustes" data-i18n="marginSide">Margen lateral</label>
+          <output id="valor-margen-ajustes" for="margen-epub-ajustes">10 % por lado</output>
+        </div>
+        <input id="margen-epub-ajustes" type="range" min="0" max="30" step="1" value="10">
+        <div class="extremos-margen" aria-hidden="true">
+          <span data-i18n="noMargin">Sin margen</span><span data-i18n="moreMargin">Más margen</span>
+        </div>
+        <div class="fila-botones">
+          <button id="btn-restablecer-texto-ajustes" type="button" class="btn-secundario">
+            <span data-i18n="resetTextSettings">Restablecer el texto</span>
+          </button>
+        </div>
+      </div>
 
       <div class="tarjeta">
-        <h2 data-i18n="reader">Lector</h2>
+        <h2 data-i18n="readerScreen">En pantalla</h2>
         <label class="casilla">
           <input type="checkbox" id="casilla-barra-estado" checked>
           <span data-i18n="showStatusBar">Mostrar la barra de datos al pie</span>
         </label>
         <p class="ayuda" data-i18n="showStatusBarHelp">La línea del final del lector con la página del capítulo, la pantalla del libro, el porcentaje leído y el tiempo que queda. Al ocultarla se gana ese poco de alto para el texto.</p>
       </div>
+      </div>
 
+      <div id="panel-ajustes-datos" class="panel-ajustes" role="tabpanel"
+        aria-labelledby="pestana-ajustes-datos" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
         <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
@@ -626,6 +705,7 @@
             data-i18n="viewLog">Ver el registro</button>
         </div>
         <div id="resumen-registro" class="estado" role="status"></div>
+      </div>
       </div>
 
     </main>
@@ -842,7 +922,9 @@
           <li><strong>Ajustes de texto (solo EPUB):</strong> el botón de la
           letra permite elegir el tipo de letra (la del libro, con serifa o
           sin serifa), la alineación, el interlineado, el margen de ambos lados
-          y si se parten las palabras al final de línea. Partirlas viene puesto:
+          y si se parten las palabras al final de línea. Los mismos ajustes
+          están en <em>⚙️ Ajustes → Lector</em>, para verlos y cambiarlos sin
+          abrir un libro; los dos sitios enseñan siempre lo mismo. Partirlas viene puesto:
           en pantalla estrecha, y más con el texto justificado, es lo que evita
           los huecos grandes entre palabras. Lo hace el navegador según el
           idioma del libro, así que puede no estar disponible para todos los

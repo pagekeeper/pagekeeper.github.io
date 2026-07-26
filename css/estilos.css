@@ -1047,6 +1047,50 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: var(--fondo-tarjeta); color: var(--texto);
   box-shadow: 0 10px 32px var(--sombra);
 }
+/* ── Ajustes por pestañas ──
+   La lista entera de ajustes obligaba a recorrerlo todo para dar con una
+   casilla. Las pestañas caben en una línea en cualquier pantalla; si no,
+   se deslizan. */
+.pestanas-ajustes {
+  display: flex; gap: 0.25rem; overflow-x: auto; scrollbar-width: none;
+  padding: 0.25rem; border: 1px solid var(--borde); border-radius: 999px;
+  background: var(--fondo-tarjeta);
+}
+.pestanas-ajustes::-webkit-scrollbar { display: none; }
+.pestana-ajustes {
+  flex: 1; white-space: nowrap;
+  padding: 0.5rem 0.85rem; border: 0; border-radius: 999px;
+  background: transparent; color: var(--texto-suave);
+  font: inherit; font-size: 0.92rem; font-weight: 650; cursor: pointer;
+}
+.pestana-ajustes:hover { background: color-mix(in srgb, var(--texto) 8%, transparent); }
+.pestana-ajustes[aria-selected="true"] {
+  background: var(--acento-oscuro); color: var(--sobre-acento);
+}
+.pestana-ajustes:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
+.panel-ajustes { display: flex; flex-direction: column; gap: 1rem; }
+.panel-ajustes[hidden] { display: none; }
+.panel-ajustes:focus-visible { outline: none; }
+/* Los desplegables del texto, en dos columnas cuando hay sitio: en una sola
+   fila por ajuste, la tarjeta se hacía muy alta. */
+.rejilla-ajustes {
+  display: grid; gap: 0.4rem 1.25rem;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+.campo-ajuste {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
+  font-size: 0.95rem;
+}
+.campo-ajuste > span { font-weight: 650; }
+.campo-ajuste select {
+  background: var(--fondo-tarjeta); color: var(--texto);
+  border: 1px solid var(--borde-campo, var(--borde)); border-radius: 0.5rem;
+  padding: 0.35rem 0.5rem; font: inherit; cursor: pointer;
+}
+.campo-ajuste select:focus-visible { outline: 2px solid var(--acento); }
+#margen-epub-ajustes { width: 100%; accent-color: var(--acento-oscuro); cursor: pointer; }
+#valor-margen-ajustes { color: var(--acento); font-size: 0.9rem; white-space: nowrap; }
+
 .campo-texto-epub {
   display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
   margin-bottom: 0.8rem; font-size: 0.95rem;

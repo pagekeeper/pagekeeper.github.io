@@ -141,9 +141,15 @@ function reflowEpub() {
 
 function aplicarMargenEpub(valor = margenEpubActual()) {
   $('contenedor-epub').style.setProperty('--margen-texto', `${valor}%`);
-  $('margen-epub').value = String(valor);
-  $('margen-epub').setAttribute('aria-valuetext', t('epubMargin', { value: valor }));
-  $('valor-margen').textContent = t('epubMargin', { value: valor });
+  const etiqueta = t('epubMargin', { value: valor });
+  for (const mando of mandosDe('margen-epub')) {
+    mando.value = String(valor);
+    mando.setAttribute('aria-valuetext', etiqueta);
+  }
+  for (const id of ['valor-margen', 'valor-margen-ajustes']) {
+    const salida = $(id);
+    if (salida) salida.textContent = etiqueta;
+  }
   reflowEpub();
 }
 
@@ -627,7 +633,48 @@ function crearCliente() {
   actualizarAccionesArchivos();
 }
 
-function abrirAjustes(registrar = true) {
+// ── Pestañas de los ajustes ──
+//
+// La nube, la biblioteca, el lector y las copias no se parecen en nada y solo
+// se toca una cosa cada vez: separarlas evita recorrer la lista entera. La
+// última abierta se recuerda, que quien viene a cambiar el texto suele volver.
+const CLAVE_PESTANA_AJUSTES = 'lector.pestanaAjustes';
+
+function pestanasAjustes() {
+  return [...document.querySelectorAll('.pestana-ajustes')];
+}
+
+function mostrarPestanaAjustes(nombre, mover = false) {
+  const pestanas = pestanasAjustes();
+  const elegida = pestanas.find((pestana) => pestana.dataset.panel === nombre) ?? pestanas[0];
+  if (!elegida) return;
+  for (const pestana of pestanas) {
+    const activa = pestana === elegida;
+    pestana.setAttribute('aria-selected', String(activa));
+    pestana.tabIndex = activa ? 0 : -1;
+    $(`panel-ajustes-${pestana.dataset.panel}`).hidden = !activa;
+  }
+  localStorage.setItem(CLAVE_PESTANA_AJUSTES, elegida.dataset.panel);
+  if (mover) elegida.focus();
+}
+
+for (const pestana of pestanasAjustes()) {
+  pestana.addEventListener('click', () => mostrarPestanaAjustes(pestana.dataset.panel));
+  pestana.addEventListener('keydown', (evento) => {
+    const pestanas = pestanasAjustes();
+    const indice = pestanas.indexOf(pestana);
+    const salto = { ArrowRight: 1, ArrowLeft: -1 }[evento.key];
+    let destino = null;
+    if (salto) destino = pestanas[(indice + salto + pestanas.length) % pestanas.length];
+    else if (evento.key === 'Home') destino = pestanas[0];
+    else if (evento.key === 'End') destino = pestanas.at(-1);
+    if (!destino) return;
+    evento.preventDefault();
+    mostrarPestanaAjustes(destino.dataset.panel, true);
+  });
+}
+
+function abrirAjustes(registrar = true, pestana = null) {
   const config = cargarConfig() ?? {};
   $('campo-url').value = config.url ?? '';
   $('campo-usuario').value = config.usuario ?? '';
@@ -635,6 +682,9 @@ function abrirAjustes(registrar = true) {
   $('resultado-prueba').textContent = '';
   $('resultado-prueba').className = 'estado';
   pintarResumenRegistro();
+  pintarAjustesTexto();
+  aplicarMargenEpub();
+  mostrarPestanaAjustes(pestana ?? localStorage.getItem(CLAVE_PESTANA_AJUSTES) ?? 'nube');
   mostrarVista('ajustes');
   if (registrar) registrarVista('ajustes');
 }
@@ -682,10 +732,11 @@ $('btn-borrar-config').addEventListener('click', () => {
   volverALaBiblioteca();
 });
 
-$('btn-ajustes').addEventListener('click', abrirAjustes);
+$('btn-ajustes').addEventListener('click', () => abrirAjustes());
+// Quien viene de «configura tu nube» busca eso, no la pestaña donde lo dejó.
 $('enlace-configurar').addEventListener('click', (evento) => {
   evento.preventDefault();
-  abrirAjustes();
+  abrirAjustes(true, 'nube');
 });
 // El aviso de «sin servidor» se puede cerrar: quien no usa nube no tiene por
 // qué verlo siempre. La nube sigue accesible desde los ajustes.
@@ -1223,7 +1274,7 @@ document.addEventListener('click', (evento) => {
   const enlace = evento.target.closest('#enlace-configurar, #enlace-ayuda-aviso, #enlace-ayuda-ajustes');
   if (!enlace) return;
   evento.preventDefault();
-  if (enlace.id === 'enlace-configurar') abrirAjustes(); else abrirAyuda();
+  if (enlace.id === 'enlace-configurar') abrirAjustes(true, 'nube'); else abrirAyuda();
 });
 $('btn-cerrar-ajustes').addEventListener('click', () => {
   if (history.state?.[ESTADO_VISTA] === 'ajustes') history.back();
@@ -6181,13 +6232,62 @@ function cerrarPanelTexto() {
   $('btn-texto').setAttribute('aria-expanded', 'false');
 }
 
+// Los ajustes de texto de los EPUB se manejan desde dos sitios: el botón de la
+// letra, para tocarlos mientras se lee, y Ajustes → Lector, para encontrarlos
+// sin abrir un libro. Se describen una vez y se enlazan los dos mandos, que
+// siempre enseñan lo mismo porque leen del mismo sitio.
+const AJUSTES_TEXTO_EPUB = [
+  {
+    id: 'fuente-epub', clave: CLAVE_FUENTE_EPUB, inicial: 'libro',
+    leer: () => fuenteEpubGuardada(),
+    aplicar: (valor) => lectorEpub.cambiarFuente(valor),
+  },
+  {
+    id: 'guionado-epub', clave: CLAVE_GUIONADO_EPUB, inicial: 'auto',
+    leer: () => guionadoEpubGuardado(),
+    aplicar: (valor) => lectorEpub.cambiarGuionado(valor),
+  },
+  {
+    id: 'alineacion-epub', clave: CLAVE_ALINEACION_EPUB, inicial: 'libro',
+    leer: () => alineacionEpubGuardada(),
+    aplicar: (valor) => lectorEpub.cambiarAlineacion(valor),
+  },
+  {
+    id: 'interlineado-epub', clave: CLAVE_INTERLINEADO_EPUB, inicial: 'libro',
+    leer: () => {
+      const valor = interlineadoEpubGuardado();
+      return valor === null ? 'libro' : String(valor);
+    },
+    aplicar: (valor) => lectorEpub.cambiarInterlineado(valor === 'libro' ? null : valor),
+  },
+];
+
+// Los dos mandos de un mismo ajuste: el del lector y el de Ajustes.
+function mandosDe(id) {
+  return [$(id), $(`${id}-ajustes`)].filter(Boolean);
+}
+
 // Refleja en los selectores los valores guardados en este dispositivo.
 function pintarAjustesTexto() {
-  $('fuente-epub').value = fuenteEpubGuardada();
-  const interlineado = interlineadoEpubGuardado();
-  $('interlineado-epub').value = interlineado === null ? 'libro' : String(interlineado);
-  $('alineacion-epub').value = alineacionEpubGuardada();
-  $('guionado-epub').value = guionadoEpubGuardado();
+  for (const ajuste of AJUSTES_TEXTO_EPUB) {
+    const valor = ajuste.leer();
+    for (const mando of mandosDe(ajuste.id)) mando.value = valor;
+  }
+}
+
+for (const ajuste of AJUSTES_TEXTO_EPUB) {
+  for (const mando of mandosDe(ajuste.id)) {
+    mando.addEventListener('change', (evento) => {
+      const valor = evento.target.value;
+      // Lo que viene de fábrica no se guarda: así una versión futura puede
+      // cambiar el valor de partida sin arrastrar el antiguo.
+      if (valor === ajuste.inicial) localStorage.removeItem(ajuste.clave);
+      else localStorage.setItem(ajuste.clave, valor);
+      ajuste.aplicar(valor);
+      pintarAjustesTexto(); // el otro mando enseña lo mismo
+      reflowEpub();
+    });
+  }
 }
 
 $('btn-texto').addEventListener('click', () => {
@@ -6201,56 +6301,28 @@ $('btn-texto').addEventListener('click', () => {
   }
 });
 
-$('fuente-epub').addEventListener('change', (evento) => {
-  localStorage.setItem(CLAVE_FUENTE_EPUB, evento.target.value);
-  lectorEpub.cambiarFuente(evento.target.value);
-  reflowEpub();
-});
+for (const mando of mandosDe('margen-epub')) {
+  mando.addEventListener('input', (evento) => {
+    const valor = Number(evento.target.value);
+    localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
+    aplicarMargenEpub(valor);
+  });
+}
 
-$('interlineado-epub').addEventListener('change', (evento) => {
-  const valor = evento.target.value;
-  if (valor === 'libro') localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
-  else localStorage.setItem(CLAVE_INTERLINEADO_EPUB, valor);
-  lectorEpub.cambiarInterlineado(valor === 'libro' ? null : valor);
-  reflowEpub();
-});
-
-$('alineacion-epub').addEventListener('change', (evento) => {
-  const valor = evento.target.value;
-  if (valor === 'libro') localStorage.removeItem(CLAVE_ALINEACION_EPUB);
-  else localStorage.setItem(CLAVE_ALINEACION_EPUB, valor);
-  lectorEpub.cambiarAlineacion(valor);
-  reflowEpub();
-});
-
-$('guionado-epub').addEventListener('change', (evento) => {
-  const valor = evento.target.value;
-  if (valor === 'auto') localStorage.removeItem(CLAVE_GUIONADO_EPUB);
-  else localStorage.setItem(CLAVE_GUIONADO_EPUB, valor);
-  lectorEpub.cambiarGuionado(valor);
-  reflowEpub();
-});
-
-$('margen-epub').addEventListener('input', (evento) => {
-  const valor = Number(evento.target.value);
-  localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
-  aplicarMargenEpub(valor);
-});
-
-$('btn-restablecer-texto').addEventListener('click', () => {
+function restablecerAjustesTexto() {
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
-  localStorage.removeItem(CLAVE_FUENTE_EPUB);
-  localStorage.removeItem(CLAVE_INTERLINEADO_EPUB);
-  localStorage.removeItem(CLAVE_ALINEACION_EPUB);
-  localStorage.removeItem(CLAVE_GUIONADO_EPUB);
+  for (const ajuste of AJUSTES_TEXTO_EPUB) {
+    localStorage.removeItem(ajuste.clave);
+    ajuste.aplicar(ajuste.leer());
+  }
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
   pintarAjustesTexto();
-  lectorEpub.cambiarFuente('libro');
-  lectorEpub.cambiarInterlineado(null);
-  lectorEpub.cambiarAlineacion('libro');
-  lectorEpub.cambiarGuionado('auto');
   reflowEpub();
-});
+}
+
+for (const id of ['btn-restablecer-texto', 'btn-restablecer-texto-ajustes']) {
+  $(id)?.addEventListener('click', restablecerAjustesTexto);
+}
 
 document.addEventListener('click', (evento) => {
   if (!$('control-texto').contains(evento.target)) cerrarPanelTexto();
