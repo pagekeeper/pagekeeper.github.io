@@ -25,7 +25,10 @@ libros y sincronizar el progreso de lectura.
 - ▶️ **Continuar leyendo**: al abrir la aplicación, el último libro aparece
   destacado; el recuadro entero se puede ocultar desde Ajustes. Los demás recientes se pueden desplegar y quitar individualmente;
   vuelven a aparecer al abrirlos de nuevo. Los terminados y los archivos que ya
-  no están disponibles se excluyen automáticamente.
+  no están disponibles se excluyen automáticamente. El menú «⋯» de cada ficha
+  ofrece las mismas acciones que en la biblioteca, según de dónde venga el
+  libro: renombrar, mover, subir a la nube o guardar en el dispositivo, dejarlo
+  disponible sin conexión, descargar y borrar.
 - 🗂️ **Biblioteca organizada**: permite ordenar por lectura reciente, título,
   autor o progreso; filtrar por pendientes, en lectura y terminados; y marcar
   manualmente cualquier libro como terminado o quitar la etiqueta pulsándola.

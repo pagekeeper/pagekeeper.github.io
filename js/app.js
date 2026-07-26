@@ -1361,13 +1361,13 @@ async function cargarBiblioteca() {
     const cantidadLocales = await promesaLocales;
     mostrarLibroEjemplo(!rutaNube && cantidadLocales === 0 && carpetas.length === 0 && libros.length === 0);
     await pintarContinuarLeyendo({
-      idsRemotosDisponibles: new Set(libros.map((libro) => idRemoto(libro.nombre))),
+      librosRemotosDisponibles: new Map(libros.map((libro) => [idRemoto(libro.nombre), libro])),
     });
     generarPortadasFaltantes(libros.map((libro) => ({ ...libro, nombre: idRemoto(libro.nombre) })));
   } catch (error) {
     const copias = await promesaCopias;
     await pintarContinuarLeyendo({
-      idsRemotosDisponibles: new Set(copias.map((copia) => copia.id)),
+      librosRemotosDisponibles: new Map(copias.map((copia) => [copia.id, copia])),
       comprobarRemotos: false,
     });
     const bibliotecaOffline = almacen.bibliotecaDeCopias(copias, rutaNube);
@@ -1557,7 +1557,7 @@ $('btn-mas-recientes').addEventListener('click', () => {
 });
 
 async function pintarContinuarLeyendo({
-  idsRemotosDisponibles = new Set(),
+  librosRemotosDisponibles = new Map(),
   comprobarRemotos = Boolean(cliente),
 } = {}) {
   const version = ++versionContinuarLeyendo;
@@ -1580,28 +1580,49 @@ async function pintarContinuarLeyendo({
   const locales = await almacen.listarLibros().catch(() => []);
   if (version !== versionContinuarLeyendo) return;
   const localesPorId = new Map(locales.map((libro) => [libro.id, libro]));
+  // Los datos del libro en la nube (tamaño, ETag) hacen falta tanto para saber
+  // si sigue ahí como para las acciones del menú. Los de la carpeta que está
+  // abierta ya vienen dados; los demás salen del listado de su carpeta, que se
+  // guarda por si varios recientes comparten sitio.
+  const listadosNube = new Map();
+  const libroRemotoDe = async (id) => {
+    const conocido = librosRemotosDisponibles.get(id);
+    if (conocido) return conocido;
+    if (!comprobarRemotos) return null;
+    const carpeta = carpetaDeId(id);
+    if (!listadosNube.has(carpeta)) {
+      listadosNube.set(carpeta, cliente.listar(carpeta)
+        .then(({ libros }) => new Map(libros.map((libro) => [libro.nombre, libro])))
+        .catch(() => new Map()));
+    }
+    return (await listadosNube.get(carpeta)).get(nombreDeId(id)) ?? null;
+  };
   const maximo = maximoRecientes();
   for (const reciente of recientes) {
     if (lista.children.length >= maximo) break;
     let nombre;
     let tamano = 0;
     let alAbrir;
+    let acciones;
     if (reciente.id.startsWith('local:')) {
       const libro = localesPorId.get(reciente.id);
       if (!libro) continue;
       nombre = libro.nombre;
       tamano = libro.tamano;
       alAbrir = () => abrirLibroLocal(libro);
+      acciones = accionesLibroLocal(libro);
     } else {
       if (!cliente) continue;
-      if (!idsRemotosDisponibles.has(reciente.id)) {
-        if (!comprobarRemotos) continue;
-        const existe = await cliente.existe(reciente.id).catch(() => false);
-        if (version !== versionContinuarLeyendo) return;
-        if (!existe) continue;
-      }
-      nombre = nombreDeId(reciente.id);
-      alAbrir = () => abrirLibroRemoto(reciente.id);
+      const libro = await libroRemotoDe(reciente.id);
+      if (version !== versionContinuarLeyendo) return;
+      if (!libro) continue;
+      nombre = libro.nombre ?? nombreDeId(reciente.id);
+      tamano = libro.tamano ?? 0;
+      alAbrir = () => abrirLibroRemoto(reciente.id, libro);
+      const copia = await almacen.obtenerInfoCopiaRemota(cliente.base, reciente.id)
+        .catch(() => null);
+      if (version !== versionContinuarLeyendo) return;
+      acciones = accionesLibroRemoto(reciente.id, libro, copia, !comprobarRemotos);
     }
     const fila = crearFilaLibro({
       id: reciente.id,
@@ -1612,6 +1633,9 @@ async function pintarContinuarLeyendo({
         tipo: reciente.id.startsWith('local:') ? 'local' : 'webdav', id: reciente.id, tamano,
       }),
       alAbrir,
+      ...acciones,
+      // El círculo de «terminado» no cabe en la ficha destacada, que ya lleva la
+      // «x» de quitar; la acción sigue estando en el menú.
       mostrarTerminado: false,
     });
     fila.dataset.destacado = 'true';
@@ -1773,6 +1797,38 @@ function accionDescargarCarpeta(alPulsar) {
   };
 }
 
+// Las acciones del menú «⋯» de un libro, aparte de la fila que lo muestra: la
+// biblioteca y «Continuar leyendo» pintan fichas distintas, pero el libro es el
+// mismo y ofrece lo mismo en las dos.
+function accionesLibroLocal(libro) {
+  return {
+    alRenombrar: () => renombrarLibro(libro.id),
+    // Subir a la nube: solo si hay servidor configurado.
+    alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
+    alMover: () => abrirDialogoMover({ id: libro.id, nombre: libro.nombre }, 'local'),
+    alDescargar: () => descargarLibroLocal(libro),
+    alBorrar: () => borrarLibroLocal(libro),
+  };
+}
+
+// `soloCopias`: se está mirando la nube sin conexión, así que solo vale lo que
+// no necesita servidor.
+function accionesLibroRemoto(id, libro, copia, soloCopias = false) {
+  const desactualizada = !soloCopias && almacen.copiaRemotaDesactualizada(copia, libro);
+  return {
+    alRenombrar: () => renombrarLibro(id),
+    alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
+    alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
+    alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
+    alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
+    alSinConexion: copia && !desactualizada
+      ? () => quitarCopiaSinConexion(id, libro.nombre)
+      : () => guardarCopiaSinConexion(id, libro),
+    sinConexion: Boolean(copia),
+    copiaDesactualizada: desactualizada,
+  };
+}
+
 // Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
   id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
@@ -1930,16 +1986,14 @@ function crearFilaLibro({
   }).catch(() => null);
 
   const acciones = [];
-  // Marcar la lectura como terminada vive en el círculo de la ficha, pero en
-  // la cuadrícula ese círculo solo aparece al pasar el ratón: en el menú está
-  // siempre a mano.
-  if (mostrarTerminado) {
-    acciones.push({
-      icono: 'circle-check',
-      etiqueta: t(estadoLectura === 'terminados' ? 'actionMarkUnfinished' : 'actionMarkFinished'),
-      alPulsar: () => alternarTerminado(id, estadoLectura !== 'terminados'),
-    });
-  }
+  // Marcar la lectura como terminada vive en el círculo de la ficha, pero ese
+  // círculo solo aparece al pasar el ratón (y en «Continuar leyendo» ni eso):
+  // en el menú está siempre a mano.
+  acciones.push({
+    icono: 'circle-check',
+    etiqueta: t(estadoLectura === 'terminados' ? 'actionMarkUnfinished' : 'actionMarkFinished'),
+    alPulsar: () => alternarTerminado(id, estadoLectura !== 'terminados'),
+  });
   acciones.push({
     icono: 'notebook-pen',
     etiqueta: t('actionBookNote'),
@@ -2658,7 +2712,6 @@ function pintarListaRemota(carpetas, libros, copias = [], { soloCopias = false }
 function crearFilaLibroRemoto(libro, copia, soloCopias = false) {
   const carpeta = libro.carpeta ?? '';
   const id = carpeta ? `${carpeta}/${libro.nombre}` : idRemoto(libro.nombre);
-  const desactualizada = !soloCopias && almacen.copiaRemotaDesactualizada(copia, libro);
   return crearFilaLibro({
     id,
     carpeta,
@@ -2669,16 +2722,7 @@ function crearFilaLibroRemoto(libro, copia, soloCopias = false) {
       tipo: 'webdav', id, tamano: libro.tamano,
     }),
     alAbrir: () => abrirLibroRemoto(id, libro),
-    alRenombrar: () => renombrarLibro(id),
-    alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
-    alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
-    alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
-    alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
-    alSinConexion: copia && !desactualizada
-      ? () => quitarCopiaSinConexion(id, libro.nombre)
-      : () => guardarCopiaSinConexion(id, libro),
-    sinConexion: Boolean(copia),
-    copiaDesactualizada: desactualizada,
+    ...accionesLibroRemoto(id, libro, copia, soloCopias),
   });
 }
 
@@ -3430,12 +3474,7 @@ async function cargarLibrosLocales() {
         tipo: 'local', id: libro.id, tamano: libro.tamano,
       }),
       alAbrir: () => abrirLibroLocal(libro),
-      alRenombrar: () => renombrarLibro(libro.id),
-      // Subir a la nube: solo si hay servidor configurado.
-      alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
-      alMover: () => abrirDialogoMover({ id: libro.id, nombre: libro.nombre }, 'local'),
-      alDescargar: () => descargarLibroLocal(libro),
-      alBorrar: () => borrarLibroLocal(libro),
+      ...accionesLibroLocal(libro),
     });
     // El nombre de la carpeta cuenta como texto buscable: «novela negra»
     // encuentra lo que hay dentro de esa carpeta.
