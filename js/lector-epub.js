@@ -204,6 +204,7 @@ export class LectorEpub {
     this.cfiAplicados = [];
     this.rangosNotas = new WeakMap();
     this.notaBajoPuntero = null;
+    this.cancelarEsperaUbicacion = null;
 
     // epub.js solo se entera de los cambios de tamaño de la ventana; al abrir
     // o cerrar la barra lateral cambia el contenedor, así que se le avisa.
@@ -281,6 +282,19 @@ export class LectorEpub {
     this.contenedor.replaceChildren();
     const continuo = this.modo === 'continuo';
     const libro = this.libro;
+    let ubicacionInicialCompletada = false;
+    let resolverUbicacionInicial = null;
+    const completarUbicacionInicial = () => {
+      if (ubicacionInicialCompletada) return;
+      ubicacionInicialCompletada = true;
+      resolverUbicacionInicial?.();
+    };
+    const ubicacionInicial = posicion
+      ? new Promise((resolver) => {
+        resolverUbicacionInicial = resolver;
+        this.cancelarEsperaUbicacion = completarUbicacionInicial;
+      })
+      : null;
     const vista = libro.renderTo(this.contenedor, {
       width: '100%',
       height: '100%',
@@ -308,9 +322,13 @@ export class LectorEpub {
     vista.on('relocated', (lugar) => {
       // destroy() no cancela necesariamente los eventos que epub.js ya dejó
       // en cola. Si entretanto se abrió otra vista, este CFI es obsoleto.
-      if (this.vista !== vista || this.libro !== libro) return;
+      if (this.vista !== vista || this.libro !== libro) {
+        completarUbicacionInicial();
+        return;
+      }
       if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
       this.notificar();
+      completarUbicacionInicial();
       this.ocultarNotaHover();
       this.programarIconosNotas();
     });
@@ -333,6 +351,14 @@ export class LectorEpub {
       if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
     });
     await vista.display(posicion ?? undefined);
+    if (this.vista !== vista || this.libro !== libro) return;
+    // epub.js resuelve display(CFI) antes de emitir `relocated`. La aplicación
+    // mantiene protegida la restauración mientras `abrir()` no haya terminado:
+    // esperar aquí evita que ese evento tardío se guarde como una lectura nueva.
+    if (ubicacionInicial) await ubicacionInicial;
+    if (this.cancelarEsperaUbicacion === completarUbicacionInicial) {
+      this.cancelarEsperaUbicacion = null;
+    }
     if (this.vista !== vista || this.libro !== libro) return;
     this.aplicarAnotaciones();
   }
@@ -912,6 +938,8 @@ export class LectorEpub {
 
   cerrar() {
     clearTimeout(this.tempPantallas);
+    this.cancelarEsperaUbicacion?.();
+    this.cancelarEsperaUbicacion = null;
     this.pantallaCapitulo = 0;
     this.pantallasCapitulo = 0;
     this.muestrasPantalla.clear();

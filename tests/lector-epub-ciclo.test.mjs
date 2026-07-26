@@ -9,7 +9,11 @@ function diferida() {
   return { promesa, resolver };
 }
 
-function vistaFalsa({ alAplicarTema = null, alMostrar = null } = {}) {
+function vistaFalsa({
+  alAplicarTema = null,
+  alMostrar = null,
+  reubicacion = Promise.resolve(),
+} = {}) {
   const eventos = {};
   return {
     eventos,
@@ -24,7 +28,12 @@ function vistaFalsa({ alAplicarTema = null, alMostrar = null } = {}) {
       highlight() {},
     },
     on(nombre, manejador) { eventos[nombre] = manejador; },
-    async display() { alMostrar?.(); },
+    async display(destino) {
+      alMostrar?.();
+      reubicacion.then((cfi) => {
+        eventos.relocated?.({ start: { cfi: cfi ?? destino } });
+      });
+    },
     getContents() { return []; },
     destroy() {},
   };
@@ -66,6 +75,29 @@ test('el tema del EPUB se aplica antes de restaurar el CFI guardado', async () =
   assert.equal(lector.temaPagina, 'sepia');
   assert.ok(orden.indexOf('tema') >= 0);
   assert.ok(orden.indexOf('tema') < orden.indexOf('cfi'));
+});
+
+test('abrir espera la reubicación tardía del CFI antes de terminar la restauración', async () => {
+  const pendiente = diferida();
+  const vista = vistaFalsa({ reubicacion: pendiente.promesa });
+  prepararEntorno([libroFalso({ vista })]);
+  const lector = new LectorEpub({
+    contenedor: contenedorFalso(),
+    alCambiarPosicion() {},
+  });
+  let abierta = false;
+
+  const apertura = lector.abrir(new Uint8Array(), 'guardado', 'pagina', {
+    localizaciones: 'cache',
+  }).then(() => { abierta = true; });
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(abierta, false);
+  pendiente.resolver('normalizado');
+  await apertura;
+  assert.equal(abierta, true);
+  assert.equal(lector.cfi, 'normalizado');
 });
 
 function prepararEntorno(libros) {
