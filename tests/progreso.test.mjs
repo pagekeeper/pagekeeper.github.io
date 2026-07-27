@@ -3,8 +3,12 @@ import assert from 'node:assert/strict';
 
 import {
   anotarPagina,
+  ausentes,
+  conciliarLocales,
   conciliarPresencia,
+  diasDeGracia,
   DIAS_GRACIA_AUSENCIA,
+  guardarDiasDeGracia,
   guardarMarcadores,
   guardarNota,
   fusionarEntradas,
@@ -314,7 +318,11 @@ function conNube(librosRemotos = {}) {
   const cliente = {
     base: 'https://nube.test/libros',
     async leerProgreso() { return structuredClone(nube); },
-    async escribirProgreso(datos) { nube.libros = structuredClone(datos.libros); },
+    async escribirProgreso(datos) {
+      const copia = structuredClone(datos);
+      nube.libros = copia.libros;
+      if (copia.ajustes) nube.ajustes = copia.ajustes;
+    },
   };
   return { cliente, nube };
 }
@@ -429,4 +437,99 @@ test('un avistamiento posterior de otro dispositivo tumba la ausencia apuntada',
   // Pero un avistamiento anterior no dice nada de lo que pasó después.
   const vistoAntes = { ...base, presenteHasta: '2026-01-15T10:00:00.000Z' };
   assert.equal(fusionarEntradas(ausente, vistoAntes).ausenteDesde, '2026-02-01T10:00:00.000Z');
+});
+
+// ── Plazo de borrado y limpieza local ──
+
+test('el plazo de borrado se comparte con los demás dispositivos', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('libro.pdf', 3, 100);
+  assert.equal(diasDeGracia(), 30); // el de fábrica
+
+  guardarDiasDeGracia(7);
+  await sincronizar(cliente);
+
+  assert.equal(diasDeGracia(), 7);
+  assert.equal(nube.ajustes.diasGracia, 7, 'viaja en el archivo compartido');
+});
+
+test('entre dos plazos gana el último elegido, venga de donde venga', async () => {
+  const { cliente, nube } = conNube();
+  nube.ajustes = { diasGracia: 90, ajustesActualizados: '2026-03-01T10:00:00.000Z' };
+  anotarPagina('libro.pdf', 3, 100);
+  guardarDiasDeGracia(15); // ahora mismo: más reciente que el del servidor
+
+  await sincronizar(cliente);
+  assert.equal(diasDeGracia(), 15);
+  assert.equal(nube.ajustes.diasGracia, 15);
+});
+
+test('respeta el plazo elegido al decidir si toca borrar', async () => {
+  const { cliente } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  guardarDiasDeGracia(7);
+  const datos = JSON.parse(localStorage.getItem('lector.progreso'));
+  datos.libros['ido.pdf'].ausenteDesde = haceDias(10);
+  localStorage.setItem('lector.progreso', JSON.stringify(datos));
+
+  const purgados = await conciliarPresencia(new Set(), cliente);
+  assert.deepEqual(purgados, ['ido.pdf'], 'con 7 días de plazo, 10 de ausencia bastan');
+});
+
+test('con «no borrar nunca» la ausencia se apunta pero nada se borra', async () => {
+  const { cliente } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  guardarDiasDeGracia(0);
+  const datos = JSON.parse(localStorage.getItem('lector.progreso'));
+  datos.libros['ido.pdf'].ausenteDesde = haceDias(400);
+  localStorage.setItem('lector.progreso', JSON.stringify(datos));
+
+  const purgados = await conciliarPresencia(new Set(), cliente);
+  assert.deepEqual(purgados, []);
+  assert.ok(progresoDe('ido.pdf'));
+  assert.equal(ausentes()[0].borradoEl, null, 'el informe no promete ninguna fecha');
+});
+
+test('el borrado inmediato no espera al plazo', async () => {
+  const { cliente } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  await conciliarPresencia(new Set(), cliente); // solo lo marca
+  assert.ok(progresoDe('ido.pdf'));
+
+  const purgados = await conciliarPresencia(new Set(), cliente, { ahora: true });
+  assert.deepEqual(purgados, ['ido.pdf']);
+});
+
+test('el informe dice qué falta y qué día caerá', () => {
+  conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  guardarDiasDeGracia(30);
+  const datos = JSON.parse(localStorage.getItem('lector.progreso'));
+  datos.libros['ido.pdf'].ausenteDesde = '2026-03-01T10:00:00.000Z';
+  localStorage.setItem('lector.progreso', JSON.stringify(datos));
+
+  const [aviso] = ausentes();
+  assert.equal(aviso.id, 'ido.pdf');
+  assert.equal(aviso.borradoEl.slice(0, 10), '2026-03-31');
+});
+
+test('los libros locales que ya no están se limpian al momento', () => {
+  conNube();
+  anotarPagina('local:borrado.epub:100', 5, 100);
+  anotarPagina('local:sigue.epub:200', 8, 100);
+  anotarPagina('nube.epub', 8, 100);
+
+  const purgados = conciliarLocales(['local:sigue.epub:200']);
+
+  assert.deepEqual(purgados, ['local:borrado.epub:100']);
+  assert.ok(progresoDe('local:sigue.epub:200'));
+  assert.ok(progresoDe('nube.epub'), 'los de la nube no se tocan aquí');
+});
+
+test('sin poder mirar la base local no se borra nada', () => {
+  conNube();
+  anotarPagina('local:libro.epub:100', 5, 100);
+
+  assert.deepEqual(conciliarLocales([], false), []);
+  assert.ok(progresoDe('local:libro.epub:100'));
 });

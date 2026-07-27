@@ -318,6 +318,15 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 .fila-botones { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
 .ayuda { font-size: 0.85rem; color: var(--texto-suave); }
+
+/* Informe de libros que ya no están (Ajustes → Biblioteca). */
+.informe-limpieza { font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.4rem; }
+.informe-limpieza p { font-size: inherit; color: var(--texto-suave); }
+.informe-limpieza .aviso-limpieza { color: var(--texto); font-weight: 600; }
+.informe-limpieza ul {
+  margin: 0; padding-left: 1.1rem; display: flex; flex-direction: column; gap: 0.25rem;
+  color: var(--texto-suave); overflow-wrap: anywhere;
+}
 .ayuda a, .tarjeta a { color: var(--acento); }
 
 /* ── Sección de ayuda ── */

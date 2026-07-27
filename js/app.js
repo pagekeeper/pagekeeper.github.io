@@ -702,6 +702,7 @@ function abrirAjustes(registrar = true, pestana = null) {
   $('resultado-prueba').className = 'estado';
   pintarResumenRegistro();
   sincronizarSelectRecientes();
+  pintarAjustesLimpieza();
   pintarAjustesTexto();
   pintarAjustesPapel();
   aplicarMargenEpub();
@@ -1555,6 +1556,98 @@ function sincronizarSelectRecientes() {
   $('cuantas-recientes').disabled = continuarDesactivado();
 }
 document.addEventListener('idioma-cambiado', sincronizarSelectRecientes);
+
+// ───────────── Ajustes: libros que ya no están ─────────────
+
+// Último recorrido de la nube, para poder borrar sin repetirlo.
+let inventarioReciente = null;
+
+function nombreCorto(id) {
+  return id.startsWith('carpeta:') ? id.slice('carpeta:'.length) : id;
+}
+
+function fechaLegible(iso) {
+  return new Date(iso).toLocaleDateString(idiomaActual(), {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+}
+
+// «1 libros» chirría: el proyecto ya tiene el par clave/claveOne para esto.
+function tContado(clave, count, extra = {}) {
+  return t(count === 1 ? `${clave}One` : clave, { count, ...extra });
+}
+
+function pintarInformeLimpieza(estado = null) {
+  const informe = $('informe-limpieza');
+  const botonBorrar = $('btn-limpiar-ahora');
+  const faltan = progreso.ausentes();
+  botonBorrar.classList.toggle('oculto', !faltan.length);
+  $('btn-comprobar-limpieza').disabled = !cliente || estado === 'comprobando';
+  informe.replaceChildren();
+  const linea = (texto, clase = '') => {
+    const p = document.createElement('p');
+    if (clase) p.className = clase;
+    p.textContent = texto;
+    informe.append(p);
+  };
+  if (estado === 'comprobando') return void linea(t('cleanupChecking'));
+  if (!cliente) return void linea(t('cleanupNoCloud'));
+  if (!faltan.length) {
+    linea(inventarioReciente
+      ? tContado('cleanupClean', inventarioReciente.ids.size)
+      : t('cleanupUnchecked'));
+  } else {
+    linea(tContado('cleanupMissing', faltan.length), 'aviso-limpieza');
+    const lista = document.createElement('ul');
+    for (const ausente of faltan) {
+      const li = document.createElement('li');
+      li.textContent = ausente.borradoEl
+        ? t('cleanupMissingOn', {
+          name: nombreCorto(ausente.id), date: fechaLegible(ausente.borradoEl),
+        })
+        : t('cleanupMissingNever', { name: nombreCorto(ausente.id) });
+      lista.append(li);
+    }
+    informe.append(lista);
+  }
+  const sueltos = inventarioReciente?.lateralesHuerfanos?.length ?? 0;
+  if (sueltos) linea(tContado('cleanupSideFiles', sueltos));
+}
+
+function pintarAjustesLimpieza() {
+  $('dias-limpieza').value = String(progreso.diasDeGracia());
+  pintarInformeLimpieza();
+}
+document.addEventListener('idioma-cambiado', () => {
+  if (!$('vista-ajustes').classList.contains('oculto')) pintarAjustesLimpieza();
+});
+
+$('dias-limpieza').addEventListener('change', (evento) => {
+  progreso.guardarDiasDeGracia(evento.target.value);
+  // El plazo es de la biblioteca, no de este aparato: viaja con el progreso.
+  if (cliente) progreso.sincronizar(cliente).catch(() => null);
+  pintarInformeLimpieza();
+});
+
+$('btn-comprobar-limpieza').addEventListener('click', async () => {
+  if (!cliente) return;
+  pintarInformeLimpieza('comprobando');
+  const purgados = await conciliarProgresoConLaNube({ forzarComprobacion: true });
+  pintarInformeLimpieza();
+  if (purgados.length) avisar(tContado('cleanupDone', purgados.length));
+});
+
+$('btn-limpiar-ahora').addEventListener('click', async () => {
+  const faltan = progreso.ausentes();
+  if (!faltan.length) return;
+  if (!confirm(tContado('cleanupConfirm', faltan.length))) return;
+  pintarInformeLimpieza('comprobando');
+  // Se vuelve a mirar el servidor antes de borrar: la lista puede ser de hace
+  // días y el libro haber vuelto a su sitio entretanto.
+  const purgados = await conciliarProgresoConLaNube({ forzarComprobacion: true, ahora: true });
+  pintarInformeLimpieza();
+  avisar(purgados.length ? tContado('cleanupDone', purgados.length) : t('cleanupNothing'));
+});
 
 $('cuantas-recientes').addEventListener('change', (evento) => {
   if (evento.target.value === 'auto') localStorage.removeItem(CLAVE_CONTINUAR_MAXIMO);
@@ -3523,11 +3616,20 @@ async function cargarLibrosLocales() {
   const lista = $('lista-locales');
   let todos = [];
   let carpetasRegistradas = [];
+  let inventarioFiable = false;
   try {
     [todos, carpetasRegistradas] = await Promise.all([
       almacen.listarLibros(), almacen.listarCarpetasLocales(),
     ]);
+    inventarioFiable = true;
   } catch { /* IndexedDB no disponible (p. ej. navegación privada) */ }
+  // Restos de un borrado que se quedó a medias: aquí el inventario manda y no
+  // hay que esperar a nada (ver progreso.conciliarLocales).
+  progreso.conciliarLocales(
+    [...todos.map((libro) => libro.id),
+      ...carpetasRegistradas.map((ruta) => idNotaCarpeta(ruta, 'local'))],
+    inventarioFiable,
+  );
 
   // Si la carpeta abierta ha dejado de existir (se borró, o la copia
   // restaurada no la traía), se vuelve a la raíz en lugar de quedarse en una
@@ -4043,36 +4145,46 @@ async function inventarioNube() {
 
 // Un lateral suelto se tira con el mismo plazo que la entrada de progreso,
 // contado sobre la fecha del propio archivo: sin libro al lado, nada va a
-// volver a escribirlo.
-function lateralCaducado(lateral) {
+// volver a escribirlo. Sin plazo (el usuario ha elegido no borrar) se queda.
+function lateralCaducado(lateral, ahora = false) {
+  const dias = progreso.diasDeGracia();
+  if (!dias) return false;
+  if (ahora) return true;
   const modificado = Date.parse(lateral.modificado ?? '');
   if (!Number.isFinite(modificado)) return false;
-  return Date.now() - modificado > progreso.DIAS_GRACIA_AUSENCIA * 24 * 60 * 60 * 1000;
+  return Date.now() - modificado > dias * 24 * 60 * 60 * 1000;
 }
 
-async function conciliarProgresoConLaNube() {
-  if (!cliente) return;
+async function conciliarProgresoConLaNube({ forzarComprobacion = false, ahora = false } = {}) {
+  if (!cliente) return [];
   const ultima = Number(localStorage.getItem(CLAVE_ULTIMA_CONCILIACION)) || 0;
-  if (Date.now() - ultima < 24 * 60 * 60 * 1000) return;
+  if (!forzarComprobacion && Date.now() - ultima < 24 * 60 * 60 * 1000) return [];
   const inventario = await inventarioNube().catch(() => null);
-  if (!inventario) return;
+  if (!inventario) return [];
+  inventarioReciente = inventario;
   localStorage.setItem(CLAVE_ULTIMA_CONCILIACION, String(Date.now()));
-  const purgados = await progreso.conciliarPresencia(inventario.ids, cliente).catch(() => []);
+  const purgados = await progreso.conciliarPresencia(inventario.ids, cliente, { ahora })
+    .catch(() => []);
   for (const id of purgados) {
     await cliente.borrarAnotaciones(id).catch(() => null);
     await anotaciones.olvidar(cliente.base, id).catch(() => null);
     await almacen.borrarCopiaRemota(cliente.base, id).catch(() => null);
     almacen.borrarPortada(id).catch(() => null);
   }
+  const borrados = [];
   for (const lateral of inventario.lateralesHuerfanos) {
-    if (!lateralCaducado(lateral)) continue;
+    if (!lateralCaducado(lateral, ahora)) continue;
     await cliente.borrarAnotaciones(lateral.id).catch(() => null);
     await anotaciones.olvidar(cliente.base, lateral.id).catch(() => null);
+    borrados.push(lateral.id);
   }
+  inventario.lateralesHuerfanos = inventario.lateralesHuerfanos
+    .filter((lateral) => !borrados.includes(lateral.id));
   if (purgados.length) {
     registro.anotar('ok', 'limpieza', `${purgados.length} libros que ya no están`);
     pintarContinuarLeyendo();
   }
+  return purgados;
 }
 
 // ───────────────────────── Abrir libros ─────────────────────────

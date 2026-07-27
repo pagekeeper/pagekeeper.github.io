@@ -665,6 +665,29 @@
         </label>
         <p class="ayuda" data-i18n="recentCountHelp">«Las que quepan» enseña tres o cuatro según el ancho de la pantalla. Las demás siguen a un toque, en «Ver más».</p>
       </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="cleanup">Libros que ya no están</h2>
+        <p class="ayuda" data-i18n="cleanupHelp">Si borras un libro fuera de PageKeeper, su marca de lectura, sus marcadores y sus notas se quedan aquí. Se echan en falta primero y se borran después, por si el libro solo estaba fuera de alcance un rato.</p>
+        <label class="campo-ajuste"><span data-i18n="cleanupDays">Cuánto se espera antes de borrarlos</span>
+          <select id="dias-limpieza">
+            <option value="0" data-i18n="cleanupNever">No borrarlos nunca</option>
+            <option value="7" data-i18n="cleanupDays7">Una semana</option>
+            <option value="15" data-i18n="cleanupDays15">Quince días</option>
+            <option value="30" data-i18n="cleanupDays30">Un mes</option>
+            <option value="60" data-i18n="cleanupDays60">Dos meses</option>
+            <option value="90" data-i18n="cleanupDays90">Tres meses</option>
+          </select>
+        </label>
+        <p class="ayuda" data-i18n="cleanupDaysHelp">Este plazo se comparte con tus otros dispositivos, para que todos borren el mismo día.</p>
+        <div id="informe-limpieza" class="informe-limpieza" role="status"></div>
+        <div class="fila-botones">
+          <button type="button" id="btn-comprobar-limpieza" class="btn-secundario"
+            data-i18n="cleanupCheck">Comprobar la nube</button>
+          <button type="button" id="btn-limpiar-ahora" class="btn-peligro oculto"
+            data-i18n="cleanupNow">Borrar ahora</button>
+        </div>
+      </div>
       </div>
 
       <div id="panel-ajustes-lector" class="panel-pestana" role="tabpanel"

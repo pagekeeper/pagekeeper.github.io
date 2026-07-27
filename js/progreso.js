@@ -10,12 +10,14 @@ const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
 const CLAVE_CAMBIOS_PENDIENTES = 'lector.progreso.cambiosPendientes';
 const VERSION_DATOS = 2;
 const FECHA_CERO = '1970-01-01T00:00:00.000Z';
+const MS_DIA = 24 * 60 * 60 * 1000;
 // Cuánto se sostiene la ausencia de un libro antes de tirar su entrada
-// (ver conciliarPresencia).
+// (ver conciliarPresencia). Lo elige el usuario y se comparte entre sus
+// dispositivos; 0 significa no borrar nunca.
 export const DIAS_GRACIA_AUSENCIA = 30;
-const MS_GRACIA_AUSENCIA = DIAS_GRACIA_AUSENCIA * 24 * 60 * 60 * 1000;
+export const DIAS_GRACIA_POSIBLES = [0, 7, 15, 30, 60, 90];
 // Cada cuánto se vuelve a anotar que un libro sigue estando.
-const MS_REFRESCO_PRESENCIA = 7 * 24 * 60 * 60 * 1000;
+const MS_REFRESCO_PRESENCIA = 7 * MS_DIA;
 
 function fechaMaxima(...fechas) {
   return fechas.filter((fecha) => typeof fecha === 'string').sort().at(-1) ?? FECHA_CERO;
@@ -549,16 +551,18 @@ function entradaAporta(entrada) {
 // «No lo veo» no es «no está»: un listado a medias, una carpeta sin permisos
 // o una ruta escrita con las tildes en otra forma Unicode harían desaparecer
 // progreso vivo. Por eso la ausencia solo se apunta (`ausenteDesde`), hay que
-// sostenerla treinta días para que la entrada caiga, y basta con que un
+// sostenerla el plazo elegido para que la entrada caiga, y basta con que un
 // dispositivo vuelva a ver el libro —la fusión hace que ver gane a no ver—
 // para que la marca se borre. Quien llama debe pasar un inventario completo:
 // si algo falló al recorrer el servidor, no hay conciliación que valga.
 //
 // Devuelve los identificadores purgados, para que la aplicación tire también
 // de lo que colgaba de ellos (anotaciones, copia sin conexión, portada).
-export async function conciliarPresencia(idsPresentes, cliente) {
+// Con `ahora` se salta la espera: es el borrado inmediato del informe.
+export async function conciliarPresencia(idsPresentes, cliente, { ahora: yaMismo = false } = {}) {
   const presentes = new Set([...idsPresentes].map((id) => id.normalize('NFC')));
   const datos = cargarLocal();
+  const dias = diasDeGracia(datos);
   const ahora = Date.now();
   const purgados = [];
   let cambiado = false;
@@ -569,7 +573,7 @@ export async function conciliarPresencia(idsPresentes, cliente) {
       // El avistamiento se refresca con cuentagotas: si se anotara en cada
       // pasada, el archivo compartido se subiría entero todos los días para
       // no decir nada nuevo. Con una semana de holgura sigue sobrando margen
-      // frente al mes de gracia.
+      // frente al plazo de gracia.
       if (!entrada.ausenteDesde
         && Number.isFinite(visto) && ahora - visto < MS_REFRESCO_PRESENCIA) continue;
       delete entrada.ausenteDesde;
@@ -583,7 +587,9 @@ export async function conciliarPresencia(idsPresentes, cliente) {
       cambiado = true;
       continue;
     }
-    if (ahora - desde < MS_GRACIA_AUSENCIA) continue;
+    // Sin plazo no se borra nada: la ausencia se sigue apuntando para poder
+    // contarla en el informe, pero la entrada se queda.
+    if (!yaMismo && (!dias || ahora - desde < dias * MS_DIA)) continue;
     delete datos.libros[id];
     descartarCambiosPendientes(id);
     purgados.push(id);
@@ -596,6 +602,68 @@ export async function conciliarPresencia(idsPresentes, cliente) {
   for (const id of purgados) marcarBorradoPendiente(id, cliente);
   await sincronizar(cliente);
   return purgados;
+}
+
+// Los libros locales viven dentro de este navegador: nadie puede borrarlos por
+// fuera, así que aquí el inventario es la verdad y no hacen falta ni marcas ni
+// esperas. Solo cabe encontrar restos de un borrado que se quedó a medias.
+// `inventarioFiable` distingue «no hay libros» de «no se pudo mirar».
+export function conciliarLocales(idsPresentes, inventarioFiable = true) {
+  if (!inventarioFiable) return [];
+  const presentes = new Set([...idsPresentes].map((id) => id.normalize('NFC')));
+  const datos = cargarLocal();
+  const purgados = [];
+  for (const id of Object.keys(datos.libros)) {
+    if (!id.startsWith('local:') || presentes.has(id.normalize('NFC'))) continue;
+    delete datos.libros[id];
+    descartarCambiosPendientes(id);
+    purgados.push(id);
+  }
+  if (purgados.length) guardarLocal(datos);
+  return purgados;
+}
+
+// ───────────── Plazo de borrado (compartido) ─────────────
+//
+// Vive en el archivo del servidor, junto a los libros, para que todos los
+// dispositivos cuenten los mismos días y borren el mismo día. Gana el último
+// que lo tocó, con su propia fecha, como el título o la nota de un libro.
+export function diasDeGracia(datos = cargarLocal()) {
+  const dias = Number(datos?.ajustes?.diasGracia);
+  return DIAS_GRACIA_POSIBLES.includes(dias) ? dias : DIAS_GRACIA_AUSENCIA;
+}
+
+export function guardarDiasDeGracia(dias) {
+  const datos = cargarLocal();
+  datos.ajustes = {
+    ...datos.ajustes,
+    diasGracia: DIAS_GRACIA_POSIBLES.includes(Number(dias)) ? Number(dias) : DIAS_GRACIA_AUSENCIA,
+    ajustesActualizados: new Date().toISOString(),
+  };
+  guardarLocal(datos);
+  return diasDeGracia(datos);
+}
+
+function fusionarAjustes(local, remoto) {
+  if (!local?.ajustesActualizados) return remoto ?? local;
+  if (!remoto?.ajustesActualizados) return local;
+  return local.ajustesActualizados >= remoto.ajustesActualizados ? local : remoto;
+}
+
+// Entradas que este dispositivo echa en falta, con el día en que caerán.
+// Es lo que enseña el informe de los ajustes.
+export function ausentes(datos = cargarLocal()) {
+  const dias = diasDeGracia(datos);
+  return Object.entries(datos.libros)
+    .filter(([id, entrada]) => !id.startsWith('local:') && entrada.ausenteDesde)
+    .map(([id, entrada]) => ({
+      id,
+      ausenteDesde: entrada.ausenteDesde,
+      borradoEl: dias
+        ? new Date(Date.parse(entrada.ausenteDesde) + dias * MS_DIA).toISOString()
+        : null,
+    }))
+    .sort((uno, otro) => uno.ausenteDesde.localeCompare(otro.ausenteDesde));
 }
 
 let colaSincronizacion = Promise.resolve();
@@ -618,6 +686,13 @@ async function sincronizarAhora(cliente) {
     for (const id of borradosPendientes) {
       delete local.libros[id];
       delete remoto.libros[id];
+    }
+    // El plazo de borrado es de la biblioteca, no de cada libro: se resuelve
+    // aparte y queda igual en los dos lados.
+    const ajustes = fusionarAjustes(local.ajustes, remoto.ajustes);
+    if (ajustes) {
+      local.ajustes = ajustes;
+      remoto.ajustes = ajustes;
     }
     const ids = new Set([...Object.keys(local.libros), ...Object.keys(remoto.libros)]);
     for (const id of ids) {
