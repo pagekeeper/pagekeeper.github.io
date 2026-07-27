@@ -40,6 +40,10 @@ const RELLENOS_RESALTADO = {
 // tamaño del libro en caracteres a partir del número de localizaciones.
 const CARACTERES_POR_LOCALIZACION = 1000;
 
+// Cuánto se defiende la posición recién restaurada de los reajustes de tamaño
+// que llegan justo después de abrir (ver «Asentamiento tras abrir»).
+const MS_ASENTAMIENTO = 2000;
+
 // Los capítulos muy cortos (una portada, una dedicatoria, un título suelto)
 // llenan una pantalla con cuatro palabras: como muestra para medir cuánto
 // texto cabe en la pantalla mienten mucho, así que no cuentan.
@@ -215,6 +219,8 @@ export class LectorEpub {
     this.rangosNotas = new WeakMap();
     this.notaBajoPuntero = null;
     this.cancelarEsperaUbicacion = null;
+    this.destinoProtegido = null; // ver protegerDestino()
+    this.tempDestinoProtegido = null;
 
     // epub.js solo se entera de los cambios de tamaño de la ventana; al abrir
     // o cerrar la barra lateral cambia el contenedor, así que se le avisa.
@@ -227,6 +233,7 @@ export class LectorEpub {
         if (!this.vista || nueva === medida) return;
         medida = nueva;
         try { this.vista.resize(); } catch { /* vista a medio montar */ }
+        this.recuperarDestinoProtegido();
         this.programarIconosNotas();
         // Otro ancho (girar el móvil, abrir el índice) es otra paginación.
         this.remedirPantallas();
@@ -355,6 +362,7 @@ export class LectorEpub {
       if (cfi && texto) this.alSeleccionarTexto?.({ formato: 'epub', cfi, texto });
     });
     const primeraUbicacion = posicion ? esperarUbicacion() : null;
+    this.protegerDestino(posicion);
     await vista.display(posicion ?? undefined);
     if (this.vista !== vista || this.libro !== libro) return;
     // epub.js resuelve display(CFI) antes de emitir `relocated`. La aplicación
@@ -375,6 +383,38 @@ export class LectorEpub {
     this.cancelarEsperaUbicacion = null;
     if (this.vista !== vista || this.libro !== libro) return;
     this.aplicarAnotaciones();
+  }
+
+  // ───────────── Asentamiento tras abrir ─────────────
+  //
+  // Nada más abrir un libro el contenedor todavía cambia de alto un par de
+  // veces (se pinta la barra de estado, aparece el aviso de «continuando»…).
+  // Cada cambio hace que epub.js repagine y vuelva a mostrar la pantalla por
+  // el CFI que la encabeza, y ese CFI apunta al principio del párrafo, no al
+  // punto por el que se partió: como el párrafo casi siempre viene cortado de
+  // la pantalla anterior, el libro retrocede una página en cada reajuste. Se
+  // recuerda el destino que se pidió restaurar y se vuelve a él mientras dura
+  // ese asentamiento; después manda la posición real, que ya es la del lector.
+  protegerDestino(cfi) {
+    clearTimeout(this.tempDestinoProtegido);
+    this.destinoProtegido = cfi ?? null;
+    if (!cfi) return;
+    this.tempDestinoProtegido = setTimeout(() => {
+      this.destinoProtegido = null;
+    }, MS_ASENTAMIENTO);
+  }
+
+  recuperarDestinoProtegido() {
+    if (!this.destinoProtegido) return;
+    const destino = this.destinoProtegido;
+    // epub.js repagina y recoloca por su cuenta después del reajuste, así que
+    // hay que dejarle terminar antes de mirar dónde ha quedado la página. Si
+    // el destino sigue a la vista no se toca nada: volver a mostrarlo movería
+    // la posición al principio de la pantalla sin necesidad.
+    setTimeout(() => {
+      if (this.destinoProtegido !== destino || this.cfiVisible(destino)) return;
+      try { this.vista?.display(destino); } catch { /* destino ilegible */ }
+    }, 150);
   }
 
   // ───────────── Pantallas del dispositivo ─────────────
@@ -831,11 +871,13 @@ export class LectorEpub {
 
   irAPorcentaje(porcentaje) {
     const cfi = this.destinoPorcentaje(porcentaje);
-    if (cfi) return this.vista?.display(cfi);
+    if (cfi) return this.irA(cfi);
   }
 
-  siguiente() { this.vista?.next(); }
-  anterior() { this.vista?.prev(); }
+  // Moverse a mano cancela la defensa del destino restaurado: a partir de
+  // aquí la posición buena es la nueva, no la que se abrió.
+  siguiente() { this.protegerDestino(null); this.vista?.next(); }
+  anterior() { this.protegerDestino(null); this.vista?.prev(); }
 
   // Piezas para deslizar la página con el dedo. epub.js reparte el capítulo
   // entero en columnas dentro de una tira más ancha que la pantalla, y pasa
@@ -1081,7 +1123,10 @@ export class LectorEpub {
     }
   }
 
-  irA(destino) { return this.vista?.display(destino); }
+  irA(destino) {
+    this.protegerDestino(null);
+    return this.vista?.display(destino);
+  }
 
   // Sección del libro (índice del «spine») por la que se va ahora mismo.
   // Sirve para saber a qué capítulo del índice corresponde la lectura.
