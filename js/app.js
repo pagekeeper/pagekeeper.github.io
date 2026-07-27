@@ -44,7 +44,6 @@ const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositi
 const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este dispositivo
 const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
-const CLAVE_AVISO_INMERSIVO = 'lector.avisoInmersivo'; // solo de este dispositivo
 const CLAVE_PDF_SIN_TEXTO = 'lector.pdfSinTexto'; // por libro y dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
@@ -341,14 +340,12 @@ const lectorEpub = new LectorEpub({
   // se apunta la posición de partida para poder volver con el historial.
   alPulsarEnlaceInterno: apuntarEnHistorial,
   // Los clics sobre el texto del libro ocurren dentro del iframe del
-  // capítulo y no llegan al documento: cierran aquí los paneles flotantes
-  // y alternan el modo inmersivo como un toque en el centro de la página.
-  alPulsarContenido: (evento) => {
+  // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
+  alPulsarContenido: () => {
     cerrarPanelTexto();
     cerrarPanelTts();
     cerrarMenuLector();
     cerrarMenuNota();
-    toqueCentroLector(evento?.target, evento);
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
@@ -7189,27 +7186,10 @@ function manejarTecla(evento) {
 document.addEventListener('keydown', manejarTecla);
 
 // ───────────────────────── Modo inmersivo ─────────────────────────
-// Un toque en el centro de la página oculta la barra superior para leer a
-// pantalla completa; otro toque la recupera.
-//
-// Solo con el dedo (o el lápiz). Con ratón el gesto estorbaba más que servía:
-// pulsar en la página es lo que uno hace para devolverle el foco, para quitar
-// una selección o sin más al mover el puntero, y la barra desaparecía sola sin
-// que nadie se lo hubiera pedido. En táctil sí tiene sentido: no hay otra
-// forma cómoda de ganar esa franja de pantalla.
-
-let temporizadorToqueCentro = null;
-// El pointerdown del documento no llega cuando se pulsa dentro del iframe del
-// EPUB, así que el tipo del propio evento manda y este es el recurso cuando el
-// navegador no lo trae.
-let tipoUltimoPuntero = '';
-document.addEventListener('pointerdown', (evento) => {
-  tipoUltimoPuntero = evento.pointerType || '';
-}, true);
-
-function vieneDeRaton(evento) {
-  return (evento?.pointerType || tipoUltimoPuntero) === 'mouse';
-}
+// Oculta la barra superior para leer a pantalla completa. Se entra y se sale
+// por su botón, y nada más: el toque en la página también lo hacía, pero es
+// lo que uno hace para pasar página, para quitar una selección o sin más al
+// posar el dedo, y la barra iba y venía sin que nadie se lo hubiera pedido.
 
 function haySeleccionActiva() {
   const principal = window.getSelection();
@@ -7248,23 +7228,16 @@ function animarBarraLector(entrando) {
   }, 240);
 }
 
-function alternarBarraLector(porGesto = false) {
+function alternarBarraLector() {
   const inmersivo = !$('vista-lector').classList.contains('inmersivo');
   // El repaginado lo hace `animarBarraLector` al acabar: repetirlo aquí, con
   // la barra a medio recoger, es justo lo que se veía brusco.
   animarBarraLector(inmersivo);
   pintarBotonInmersivo();
-  // El aviso explica el gesto, así que solo se da a quien ha llegado por él:
-  // desde el botón la salida está a la vista y no hay nada que explicar.
-  if (porGesto && inmersivo && localStorage.getItem(CLAVE_AVISO_INMERSIVO) !== '1') {
-    localStorage.setItem(CLAVE_AVISO_INMERSIVO, '1');
-    avisar(t('immersiveHint'), 4000);
-  }
 }
 
 // El botón de la barra dice en qué estado está y cómo se sale: es la única
-// entrada al modo inmersivo cuando se lee con ratón, donde el toque en el
-// centro no lo activa.
+// entrada y salida del modo inmersivo, junto a la tecla Escape.
 function pintarBotonInmersivo() {
   const inmersivo = $('vista-lector').classList.contains('inmersivo');
   for (const id of ['btn-inmersivo', 'menu-inmersivo']) {
@@ -7296,33 +7269,6 @@ function salirModoInmersivo() {
   $('vista-lector').classList.remove('inmersivo');
   pintarBotonInmersivo();
 }
-
-function toqueCentroLector(objetivo, evento = null) {
-  if (vieneDeRaton(evento)) return;
-  if (seleccionPendiente || haySeleccionActiva()) return;
-  if (Date.now() - ultimoPellizco < 600) return;
-  // Tras arrastrar la página, el toque que remata el gesto no debe además
-  // esconder la barra de herramientas.
-  if (Date.now() - ultimoGestoPagina < 500) return;
-  if (objetivo?.closest?.('a, button, input, select, textarea, .panel-flotante-lector, ' +
-      '.barra-seleccion, .menu-nota-contextual, .barra-lector')) return;
-  // Se espera un instante por si el toque forma parte de un doble clic de
-  // selección de palabra: en ese caso no debe alternar la barra.
-  clearTimeout(temporizadorToqueCentro);
-  temporizadorToqueCentro = setTimeout(() => {
-    if (seleccionPendiente || haySeleccionActiva()) return;
-    alternarBarraLector(true);
-  }, 280);
-}
-
-$('area-lectura').addEventListener('click', (evento) => {
-  if (evento.detail > 1) {
-    clearTimeout(temporizadorToqueCentro);
-    return;
-  }
-  toqueCentroLector(evento.target, evento);
-});
-$('area-lectura').addEventListener('dblclick', () => clearTimeout(temporizadorToqueCentro));
 
 // ─────────────── Pellizco para el zoom del PDF (táctil) ───────────────
 // Mientras dura el gesto se aplica una escala visual barata; al soltar se
