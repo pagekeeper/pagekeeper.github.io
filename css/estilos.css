@@ -909,11 +909,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   font-size: 0.85rem; cursor: pointer; white-space: nowrap;
 }
 .btn-pagina:hover { border-color: var(--acento); }
-/* El aumento, junto a las lupas: se lee, no se pulsa, así que va sin marco y
-   en un tono más suave para no competir con los botones de al lado. */
-.valor-zoom {
-  flex: none; color: var(--texto-suave); font-size: 0.8rem;
-  white-space: nowrap; min-width: 3.2rem; text-align: center;
+/* El aumento va en el botón de en medio de las lupas, que además es el que
+   encaja la página al ancho: aprovecha el hueco que ocupaba su icono. */
+.btn-zoom-valor {
+  flex: none; font-size: 0.8rem; min-width: 3.6rem;
+  white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .grupo-posicion { display: flex; align-items: center; flex: none; }
 .tiempo-restante {
@@ -1557,7 +1557,6 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   .barra-lector > #btn-ancho-auto,
   .barra-lector > #btn-pagina-completa,
   .barra-lector > #btn-zoom-mas,
-  .barra-lector > .valor-zoom,
   .barra-lector > #btn-noche,
   .barra-lector > .tiempo-restante { display: none !important; }
   .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }

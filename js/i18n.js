@@ -13,7 +13,9 @@ const textos = {
     addLocalFolder: 'Añadir una carpeta entera de este dispositivo',
     addCloudFolder: 'Subir una carpeta entera a la nube',
     backLibrary: 'Volver a la biblioteca', saveCloud: 'Guardar en mi nube', zoom: 'Zoom', zoomOut: 'Reducir', autoWidth: 'Ajustar al ancho', fitPage: 'Ajustar la página completa', cropMargins: 'Recortar los márgenes', skipToContent: 'Saltar al contenido', bookIndexShort: 'Índice', thumbnails: 'Miniaturas', resizePanel: 'Cambiar el ancho del panel', bookNavigation: 'Navegación del libro', pageThumbnails: 'Miniaturas de las páginas', noMarginsToCrop: 'Esta obra no tiene márgenes que recortar.', zoomIn: 'Ampliar',
-    zoomLevel: 'Aumento con el que se ve el libro',
+    zoomLevel: 'Aumento:', zoomFitWidth: 'Pulsa para ajustar al ancho',
+    zoomResetText: 'Pulsa para restablecer el tamaño de letra',
+    resetTextSizeName: 'Restablecer el tamaño de letra',
     moreReaderActions: 'Más acciones', readerActions: 'Acciones de lectura',
     previous: 'Página anterior', next: 'Página siguiente', goPage: 'Ir a una página',
     marginSide: 'Margen lateral', noMargin: 'Sin margen', moreMargin: 'Más margen',
@@ -261,7 +263,9 @@ const textos = {
     addLocalFolder: 'Afegeix una carpeta sencera d’aquest dispositiu',
     addCloudFolder: 'Puja una carpeta sencera al núvol',
     backLibrary: 'Torna a la biblioteca', saveCloud: 'Desa al meu núvol', zoom: 'Zoom', zoomOut: 'Redueix', autoWidth: 'Ajusta a l’amplada', fitPage: 'Ajusta la pàgina completa', cropMargins: 'Retalla els marges', skipToContent: 'Vés al contingut', bookIndexShort: 'Índex', thumbnails: 'Miniatures', resizePanel: 'Canvia l’amplada del plafó', bookNavigation: 'Navegació del llibre', pageThumbnails: 'Miniatures de les pàgines', noMarginsToCrop: 'Aquesta obra no té marges per retallar.', zoomIn: 'Amplia',
-    zoomLevel: 'Augment amb què es veu el llibre',
+    zoomLevel: 'Augment:', zoomFitWidth: 'Prem per ajustar a l’amplada',
+    zoomResetText: 'Prem per restablir la mida de lletra',
+    resetTextSizeName: 'Restableix la mida de lletra',
     moreReaderActions: 'Més accions', readerActions: 'Accions de lectura',
     previous: 'Pàgina anterior', next: 'Pàgina següent', goPage: 'Ves a una pàgina',
     marginSide: 'Marge lateral', noMargin: 'Sense marge', moreMargin: 'Més marge',
@@ -509,7 +513,9 @@ const textos = {
     addLocalFolder: 'Add a whole folder from this device',
     addCloudFolder: 'Upload a whole folder to the cloud',
     backLibrary: 'Back to library', saveCloud: 'Save to my cloud', zoom: 'Zoom', zoomOut: 'Zoom out', autoWidth: 'Fit to width', fitPage: 'Fit full page', cropMargins: 'Crop margins', skipToContent: 'Skip to content', bookIndexShort: 'Contents', thumbnails: 'Thumbnails', resizePanel: 'Resize the panel', bookNavigation: 'Book navigation', pageThumbnails: 'Page thumbnails', noMarginsToCrop: 'This book has no margins to crop.', zoomIn: 'Zoom in',
-    zoomLevel: 'Zoom level the book is shown at',
+    zoomLevel: 'Zoom:', zoomFitWidth: 'Tap to fit to width',
+    zoomResetText: 'Tap to reset the text size',
+    resetTextSizeName: 'Reset the text size',
     moreReaderActions: 'More actions', readerActions: 'Reading actions',
     previous: 'Previous page', next: 'Next page', goPage: 'Go to a page',
     marginSide: 'Side margin', noMargin: 'No margin', moreMargin: 'More margin',
@@ -974,14 +980,14 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Ajust i zoom</summary>
           <p>
-        als PDF, ↔ encaixa la pàgina a l’amplada i el botó de les quatre cantonades
-        mostra la pàgina sencera. Les lupes amplien o redueixen des d’aquell punt; amb
-        zoom pots arrossegar la pàgina amb el ratolí o el dit. Als EPUB, ↔ restableix
-        la mida de lletra. En pantalla tàctil pots pessigar per ampliar: als PDF canvia
-        el zoom i als EPUB, la mida de la lletra. Al costat de les lupes es veu
-        l’augment en tant per cent: als PDF, el de la pàgina (100 % és la mida natural,
-        així que «encaixar a l’amplada» pot donar qualsevol xifra) i als EPUB, el de la
-        lletra.</p>
+        entre les dues lupes hi ha un botó que mostra l’augment en tant per cent i que,
+        en prémer-lo, encaixa la pàgina a l’amplada; el de les quatre cantonades la
+        mostra sencera. Les lupes amplien o redueixen des d’aquell punt; amb zoom pots
+        arrossegar la pàgina amb el ratolí o el dit. Als PDF el percentatge és el de la
+        pàgina (100 % és la mida natural, així que encaixar-la a l’amplada pot donar
+        qualsevol xifra); als EPUB és el de la lletra, i aquest mateix botó la torna al
+        100 %. En pantalla tàctil pots pessigar per ampliar: als PDF canvia el zoom i
+        als EPUB, la mida de la lletra.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Temps restant</summary>
@@ -1445,13 +1451,14 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Fit and zoom</summary>
           <p>
-        in PDFs, ↔ fits the page to the width and the four-corners button shows the
-        whole page. The magnifiers enlarge or reduce from there; while zoomed you can
-        drag the page with the mouse or your finger. In EPUBs, ↔ resets the text size.
-        On touch screens you can pinch to zoom: in PDFs it changes the zoom, in EPUBs
-        the text size. Next to the magnifiers you can see the zoom level as a
-        percentage: in PDFs, the page’s (100 % is its natural size, so “fit to width”
-        can give any figure) and in EPUBs, the text’s.</p>
+        between the two magnifiers there is a button that shows the zoom level as a
+        percentage and, when tapped, fits the page to the width; the four-corners one
+        shows the whole page. The magnifiers enlarge or reduce from there; while zoomed
+        you can drag the page with the mouse or your finger. In PDFs the percentage is
+        the page’s (100 % is its natural size, so fitting it to the width can give any
+        figure); in EPUBs it is the text’s, and that same button resets it to 100 %. On
+        touch screens you can pinch to zoom: in PDFs it changes the zoom, in EPUBs the
+        text size.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Time left</summary>

@@ -206,6 +206,9 @@ libros y sincronizar el progreso de lectura.
   adapta si aceleras o si llegas a un tramo más denso.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
+  El botón que hay entre las dos lupas enseña el aumento en tanto por ciento y
+  es el que encaja al ancho; en EPUB muestra el tamaño de la letra y la
+  devuelve al 100 %.
 - ✂️ **Recortar los márgenes**: el botón ✂ analiza el documento, detecta el
   blanco que rodea al texto y lo quita, de modo que en móvil la letra se ve
   bastante más grande. Cada página se comprueba por separado antes de

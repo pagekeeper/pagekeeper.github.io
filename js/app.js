@@ -6263,11 +6263,23 @@ $('zona-siguiente').addEventListener('click', () => (epubAbierto() ? lectorEpub 
 // Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
 // (con «ajustar al ancho» no es el zoom pedido, sino el que sale del área); en
 // EPUB, donde las lupas mueven la letra, es el tamaño de esta.
+//
+// El número ocupa el botón de en medio de las dos lupas, que sigue haciendo lo
+// suyo: encajar la página al ancho, o devolver la letra al 100 % en EPUB. Así
+// el hueco enseña algo en vez de repetir con un icono lo que dicen las lupas.
 function pintarZoom() {
   const valor = epubAbierto() ? lectorEpub.tamano : lector.porcentajeZoom;
   const texto = Number.isFinite(valor) ? `${Math.round(valor)} %` : '';
-  $('valor-zoom').textContent = texto;
-  $('valor-zoom-menu').textContent = texto;
+  const enEpub = epubAbierto();
+  const accion = t(enEpub ? 'zoomResetText' : 'zoomFitWidth');
+  const nombre = t(enEpub ? 'resetTextSizeName' : 'autoWidth');
+  for (const id of ['btn-ancho-auto', 'menu-ancho-auto']) {
+    $(id).textContent = texto;
+    $(id).title = `${t('zoomLevel')} ${texto}. ${accion}`;
+    // Con texto propio, el nombre accesible sería solo la cifra: se dice
+    // también qué hace el botón, que es lo que se anuncia al enfocarlo.
+    $(id).setAttribute('aria-label', `${nombre} (${texto})`);
+  }
 }
 
 async function ajustarZoom(direccion) {
@@ -6934,6 +6946,7 @@ $('btn-papel-todos').addEventListener('click', () => {
 });
 
 document.addEventListener('idioma-cambiado', pintarAjustesPapel);
+document.addEventListener('idioma-cambiado', pintarZoom);
 
 function aplicarTemaPagina(tema) {
   document.body.classList.toggle('modo-noche', tema === 'noche');
@@ -7561,6 +7574,7 @@ aplicarPlegadoContinuar();
 sincronizarSelectRecientes();
 aplicarTemaPagina(temaPagina());
 aplicarAparienciaModo(modoActual());
+pintarZoom();
 
 if ('serviceWorker' in navigator && location.protocol === 'https:') {
   navigator.serviceWorker.register('sw.js').catch(() => null);
