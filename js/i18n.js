@@ -21,9 +21,10 @@ const textos = {
     webdav: 'Nube (WebDAV)', transferConfig: 'Llevar la configuración a otro dispositivo',
     webdavShort: 'Nube', settingsData: 'Datos', settingsSections: 'Secciones de los ajustes',
     bookPaper: 'Papel del libro',
-    bookPaperHelp: 'Con qué papel se abren los libros. De partida sigue al tema de la aplicación: claro cuando la interfaz es clara y modo noche cuando es oscura. Mientras lees, el botón del sol, la taza o la luna cambia el papel solo del libro que tengas abierto.',
+    bookPaperHelp: 'Con qué papel se abren los libros. De partida sigue al tema de la aplicación: claro cuando la interfaz es clara y modo noche cuando es oscura. Mientras lees, el botón del papel cambia solo el del libro abierto y vuelve a este ajuste con el icono del contraste.',
     paperDefault: 'Papel de partida',
     paperAuto: 'El del tema de la aplicación', paperLight: 'Claro', paperSepia: 'Sepia', paperDark: 'Noche',
+    paperGeneral: 'General', paperMenu: 'Papel del libro: {paper}',
     usePaperEverywhere: 'Usar este papel en todos los libros',
     booksWithOwnPaper: 'Libros con un papel propio, elegido mientras se leían: {count}.',
     noBooksWithOwnPaper: 'Ningún libro tiene un papel propio: todos siguen este ajuste.',
@@ -220,9 +221,10 @@ const textos = {
     actionSaveToDevice: 'Guardar en este dispositivo',
     imagesInvertedOff: 'Devolver su color a las imágenes',
     imagesInvertedOn: 'Imágenes en su color: activado. Pulsa para invertirlas con la página',
-    pageNowLight: 'Papel claro. Pulsa para el sepia',
-    pageNowSepia: 'Papel sepia. Pulsa para el modo noche',
-    pageNowDark: 'Modo noche. Pulsa para el papel claro',
+    pageNowGeneral: 'Papel general (el de los ajustes). Pulsa para el claro solo en este libro',
+    pageNowLight: 'Papel claro solo en este libro. Pulsa para el sepia',
+    pageNowSepia: 'Papel sepia solo en este libro. Pulsa para el modo noche',
+    pageNowDark: 'Modo noche solo en este libro. Pulsa para volver al papel general',
     library: 'Biblioteca', showContinueReading: 'Mostrar «Continuar leyendo»',
     showContinueReadingHelp: 'El recuadro con tus últimas lecturas, encima de la biblioteca. Al ocultarlo, los libros siguen donde estaban y conservan su página.',
     themeAuto: 'El del sistema', themeLight: 'Claro', themeDark: 'Oscuro',
@@ -266,9 +268,10 @@ const textos = {
     webdav: 'Núvol (WebDAV)', transferConfig: 'Porta la configuració a un altre dispositiu',
     webdavShort: 'Núvol', settingsData: 'Dades', settingsSections: 'Seccions de la configuració',
     bookPaper: 'Paper del llibre',
-    bookPaperHelp: 'Amb quin paper s’obren els llibres. D’entrada segueix el tema de l’aplicació: clar quan la interfície és clara i mode nit quan és fosca. Mentre llegeixes, el botó del sol, la tassa o la lluna canvia el paper només del llibre que tinguis obert.',
+    bookPaperHelp: 'Amb quin paper s’obren els llibres. D’entrada segueix el tema de l’aplicació: clar quan la interfície és clara i mode nit quan és fosca. Mentre llegeixes, el botó del paper canvia només el del llibre obert i torna a aquest ajust amb la icona del contrast.',
     paperDefault: 'Paper de partida',
     paperAuto: 'El del tema de l’aplicació', paperLight: 'Clar', paperSepia: 'Sèpia', paperDark: 'Nit',
+    paperGeneral: 'General', paperMenu: 'Paper del llibre: {paper}',
     usePaperEverywhere: 'Fes servir aquest paper a tots els llibres',
     booksWithOwnPaper: 'Llibres amb un paper propi, triat mentre es llegien: {count}.',
     noBooksWithOwnPaper: 'Cap llibre no té un paper propi: tots segueixen aquest ajust.',
@@ -465,9 +468,10 @@ const textos = {
     actionSaveToDevice: 'Desa en aquest dispositiu',
     imagesInvertedOff: 'Torna el color a les imatges',
     imagesInvertedOn: 'Imatges amb el seu color: actiu. Prem per invertir-les amb la pàgina',
-    pageNowLight: 'Paper clar. Prem per al sèpia',
-    pageNowSepia: 'Paper sèpia. Prem per al mode nit',
-    pageNowDark: 'Mode nit. Prem per al paper clar',
+    pageNowGeneral: 'Paper general (el de la configuració). Prem per al clar només en aquest llibre',
+    pageNowLight: 'Paper clar només en aquest llibre. Prem per al sèpia',
+    pageNowSepia: 'Paper sèpia només en aquest llibre. Prem per al mode nit',
+    pageNowDark: 'Mode nit només en aquest llibre. Prem per tornar al paper general',
     library: 'Biblioteca', showContinueReading: 'Mostra «Continua llegint»',
     showContinueReadingHelp: 'El requadre amb les teves últimes lectures, damunt de la biblioteca. Si l’amagues, els llibres es queden on eren i conserven la pàgina.',
     themeAuto: 'El del sistema', themeLight: 'Clar', themeDark: 'Fosc',
@@ -511,9 +515,10 @@ const textos = {
     webdav: 'Cloud (WebDAV)', transferConfig: 'Move configuration to another device',
     webdavShort: 'Cloud', settingsData: 'Data', settingsSections: 'Settings sections',
     bookPaper: 'Book paper',
-    bookPaperHelp: 'Which paper books open with. By default it follows the app theme: light when the interface is light and night mode when it is dark. While you read, the sun, cup or moon button changes the paper of the open book only.',
+    bookPaperHelp: 'Which paper books open with. By default it follows the app theme: light when the interface is light and night mode when it is dark. While you read, the paper button changes the open book only, and the contrast icon brings it back to this setting.',
     paperDefault: 'Default paper',
     paperAuto: 'The app theme’s', paperLight: 'Light', paperSepia: 'Sepia', paperDark: 'Night',
+    paperGeneral: 'General', paperMenu: 'Book paper: {paper}',
     usePaperEverywhere: 'Use this paper in every book',
     booksWithOwnPaper: 'Books with their own paper, chosen while reading them: {count}.',
     noBooksWithOwnPaper: 'No book has its own paper: they all follow this setting.',
@@ -710,9 +715,10 @@ const textos = {
     actionSaveToDevice: 'Save to this device',
     imagesInvertedOff: 'Keep images in their own colours',
     imagesInvertedOn: 'Images in their own colours: on. Tap to invert them with the page',
-    pageNowLight: 'Light paper. Tap for sepia',
-    pageNowSepia: 'Sepia paper. Tap for night mode',
-    pageNowDark: 'Night mode. Tap for light paper',
+    pageNowGeneral: 'General paper (the one in settings). Tap for light in this book only',
+    pageNowLight: 'Light paper in this book only. Tap for sepia',
+    pageNowSepia: 'Sepia paper in this book only. Tap for night mode',
+    pageNowDark: 'Night mode in this book only. Tap to go back to the general paper',
     library: 'Library', showContinueReading: 'Show “Continue reading”',
     showContinueReadingHelp: 'The box with your latest reads, above the library. Hiding it leaves the books where they were, with their page intact.',
     themeAuto: 'Match the system', themeLight: 'Light', themeDark: 'Dark',
@@ -999,13 +1005,15 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Paper del llibre</summary>
           <p>
-        els llibres s’obren amb el paper del tema de l’aplicació: clar amb la
-        interfície clara i mode nit amb la fosca. Mentre llegeixes, el botó del sol, la
-        tassa o la lluna recorre els tres modes de lectura —paper clar, sèpia (torrat,
-        més descansat per a estones llargues) i mode nit— i el que triïs val només per
-        a aquell llibre: pots llegir-ne un en sèpia i que els altres segueixin com
-        estaven. A <em>⚙️ Configuració → Lector</em> es canvia el paper de partida de
-        tots i s’hi tornen els llibres que en tinguin un de propi. Als EPUB es canvien
+        els llibres s’obren amb el paper general, que d’entrada segueix el tema de
+        l’aplicació: clar amb la interfície clara i mode nit amb la fosca. Mentre
+        llegeixes, el botó del paper recorre quatre estats: el del contrast, que és
+        seguir aquest paper general, i els tres modes de lectura —paper clar, sèpia
+        (torrat, més descansat per a estones llargues) i mode nit—, que valen només per
+        a aquell llibre. Així la icona diu d’un cop d’ull si el llibre va amb el paper
+        de tots o amb un de propi, i només cal continuar prement per tornar-lo al
+        general. A <em>⚙️ Configuració → Lector</em> es canvia el paper general i hi ha
+        un botó que hi torna tots els llibres de cop. Als EPUB es canvien
         els colors del text, així que les il·lustracions es veuen tal qual; als PDF,
         que són una imatge ja dibuixada, es tenyeix la pàgina sencera.</p>
         </details>
@@ -1464,13 +1472,15 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Book paper</summary>
           <p>
-        books open with the paper of the app theme: light with a light interface and
-        night mode with a dark one. While you read, the sun, cup or moon button cycles
-        through the three reading modes —light paper, sepia (warm, easier on the eyes
-        for long sessions) and night mode— and what you pick applies to that book
-        only: you can read one in sepia and leave the rest as they were. In
-        <em>⚙️ Settings → Reader</em> you set the default paper for all of them and
-        send back the books that have their own. In EPUBs the text colours change, so
+        books open with the general paper, which by default follows the app theme:
+        light with a light interface and night mode with a dark one. While you read,
+        the paper button cycles through four states: the contrast one, which means
+        following that general paper, and the three reading modes —light paper, sepia
+        (warm, easier on the eyes for long sessions) and night mode—, which apply to
+        that book only. So the icon tells you at a glance whether the book uses
+        everyone’s paper or one of its own, and you only have to keep tapping to send
+        it back to the general one. In <em>⚙️ Settings → Reader</em> you change the
+        general paper and a button sends every book back to it. In EPUBs the text colours change, so
         illustrations look untouched; in PDFs, which are already drawn images, the
         whole page is tinted.</p>
         </details>

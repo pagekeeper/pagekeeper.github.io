@@ -4975,9 +4975,10 @@ function actualizarMenuLector() {
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
   $('menu-doble').innerHTML = icono('columns-2') +
     `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
-  const pagina = temaPagina();
-  $('menu-noche').innerHTML = icono(ICONO_PAGINA[pagina]) +
-    `<span>${t(TITULO_PAGINA[pagina])}</span>`;
+  const papel = papelDelLibro();
+  $('menu-noche').innerHTML = icono(ICONO_PAGINA[papel]) +
+    `<span>${t('paperMenu', { paper: t(NOMBRE_PAGINA[papel]) })}</span>`;
+  $('menu-noche').title = t(TITULO_PAGINA[papel]);
   const tiempo = tiempoRestanteEstimado();
   $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
   $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
@@ -6824,8 +6825,19 @@ const TEMAS_PAGINA = ['claro', 'sepia', 'noche'];
 // clara, modo noche con la oscura. Solo vale como ajuste general; el botón del
 // lector reparte papeles concretos, libro a libro.
 const TEMAS_PAGINA_GENERAL = ['auto', ...TEMAS_PAGINA];
-const ICONO_PAGINA = { claro: 'sun', sepia: 'coffee', noche: 'moon' };
-const TITULO_PAGINA = { claro: 'pageNowLight', sepia: 'pageNowSepia', noche: 'pageNowDark' };
+// Lo que recorre el botón del lector. «general» es no tener papel propio: el
+// libro sigue el ajuste de todos, y el icono del contraste lo distingue de un
+// papel elegido para él solo, que es la pregunta que se hace quien lo mira.
+const TEMAS_PAGINA_LIBRO = ['general', ...TEMAS_PAGINA];
+const ICONO_PAGINA = { general: 'contrast', claro: 'sun', sepia: 'coffee', noche: 'moon' };
+const TITULO_PAGINA = {
+  general: 'pageNowGeneral', claro: 'pageNowLight', sepia: 'pageNowSepia', noche: 'pageNowDark',
+};
+// En el menú, donde la frase larga del botón ocuparía tres líneas, basta con
+// nombrar el papel puesto: pulsar la fila lleva al siguiente igualmente.
+const NOMBRE_PAGINA = {
+  general: 'paperGeneral', claro: 'paperLight', sepia: 'paperSepia', noche: 'paperDark',
+};
 
 // El papel de los libros que no tienen uno propio.
 function temaPaginaGeneral() {
@@ -6835,11 +6847,18 @@ function temaPaginaGeneral() {
   return localStorage.getItem(CLAVE_NOCHE) === '1' ? 'noche' : 'auto';
 }
 
+// El papel propio de un libro, o «general» si no tiene: es lo que enseña el
+// botón del lector.
+function papelDelLibro(id = libroActual?.id) {
+  const propio = leerMapaLocal(CLAVE_TEMA_PAGINA_LIBRO)[id];
+  return TEMAS_PAGINA.includes(propio) ? propio : 'general';
+}
+
 // El papel elegido para el libro abierto: el suyo, si alguna vez se cambió
 // desde el lector, y si no el general.
 function temaPaginaElegido(id = libroActual?.id) {
-  const propio = leerMapaLocal(CLAVE_TEMA_PAGINA_LIBRO)[id];
-  return TEMAS_PAGINA.includes(propio) ? propio : temaPaginaGeneral();
+  const propio = papelDelLibro(id);
+  return propio === 'general' ? temaPaginaGeneral() : propio;
 }
 
 // El papel que se ve, ya resuelto: «auto» se traduce a lo que pida el tema de
@@ -6946,21 +6965,25 @@ $('btn-imagenes-noche').addEventListener('click', () => {
   aplicarImagenesNaturales();
 });
 
+// El icono dice de dónde sale el papel del libro abierto: el del contraste,
+// que sigue el ajuste general, o el del papel que se le puso a él solo.
 function pintarIconoNoche() {
-  const tema = temaPagina();
-  $('btn-noche').innerHTML = icono(ICONO_PAGINA[tema]);
-  $('btn-noche').title = t(TITULO_PAGINA[tema]);
+  const papel = papelDelLibro();
+  $('btn-noche').innerHTML = icono(ICONO_PAGINA[papel]);
+  $('btn-noche').title = t(TITULO_PAGINA[papel]);
   etiquetarPorTitulo($('btn-noche'));
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
-// El botón recorre los tres papeles a partir del que se está viendo, y lo que
-// elige vale solo para este libro: los demás siguen con el ajuste general (de
-// partida, el tema de la aplicación). Se vuelve al general desde los ajustes.
+// El botón recorre los tres papeles y vuelve al general, como el del tema de
+// la interfaz: los papeles valen solo para este libro y «general» es dejarlo
+// otra vez con el de todos, sin tener que ir a los ajustes.
 $('btn-noche').addEventListener('click', () => {
-  const siguiente = TEMAS_PAGINA[(TEMAS_PAGINA.indexOf(temaPagina()) + 1) % TEMAS_PAGINA.length];
-  if (libroActual) guardarTemaPaginaLibro(libroActual.id, siguiente);
-  else guardarTemaPaginaGeneral(siguiente);
+  const papel = papelDelLibro();
+  const siguiente = TEMAS_PAGINA_LIBRO[
+    (TEMAS_PAGINA_LIBRO.indexOf(papel) + 1) % TEMAS_PAGINA_LIBRO.length];
+  if (libroActual) guardarTemaPaginaLibro(libroActual.id, siguiente === 'general' ? null : siguiente);
+  else guardarTemaPaginaGeneral(siguiente === 'general' ? 'auto' : siguiente);
   aplicarTemaPagina(temaPagina());
   pintarAjustesPapel();
 });
