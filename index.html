@@ -616,16 +616,6 @@
         <div id="resultado-prueba" class="estado" role="status"></div>
       </form>
 
-      <div class="tarjeta" id="tarjeta-dispositivos">
-        <h2 data-i18n="devices">Dispositivos conectados</h2>
-        <p class="ayuda" data-i18n="devicesHelp">Los navegadores que están usando esta biblioteca, con la última vez que sincronizaron. Si ves uno que no reconoces, cambia la contraseña de aplicación.</p>
-        <ul id="lista-dispositivos" class="lista-dispositivos"></ul>
-        <p class="ayuda" data-i18n="devicesRevokeHelp">⚠️ «Desconectar» le pide al dispositivo que olvide la configuración de la nube y vuelva a pedírtela, y solo surte efecto la próxima vez que se abra allí. No retira el acceso al servidor: para eso hay que borrar la contraseña de aplicación en tu nube.</p>
-      </div>
-      </div>
-
-      <div id="panel-ajustes-datos" class="panel-pestana" role="tabpanel"
-        aria-labelledby="pestana-ajustes-datos" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="transferConfig">Llevar la configuración a otro dispositivo</h2>
         <p class="ayuda" data-i18n="transferHelp">Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.</p>
@@ -640,6 +630,16 @@
         <div id="resultado-copia" class="estado" role="status"></div>
       </div>
 
+      <div class="tarjeta" id="tarjeta-dispositivos">
+        <h2 data-i18n="devices">Dispositivos conectados</h2>
+        <p class="ayuda" data-i18n="devicesHelp">Los navegadores que están usando esta biblioteca, con la última vez que sincronizaron. Si ves uno que no reconoces, cambia la contraseña de aplicación.</p>
+        <ul id="lista-dispositivos" class="lista-dispositivos"></ul>
+        <p class="ayuda" data-i18n="devicesRevokeHelp">⚠️ «Desconectar» le pide al dispositivo que olvide la configuración de la nube y vuelva a pedírtela, y solo surte efecto la próxima vez que se abra allí. No retira el acceso al servidor: para eso hay que borrar la contraseña de aplicación en tu nube.</p>
+      </div>
+      </div>
+
+      <div id="panel-ajustes-datos" class="panel-pestana" role="tabpanel"
+        aria-labelledby="pestana-ajustes-datos" tabindex="0">
       <div class="tarjeta">
         <h2 data-i18n="activityLog">Registro de actividad</h2>
         <p class="ayuda" data-i18n="activityLogHelp">Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí, nunca sale de este aparato y se borra solo al cabo de una semana.</p>
