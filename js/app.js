@@ -1580,6 +1580,15 @@ function haceCuanto(iso) {
     { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
+// Nombre reconocible sin que nadie tenga que ponerlo: el navegador y el
+// aparato («Chrome en Pixel 7», «Firefox en Linux»). Cuando el navegador no
+// suelta prenda, queda el sistema a secas y para distinguirlos está el código.
+function nombreAutomatico(aparato) {
+  const donde = aparato.modelo?.trim() || aparato.sistema;
+  if (aparato.navegador && donde) return t('deviceAuto', { browser: aparato.navegador, system: donde });
+  return aparato.navegador || donde || t('deviceUnknown');
+}
+
 function pintarDispositivos() {
   const lista = $('lista-dispositivos');
   if (!lista) return;
@@ -1599,12 +1608,15 @@ function pintarDispositivos() {
     const datos = document.createElement('div');
     datos.className = 'dispositivo-datos';
     const titulo = document.createElement('strong');
-    titulo.textContent = aparato.nombre?.trim() || aparato.sistema || t('deviceUnknown');
+    const automatico = nombreAutomatico(aparato);
+    titulo.textContent = aparato.nombre?.trim() || automatico;
     const detalle = document.createElement('span');
     detalle.className = 'ayuda';
     const partes = [];
     if (aparato.esteMismo) partes.push(t('deviceThisOne'));
-    if (aparato.nombre?.trim() && aparato.sistema) partes.push(aparato.sistema);
+    // Con nombre propio, debajo queda de qué aparato se trata.
+    if (aparato.nombre?.trim()) partes.push(automatico);
+    if (aparato.codigo) partes.push(t('deviceCode', { code: aparato.codigo }));
     partes.push(t('deviceLastSeen', { when: haceCuanto(aparato.ultimaVez) }));
     if (aparato.baja) partes.push(t('deviceRevoked'));
     else if (aparato.revocado) partes.push(t('deviceRevokedPending'));
@@ -1617,7 +1629,7 @@ function pintarDispositivos() {
     renombrar.className = 'btn-secundario';
     renombrar.textContent = t('deviceRename');
     renombrar.addEventListener('click', () => {
-      const nombre = prompt(t('deviceRenamePrompt'), aparato.nombre ?? aparato.sistema ?? '');
+      const nombre = prompt(t('deviceRenamePrompt'), aparato.nombre ?? automatico);
       if (nombre === null) return;
       progreso.renombrarDispositivo(aparato.id, nombre);
       if (cliente) progreso.sincronizar(cliente).catch(() => null);

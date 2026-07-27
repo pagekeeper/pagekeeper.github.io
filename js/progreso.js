@@ -856,6 +856,36 @@ const CLAVE_ID_DISPOSITIVO = 'lector.idDispositivo';
 // los libros: sin esto el archivo se subiría entero a cada sincronización).
 const MS_REFRESCO_DISPOSITIVO = 12 * 60 * 60 * 1000;
 
+// Qué navegador es. Junto al sistema da un nombre reconocible sin tener que
+// bautizar nada: «Firefox en Linux» se distingue de «Chrome en Linux».
+function nombreNavegador() {
+  const ua = navigator.userAgent;
+  if (/Edg\//.test(ua)) return 'Edge';
+  if (/SamsungBrowser/.test(ua)) return 'Samsung Internet';
+  if (/OPR\/|Opera/.test(ua)) return 'Opera';
+  if (/Firefox\//.test(ua)) return 'Firefox';
+  // Chrome se declara Safari, así que Safari es lo que queda al descartarlo.
+  if (/Chrome\//.test(ua)) return 'Chrome';
+  if (/Safari\//.test(ua)) return 'Safari';
+  return '';
+}
+
+// El modelo, cuando el navegador lo dice. Chrome lo oculta desde hace unas
+// versiones (manda «K» en su lugar), así que la mayoría de las veces no habrá.
+function modeloDispositivo() {
+  const modelo = navigator.userAgent.match(/Android [\d.]+; ([^);]+?)(?: Build\/[^)]*)?\)/)?.[1];
+  if (!modelo || modelo.length < 2 || modelo === 'K' || /^wv$/i.test(modelo)) return '';
+  return modelo.trim().slice(0, 40);
+}
+
+// Un código corto y estable con el que reconocer un dispositivo de un vistazo,
+// sobre todo cuando hay dos iguales: dos móviles Android se ven distintos aquí
+// aunque nadie les haya puesto nombre. Sale del identificador, así que cada
+// aparato puede leer el suyo en su propia ficha y compararlo.
+export function codigoDispositivo(id) {
+  return String(id ?? '').replace(/[^a-z0-9]/gi, '').slice(0, 6).toUpperCase();
+}
+
 export function idDispositivo() {
   let id = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
   if (!id) {
@@ -886,6 +916,8 @@ export function anotarDispositivo({ crear = false } = {}) {
     [id]: {
       ...resto,
       sistema: nombreDispositivo(),
+      navegador: nombreNavegador(),
+      ...(modeloDispositivo() ? { modelo: modeloDispositivo() } : {}),
       alta: anterior?.alta ?? new Date(ahora).toISOString(),
       ultimaVez: new Date(ahora).toISOString(),
     },
@@ -897,7 +929,9 @@ export function anotarDispositivo({ crear = false } = {}) {
 export function dispositivos(datos = cargarLocal()) {
   const propio = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
   return Object.entries(datos.dispositivos ?? {})
-    .map(([id, dispositivo]) => ({ ...dispositivo, id, esteMismo: id === propio }))
+    .map(([id, dispositivo]) => ({
+      ...dispositivo, id, codigo: codigoDispositivo(id), esteMismo: id === propio,
+    }))
     .sort((uno, otro) => (otro.ultimaVez ?? '').localeCompare(uno.ultimaVez ?? ''));
 }
 
