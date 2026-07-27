@@ -20,6 +20,14 @@ const textos = {
     webdavFolder: 'URL de la carpeta WebDAV', user: 'Usuario', appPassword: 'Contraseña de aplicación',
     webdav: 'Nube (WebDAV)', transferConfig: 'Llevar la configuración a otro dispositivo',
     webdavShort: 'Nube', settingsData: 'Datos', settingsSections: 'Secciones de los ajustes',
+    bookPaper: 'Papel del libro',
+    bookPaperHelp: 'Con qué papel se abren los libros. De partida sigue al tema de la aplicación: claro cuando la interfaz es clara y modo noche cuando es oscura. Mientras lees, el botón del sol, la taza o la luna cambia el papel solo del libro que tengas abierto.',
+    paperDefault: 'Papel de partida',
+    paperAuto: 'El del tema de la aplicación', paperLight: 'Claro', paperSepia: 'Sepia', paperDark: 'Noche',
+    usePaperEverywhere: 'Usar este papel en todos los libros',
+    booksWithOwnPaper: 'Libros con un papel propio, elegido mientras se leían: {count}.',
+    noBooksWithOwnPaper: 'Ningún libro tiene un papel propio: todos siguen este ajuste.',
+    paperAppliedEverywhere: 'Todos los libros vuelven al papel de los ajustes.',
     epubTextSettings: 'Texto de los EPUB',
     epubTextSettingsHelp: 'Cómo se compone el texto de los libros EPUB (los PDF llegan ya maquetados y no admiten estos cambios). Los mismos ajustes están a mano mientras lees, en el botón de la letra.',
     resetTextSettings: 'Restablecer el texto',
@@ -257,6 +265,14 @@ const textos = {
     webdavFolder: 'URL de la carpeta WebDAV', user: 'Usuari', appPassword: 'Contrasenya d’aplicació',
     webdav: 'Núvol (WebDAV)', transferConfig: 'Porta la configuració a un altre dispositiu',
     webdavShort: 'Núvol', settingsData: 'Dades', settingsSections: 'Seccions de la configuració',
+    bookPaper: 'Paper del llibre',
+    bookPaperHelp: 'Amb quin paper s’obren els llibres. D’entrada segueix el tema de l’aplicació: clar quan la interfície és clara i mode nit quan és fosca. Mentre llegeixes, el botó del sol, la tassa o la lluna canvia el paper només del llibre que tinguis obert.',
+    paperDefault: 'Paper de partida',
+    paperAuto: 'El del tema de l’aplicació', paperLight: 'Clar', paperSepia: 'Sèpia', paperDark: 'Nit',
+    usePaperEverywhere: 'Fes servir aquest paper a tots els llibres',
+    booksWithOwnPaper: 'Llibres amb un paper propi, triat mentre es llegien: {count}.',
+    noBooksWithOwnPaper: 'Cap llibre no té un paper propi: tots segueixen aquest ajust.',
+    paperAppliedEverywhere: 'Tots els llibres tornen al paper de la configuració.',
     epubTextSettings: 'Text dels EPUB',
     epubTextSettingsHelp: 'Com es compon el text dels llibres EPUB (els PDF arriben ja maquetats i no admeten aquests canvis). Els mateixos ajustos són a mà mentre llegeixes, al botó de la lletra.',
     resetTextSettings: 'Restableix el text',
@@ -494,6 +510,14 @@ const textos = {
     webdavFolder: 'WebDAV folder URL', user: 'Username', appPassword: 'App password',
     webdav: 'Cloud (WebDAV)', transferConfig: 'Move configuration to another device',
     webdavShort: 'Cloud', settingsData: 'Data', settingsSections: 'Settings sections',
+    bookPaper: 'Book paper',
+    bookPaperHelp: 'Which paper books open with. By default it follows the app theme: light when the interface is light and night mode when it is dark. While you read, the sun, cup or moon button changes the paper of the open book only.',
+    paperDefault: 'Default paper',
+    paperAuto: 'The app theme’s', paperLight: 'Light', paperSepia: 'Sepia', paperDark: 'Night',
+    usePaperEverywhere: 'Use this paper in every book',
+    booksWithOwnPaper: 'Books with their own paper, chosen while reading them: {count}.',
+    noBooksWithOwnPaper: 'No book has its own paper: they all follow this setting.',
+    paperAppliedEverywhere: 'Every book goes back to the paper in settings.',
     epubTextSettings: 'EPUB text',
     epubTextSettingsHelp: 'How the text of EPUB books is laid out (PDFs arrive already typeset and do not take these changes). The same settings are at hand while you read, under the font button.',
     resetTextSettings: 'Reset the text',
@@ -975,12 +999,15 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Paper del llibre</summary>
           <p>
-        el botó del sol, la tassa o la lluna recorre els tres modes de lectura: paper
-        clar, sèpia (torrat, més descansat per a estones llargues) i mode nit. És
-        independent del tema de l’aplicació: pots tenir la interfície fosca i llegir en
-        sèpia. Als EPUB es canvien els colors del text, així que les il·lustracions es
-        veuen tal qual; als PDF, que són una imatge ja dibuixada, es tenyeix la pàgina
-        sencera.</p>
+        els llibres s’obren amb el paper del tema de l’aplicació: clar amb la
+        interfície clara i mode nit amb la fosca. Mentre llegeixes, el botó del sol, la
+        tassa o la lluna recorre els tres modes de lectura —paper clar, sèpia (torrat,
+        més descansat per a estones llargues) i mode nit— i el que triïs val només per
+        a aquell llibre: pots llegir-ne un en sèpia i que els altres segueixin com
+        estaven. A <em>⚙️ Configuració → Lector</em> es canvia el paper de partida de
+        tots i s’hi tornen els llibres que en tinguin un de propi. Als EPUB es canvien
+        els colors del text, així que les il·lustracions es veuen tal qual; als PDF,
+        que són una imatge ja dibuixada, es tenyeix la pàgina sencera.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Imatges en mode nit (només PDF)</summary>
@@ -1437,11 +1464,15 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Book paper</summary>
           <p>
-        the sun, cup or moon button cycles through the three reading modes: light
-        paper, sepia (warm, easier on the eyes for long sessions) and night mode. It is
-        independent of the app theme: you can have a dark interface and read in sepia.
-        In EPUBs the text colours change, so illustrations look untouched; in PDFs,
-        which are already drawn images, the whole page is tinted.</p>
+        books open with the paper of the app theme: light with a light interface and
+        night mode with a dark one. While you read, the sun, cup or moon button cycles
+        through the three reading modes —light paper, sepia (warm, easier on the eyes
+        for long sessions) and night mode— and what you pick applies to that book
+        only: you can read one in sepia and leave the rest as they were. In
+        <em>⚙️ Settings → Reader</em> you set the default paper for all of them and
+        send back the books that have their own. In EPUBs the text colours change, so
+        illustrations look untouched; in PDFs, which are already drawn images, the
+        whole page is tinted.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Images in night mode (PDF only)</summary>

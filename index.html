@@ -700,6 +700,27 @@
       </div>
 
       <div class="tarjeta">
+        <h2 data-i18n="bookPaper">Papel del libro</h2>
+        <p class="ayuda" data-i18n="bookPaperHelp">Con qué papel se abren los libros. De partida sigue al tema de la aplicación: claro cuando la interfaz es clara y modo noche cuando es oscura. Mientras lees, el botón del sol, la taza o la luna cambia el papel solo del libro que tengas abierto.</p>
+        <div class="rejilla-ajustes">
+          <label class="campo-ajuste"><span data-i18n="paperDefault">Papel de partida</span>
+            <select id="papel-ajustes">
+              <option value="auto" data-i18n="paperAuto">El del tema de la aplicación</option>
+              <option value="claro" data-i18n="paperLight">Claro</option>
+              <option value="sepia" data-i18n="paperSepia">Sepia</option>
+              <option value="noche" data-i18n="paperDark">Noche</option>
+            </select>
+          </label>
+        </div>
+        <div class="fila-botones">
+          <button id="btn-papel-todos" type="button" class="btn-secundario">
+            <span data-i18n="usePaperEverywhere">Usar este papel en todos los libros</span>
+          </button>
+        </div>
+        <p class="ayuda" id="ayuda-papel-libros"></p>
+      </div>
+
+      <div class="tarjeta">
         <h2 data-i18n="readerScreen">En pantalla</h2>
         <label class="casilla">
           <input type="checkbox" id="casilla-barra-estado" checked>
@@ -1059,12 +1080,15 @@
           <details class="punto-ayuda">
             <summary>Papel del libro</summary>
             <p>
-          el botón del sol, la taza o la luna recorre los tres modos de lectura: papel
-          claro, sepia (tostado, más descansado para ratos largos) y modo noche. Es
-          independiente del tema de la aplicación: puedes tener la interfaz oscura y
-          leer en sepia. En EPUB se cambian los colores del texto, así que las
-          ilustraciones se ven tal cual; en PDF, que es una imagen ya dibujada, se tiñe
-          la página entera.</p>
+          los libros se abren con el papel del tema de la aplicación: claro con la
+          interfaz clara y modo noche con la oscura. Mientras lees, el botón del sol,
+          la taza o la luna recorre los tres modos de lectura —papel claro, sepia
+          (tostado, más descansado para ratos largos) y modo noche— y lo que elijas
+          vale solo para ese libro: puedes leer uno en sepia y que los demás sigan como
+          estaban. En <em>⚙️ Ajustes → Lector</em> se cambia el papel de partida de
+          todos y se devuelven a él los libros que tengan uno propio. En EPUB se
+          cambian los colores del texto, así que las ilustraciones se ven tal cual; en
+          PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Imágenes en modo noche (solo PDF)</summary>
