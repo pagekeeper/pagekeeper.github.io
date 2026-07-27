@@ -18,6 +18,7 @@ import { resumenDeMetadatos } from './resumen-libro.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
+  UNIDADES_MINIMAS_PAGINAS, UNIDADES_MINIMAS_PORCENTAJE,
 } from './ritmo.js';
 import {
   esLibro, librosElegidos, librosArrastrados, capturarArrastre,
@@ -4755,7 +4756,8 @@ function tiempoRestanteEstimado() {
     : Math.max(0, lector.totalPaginas - lector.pagina);
   if (restante === null) return '';
   // Hasta acumular unos minutos de lectura real la estimación no es fiable.
-  const minutos = minutosRestantes(entrada, restante);
+  const minutos = minutosRestantes(entrada, restante,
+    epubAbierto() ? UNIDADES_MINIMAS_PORCENTAJE : UNIDADES_MINIMAS_PAGINAS);
   if (minutos === null) return '';
   if (minutos < 1) return t('timeLessMinute');
   if (minutos >= 60) return t('timeHoursMinutes', { h: Math.floor(minutos / 60), m: minutos % 60 });

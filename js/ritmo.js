@@ -15,8 +15,14 @@ export const SEMIVIDA_PORCENTAJE = 8;
 const SEGUNDOS_MINIMOS = 3;
 const SEGUNDOS_MAXIMOS = 300;
 const AVANCE_MAXIMO = 4;
-// Hasta reunir algo de lectura real la estimación no es fiable.
-const UNIDADES_MINIMAS = 3;
+// Hasta reunir algo de lectura real la estimación no es fiable. El mínimo de
+// unidades va con la unidad de cada formato, igual que la semivida: tres
+// páginas de PDF son un rato de lectura, pero tres puntos de porcentaje de un
+// libro largo son horas, y el tiempo restante no aparecía hasta entonces.
+// Sirve solo para no dividir por casi nada; de la fiabilidad se encargan los
+// segundos acumulados.
+export const UNIDADES_MINIMAS_PAGINAS = 3;
+export const UNIDADES_MINIMAS_PORCENTAJE = 0.25;
 const SEGUNDOS_ACUMULADOS_MINIMOS = 120;
 
 export function muestraValida(segundos, avance) {
@@ -42,15 +48,16 @@ export function acumularRitmo(entrada, segundos, avance, semivida = SEMIVIDA_PAG
 }
 
 // Segundos por unidad según lo acumulado, o null si aún no hay bastante.
-export function segundosPorUnidad(entrada) {
+export function segundosPorUnidad(entrada, unidadesMinimas = UNIDADES_MINIMAS_PAGINAS) {
   const segundos = Number(entrada?.s) || 0;
   const unidades = Number(entrada?.u) || 0;
-  if (unidades < UNIDADES_MINIMAS || segundos < SEGUNDOS_ACUMULADOS_MINIMOS) return null;
+  if (unidades < unidadesMinimas || segundos < SEGUNDOS_ACUMULADOS_MINIMOS) return null;
   return segundos / unidades;
 }
 
-export function minutosRestantes(entrada, unidadesRestantes) {
-  const ritmo = segundosPorUnidad(entrada);
+export function minutosRestantes(entrada, unidadesRestantes,
+  unidadesMinimas = UNIDADES_MINIMAS_PAGINAS) {
+  const ritmo = segundosPorUnidad(entrada, unidadesMinimas);
   if (ritmo === null || !Number.isFinite(unidadesRestantes) || unidadesRestantes < 0) return null;
   return Math.round((ritmo * unidadesRestantes) / 60);
 }
