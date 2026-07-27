@@ -6267,20 +6267,115 @@ $('zona-siguiente').addEventListener('click', () => (epubAbierto() ? lectorEpub 
 // El número ocupa el botón de en medio de las dos lupas, que sigue haciendo lo
 // suyo: encajar la página al ancho, o devolver la letra al 100 % en EPUB. Así
 // el hueco enseña algo en vez de repetir con un icono lo que dicen las lupas.
+// Aumentos hechos que ofrece el panel. En PDF son escalas de la página; en
+// EPUB, tamaños de letra, que no bajan de donde el texto deja de leerse.
+const VALORES_ZOOM_PDF = [50, 75, 100, 125, 150, 200, 300, 400];
+const VALORES_ZOOM_EPUB = [80, 90, 100, 120, 150, 200, 250, 300];
+
+function zoomActual() {
+  return epubAbierto() ? lectorEpub.tamano : lector.porcentajeZoom;
+}
+
 function pintarZoom() {
-  const valor = epubAbierto() ? lectorEpub.tamano : lector.porcentajeZoom;
+  const valor = zoomActual();
   const texto = Number.isFinite(valor) ? `${Math.round(valor)} %` : '';
-  const enEpub = epubAbierto();
-  const accion = t(enEpub ? 'zoomResetText' : 'zoomFitWidth');
-  const nombre = t(enEpub ? 'resetTextSizeName' : 'autoWidth');
   for (const id of ['btn-ancho-auto', 'menu-ancho-auto']) {
     $(id).textContent = texto;
-    $(id).title = `${t('zoomLevel')} ${texto}. ${accion}`;
+    $(id).title = `${t('zoomLevel')} ${texto}. ${t('zoomChange')}`;
     // Con texto propio, el nombre accesible sería solo la cifra: se dice
-    // también qué hace el botón, que es lo que se anuncia al enfocarlo.
-    $(id).setAttribute('aria-label', `${nombre} (${texto})`);
+    // también qué abre el botón, que es lo que se anuncia al enfocarlo.
+    $(id).setAttribute('aria-label', `${t('zoomSettings')} (${texto})`);
+  }
+  if (!$('panel-zoom').hidden) pintarPanelZoom();
+}
+
+// El panel se rehace cada vez que se abre: sus valores dependen del formato
+// (la página en PDF, la letra en EPUB) y de lo que haya puesto ahora mismo.
+function pintarPanelZoom() {
+  const enEpub = epubAbierto();
+  const actual = Math.round(zoomActual());
+  $('zoom-ancho').classList.toggle('oculto', enEpub);
+  $('zoom-pagina').classList.toggle('oculto', enEpub);
+  const valores = enEpub ? VALORES_ZOOM_EPUB : VALORES_ZOOM_PDF;
+  $('valores-zoom').replaceChildren(...valores.map((valor) => {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.textContent = `${valor} %`;
+    boton.setAttribute('aria-pressed', String(valor === actual));
+    boton.addEventListener('click', () => aplicarZoom(valor));
+    return boton;
+  }));
+  $('campo-zoom').min = enEpub ? 60 : 10;
+  $('campo-zoom').max = enEpub ? 300 : 400;
+  $('campo-zoom').value = String(actual);
+}
+
+// Deja el libro al aumento pedido: en PDF es la escala de la página y en
+// EPUB, el tamaño de la letra. Lo que no se pueda dar (un PDF no se amplía
+// sin fin) queda en lo más cercano, y el botón enseña lo que ha salido.
+async function aplicarZoom(porcentaje) {
+  cerrarPanelZoom();
+  if (epubAbierto()) {
+    const acotado = Math.min(300, Math.max(60, Math.round(porcentaje)));
+    lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
+    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  } else {
+    await lector.fijarPorcentaje(porcentaje);
+    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
+    localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+    aplicarAparienciaAjustePdf();
+  }
+  pintarZoom();
+}
+
+function cerrarPanelZoom() {
+  $('panel-zoom').hidden = true;
+  $('btn-ancho-auto').setAttribute('aria-expanded', 'false');
+}
+
+function alternarPanelZoom() {
+  const abierto = !$('panel-zoom').hidden;
+  cerrarPanelTexto();
+  cerrarPanelTts();
+  if (abierto) return cerrarPanelZoom();
+  pintarPanelZoom();
+  $('panel-zoom').hidden = false;
+  $('btn-ancho-auto').setAttribute('aria-expanded', 'true');
+  // En pantalla táctil no se enfoca el campo: saltaría el teclado y taparía
+  // los valores hechos, que es lo que se suele venir a buscar.
+  if (!window.matchMedia?.('(pointer: coarse)').matches) {
+    $('campo-zoom').focus();
+    $('campo-zoom').select();
   }
 }
+
+$('btn-ancho-auto').addEventListener('click', alternarPanelZoom);
+
+$('zoom-ancho').addEventListener('click', async () => {
+  cerrarPanelZoom();
+  await lector.ajustar('ancho');
+  localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
+  localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+  aplicarAparienciaAjustePdf();
+  pintarZoom();
+});
+
+$('zoom-pagina').addEventListener('click', () => {
+  cerrarPanelZoom();
+  $('btn-pagina-completa').click();
+});
+
+$('form-zoom').addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  const valor = Number($('campo-zoom').value);
+  if (!Number.isFinite(valor) || valor <= 0) return;
+  aplicarZoom(valor);
+});
+
+// Se cierra al tocar fuera, como los demás paneles de la barra.
+document.addEventListener('click', (evento) => {
+  if (!$('control-zoom').contains(evento.target)) cerrarPanelZoom();
+});
 
 async function ajustarZoom(direccion) {
   if (epubAbierto()) {
@@ -6362,6 +6457,7 @@ for (const ajuste of AJUSTES_TEXTO_EPUB) {
 
 $('btn-texto').addEventListener('click', () => {
   const abrir = $('panel-texto').hidden;
+  if (abrir) cerrarPanelZoom();
   $('panel-texto').hidden = !abrir;
   $('btn-texto').setAttribute('aria-expanded', String(abrir));
   if (abrir) {
@@ -6623,6 +6719,7 @@ function cerrarPanelTts() {
 
 function abrirPanelTts(abrir = true) {
   cerrarPanelTexto();
+  cerrarPanelZoom();
   $('panel-tts').hidden = !abrir;
   $('btn-tts').setAttribute('aria-expanded', String(abrir));
   if (!abrir) return;
@@ -6731,6 +6828,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-busqueda-libro').classList.contains('oculto')) {
     cerrarBusquedaLibro();
     $('btn-buscar-libro').focus();
+  } else if (!$('panel-zoom').hidden) {
+    cerrarPanelZoom();
+    $('btn-ancho-auto').focus();
   } else if (!$('panel-texto').hidden) {
     cerrarPanelTexto();
     $('btn-texto').focus();
@@ -6745,29 +6845,13 @@ document.addEventListener('keydown', (evento) => {
 
 function aplicarAparienciaAjustePdf() {
   const esPdf = !epubAbierto();
-  for (const id of ['btn-ancho-auto', 'menu-ancho-auto']) {
-    $(id).setAttribute('aria-pressed', String(esPdf && lector.ajuste === 'ancho'));
-  }
+  $('zoom-ancho').setAttribute('aria-pressed', String(esPdf && lector.ajuste === 'ancho'));
+  $('zoom-pagina').setAttribute('aria-pressed', String(esPdf && lector.ajuste === 'pagina'));
   for (const id of ['btn-pagina-completa', 'menu-pagina-completa']) {
     $(id).setAttribute('aria-pressed', String(esPdf && lector.ajuste === 'pagina'));
   }
   $('btn-recorte').setAttribute('aria-pressed', String(esPdf && lector.recorte));
 }
-
-// Ajustes automáticos del PDF. En EPUB el control de ancho conserva su
-// función histórica de restablecer el tamaño de letra al 100 %.
-$('btn-ancho-auto').addEventListener('click', async () => {
-  if (epubAbierto()) {
-    lectorEpub.cambiarTamano(100 - lectorEpub.tamano);
-    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
-    pintarZoom();
-  } else {
-    await lector.ajustar('ancho');
-    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-    localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
-    aplicarAparienciaAjustePdf();
-  }
-});
 
 // Recorta los márgenes en blanco del PDF: analiza el documento la primera vez
 // y avisa si no hay nada que recortar, para que el botón no parezca roto.

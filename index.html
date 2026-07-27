@@ -349,12 +349,29 @@
           </button>
         </div>
       </div>
-      <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir" data-i18n-title="zoomOut"></button>
-      <button id="btn-ancho-auto" class="btn-icono btn-zoom-valor" title="Ancho automático"></button>
+      <div id="control-zoom" class="control-margenes grupo-zoom">
+        <button id="btn-zoom-menos" class="btn-icono" data-icono="zoom-out" title="Reducir" data-i18n-title="zoomOut"></button>
+        <button id="btn-ancho-auto" class="btn-icono btn-zoom-valor"
+          aria-haspopup="dialog" aria-expanded="false"></button>
+        <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
+        <div id="panel-zoom" class="panel-margenes panel-zoom" role="dialog"
+          aria-label="Zoom" data-i18n-aria-label="zoom" hidden>
+          <div class="fila-botones">
+            <button type="button" id="zoom-ancho" class="btn-secundario" data-i18n="autoWidth">Ajustar al ancho</button>
+            <button type="button" id="zoom-pagina" class="btn-secundario" data-i18n="fitPage">Ajustar la página completa</button>
+          </div>
+          <div id="valores-zoom" class="valores-zoom"></div>
+          <form id="form-zoom" class="form-zoom">
+            <label for="campo-zoom" data-i18n="customZoom">Otro</label>
+            <input id="campo-zoom" type="number" min="10" max="400" step="5" inputmode="numeric">
+            <span aria-hidden="true">%</span>
+            <button type="submit" class="btn-secundario" data-i18n="apply">Aplicar</button>
+          </form>
+        </div>
+      </div>
       <button id="btn-pagina-completa" class="btn-icono" data-icono="maximize" title="Ajustar la página completa" data-i18n-title="fitPage"></button>
       <button id="btn-recorte" class="btn-icono" data-icono="crop" title="Recortar los márgenes"
         data-i18n-title="cropMargins" aria-pressed="false"></button>
-      <button id="btn-zoom-mas" class="btn-icono" data-icono="zoom-in" title="Ampliar" data-i18n-title="zoomIn"></button>
       <button id="btn-inmersivo" class="btn-icono" data-icono="expand"
         title="Leer a pantalla completa" data-i18n-title="immersive" aria-pressed="false"></button>
       <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
@@ -394,14 +411,16 @@
             <li class="grupo-zoom-menu">
               <span data-i18n="zoom">Zoom</span>
               <div>
-                <button type="button" id="menu-zoom-menos" class="btn-icono" data-icono="zoom-out"
-                  title="Reducir" data-i18n-title="zoomOut"></button>
-                <button type="button" id="menu-ancho-auto" class="btn-icono btn-zoom-valor"
-                  title="Ancho automático"></button>
+                <span class="grupo-zoom">
+                  <button type="button" id="menu-zoom-menos" class="btn-icono" data-icono="zoom-out"
+                    title="Reducir" data-i18n-title="zoomOut"></button>
+                  <button type="button" id="menu-ancho-auto" class="btn-icono btn-zoom-valor"
+                    aria-haspopup="dialog"></button>
+                  <button type="button" id="menu-zoom-mas" class="btn-icono" data-icono="zoom-in"
+                    title="Ampliar" data-i18n-title="zoomIn"></button>
+                </span>
                 <button type="button" id="menu-pagina-completa" class="btn-icono" data-icono="maximize"
                   title="Ajustar la página completa" data-i18n-title="fitPage"></button>
-                <button type="button" id="menu-zoom-mas" class="btn-icono" data-icono="zoom-in"
-                  title="Ampliar" data-i18n-title="zoomIn"></button>
               </div>
             </li>
             <li><button type="button" id="menu-inmersivo" class="item-menu-lector">
@@ -1046,14 +1065,15 @@
           <details class="punto-ayuda">
             <summary>Ajuste y zoom</summary>
             <p>
-          entre las dos lupas hay un botón que enseña el aumento en tanto por ciento y
-          que, al pulsarlo, encaja la página al ancho; el de las cuatro esquinas la
-          muestra completa. Las lupas amplían o reducen desde ese punto; con zoom
-          puedes arrastrar la página con el ratón o el dedo. En PDF el porcentaje es el
-          de la página (100 % es su tamaño natural, así que ajustarla al ancho puede
-          dar cualquier cifra); en EPUB es el de la letra, y ese mismo botón la
-          devuelve al 100 %. En pantalla táctil puedes pellizcar para ampliar: en los
-          PDF cambia el zoom y en los EPUB, el tamaño de la letra.</p>
+          los tres mandos del zoom van juntos: las dos lupas, que amplían y reducen, y
+          en medio el aumento en tanto por ciento. Al pulsar ese número se abre un
+          panel con «Ajustar al ancho», «Ajustar la página completa», los aumentos más
+          usados y un hueco donde escribir el que quieras (205 %, si es lo que te
+          conviene). En PDF el porcentaje es el de la página —100 % es su tamaño
+          natural, así que ajustarla al ancho puede dar cualquier cifra— y en EPUB es
+          el de la letra. Con zoom puedes arrastrar la página con el ratón o el dedo, y
+          en pantalla táctil pellizcar para ampliar: en los PDF cambia el zoom y en los
+          EPUB, el tamaño de la letra.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Tiempo restante</summary>

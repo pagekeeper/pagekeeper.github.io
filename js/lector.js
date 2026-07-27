@@ -311,6 +311,24 @@ export class Lector {
     if (this.documento) await this.montar();
   }
 
+  // Deja la página a un aumento pedido a mano (150 %, 205 %…). El zoom que se
+  // guarda es un multiplicador sobre «ajustar al ancho», así que hay que
+  // dividir el aumento entre el que sale de encajar la página: en una pantalla
+  // ancha o con un PDF pequeño, «100 %» puede ser reducir. Si el aumento pedido
+  // se sale de lo que admite el zoom, queda en el extremo más cercano.
+  async fijarPorcentaje(porcentaje) {
+    if (!this.documento) return;
+    const objetivo = Math.min(400, Math.max(10, Number(porcentaje) || 0)) / 100;
+    const pagina = await this.documento.getPage(this.pagina);
+    const rotacion = this.rotacionDe(pagina);
+    const base = pagina.getViewport({ scale: 1, rotation: rotacion });
+    const visible = this.recorteDe(this.pagina) ?? { ancho: 1, alto: 1 };
+    const escalaAncho = this.anchoPagina() / (base.width * visible.ancho);
+    this.ajuste = 'personalizado';
+    this.zoom = Math.min(4, Math.max(0.1, objetivo / (escalaAncho || 1)));
+    await this.montar();
+  }
+
   async rotar() {
     this.rotacion = (this.rotacion + 90) % 360;
     if (!this.documento) return;
