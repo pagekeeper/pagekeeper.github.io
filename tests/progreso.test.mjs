@@ -3,12 +3,19 @@ import assert from 'node:assert/strict';
 
 import {
   anotarPagina,
+  acatarRevocacion,
+  anotarDispositivo,
   ausentes,
+  cargarLocal,
   conciliarLocales,
   conciliarPresencia,
   diasDeGracia,
   DIAS_GRACIA_AUSENCIA,
+  dispositivos,
   guardarDiasDeGracia,
+  guardarLocal,
+  revocacionPendiente,
+  revocarDispositivo,
   guardarMarcadores,
   guardarNota,
   fusionarEntradas,
@@ -319,9 +326,10 @@ function conNube(librosRemotos = {}) {
     base: 'https://nube.test/libros',
     async leerProgreso() { return structuredClone(nube); },
     async escribirProgreso(datos) {
+      // Como un servidor de verdad: se queda exactamente lo que se sube.
       const copia = structuredClone(datos);
-      nube.libros = copia.libros;
-      if (copia.ajustes) nube.ajustes = copia.ajustes;
+      for (const clave of Object.keys(nube)) if (!(clave in copia)) delete nube[clave];
+      Object.assign(nube, copia);
     },
   };
   return { cliente, nube };
@@ -532,4 +540,126 @@ test('sin poder mirar la base local no se borra nada', () => {
 
   assert.deepEqual(conciliarLocales([], false), []);
   assert.ok(progresoDe('local:libro.epub:100'));
+});
+
+// ── Dispositivos conectados ──
+
+function conNavegador(uuid = 'aparato-1') {
+  const { cliente, nube } = conNube();
+  Object.defineProperty(globalThis, 'crypto', {
+    value: { randomUUID: () => uuid }, configurable: true,
+  });
+  return { cliente, nube };
+}
+
+test('cada dispositivo deja constancia de su paso al sincronizar', async () => {
+  const { cliente, nube } = conNavegador('portatil');
+  anotarPagina('libro.pdf', 3, 100);
+  anotarDispositivo({ crear: true });
+
+  await sincronizar(cliente);
+
+  const [aparato] = dispositivos();
+  assert.equal(aparato.id, 'portatil');
+  assert.equal(aparato.esteMismo, true);
+  assert.ok(aparato.ultimaVez);
+  assert.ok(nube.dispositivos.portatil, 'el registro viaja al archivo compartido');
+});
+
+test('el registro no se reescribe en cada sincronización', async () => {
+  const { cliente } = conNavegador('portatil');
+  anotarPagina('libro.pdf', 3, 100);
+  anotarDispositivo({ crear: true });
+  await sincronizar(cliente);
+  const primera = dispositivos()[0].ultimaVez;
+
+  await sincronizar(cliente);
+  assert.equal(dispositivos()[0].ultimaVez, primera);
+});
+
+test('desconectar un dispositivo deja la orden escrita hasta que se abra', async () => {
+  const { cliente, nube } = conNavegador('portatil');
+  anotarPagina('libro.pdf', 3, 100);
+  anotarDispositivo({ crear: true });
+  await sincronizar(cliente);
+  // Otro aparato, que solo conocemos por el archivo compartido.
+  nube.dispositivos = {
+    ...nube.dispositivos,
+    movil: { sistema: 'Android', alta: haceDias(90), ultimaVez: haceDias(2) },
+  };
+  await sincronizar(cliente);
+
+  revocarDispositivo('movil');
+  await sincronizar(cliente);
+
+  assert.ok(nube.dispositivos.movil.revocado, 'la orden queda en el archivo');
+  assert.equal(revocacionPendiente(), false, 'no es para este dispositivo');
+  assert.equal(dispositivos().find((d) => d.id === 'movil').revocado !== undefined, true);
+});
+
+test('el dispositivo revocado lo detecta y al acatarlo se da de baja', async () => {
+  const { cliente, nube } = conNavegador('movil');
+  anotarPagina('libro.pdf', 3, 100);
+  anotarDispositivo({ crear: true });
+  await sincronizar(cliente);
+
+  revocarDispositivo('movil');
+  assert.equal(revocacionPendiente(), true);
+
+  acatarRevocacion();
+  assert.equal(revocacionPendiente(), false);
+  const ficha = dispositivos().find((aparato) => aparato.id === 'movil');
+  assert.equal(ficha.esteMismo, false);
+  assert.ok(ficha.baja, 'la ficha dice que la orden llegó a su destino');
+
+  // Y la sincronización que sube esa baja no lo da de alta otra vez.
+  await sincronizar(cliente);
+  assert.deepEqual(Object.keys(nube.dispositivos), ['movil']);
+});
+
+test('una conexión posterior a la orden la da por cumplida', () => {
+  const local = { movil: { sistema: 'Android', ultimaVez: haceDias(1) } };
+  const remoto = { movil: {
+    sistema: 'Android', ultimaVez: haceDias(5), revocado: haceDias(3),
+  } };
+  const { cliente, nube } = conNavegador('otro');
+  nube.dispositivos = remoto;
+  guardarLocal({ ...cargarLocal(), dispositivos: local });
+
+  return sincronizar(cliente).then(() => {
+    assert.equal(nube.dispositivos.movil.revocado, undefined);
+    assert.equal(nube.dispositivos.movil.ultimaVez, local.movil.ultimaVez);
+  });
+});
+
+test('el nombre puesto a mano no lo pisa quien se conecte después', () => {
+  const bautizado = { movil: {
+    sistema: 'Android', ultimaVez: haceDias(8),
+    nombre: 'Móvil de Juan', nombreActualizado: haceDias(7),
+  } };
+  const reciente = { movil: { sistema: 'Android', ultimaVez: haceDias(1) } };
+  const { cliente, nube } = conNavegador('otro');
+  nube.dispositivos = reciente;
+  guardarLocal({ ...cargarLocal(), dispositivos: bautizado });
+
+  return sincronizar(cliente).then(() => {
+    assert.equal(nube.dispositivos.movil.nombre, 'Móvil de Juan');
+    assert.equal(nube.dispositivos.movil.ultimaVez, reciente.movil.ultimaVez);
+  });
+});
+
+test('los dispositivos que llevan más del plazo sin aparecer se caen de la lista', async () => {
+  const { cliente, nube } = conNavegador('portatil');
+  anotarPagina('libro.pdf', 3, 100);
+  anotarDispositivo({ crear: true });
+  guardarDiasDeGracia(30);
+  await sincronizar(cliente);
+  nube.dispositivos = {
+    ...nube.dispositivos,
+    olvidado: { sistema: 'Windows', alta: haceDias(400), ultimaVez: haceDias(200) },
+  };
+
+  await sincronizar(cliente);
+
+  assert.deepEqual(Object.keys(nube.dispositivos), ['portatil']);
 });

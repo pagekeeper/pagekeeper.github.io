@@ -703,6 +703,7 @@ function abrirAjustes(registrar = true, pestana = null) {
   pintarResumenRegistro();
   sincronizarSelectRecientes();
   pintarAjustesLimpieza();
+  pintarDispositivos();
   pintarAjustesTexto();
   pintarAjustesPapel();
   aplicarMargenEpub();
@@ -1451,6 +1452,13 @@ async function cargarBiblioteca() {
       ]).then(() => null).catch((error) => error),
     ]);
     actualizarEstadoSincronizacion(errorSincronizacion);
+    // Si desde otro dispositivo pidieron desconectar este, se acata aquí: la
+    // biblioteca que se acaba de pintar deja de tener nube detrás.
+    if (await acatarDesconexionSiToca()) return;
+    // Y si no, queda constancia de que este aparato sigue en uso.
+    if (progreso.anotarDispositivo({ crear: true })) {
+      progreso.sincronizar(cliente).catch(() => null);
+    }
     if (errorSincronizacion) {
       avisar(t('syncFailed', { error: explicarError(errorSincronizacion) }), 7000);
     }
@@ -1556,6 +1564,101 @@ function sincronizarSelectRecientes() {
   $('cuantas-recientes').disabled = continuarDesactivado();
 }
 document.addEventListener('idioma-cambiado', sincronizarSelectRecientes);
+
+// ───────────── Ajustes: dispositivos conectados ─────────────
+
+// Hace cuánto pasó por aquí un dispositivo, en palabras. Las horas exactas no
+// dicen nada; lo que se busca de un vistazo es «este lleva meses sin usarse».
+function haceCuanto(iso) {
+  const cuando = Date.parse(iso ?? '');
+  if (!Number.isFinite(cuando)) return t('deviceNeverSeen');
+  const dias = Math.floor((Date.now() - cuando) / (24 * 60 * 60 * 1000));
+  if (dias <= 0) return t('deviceToday');
+  if (dias === 1) return t('deviceYesterday');
+  if (dias < 30) return t('deviceDaysAgo', { count: dias });
+  return new Date(cuando).toLocaleDateString(idiomaActual(),
+    { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function pintarDispositivos() {
+  const lista = $('lista-dispositivos');
+  if (!lista) return;
+  const aparatos = progreso.dispositivos();
+  $('tarjeta-dispositivos').classList.toggle('oculto', !cliente && aparatos.length <= 1);
+  lista.replaceChildren();
+  if (!aparatos.length) {
+    const li = document.createElement('li');
+    li.className = 'ayuda';
+    li.textContent = t('devicesNone');
+    lista.append(li);
+    return;
+  }
+  for (const aparato of aparatos) {
+    const li = document.createElement('li');
+    li.className = 'dispositivo';
+    const datos = document.createElement('div');
+    datos.className = 'dispositivo-datos';
+    const titulo = document.createElement('strong');
+    titulo.textContent = aparato.nombre?.trim() || aparato.sistema || t('deviceUnknown');
+    const detalle = document.createElement('span');
+    detalle.className = 'ayuda';
+    const partes = [];
+    if (aparato.esteMismo) partes.push(t('deviceThisOne'));
+    if (aparato.nombre?.trim() && aparato.sistema) partes.push(aparato.sistema);
+    partes.push(t('deviceLastSeen', { when: haceCuanto(aparato.ultimaVez) }));
+    if (aparato.baja) partes.push(t('deviceRevoked'));
+    else if (aparato.revocado) partes.push(t('deviceRevokedPending'));
+    detalle.textContent = partes.join(' · ');
+    datos.append(titulo, detalle);
+    const acciones = document.createElement('div');
+    acciones.className = 'fila-botones';
+    const renombrar = document.createElement('button');
+    renombrar.type = 'button';
+    renombrar.className = 'btn-secundario';
+    renombrar.textContent = t('deviceRename');
+    renombrar.addEventListener('click', () => {
+      const nombre = prompt(t('deviceRenamePrompt'), aparato.nombre ?? aparato.sistema ?? '');
+      if (nombre === null) return;
+      progreso.renombrarDispositivo(aparato.id, nombre);
+      if (cliente) progreso.sincronizar(cliente).catch(() => null);
+      pintarDispositivos();
+    });
+    acciones.append(renombrar);
+    // Desconectarse a uno mismo ya tiene su botón arriba: «Borrar configuración».
+    if (!aparato.esteMismo && !aparato.revocado && !aparato.baja) {
+      const desconectar = document.createElement('button');
+      desconectar.type = 'button';
+      desconectar.className = 'btn-peligro';
+      desconectar.textContent = t('deviceDisconnect');
+      desconectar.addEventListener('click', async () => {
+        if (!confirm(t('deviceDisconnectConfirm', { name: titulo.textContent }))) return;
+        progreso.revocarDispositivo(aparato.id);
+        if (cliente) await progreso.sincronizar(cliente).catch(() => null);
+        pintarDispositivos();
+        avisar(t('deviceDisconnected'), 6000);
+      });
+      acciones.append(desconectar);
+    }
+    li.append(datos, acciones);
+    lista.append(li);
+  }
+}
+
+// La orden de desconexión la ejecuta el propio dispositivo: no hay sesión que
+// cerrar desde fuera, solo una configuración guardada aquí que se tira.
+async function acatarDesconexionSiToca() {
+  if (!progreso.revocacionPendiente()) return false;
+  progreso.acatarRevocacion();
+  // Con la nube todavía a mano: así los demás dispositivos ven que la orden
+  // se cumplió, en vez de quedarse esperando para siempre.
+  await progreso.sincronizar(cliente).catch(() => null);
+  localStorage.removeItem(CLAVE_CONFIG);
+  crearCliente();
+  avisar(t('deviceWasDisconnected'), 8000);
+  await cargarBiblioteca();
+  abrirAjustes(true, 'nube');
+  return true;
+}
 
 // ───────────── Ajustes: libros que ya no están ─────────────
 

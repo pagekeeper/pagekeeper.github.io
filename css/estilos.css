@@ -319,6 +319,22 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 
 .ayuda { font-size: 0.85rem; color: var(--texto-suave); }
 
+/* Dispositivos conectados (Ajustes → Nube). */
+.lista-dispositivos { list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0.6rem; }
+.lista-dispositivos .dispositivo {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.75rem;
+  align-items: center; justify-content: space-between;
+  border-top: 1px solid var(--borde); padding-top: 0.6rem;
+}
+.lista-dispositivos .dispositivo:first-child { border-top: none; padding-top: 0; }
+.dispositivo-datos { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+.dispositivo-datos strong { overflow-wrap: anywhere; }
+.dispositivo .fila-botones { flex-wrap: nowrap; }
+.dispositivo .btn-secundario, .dispositivo .btn-peligro {
+  font-size: 0.85rem; padding: 0.35rem 0.7rem;
+}
+
 /* Informe de libros que ya no están (Ajustes → Biblioteca). */
 .informe-limpieza { font-size: 0.88rem; display: flex; flex-direction: column; gap: 0.4rem; }
 .informe-limpieza p { font-size: inherit; color: var(--texto-suave); }

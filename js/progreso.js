@@ -679,6 +679,8 @@ async function sincronizarAhora(cliente) {
     const remotoLeido = respuestaRemota ?? { version: 1, libros: {} };
     const remotoOriginal = JSON.stringify(remotoLeido);
     const remoto = normalizarDatos(remotoLeido);
+    // Cada paso por aquí deja constancia de que este dispositivo sigue vivo.
+    anotarDispositivo();
     const local = normalizarDatos(cargarLocal());
     const cambios = cargarCambiosPendientes();
     const confirmables = {};
@@ -690,12 +692,21 @@ async function sincronizarAhora(cliente) {
       delete local.libros[id];
       delete remoto.libros[id];
     }
-    // El plazo de borrado es de la biblioteca, no de cada libro: se resuelve
-    // aparte y queda igual en los dos lados.
+    // El plazo de borrado y el registro de dispositivos son de la biblioteca,
+    // no de cada libro: se resuelven aparte y quedan iguales en los dos lados.
     const ajustes = fusionarAjustes(local.ajustes, remoto.ajustes);
     if (ajustes) {
       local.ajustes = ajustes;
       remoto.ajustes = ajustes;
+    }
+    const dispositivosFusionados = fusionarDispositivos(local.dispositivos, remoto.dispositivos);
+    caducarDispositivos({ dispositivos: dispositivosFusionados }, diasDeGracia(local));
+    if (Object.keys(dispositivosFusionados).length) {
+      local.dispositivos = dispositivosFusionados;
+      remoto.dispositivos = dispositivosFusionados;
+    } else {
+      delete local.dispositivos;
+      delete remoto.dispositivos;
     }
     const ids = new Set([...Object.keys(local.libros), ...Object.keys(remoto.libros)]);
     for (const id of ids) {
@@ -826,4 +837,153 @@ function nombreDispositivo() {
   if (/windows/i.test(ua)) return 'Windows';
   if (/mac/i.test(ua)) return 'Mac';
   return 'desconocido';
+}
+
+// ───────────────────── Dispositivos conectados ─────────────────────
+//
+// Quién está usando esta biblioteca. Cada navegador se pone un identificador
+// al azar (solo suyo, nunca sale de su localStorage salvo como clave) y anota
+// en el archivo compartido cuándo pasó por aquí por última vez.
+//
+// «Desconectar» no expulsa a nadie: no hay sesiones que cerrar, solo una
+// contraseña de aplicación que el dispositivo ya tiene guardada. Lo que hace
+// es pedirle que se dé de baja, y el dispositivo obedece al abrirse: borra su
+// configuración de nube y pide volver a escribirla. Sirve para quitar de en
+// medio un aparato viejo, no para echar a un intruso; para eso hay que borrar
+// la contraseña de aplicación en el servidor, y así lo dice la pantalla.
+const CLAVE_ID_DISPOSITIVO = 'lector.idDispositivo';
+// Cada cuánto se vuelve a anotar el paso por aquí (como con la presencia de
+// los libros: sin esto el archivo se subiría entero a cada sincronización).
+const MS_REFRESCO_DISPOSITIVO = 12 * 60 * 60 * 1000;
+
+export function idDispositivo() {
+  let id = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
+  if (!id) {
+    id = crypto.randomUUID?.() ?? `d${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(CLAVE_ID_DISPOSITIVO, id);
+  }
+  return id;
+}
+
+// Deja constancia de que este dispositivo sigue en uso. Devuelve si hubo algo
+// que apuntar, para no forzar una subida cuando no cambia nada.
+//
+// El alta hay que pedirla (`crear`): así una sincronización suelta no da de
+// alta a quien acaba de darse de baja, que volvería a la lista como un
+// dispositivo nuevo justo al desconectarlo.
+export function anotarDispositivo({ crear = false } = {}) {
+  const id = crear ? idDispositivo() : localStorage.getItem(CLAVE_ID_DISPOSITIVO);
+  if (!id) return false;
+  const datos = cargarLocal();
+  const anterior = datos.dispositivos?.[id];
+  const ahora = Date.now();
+  const visto = Date.parse(anterior?.ultimaVez ?? '');
+  if (anterior && !anterior.revocado
+    && Number.isFinite(visto) && ahora - visto < MS_REFRESCO_DISPOSITIVO) return false;
+  const { revocado, ...resto } = anterior ?? {};
+  datos.dispositivos = {
+    ...datos.dispositivos,
+    [id]: {
+      ...resto,
+      sistema: nombreDispositivo(),
+      alta: anterior?.alta ?? new Date(ahora).toISOString(),
+      ultimaVez: new Date(ahora).toISOString(),
+    },
+  };
+  guardarLocal(datos);
+  return true;
+}
+
+export function dispositivos(datos = cargarLocal()) {
+  const propio = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
+  return Object.entries(datos.dispositivos ?? {})
+    .map(([id, dispositivo]) => ({ ...dispositivo, id, esteMismo: id === propio }))
+    .sort((uno, otro) => (otro.ultimaVez ?? '').localeCompare(uno.ultimaVez ?? ''));
+}
+
+export function renombrarDispositivo(id, nombre) {
+  const datos = cargarLocal();
+  const dispositivo = datos.dispositivos?.[id];
+  if (!dispositivo) return;
+  const limpio = String(nombre ?? '').trim().slice(0, 60);
+  if (limpio) dispositivo.nombre = limpio;
+  else delete dispositivo.nombre;
+  dispositivo.nombreActualizado = new Date().toISOString();
+  guardarLocal(datos);
+}
+
+// Le pide al dispositivo que se dé de baja la próxima vez que se abra.
+export function revocarDispositivo(id) {
+  const datos = cargarLocal();
+  const dispositivo = datos.dispositivos?.[id];
+  if (!dispositivo) return;
+  dispositivo.revocado = new Date().toISOString();
+  guardarLocal(datos);
+}
+
+// ¿Le han pedido a este dispositivo que se dé de baja? Al obedecer tira su
+// identificador, así que volver a configurarlo lo da de alta como uno nuevo.
+// Su ficha antigua se queda en la lista, marcada, hasta que caduque: mientras
+// siga ahí es la prueba de que la orden aún no ha llegado a su destino.
+export function revocacionPendiente(datos = cargarLocal()) {
+  const id = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
+  return Boolean(id && datos.dispositivos?.[id]?.revocado);
+}
+
+export function acatarRevocacion() {
+  const id = localStorage.getItem(CLAVE_ID_DISPOSITIVO);
+  if (!id) return;
+  // La ficha se queda, pero deja dicho que la orden llegó a su destino: si se
+  // borrara sin más, volvería del archivo compartido en la siguiente
+  // sincronización y parecería que el dispositivo sigue sin enterarse.
+  const datos = cargarLocal();
+  if (datos.dispositivos?.[id]) {
+    datos.dispositivos[id].baja = new Date().toISOString();
+    guardarLocal(datos);
+  }
+  localStorage.removeItem(CLAVE_ID_DISPOSITIVO);
+}
+
+// Los dispositivos que llevan sin aparecer más que el plazo de la limpieza se
+// caen del registro: es la misma idea (y el mismo plazo elegido) que con los
+// libros que ya no están.
+function caducarDispositivos(datos, dias) {
+  if (!dias || !datos.dispositivos) return false;
+  const limite = Date.now() - dias * MS_DIA;
+  let cambiado = false;
+  for (const [id, dispositivo] of Object.entries(datos.dispositivos)) {
+    const visto = Date.parse(dispositivo.ultimaVez ?? '');
+    if (!Number.isFinite(visto) || visto >= limite) continue;
+    delete datos.dispositivos[id];
+    cambiado = true;
+  }
+  return cambiado;
+}
+
+// Al fusionar manda la anotación más reciente de cada dispositivo; el nombre
+// va aparte, con su propia fecha, para que renombrarlo desde un aparato no lo
+// pise el otro por el simple hecho de haberse conectado después.
+function fusionarDispositivos(local = {}, remoto = {}) {
+  const fusionados = {};
+  for (const id of new Set([...Object.keys(local), ...Object.keys(remoto)])) {
+    const mio = local[id];
+    const suyo = remoto[id];
+    if (!mio || !suyo) {
+      fusionados[id] = mio ?? suyo;
+      continue;
+    }
+    const reciente = (mio.ultimaVez ?? '') >= (suyo.ultimaVez ?? '') ? mio : suyo;
+    const nombrado = (mio.nombreActualizado ?? '') >= (suyo.nombreActualizado ?? '') ? mio : suyo;
+    const revocado = [mio.revocado, suyo.revocado].filter(Boolean).sort().at(-1);
+    fusionados[id] = { ...reciente };
+    if (nombrado.nombre) fusionados[id].nombre = nombrado.nombre;
+    else delete fusionados[id].nombre;
+    if (nombrado.nombreActualizado) fusionados[id].nombreActualizado = nombrado.nombreActualizado;
+    // Una revocación posterior a la última conexión sigue en pie; si el
+    // dispositivo se ha conectado después, es que ya la acató o volvió a
+    // configurarse, y no hay nada que reclamar.
+    if (revocado && revocado > (fusionados[id].ultimaVez ?? '')) fusionados[id].revocado = revocado;
+    else delete fusionados[id].revocado;
+  }
+  return fusionados;
 }
