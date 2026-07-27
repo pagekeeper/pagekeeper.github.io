@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { buscarFrase } from '../js/seguimiento-voz.js';
+import { buscarFrase, iniciosDeFrase } from '../js/seguimiento-voz.js';
 
 test('encuentra la frase aunque en el documento los espacios sean saltos de línea', () => {
   const texto = 'En un lugar\n  de la Mancha,\nde cuyo nombre no quiero acordarme.';
@@ -39,4 +39,21 @@ test('devuelve null cuando la frase no está', () => {
   assert.equal(buscarFrase('Un texto cualquiera', 'otra cosa'), null);
   assert.equal(buscarFrase('', 'algo'), null);
   assert.equal(buscarFrase('Un texto', '   '), null);
+});
+
+test('marca el principio de cada frase, con el cierre de las comillas incluido', () => {
+  const texto = '«Ya voy.» Dijo que sí. ¿Y luego? Nada más';
+  const inicios = iniciosDeFrase(texto);
+  assert.deepEqual(inicios.map((i) => texto.slice(i, i + 4)),
+    ['«Ya ', 'Dijo', '¿Y l', 'Nada']);
+});
+
+test('no cuenta como frase el hueco que queda tras el último punto', () => {
+  assert.deepEqual(iniciosDeFrase('Una sola frase.  '), [0]);
+  assert.deepEqual(iniciosDeFrase(''), [0]);
+});
+
+test('los puntos de las abreviaturas y las cifras no abren frase sin espacio detrás', () => {
+  const texto = 'Costó 3.500 euros.\nY se acabó.';
+  assert.deepEqual(iniciosDeFrase(texto), [0, texto.indexOf('Y se')]);
 });

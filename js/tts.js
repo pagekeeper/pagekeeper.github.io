@@ -29,7 +29,10 @@ export function trocearTexto(texto, maximo = MAXIMO_FRASE) {
 }
 
 export class LectorVoz {
-  // obtenerTexto(): texto desde la posición actual (página o resto del capítulo).
+  // obtenerTexto({ inicio }): texto desde la posición actual (página o resto
+  //   del capítulo). `inicio` distingue el arranque de la lectura, donde se
+  //   empieza por lo que se está viendo, del encadenado de páginas y
+  //   capítulos, que se leen enteros desde su principio.
   // avanzar(): pasa a la página o capítulo siguiente; false al final del libro.
   // alCambiarEstado(estado): 'parado' | 'leyendo' | 'pausado'.
   // alFallo(clave): clave i18n del problema ('ttsNoText').
@@ -76,7 +79,7 @@ export class LectorVoz {
     if (!this.disponible()) return;
     this.detener();
     const sesion = ++this.sesion;
-    this.frases = trocearTexto(await this.obtenerTexto());
+    this.frases = trocearTexto(await this.obtenerTexto({ inicio: true }));
     this.indice = 0;
     this.estrenandoPagina = true;
     if (sesion !== this.sesion) return;
@@ -121,7 +124,7 @@ export class LectorVoz {
         if (vaciasSeguidas > 0 && this.frases.length === 0) this.alFallo?.('ttsNoText');
         return;
       }
-      this.frases = trocearTexto(await this.obtenerTexto());
+      this.frases = trocearTexto(await this.obtenerTexto({ inicio: false }));
       this.indice = 0;
       this.estrenandoPagina = true;
       if (sesion !== this.sesion) return;

@@ -12,7 +12,7 @@ import { componerMatriz, soloIlustraciones } from './imagenes-pdf.js';
 import {
   cajaDeContenido, cajaRepresentativa, unir, conAire, ajustarRecorte, paginasAMuestrear,
 } from './recorte.js';
-import { rangoDeFrase } from './seguimiento-voz.js';
+import { rangoDeFrase, iniciosDeFrase } from './seguimiento-voz.js';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdf.worker.min.js', import.meta.url).href;
 
@@ -326,14 +326,20 @@ export class Lector {
     if (this.documento) await this.montar();
   }
 
-  async irA(numero) {
+  // `suave` desplaza sin saltos: lo usa la lectura en voz alta al cambiar de
+  // página, donde el salto seco corta el hilo de lo que se está escuchando.
+  async irA(numero, { suave = false } = {}) {
     if (!this.documento) return;
     this.pagina = this.inicioPar(Math.min(Math.max(1, numero), this.totalPaginas));
     if (this.modo === 'continuo') {
       const envoltorio = this.paginas[this.pagina];
       if (envoltorio) {
         await this.renderContinuo(this.pagina);
-        envoltorio.scrollIntoView({ block: 'start' });
+        // El desplazamiento suave sigue después de volver de aquí: se apunta
+        // como movimiento de la voz para que las páginas por las que pasa no
+        // se confundan con una navegación a mano y corten la lectura.
+        if (suave) this.movimientoVoz = Date.now();
+        envoltorio.scrollIntoView({ block: 'start', behavior: suave ? 'smooth' : 'auto' });
       }
     } else {
       await this.renderUnica(this.pagina);
@@ -348,8 +354,8 @@ export class Lector {
     return this.envoltorios.some((envoltorio) => Number(envoltorio.dataset.num) === numero);
   }
 
-  anterior() { return this.irA(this.pagina - (this.enDoble() ? 2 : 1)); }
-  siguiente() { return this.irA(this.pagina + (this.enDoble() ? 2 : 1)); }
+  anterior(opciones) { return this.irA(this.pagina - (this.enDoble() ? 2 : 1), opciones); }
+  siguiente(opciones) { return this.irA(this.pagina + (this.enDoble() ? 2 : 1), opciones); }
 
   // Recorre el documento página a página. La señal permite abandonar el
   // barrido (cerrar el panel o buscar otra cosa) sin seguir leyendo el resto
@@ -932,6 +938,38 @@ export class Lector {
       .filter(Boolean);
   }
 
+  // Desde qué carácter del texto de la página empieza lo que se ve: en
+  // continuo la página asoma cortada por arriba y la lectura en voz alta debe
+  // arrancar por la primera frase entera que hay en pantalla.
+  //
+  // El texto es el que extrae pdf.js, que separa los tramos con espacios; la
+  // geometría solo la tiene la capa de texto del DOM, donde esos espacios no
+  // están. Por eso cada frase candidata no se mide por su posición en el
+  // texto, sino buscándola en la capa, que es lo que sabe hacer el
+  // seguimiento de la voz. Devuelve 0 (leer la página entera) si no hay capa
+  // —un escaneo— o si no quedaba ninguna frase a la vista.
+  recorteVisible(texto) {
+    if (this.modo !== 'continuo' || !texto) return 0;
+    const capa = this.envoltoriosDeVoz()[0]?.querySelector('.capa-texto');
+    if (!capa) return 0;
+    const borde = this.area.getBoundingClientRect().top;
+    const inicios = iniciosDeFrase(texto);
+    // Las frases van hacia abajo: basta con buscar la primera que ya se ve.
+    const seVe = (posicion) => {
+      const encontrado = rangoDeFrase(capa, texto.slice(posicion, posicion + 80));
+      const caja = encontrado?.rango.getBoundingClientRect();
+      return Boolean(caja?.height) && caja.top >= borde - 4;
+    };
+    let bajo = 0;
+    let alto = inicios.length;
+    while (bajo < alto) {
+      const medio = (bajo + alto) >> 1;
+      if (seVe(inicios[medio])) alto = medio;
+      else bajo = medio + 1;
+    }
+    return bajo < inicios.length ? inicios[bajo] : 0;
+  }
+
   // Resalta la frase que suena y la trae a la vista. `desde` es donde acabó la
   // anterior; devuelve ese punto para la siguiente, o null si no se encontró
   // (un escaneo sin capa de texto, o texto que no cuadra con lo extraído).
@@ -975,15 +1013,17 @@ export class Lector {
   }
 
   // Con la página entera a la vista no hay nada que mover; en continuo, o con
-  // zoom, la frase puede quedar fuera y se centra sin sobresaltos.
+  // zoom, la frase puede quedar fuera. Mientras se vea entera no se toca
+  // nada: así el texto avanza a saltos de pantalla, y suaves, en vez de
+  // reencuadrarse en cada frase.
   acercarVoz(rango) {
     const rectangulo = rango.getBoundingClientRect();
     const vista = this.area?.getBoundingClientRect();
     if (!vista || !rectangulo.height) return;
-    const margen = Math.min(vista.height * 0.3, 160);
-    if (rectangulo.top >= vista.top + margen && rectangulo.bottom <= vista.bottom - margen / 2) {
-      return;
-    }
+    if (rectangulo.top >= vista.top - 1 && rectangulo.bottom <= vista.bottom - 4) return;
+    // La frase queda cerca del borde de arriba, con aire suficiente para no
+    // pegarla al filo pero dejando a la vista lo que viene detrás.
+    const margen = Math.min(vista.height * 0.2, 120);
     this.movimientoVoz = Date.now();
     this.area.scrollTo({
       top: this.area.scrollTop + (rectangulo.top - vista.top) - margen,

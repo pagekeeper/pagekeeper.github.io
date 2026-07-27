@@ -6424,7 +6424,7 @@ function idiomaLibroActual() {
   return idiomaActual();
 }
 
-async function textoPaginasPdf() {
+async function textoPaginasPdf({ desdeLaVista = false } = {}) {
   const numeros = [lector.pagina];
   if (lector.enDoble() && lector.pagina + 1 <= lector.totalPaginas) numeros.push(lector.pagina + 1);
   const partes = [];
@@ -6433,7 +6433,10 @@ async function textoPaginasPdf() {
     const contenido = await pagina.getTextContent();
     partes.push(contenido.items.map((item) => item.str).join(' '));
   }
-  return partes.join(' ');
+  const texto = partes.join(' ');
+  // Al arrancar la lectura se empieza por la primera frase que se ve, no por
+  // el principio de la página, que en continuo asoma cortada por arriba.
+  return desdeLaVista ? texto.slice(lector.recorteVisible(texto)) : texto;
 }
 
 async function avanzarLecturaVoz() {
@@ -6448,7 +6451,7 @@ async function avanzarLecturaVoz() {
     }
     const paso = lector.enDoble() ? 2 : 1;
     if (lector.pagina + paso > lector.totalPaginas) return false;
-    await lector.siguiente();
+    await lector.siguiente({ suave: true });
     return true;
   } finally {
     if (!epubAbierto()) ttsAvanzando = false;
@@ -6456,9 +6459,9 @@ async function avanzarLecturaVoz() {
 }
 
 const vozLectura = new LectorVoz({
-  obtenerTexto: () => (epubAbierto()
-    ? Promise.resolve(lectorEpub.textoDesdePosicion())
-    : textoPaginasPdf()),
+  obtenerTexto: ({ inicio = false } = {}) => (epubAbierto()
+    ? Promise.resolve(lectorEpub.textoDesdePosicion({ desdeLaVista: inicio }))
+    : textoPaginasPdf({ desdeLaVista: inicio })),
   avanzar: avanzarLecturaVoz,
   alCambiarEstado: () => pintarEstadoVoz(),
   alFallo: (clave) => avisar(t(clave), 6000),

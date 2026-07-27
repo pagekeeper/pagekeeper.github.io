@@ -15,7 +15,7 @@
 
 import { posicionVerticalLibre } from './posicion-notas.js';
 import { abrePorRaton } from './menu-contextual.js';
-import { rangoDeFrase } from './seguimiento-voz.js';
+import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 
@@ -828,12 +828,22 @@ export class LectorEpub {
   // Texto desde la posición visible hasta el final del capítulo actual.
   // Con varios capítulos montados a la vez se busca el que corresponde a la
   // sección de la posición actual, no el primero de la lista.
-  textoDesdePosicion() {
-    const indice = this.vista?.currentLocation()?.start?.index;
-    const contenidos = this.vista?.getContents?.() ?? [];
-    const contents = contenidos.find((c) => c.sectionIndex === indice) ?? contenidos[0];
+  //
+  // `desdeLaVista` empieza por la primera frase que se ve entera. Se usa al
+  // arrancar la lectura: en continuo, el CFI de la posición señala el nodo que
+  // el borde superior corta, y sin esto la voz arrancaba por una frase que ya
+  // había quedado por encima de la pantalla. Al encadenar capítulos no se
+  // aplica: allí hay que leer desde el principio, y la vista puede estar
+  // todavía desplazándose.
+  textoDesdePosicion({ desdeLaVista = false } = {}) {
+    const contents = this.contenidoActual();
     const doc = contents?.document;
     if (!doc?.body) return '';
+    if (desdeLaVista && this.modo === 'continuo') {
+      const borde = this.bordeVisible(doc);
+      const texto = borde === null ? '' : textoDesdeLaVista(doc.body, borde);
+      if (texto.trim()) return texto.replace(/\s+/g, ' ').trim();
+    }
     const total = doc.createRange();
     total.selectNodeContents(doc.body);
     if (this.cfi) {
@@ -876,7 +886,10 @@ export class LectorEpub {
     try { cfi = contents.cfiFromRange(encontrado.rango); } catch { /* sin CFI no hay marca */ }
     if (cfi) {
       this.marcarVoz(cfi);
-      if (!this.cfiVisible(cfi)) await this.irAVoz(cfi);
+      // En continuo la vista acompaña a la voz con un desplazamiento suave;
+      // paginado no hay scroll que valga: hay que pasar de página.
+      if (this.modo === 'continuo') this.acercarVoz(doc, encontrado.rango);
+      else if (!this.cfiVisible(cfi)) await this.irAVoz(cfi);
     }
     return encontrado.fin;
   }
@@ -922,6 +935,44 @@ export class LectorEpub {
     } catch {
       return false;
     }
+  }
+
+  // El elemento que desplaza el texto en modo continuo: el contenedor que
+  // monta epub.js dentro del nuestro (con fullsize:false el scroll es suyo).
+  areaDesplazable() {
+    return this.vista?.manager?.container ?? null;
+  }
+
+  // Dónde cae el borde superior de lo que se ve dentro del capítulo, en las
+  // coordenadas de sus propios rectángulos: el capítulo vive en un iframe que
+  // no tiene scroll propio, así que basta con restar la posición del marco.
+  bordeVisible(doc) {
+    const marco = doc?.defaultView?.frameElement;
+    const area = this.areaDesplazable() ?? this.contenedor;
+    if (!marco || !area) return null;
+    return area.getBoundingClientRect().top - marco.getBoundingClientRect().top;
+  }
+
+  // Trae la frase que suena si se ha salido por abajo, desplazando el texto
+  // poco a poco en vez de saltar: mientras se vea entera no se toca nada.
+  acercarVoz(doc, rango) {
+    const marco = doc?.defaultView?.frameElement;
+    const area = this.areaDesplazable();
+    if (!marco || !area) return;
+    const caja = rango.getBoundingClientRect();
+    const vista = area.getBoundingClientRect();
+    if (!caja.height || !vista.height) return;
+    const arriba = marco.getBoundingClientRect().top + caja.top;
+    const abajo = arriba + caja.height;
+    if (arriba >= vista.top - 1 && abajo <= vista.bottom - 4) return;
+    // La frase queda cerca del borde de arriba, con aire suficiente para no
+    // pegarla al filo pero dejando a la vista lo que viene detrás.
+    const margen = Math.min(vista.height * 0.2, 120);
+    this.movimientoVoz = Date.now();
+    area.scrollTo({
+      top: area.scrollTop + (arriba - vista.top) - margen,
+      behavior: 'smooth',
+    });
   }
 
   async irAVoz(cfi) {

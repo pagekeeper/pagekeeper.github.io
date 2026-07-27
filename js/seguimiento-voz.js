@@ -91,3 +91,46 @@ export function rangoDeFrase(raiz, frase, desde = 0) {
   const rango = rangoDe(indice, tramo.inicio, tramo.fin);
   return rango ? { rango, fin: tramo.fin } : null;
 }
+
+// Dónde empieza cada frase del texto. El corte es el mismo que usa la voz
+// para trocear (trocearTexto), así que las posiciones que salen de aquí
+// coinciden con el principio de una locución.
+export function iniciosDeFrase(texto) {
+  const inicios = [0];
+  const patron = /[.!?…]["»”')\]]*\s+/g;
+  for (let corte = patron.exec(texto); corte; corte = patron.exec(texto)) {
+    const posicion = corte.index + corte[0].length;
+    if (posicion < texto.length) inicios.push(posicion);
+  }
+  return inicios;
+}
+
+// Texto de un elemento a partir de la primera frase que empieza dentro de lo
+// que se ve. `borde` es el borde superior del área visible, medido en las
+// mismas coordenadas que devuelven los rectángulos de la raíz (dentro de un
+// EPUB, las del propio capítulo). Devuelve '' si no queda ninguna frase por
+// debajo del borde: entonces lo visible pertenece ya a la página siguiente.
+//
+// La lectura empieza así donde mira quien lee, en vez de por la frase cortada
+// por arriba que la posición guardada señala en el modo continuo.
+export function textoDesdeLaVista(raiz, borde, tolerancia = 4) {
+  const indice = indexarTexto(raiz);
+  if (!indice.texto.trim()) return '';
+  const inicios = iniciosDeFrase(indice.texto);
+  // Las frases van hacia abajo, así que basta con una búsqueda binaria: la
+  // primera cuyo principio cae ya en el área visible.
+  const seVe = (posicion) => {
+    const rango = rangoDe(indice, posicion, Math.min(posicion + 1, indice.texto.length));
+    const caja = rango?.getBoundingClientRect?.();
+    if (!caja || (!caja.height && !caja.width)) return false;
+    return caja.top >= borde - tolerancia;
+  };
+  let bajo = 0;
+  let alto = inicios.length;
+  while (bajo < alto) {
+    const medio = (bajo + alto) >> 1;
+    if (seVe(inicios[medio])) alto = medio;
+    else bajo = medio + 1;
+  }
+  return bajo < inicios.length ? indice.texto.slice(inicios[bajo]) : '';
+}
