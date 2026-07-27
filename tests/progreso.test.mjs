@@ -3,6 +3,10 @@ import assert from 'node:assert/strict';
 
 import {
   anotarPagina,
+  conciliarPresencia,
+  DIAS_GRACIA_AUSENCIA,
+  guardarMarcadores,
+  guardarNota,
   fusionarEntradas,
   guardarTitulo,
   librosRecientes,
@@ -292,4 +296,137 @@ test('no sobrescribe una página cambiada mientras esperaba la respuesta remota'
   const resultado = await sincronizar(cliente);
   assert.equal(resultado.libros['otro.pdf'].pagina, 40);
   assert.equal(guardado.libros['otro.pdf'].pagina, 40);
+});
+
+// ── Limpieza de libros que ya no están en el servidor ──
+
+function conNube(librosRemotos = {}) {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  const nube = { version: 2, libros: structuredClone(librosRemotos) };
+  const cliente = {
+    base: 'https://nube.test/libros',
+    async leerProgreso() { return structuredClone(nube); },
+    async escribirProgreso(datos) { nube.libros = structuredClone(datos.libros); },
+  };
+  return { cliente, nube };
+}
+
+function haceDias(dias) {
+  return new Date(Date.now() - dias * 24 * 60 * 60 * 1000).toISOString();
+}
+
+test('apunta la ausencia de un libro pero no lo borra el primer día', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  const purgados = await conciliarPresencia(new Set(['sigue.pdf']), cliente);
+
+  assert.deepEqual(purgados, []);
+  assert.ok(progresoDe('ido.pdf').ausenteDesde);
+  assert.ok(nube.libros['ido.pdf'].ausenteDesde, 'la marca viaja al archivo compartido');
+});
+
+test('borra la entrada de un libro que lleva más de un mes sin aparecer', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  anotarPagina('sigue.pdf', 10, 100);
+  const datos = JSON.parse(localStorage.getItem('lector.progreso'));
+  datos.libros['ido.pdf'].ausenteDesde = haceDias(DIAS_GRACIA_AUSENCIA + 1);
+  localStorage.setItem('lector.progreso', JSON.stringify(datos));
+
+  const purgados = await conciliarPresencia(new Set(['sigue.pdf']), cliente);
+
+  assert.deepEqual(purgados, ['ido.pdf']);
+  assert.ok(!progresoDe('ido.pdf'));
+  assert.deepEqual(Object.keys(nube.libros), ['sigue.pdf']);
+});
+
+test('ver el libro otra vez retira la marca de ausencia', async () => {
+  const { cliente } = conNube();
+  anotarPagina('vuelve.pdf', 30, 100);
+  await conciliarPresencia(new Set(), cliente);
+  assert.ok(progresoDe('vuelve.pdf').ausenteDesde);
+
+  await conciliarPresencia(new Set(['vuelve.pdf']), cliente);
+  assert.equal(progresoDe('vuelve.pdf').ausenteDesde, undefined);
+});
+
+test('una entrada sin opinión sobre la presencia no borra la ausencia apuntada', () => {
+  // La mayoría de dispositivos no recorren el servidor: que no traigan marca
+  // no significa que hayan visto el libro.
+  const ausente = { ...entrada({ pagina: 5, posicionActualizada: '2026-01-01T10:00:00.000Z' }),
+    ausenteDesde: '2026-01-02T10:00:00.000Z' };
+  const callado = entrada({ pagina: 5, posicionActualizada: '2026-01-03T10:00:00.000Z' });
+
+  assert.equal(fusionarEntradas(ausente, callado).ausenteDesde, '2026-01-02T10:00:00.000Z');
+  assert.equal(fusionarEntradas(callado, ausente).ausenteDesde, '2026-01-02T10:00:00.000Z');
+});
+
+test('con los dos dispositivos echándolo en falta, el plazo corre desde el primero', () => {
+  const base = entrada({ pagina: 5, posicionActualizada: '2026-01-01T10:00:00.000Z' });
+  const pronto = { ...base, ausenteDesde: '2026-01-02T10:00:00.000Z' };
+  const tarde = { ...base, ausenteDesde: '2026-01-20T10:00:00.000Z' };
+
+  assert.equal(fusionarEntradas(pronto, tarde).ausenteDesde, '2026-01-02T10:00:00.000Z');
+});
+
+test('las tildes escritas en otra forma Unicode no cuentan como ausencia', async () => {
+  const { cliente } = conNube();
+  anotarPagina('Educación/tema.pdf'.normalize('NFC'), 12, 100);
+
+  await conciliarPresencia(new Set(['Educación/tema.pdf'.normalize('NFD')]), cliente);
+
+  assert.equal(progresoDe('Educación/tema.pdf'.normalize('NFC')).ausenteDesde, undefined);
+});
+
+test('no guarda entradas que no recuerdan nada', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('vacio.pdf', 0, 100);
+  anotarPagina('leido.pdf', 4, 100);
+
+  const resultado = await sincronizar(cliente);
+
+  assert.deepEqual(Object.keys(resultado.libros), ['leido.pdf']);
+  assert.deepEqual(Object.keys(nube.libros), ['leido.pdf']);
+});
+
+test('conserva una entrada sin posición si guarda marcadores, nota o título', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('con-nota.pdf', 0, 100);
+  guardarNota('con-nota.pdf', 'Para el club de lectura');
+  anotarPagina('con-marcador.epub', 0, 100);
+  guardarMarcadores('con-marcador.epub', [{ cfi: 'epubcfi(/6/2!/4/1:0)', nombre: 'Inicio' }]);
+
+  await sincronizar(cliente);
+
+  assert.deepEqual(Object.keys(nube.libros).sort(), ['con-marcador.epub', 'con-nota.pdf']);
+});
+
+test('la marca de ausencia sobrevive a la sincronización con el archivo compartido', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('ido.pdf', 30, 100);
+  await sincronizar(cliente); // el servidor ya tiene la entrada, sin marca
+
+  await conciliarPresencia(new Set(), cliente);
+
+  assert.ok(progresoDe('ido.pdf').ausenteDesde, 'la marca no puede perderse al fusionar');
+  assert.ok(nube.libros['ido.pdf'].ausenteDesde);
+});
+
+test('un avistamiento posterior de otro dispositivo tumba la ausencia apuntada', () => {
+  const base = entrada({ pagina: 5, posicionActualizada: '2026-01-01T10:00:00.000Z' });
+  const ausente = { ...base, ausenteDesde: '2026-02-01T10:00:00.000Z' };
+  const visto = { ...base, presenteHasta: '2026-02-05T10:00:00.000Z' };
+
+  assert.equal(fusionarEntradas(ausente, visto).ausenteDesde, undefined);
+  // Pero un avistamiento anterior no dice nada de lo que pasó después.
+  const vistoAntes = { ...base, presenteHasta: '2026-01-15T10:00:00.000Z' };
+  assert.equal(fusionarEntradas(ausente, vistoAntes).ausenteDesde, '2026-02-01T10:00:00.000Z');
 });

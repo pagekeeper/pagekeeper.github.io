@@ -10,6 +10,12 @@ const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
 const CLAVE_CAMBIOS_PENDIENTES = 'lector.progreso.cambiosPendientes';
 const VERSION_DATOS = 2;
 const FECHA_CERO = '1970-01-01T00:00:00.000Z';
+// Cuánto se sostiene la ausencia de un libro antes de tirar su entrada
+// (ver conciliarPresencia).
+export const DIAS_GRACIA_AUSENCIA = 30;
+const MS_GRACIA_AUSENCIA = DIAS_GRACIA_AUSENCIA * 24 * 60 * 60 * 1000;
+// Cada cuánto se vuelve a anotar que un libro sigue estando.
+const MS_REFRESCO_PRESENCIA = 7 * 24 * 60 * 60 * 1000;
 
 function fechaMaxima(...fechas) {
   return fechas.filter((fecha) => typeof fecha === 'string').sort().at(-1) ?? FECHA_CERO;
@@ -496,6 +502,18 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   resultado.notaActualizada = fechaMaxima(local.notaActualizada, remoto.notaActualizada);
   if (typeof anotacion.nota === 'string' && anotacion.nota.trim()) resultado.nota = anotacion.nota;
   else delete resultado.nota;
+  // Ver el libro pesa más que no verlo, pero «no traigo marca de ausencia» no
+  // es «lo he visto»: la mayoría de dispositivos no recorren el servidor y no
+  // opinan. Por eso el avistamiento se apunta con su fecha (`presenteHasta`) y
+  // solo esa fecha invalida una ausencia anterior. Si las dos siguen en pie,
+  // el plazo corre desde la primera vez que se notó, no desde la última.
+  const presenteHasta = fechaMaxima(local.presenteHasta, remoto.presenteHasta);
+  if (presenteHasta > FECHA_CERO) resultado.presenteHasta = presenteHasta;
+  const ausencias = [local.ausenteDesde, remoto.ausenteDesde]
+    .filter((fecha) => fecha && fecha > presenteHasta)
+    .sort();
+  if (ausencias.length) [resultado.ausenteDesde] = ausencias;
+  else delete resultado.ausenteDesde;
   resultado.actualizado = fechaMaxima(
     resultado.posicionActualizada,
     resultado.marcadoresActualizados,
@@ -505,6 +523,79 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
     ...marcadores.map((marcador) => marcador.actualizado),
   );
   return resultado;
+}
+
+// ¿Guarda esta entrada algo que merezca la pena recordar? Abrir un libro y
+// cerrarlo sin leer, o deshacer todo lo que tenía, deja una entrada que solo
+// dice el nombre del archivo: no aporta nada y hace crecer el archivo
+// compartido sin motivo. Los marcadores cuentan aunque estén borrados: son la
+// prueba de que se borraron, y sin ella otro dispositivo los resucitaría.
+function entradaAporta(entrada) {
+  if (!entrada) return false;
+  if (typeof entrada.cfi === 'string' && entrada.cfi) return true;
+  if (Number(entrada.pagina) > 0) return true;
+  if (typeof entrada.terminado === 'boolean') return true;
+  if (typeof entrada.titulo === 'string' && entrada.titulo.trim()) return true;
+  if (typeof entrada.nota === 'string' && entrada.nota.trim()) return true;
+  return Boolean(entrada.marcadores?.length);
+}
+
+// ───────────── Libros que ya no están en el servidor ─────────────
+//
+// Borrar un libro desde PageKeeper limpia su entrada, pero borrarlo desde
+// fuera (otro cliente WebDAV, el gestor de archivos del móvil) la deja aquí
+// para siempre, y el archivo compartido crece sin parar.
+//
+// «No lo veo» no es «no está»: un listado a medias, una carpeta sin permisos
+// o una ruta escrita con las tildes en otra forma Unicode harían desaparecer
+// progreso vivo. Por eso la ausencia solo se apunta (`ausenteDesde`), hay que
+// sostenerla treinta días para que la entrada caiga, y basta con que un
+// dispositivo vuelva a ver el libro —la fusión hace que ver gane a no ver—
+// para que la marca se borre. Quien llama debe pasar un inventario completo:
+// si algo falló al recorrer el servidor, no hay conciliación que valga.
+//
+// Devuelve los identificadores purgados, para que la aplicación tire también
+// de lo que colgaba de ellos (anotaciones, copia sin conexión, portada).
+export async function conciliarPresencia(idsPresentes, cliente) {
+  const presentes = new Set([...idsPresentes].map((id) => id.normalize('NFC')));
+  const datos = cargarLocal();
+  const ahora = Date.now();
+  const purgados = [];
+  let cambiado = false;
+  for (const [id, entrada] of Object.entries(datos.libros)) {
+    if (id.startsWith('local:')) continue;
+    if (presentes.has(id.normalize('NFC'))) {
+      const visto = Date.parse(entrada.presenteHasta ?? '');
+      // El avistamiento se refresca con cuentagotas: si se anotara en cada
+      // pasada, el archivo compartido se subiría entero todos los días para
+      // no decir nada nuevo. Con una semana de holgura sigue sobrando margen
+      // frente al mes de gracia.
+      if (!entrada.ausenteDesde
+        && Number.isFinite(visto) && ahora - visto < MS_REFRESCO_PRESENCIA) continue;
+      delete entrada.ausenteDesde;
+      entrada.presenteHasta = new Date(ahora).toISOString();
+      cambiado = true;
+      continue;
+    }
+    const desde = Date.parse(entrada.ausenteDesde ?? '');
+    if (!Number.isFinite(desde)) {
+      entrada.ausenteDesde = new Date(ahora).toISOString();
+      cambiado = true;
+      continue;
+    }
+    if (ahora - desde < MS_GRACIA_AUSENCIA) continue;
+    delete datos.libros[id];
+    descartarCambiosPendientes(id);
+    purgados.push(id);
+  }
+  if (!cambiado && !purgados.length) return purgados;
+  guardarLocal(datos);
+  if (!cliente) return purgados;
+  // Como en cualquier borrado: se registra antes de tocar la red para que la
+  // entrada no vuelva del servidor mientras se reintenta.
+  for (const id of purgados) marcarBorradoPendiente(id, cliente);
+  await sincronizar(cliente);
+  return purgados;
 }
 
 let colaSincronizacion = Promise.resolve();
@@ -544,6 +635,11 @@ async function sincronizarAhora(cliente) {
       else if (suyo) {
         const entrada = normalizarEntrada(suyo);
         local.libros[id] = { ...entrada, visto: entrada.posicionActualizada };
+      }
+      // Lo que no recuerda nada no ocupa sitio en el archivo compartido.
+      if (!entradaAporta(local.libros[id])) {
+        delete local.libros[id];
+        delete remoto.libros[id];
       }
       if (cambios[id]) confirmables[id] = structuredClone(cambios[id]);
     }

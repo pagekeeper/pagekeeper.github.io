@@ -53,6 +53,9 @@ export class ClienteWebDav {
     const rutaPedida = decodeURIComponent(new URL(url).pathname).replace(/\/+$/, '');
     const carpetas = [];
     const libros = [];
+    // Los JSON laterales de anotaciones se listan aparte: no son libros, pero
+    // hay que poder reconocer los que se quedaron sin el suyo.
+    const laterales = [];
     for (const nodo of xml.getElementsByTagNameNS('DAV:', 'response')) {
       const href = nodo.getElementsByTagNameNS('DAV:', 'href')[0]?.textContent ?? '';
       const rutaHref = decodeURIComponent(new URL(href, this.base).pathname).replace(/\/+$/, '');
@@ -63,15 +66,19 @@ export class ClienteWebDav {
         if (!nombre.startsWith('.')) carpetas.push({ nombre });
         continue;
       }
+      const modificado = nodo.getElementsByTagNameNS('DAV:', 'getlastmodified')[0]?.textContent ?? '';
+      if (nombre.endsWith('.pagekeeper.json')) {
+        laterales.push({ nombre, ...(modificado ? { modificado } : {}) });
+        continue;
+      }
       if (!/\.(pdf|epub)$/i.test(nombre)) continue;
       const tamano = Number(nodo.getElementsByTagNameNS('DAV:', 'getcontentlength')[0]?.textContent ?? 0);
       const etag = nodo.getElementsByTagNameNS('DAV:', 'getetag')[0]?.textContent ?? '';
-      const modificado = nodo.getElementsByTagNameNS('DAV:', 'getlastmodified')[0]?.textContent ?? '';
       libros.push({ nombre, tamano, ...(etag ? { etag } : {}), ...(modificado ? { modificado } : {}) });
     }
     carpetas.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
     libros.sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
-    return { carpetas, libros };
+    return { carpetas, libros, laterales };
   }
 
   async crearCarpeta(ruta) {

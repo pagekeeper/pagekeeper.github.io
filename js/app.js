@@ -45,6 +45,7 @@ const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este disposit
 const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
 const CLAVE_PDF_SIN_TEXTO = 'lector.pdfSinTexto'; // por libro y dispositivo
+const CLAVE_ULTIMA_CONCILIACION = 'lector.ultimaConciliacion'; // solo de este dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
@@ -1462,6 +1463,7 @@ async function cargarBiblioteca() {
       librosRemotosDisponibles: new Map(libros.map((libro) => [idRemoto(libro.nombre), libro])),
     });
     generarPortadasFaltantes(libros.map((libro) => ({ ...libro, nombre: idRemoto(libro.nombre) })));
+    conciliarProgresoConLaNube(); // en segundo plano: la biblioteca ya está en pantalla
   } catch (error) {
     const copias = await promesaCopias;
     await pintarContinuarLeyendo({
@@ -4003,6 +4005,74 @@ async function borrarLibroLocal(libro) {
   }
   cargarLibrosLocales();
   pintarContinuarLeyendo();
+}
+
+// ───────────── Limpieza de lo que ya no está en la nube ─────────────
+//
+// Los libros borrados desde fuera de PageKeeper dejan atrás su progreso y su
+// JSON lateral de anotaciones. Cada tanto se recorre el servidor entero y se
+// le pasa el inventario a `progreso.conciliarPresencia`, que apunta las
+// ausencias y solo tira lo que lleve un mes sin aparecer (allí está explicado
+// por qué con tanto miramiento).
+
+// Recorre el árbol completo. Devuelve null si alguna carpeta no se pudo
+// listar: con un inventario a medias no se puede afirmar que nada falte.
+async function inventarioNube() {
+  const ids = new Set();
+  const lateralesHuerfanos = [];
+  const pendientes = [''];
+  while (pendientes.length) {
+    const ruta = pendientes.shift();
+    let contenido;
+    try { contenido = await cliente.listar(ruta); } catch { return null; }
+    const enRuta = (nombre) => (ruta ? `${ruta}/${nombre}` : nombre);
+    for (const carpeta of contenido.carpetas) {
+      ids.add(`carpeta:${enRuta(carpeta.nombre)}`);
+      pendientes.push(enRuta(carpeta.nombre));
+    }
+    const nombres = new Set(contenido.libros.map((libro) => libro.nombre));
+    for (const libro of contenido.libros) ids.add(enRuta(libro.nombre));
+    for (const lateral of contenido.laterales ?? []) {
+      const libro = lateral.nombre.replace(/\.pagekeeper\.json$/, '');
+      if (nombres.has(libro)) continue;
+      lateralesHuerfanos.push({ ...lateral, id: enRuta(libro) });
+    }
+  }
+  return { ids, lateralesHuerfanos };
+}
+
+// Un lateral suelto se tira con el mismo plazo que la entrada de progreso,
+// contado sobre la fecha del propio archivo: sin libro al lado, nada va a
+// volver a escribirlo.
+function lateralCaducado(lateral) {
+  const modificado = Date.parse(lateral.modificado ?? '');
+  if (!Number.isFinite(modificado)) return false;
+  return Date.now() - modificado > progreso.DIAS_GRACIA_AUSENCIA * 24 * 60 * 60 * 1000;
+}
+
+async function conciliarProgresoConLaNube() {
+  if (!cliente) return;
+  const ultima = Number(localStorage.getItem(CLAVE_ULTIMA_CONCILIACION)) || 0;
+  if (Date.now() - ultima < 24 * 60 * 60 * 1000) return;
+  const inventario = await inventarioNube().catch(() => null);
+  if (!inventario) return;
+  localStorage.setItem(CLAVE_ULTIMA_CONCILIACION, String(Date.now()));
+  const purgados = await progreso.conciliarPresencia(inventario.ids, cliente).catch(() => []);
+  for (const id of purgados) {
+    await cliente.borrarAnotaciones(id).catch(() => null);
+    await anotaciones.olvidar(cliente.base, id).catch(() => null);
+    await almacen.borrarCopiaRemota(cliente.base, id).catch(() => null);
+    almacen.borrarPortada(id).catch(() => null);
+  }
+  for (const lateral of inventario.lateralesHuerfanos) {
+    if (!lateralCaducado(lateral)) continue;
+    await cliente.borrarAnotaciones(lateral.id).catch(() => null);
+    await anotaciones.olvidar(cliente.base, lateral.id).catch(() => null);
+  }
+  if (purgados.length) {
+    registro.anotar('ok', 'limpieza', `${purgados.length} libros que ya no están`);
+    pintarContinuarLeyendo();
+  }
 }
 
 // ───────────────────────── Abrir libros ─────────────────────────
