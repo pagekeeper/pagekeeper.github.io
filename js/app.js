@@ -4111,10 +4111,10 @@ async function borrarLibroLocal(libro) {
 
 // ───────────── Limpieza de lo que ya no está en la nube ─────────────
 //
-// Los libros borrados desde fuera de PageKeeper dejan atrás su progreso y su
-// JSON lateral de anotaciones. Cada tanto se recorre el servidor entero y se
-// le pasa el inventario a `progreso.conciliarPresencia`, que apunta las
-// ausencias y solo tira lo que lleve un mes sin aparecer (allí está explicado
+// Los libros que desaparecen de la nube dejan atrás su progreso y su JSON
+// lateral de anotaciones. Cada tanto se recorre el servidor entero y se le
+// pasa el inventario a `progreso.conciliarPresencia`, que apunta las ausencias
+// y solo tira lo que lleve sin aparecer el plazo elegido (allí está explicado
 // por qué con tanto miramiento).
 
 // Recorre el árbol completo. Devuelve null si alguna carpeta no se pudo

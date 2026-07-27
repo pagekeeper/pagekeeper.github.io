@@ -544,9 +544,12 @@ function entradaAporta(entrada) {
 
 // ───────────── Libros que ya no están en el servidor ─────────────
 //
-// Borrar un libro desde PageKeeper limpia su entrada, pero borrarlo desde
-// fuera (otro cliente WebDAV, el gestor de archivos del móvil) la deja aquí
-// para siempre, y el archivo compartido crece sin parar.
+// Cuando un libro desaparece del servidor, su entrada se queda aquí para
+// siempre y el archivo compartido crece sin parar. Pasa borrándolo desde fuera
+// (otro cliente WebDAV, el gestor de archivos del móvil), y también borrándolo
+// desde PageKeeper: el dispositivo que borra limpia su entrada, pero los demás
+// guardan su copia y la reponen al sincronizar, porque nadie les contó que se
+// había borrado.
 //
 // «No lo veo» no es «no está»: un listado a medias, una carpeta sin permisos
 // o una ruta escrita con las tildes en otra forma Unicode harían desaparecer
