@@ -312,6 +312,7 @@ export class LectorEpub {
     this.vista = vista;
     vista.hooks.content.register(inyectarMathJax);
     vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
+    vista.hooks.content.register((contents) => this.inyectarPapel(contents));
     vista.hooks.content.register((contents) => this.registrarInteraccionesNotas(contents));
     // Los enlaces internos del libro (notas al pie, índice propio) los salta
     // epub.js por su cuenta; se avisa antes del salto con la posición actual
@@ -474,6 +475,37 @@ export class LectorEpub {
     const { texto, fondo } = COLORES_PAGINA[this.temaPagina];
     this.vista.themes.override('color', texto);
     this.vista.themes.override('background', fondo);
+    for (const contents of this.vista.getContents?.() ?? []) this.inyectarPapel(contents);
+  }
+
+  // El override de epub.js llega al <body> y nada más, así que un libro que
+  // fije los colores en sus propias reglas (p, div…) gana por especificidad:
+  // el texto se quedaba negro sobre el fondo del modo noche, ilegible. Esta
+  // hoja fuerza el papel en todo el capítulo. Los fondos propios se apagan
+  // para que se vea el del papel; el color del texto solo se impone de noche,
+  // que es cuando el del libro no vale, y los enlaces se libran porque tienen
+  // el suyo. Con papel claro no se toca nada: allí los colores del libro se
+  // ven como su autor los puso.
+  inyectarPapel(contents) {
+    const doc = contents?.document;
+    if (!doc?.head) return;
+    let estilo = doc.getElementById('pagekeeper-papel');
+    if (!estilo) {
+      estilo = doc.createElement('style');
+      estilo.id = 'pagekeeper-papel';
+      doc.head.append(estilo);
+    }
+    const { texto, fondo } = COLORES_PAGINA[this.temaPagina];
+    const reglas = [];
+    if (this.temaPagina !== 'claro') {
+      reglas.push(`html, body { background: ${fondo} !important; }`);
+      // Las imágenes y los dibujos (fórmulas incluidas) conservan el suyo.
+      reglas.push('body :not(img, svg, svg *) { background-color: transparent !important; }');
+    }
+    if (this.temaPagina === 'noche') {
+      reglas.push(`body, body :not(a, a *) { color: ${texto} !important; }`);
+    }
+    estilo.textContent = reglas.join('\n');
   }
 
   mostrarAnotaciones(anotaciones) {
