@@ -220,7 +220,9 @@ libros y sincronizar el progreso de lectura.
 - 👆 **La página asoma mientras se desliza**: al arrastrar con el dedo, la
   página vecina entra de verdad por el lado, en PDF y también en EPUB, en
   lugar de dejar un hueco vacío hasta terminar el gesto. Si el recorrido se
-  queda corto, la página vuelve a su sitio y no se pasa nada.
+  queda corto, la página vuelve a su sitio y no se pasa nada. Al pulsar los
+  márgenes o con el teclado, la página hace sola ese mismo recorrido, así que
+  el efecto también se ve en el ordenador.
 - 🔠 **Ajustes de texto en EPUB**: tipo de letra (la del libro, con serifa o
   sin serifa), alineación, interlineado, margen lateral y partido de palabras
   al final de línea, con las preferencias guardadas localmente en cada

@@ -950,11 +950,14 @@ const ayudas = {
         pàgina a pàgina (com un llibre) o pàgines contínues amb desplaçament vertical.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Passa pàgina amb el dit</summary>
+          <summary>Passa pàgina</summary>
           <p>
         arrossega cap als costats i la pàgina acompanya el dit deixant veure on vas; si
-        te’n penedeixes a mig camí, torna sola al seu lloc. Als PDF s’hi veu de debò la
-        pàgina veïna.</p>
+        te’n penedeixes a mig camí, torna sola al seu lloc. Prement els marges esquerre
+        i dret, o amb les fletxes i l’espai, la pàgina fa sola aquest mateix recorregut,
+        així que també es veu a l’ordinador. Als PDF s’hi veu de debò la pàgina veïna.
+        Amb les pàgines contínues, o amb zoom, mana el desplaçament i no hi ha
+        animació.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Dues pàgines juntes</summary>
@@ -1422,11 +1425,14 @@ const ayudas = {
         page by page (like a book) or continuous pages with vertical scrolling.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Turning pages with your finger</summary>
+          <summary>Turning pages</summary>
           <p>
         drag sideways and the page follows your finger, showing where you are heading;
-        change your mind halfway and it slides back. In PDFs the neighbouring page
-        really does peek in.</p>
+        change your mind halfway and it slides back. Tapping the left and right margins,
+        or using the arrow keys and the space bar, makes the page do that same run on
+        its own, so you also see it on a computer. In PDFs the neighbouring page really
+        does peek in. With continuous pages, or while zoomed, scrolling takes over and
+        there is no animation.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Two pages side by side</summary>

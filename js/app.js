@@ -6258,8 +6258,8 @@ $('btn-volver').addEventListener('click', () => {
   else cerrarVistaLector();
 });
 
-$('zona-anterior').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).anterior());
-$('zona-siguiente').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).siguiente());
+$('zona-anterior').addEventListener('click', () => pasarPagina(true));
+$('zona-siguiente').addEventListener('click', () => pasarPagina(false));
 // Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
 // (con «ajustar al ancho» no es el zoom pedido, sino el que sale del área); en
 // EPUB, donde las lupas mueven la letra, es el tamaño de esta.
@@ -7134,10 +7134,9 @@ function tecladoOcupado(evento) {
 function manejarTecla(evento) {
   if ($('vista-lector').classList.contains('oculto')) return;
   if (tecladoOcupado(evento)) return;
-  const activo = epubAbierto() ? lectorEpub : lector;
   switch (evento.key) {
-    case 'ArrowLeft': case 'PageUp': activo.anterior(); break;
-    case 'ArrowRight': case 'PageDown': case ' ': activo.siguiente(); break;
+    case 'ArrowLeft': case 'PageUp': pasarPagina(true); break;
+    case 'ArrowRight': case 'PageDown': case ' ': pasarPagina(false); break;
     case 'Home':
       saltarConHistorial(epubAbierto() ? lectorEpub.destinoPorcentaje(0) : 1)
         .catch((error) => avisar(error.message, 5000));
@@ -7517,6 +7516,50 @@ function terminarGestoPagina() {
   alAcabarElDeslizamiento(elemento, () => {
     limpiarGesto();
     if (dx < 0) activoLector.siguiente(); else activoLector.anterior();
+  });
+}
+
+// Pasar página sin dedo: pulsando los márgenes o con las teclas, la página
+// hace sola el mismo recorrido que haría arrastrándola. Es el mismo montaje
+// del gesto (la vecina preparada detrás, la tira de columnas en EPUB), solo
+// que el desplazamiento va de una vez y de principio a fin.
+//
+// Donde el gesto no cabe —modo continuo, con zoom, sin página a la que ir— se
+// cambia de página como siempre, sin animación.
+async function pasarPagina(haciaAtras) {
+  const activo = epubAbierto() ? lectorEpub : lector;
+  const cambiar = () => (haciaAtras ? activo.anterior() : activo.siguiente());
+  if (gesto || !gestoDePaginaPermitido()) return void cambiar();
+  const paso = lector.enDoble() ? 2 : 1;
+  const hayDestino = epubAbierto() ||
+    (haciaAtras ? lector.pagina > 1 : lector.pagina + paso <= lector.totalPaginas);
+  if (!hayDestino) return;
+  const piezas = piezasDelGesto(haciaAtras);
+  if (!piezas.elemento) return void cambiar();
+  const elemento = piezas.elemento;
+  gesto = {
+    x: 0, y: 0, dx: 0, activo: true, terminado: false, vecinas: [],
+    elemento, paso: piezas.paso, enColumnas: piezas.enColumnas,
+  };
+  elemento.classList.add('arrastrando-pagina');
+  $('area-lectura').classList.add('gesto-pagina');
+  // La página vecina ya suele estar pintada (se adelanta al montar la actual),
+  // así que la espera no se nota; si no lo estuviera, la copia no llega y el
+  // hueco de al lado se ve vacío, como en el arrastre.
+  await prepararVecinasDelGesto();
+  if (!gesto || gesto.elemento !== elemento) return; // otro gesto lo relevó
+  gesto.terminado = true;
+  ultimoGestoPagina = Date.now();
+  elemento.classList.add('soltando-pagina');
+  // Un fotograma con la página quieta antes de moverla: puesto en el mismo, el
+  // navegador junta las dos escrituras y no hay transición que ver.
+  requestAnimationFrame(() => {
+    if (gesto?.elemento !== elemento) return;
+    elemento.style.transform = `translateX(${haciaAtras ? gesto.paso : -gesto.paso}px)`;
+  });
+  alAcabarElDeslizamiento(elemento, () => {
+    limpiarGesto();
+    cambiar();
   });
 }
 
