@@ -69,6 +69,7 @@ export class Lector {
     this.anotaciones = [];
     this.notaBajoPuntero = null;
     this.movimientoVoz = 0; // cuándo movió la vista el seguimiento de la voz
+    this.escalaVista = 1;   // aumento con el que se pintó la última página
 
     // Se vigila el área, no la ventana: también cambia de tamaño al abrir o
     // cerrar la barra lateral del índice. Se compara con la medida del último
@@ -352,6 +353,12 @@ export class Lector {
   enPantalla(numero) {
     if (this.modo === 'continuo') return Boolean(this.paginas[numero]?.dataset.estado);
     return this.envoltorios.some((envoltorio) => Number(envoltorio.dataset.num) === numero);
+  }
+
+  // El aumento que se está viendo, en porcentaje: 100 % es la página a su
+  // tamaño natural, como en cualquier visor de PDF.
+  get porcentajeZoom() {
+    return Math.round((this.escalaVista || this.zoom) * 100);
   }
 
   anterior(opciones) { return this.irA(this.pagina - (this.enDoble() ? 2 : 1), opciones); }
@@ -703,6 +710,9 @@ export class Lector {
     const rotacion = this.rotacionDe(pagina);
     const recorte = await this.recorteDePagina(pagina);
     const { escala } = this.escalaPara(pagina, recorte);
+    // Con qué aumento se está viendo de verdad la página, que con «ajustar al
+    // ancho» o a la página no es el zoom pedido sino el que sale del área.
+    this.escalaVista = escala;
     const vista = pagina.getViewport({ scale: escala, rotation: rotacion });
 
     // Con los márgenes recortados el canvas es solo el trozo visible y la

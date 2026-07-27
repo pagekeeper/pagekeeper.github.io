@@ -4852,6 +4852,8 @@ function cuandoCambiaPagina(pagina, total) {
   marcarEntradaIndiceActual();
   anotarRitmo(pagina);
   pintarTiempoRestante();
+  // Remontar la página (zoom, giro, otro ancho de ventana) cambia el aumento.
+  pintarZoom();
   // Navegar a mano mientras suena la lectura en voz alta la detiene; los
   // avances del propio TTS y los remontados (zoom, resize) no.
   if (vistaMovidaPorLaVoz()) ttsUltimaPosicion = pagina;
@@ -4881,6 +4883,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   // Antes de cualquier vuelta atrás: la pantalla del capítulo cambia en todas
   // ellas, también mientras se recupera la posición o falta el porcentaje.
   pintarBarraEstado();
+  pintarZoom();
   if (!libroActual || !cfi) return;
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
@@ -6257,6 +6260,16 @@ $('btn-volver').addEventListener('click', () => {
 
 $('zona-anterior').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).anterior());
 $('zona-siguiente').addEventListener('click', () => (epubAbierto() ? lectorEpub : lector).siguiente());
+// Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
+// (con «ajustar al ancho» no es el zoom pedido, sino el que sale del área); en
+// EPUB, donde las lupas mueven la letra, es el tamaño de esta.
+function pintarZoom() {
+  const valor = epubAbierto() ? lectorEpub.tamano : lector.porcentajeZoom;
+  const texto = Number.isFinite(valor) ? `${Math.round(valor)} %` : '';
+  $('valor-zoom').textContent = texto;
+  $('valor-zoom-menu').textContent = texto;
+}
+
 async function ajustarZoom(direccion) {
   if (epubAbierto()) {
     lectorEpub.cambiarTamano(direccion * 10);
@@ -6267,6 +6280,7 @@ async function ajustarZoom(direccion) {
     localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
     aplicarAparienciaAjustePdf();
   }
+  pintarZoom();
 }
 $('btn-zoom-menos').addEventListener('click', () => ajustarZoom(-1));
 $('btn-zoom-mas').addEventListener('click', () => ajustarZoom(1));
@@ -6734,6 +6748,7 @@ $('btn-ancho-auto').addEventListener('click', async () => {
   if (epubAbierto()) {
     lectorEpub.cambiarTamano(100 - lectorEpub.tamano);
     localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+    pintarZoom();
   } else {
     await lector.ajustar('ancho');
     localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
@@ -7458,6 +7473,7 @@ function terminarPellizcoEpub() {
   if (!pellizcoEpub) return;
   pellizcoEpub = null;
   localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  pintarZoom();
   ultimoPellizco = Date.now(); // que el gesto de página no remate el pellizco
 }
 
