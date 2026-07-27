@@ -172,6 +172,7 @@ const COLORES_PAGINA = {
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
+    alPartirFrase,
     etiquetaOpcionesNota, alTocar, alMenuContextual, alCambiarPantallas }) {
     this.contenedor = contenedor;
     this.alCambiarPosicion = alCambiarPosicion;
@@ -184,6 +185,7 @@ export class LectorEpub {
     this.alGestionarAnotacion = alGestionarAnotacion;
     this.alMostrarNota = alMostrarNota;
     this.alOcultarNota = alOcultarNota;
+    this.alPartirFrase = alPartirFrase;
     this.etiquetaOpcionesNota = etiquetaOpcionesNota;
     this.alTocar = alTocar;
     this.alMenuContextual = alMenuContextual;
@@ -922,6 +924,15 @@ export class LectorEpub {
       // paginado no hay scroll que valga: hay que pasar de página.
       if (this.modo === 'continuo') this.acercarVoz(doc, encontrado.rango);
       else if (!this.cfiVisible(cfi)) await this.irAVoz(cfi);
+      // La frase empieza aquí pero acaba en la página siguiente. Quien la
+      // escucha se queda mirando un trozo hasta que termina, así que se avisa
+      // de por dónde se parte para pasar de página mientras suena. Una
+      // fracción de cero es que no se ve nada de la frase, y entonces el CFI
+      // decía otra cosa: ahí no se toca la vista, como hasta ahora.
+      else {
+        const visible = this.fraccionVisible(encontrado.rango, doc);
+        if (visible > 0.02 && visible < 0.98) this.alPartirFrase?.(visible);
+      }
     }
     return encontrado.fin;
   }
@@ -966,6 +977,46 @@ export class LectorEpub {
       return comparador.compare(cfi, inicio) >= 0 && comparador.compare(cfi, fin) <= 0;
     } catch {
       return false;
+    }
+  }
+
+  // Qué parte de un tramo de texto cabe en la página que se ve, de 0 a 1.
+  //
+  // El capítulo entero se compone en una tira de columnas dentro del iframe,
+  // que es tan ancho como esa tira; lo que se ve es la ventana que el marco
+  // recorta. Así que la ventana se traslada a las coordenadas del capítulo
+  // (restando dónde ha quedado el marco del iframe) y se mira qué líneas del
+  // tramo caen dentro. Las líneas reparten el texto casi como los caracteres,
+  // que es lo que hace falta para saber por dónde se parte la frase.
+  fraccionVisible(rango, doc) {
+    const marco = doc?.defaultView?.frameElement;
+    const area = (this.areaDesplazable() ?? this.contenedor)?.getBoundingClientRect();
+    if (!marco || !area) return 1;
+    const caja = marco.getBoundingClientRect();
+    const izquierda = area.left - caja.left;
+    const derecha = area.right - caja.left;
+    let total = 0;
+    let dentro = 0;
+    for (const linea of rango.getClientRects()) {
+      if (!linea.width) continue;
+      total += linea.width;
+      if (linea.left >= izquierda - 1 && linea.right <= derecha + 1) dentro += linea.width;
+    }
+    return total ? dentro / total : 1;
+  }
+
+  // Pasa de página sin que la lectura en voz alta lo tome por una navegación
+  // a mano (que la detendría): el movimiento queda apuntado como suyo.
+  async pasarPaginaPorVoz() {
+    this.movimientoVoz = Date.now();
+    const cfi = this.cfiVoz;
+    try {
+      await this.siguiente();
+      // La página nueva puede llevarse por delante el resaltado de la frase,
+      // que sigue sonando: se rehace sobre el trozo que ahora se ve.
+      if (cfi && this.cfiVoz === cfi) this.marcarVoz(cfi);
+    } finally {
+      this.movimientoVoz = Date.now();
     }
   }
 

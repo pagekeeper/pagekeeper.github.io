@@ -355,6 +355,8 @@ const lectorEpub = new LectorEpub({
   alGestionarAnotacion: abrirMenuNota,
   alMostrarNota: mostrarNotaEmergente,
   alOcultarNota: ocultarNotaEmergente,
+  // La frase que suena se parte entre esta página y la siguiente.
+  alPartirFrase: (fraccion) => programarPasoDePaginaPorVoz(fraccion),
   etiquetaOpcionesNota: () => t('noteActions'),
   // El texto del libro va en un iframe que se queda los toques: los reenvía
   // para que funcionen igual el arrastre de página y el pellizco.
@@ -6525,6 +6527,8 @@ async function seguirFraseConLaVista(frase, { nuevaPagina } = {}) {
   // buscarla donde ya estaba, no a partir de su propio final.
   const desde = frase === fraseVoz ? cursorVozPrevio : cursorVoz;
   fraseVoz = frase;
+  // El paso de página que hubiera pendiente era de la frase anterior.
+  cancelarPasoDePaginaPorVoz();
   try {
     const fin = epubAbierto()
       ? await lectorEpub.seguirVoz(frase, desde)
@@ -6536,7 +6540,38 @@ async function seguirFraseConLaVista(frase, { nuevaPagina } = {}) {
   } catch { /* no poder seguir el texto no debe cortar la lectura */ }
 }
 
+// Pasar de página a mitad de la frase que la parte en dos.
+//
+// En un EPUB paginado la voz lee el capítulo seguido, así que hay frases que
+// empiezan al final de una página y acaban en la siguiente. Quedarse en la
+// primera hasta que la frase termina rompe la lectura: se ve un trozo y se
+// oye lo que no se ve. Se pasa de página cuando la voz llega al corte, que se
+// sitúa por la parte de la frase que cabía en la página (la fracción que
+// avisa el lector) y por lo que dura la frase al ritmo medido de esta voz.
+//
+// Es una estimación: no hay forma fiable de saber por qué palabra va el
+// motor. Si se queda corta o larga, la página pasa un poco antes o después,
+// que es lo mismo que hacía antes al terminar la frase, pero sin el parón.
+let temporizadorPasoVoz = null;
+
+function cancelarPasoDePaginaPorVoz() {
+  clearTimeout(temporizadorPasoVoz);
+  temporizadorPasoVoz = null;
+}
+
+function programarPasoDePaginaPorVoz(fraccion) {
+  cancelarPasoDePaginaPorVoz();
+  if (vozLectura.estado !== 'leyendo' || !fraseVoz) return;
+  const espera = vozLectura.duracionEstimada(fraseVoz) * fraccion;
+  temporizadorPasoVoz = setTimeout(() => {
+    temporizadorPasoVoz = null;
+    if (vozLectura.estado !== 'leyendo' || !epubAbierto()) return;
+    lectorEpub.pasarPaginaPorVoz();
+  }, Math.max(200, espera));
+}
+
 function limpiarSeguimientoVoz() {
+  cancelarPasoDePaginaPorVoz();
   cursorVoz = 0;
   cursorVozPrevio = 0;
   fraseVoz = '';
@@ -6610,6 +6645,8 @@ function pintarEstadoVoz() {
   const activo = estado !== 'parado';
   // Pausada se conserva la marca (dice por dónde iba); parada, se retira.
   if (!activo) limpiarSeguimientoVoz();
+  // Al pausar, la página no debe pasar sola: la frase ya no está sonando.
+  if (estado !== 'leyendo') cancelarPasoDePaginaPorVoz();
   const etiqueta = estado === 'leyendo' ? 'ttsPause' : (estado === 'pausado' ? 'ttsResume' : 'ttsPlay');
   $('btn-tts-leer').innerHTML =
     icono(estado === 'leyendo' ? 'pause' : 'play') + `<span>${t(etiqueta)}</span>`;
@@ -7720,3 +7757,4 @@ crearCliente();
 history.replaceState(estadoBiblioteca(), '');
 mostrarVista('biblioteca');
 precargarLibrosEjemplo().finally(() => cargarBiblioteca());
+

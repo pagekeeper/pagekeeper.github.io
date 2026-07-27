@@ -8,6 +8,13 @@
 
 const MAXIMO_FRASE = 220;
 const PAGINAS_VACIAS_SEGUIDAS = 20;
+// Caracteres por segundo de la voz. Sirve para calcular cuánto va a durar una
+// frase (quien sigue el texto lo necesita para pasar de página a mitad de una
+// que se parte entre dos). El valor de partida es el de una voz castellana a
+// velocidad normal, y se corrige con lo que tardan las frases de verdad: así
+// vale para cualquier motor, idioma y velocidad sin preguntarle nada.
+const RITMO_INICIAL = 14;
+const PESO_MEDIDA = 0.3;
 
 export function trocearTexto(texto, maximo = MAXIMO_FRASE) {
   const limpio = String(texto ?? '').replace(/\s+/g, ' ').trim();
@@ -59,6 +66,7 @@ export class LectorVoz {
     // Cada inicio o parada invalida la sesión anterior: los eventos de las
     // locuciones antiguas que lleguen tarde no deben reanudar nada.
     this.sesion = 0;
+    this.caracteresPorSegundo = RITMO_INICIAL;
   }
 
   disponible() {
@@ -100,13 +108,35 @@ export class LectorVoz {
     if (this.voz) locucion.voice = this.voz;
     else if (this.idioma) locucion.lang = this.idioma;
     locucion.rate = this.velocidad;
-    locucion.onend = () => this.hablarSiguiente(sesion);
+    const arrancada = Date.now();
+    locucion.onend = () => {
+      this.anotarRitmo(frase, Date.now() - arrancada);
+      this.hablarSiguiente(sesion);
+    };
     locucion.onerror = (evento) => {
       // 'interrupted' y 'canceled' son consecuencia de cancel(): no se sigue.
       if (evento.error === 'interrupted' || evento.error === 'canceled') return;
       this.hablarSiguiente(sesion);
     };
     this.sintesis.speak(locucion);
+  }
+
+  // Lo que ha tardado una frase real afina el ritmo. Se descartan las muy
+  // cortas (el arranque del motor pesa más que el habla) y los disparates,
+  // que aparecen cuando el sistema corta o encola la locución.
+  anotarRitmo(frase, milisegundos) {
+    const caracteres = String(frase ?? '').length;
+    if (caracteres < 20 || milisegundos < 500) return;
+    const ritmo = caracteres / (milisegundos / 1000);
+    if (ritmo < 3 || ritmo > 60) return;
+    this.caracteresPorSegundo =
+      this.caracteresPorSegundo * (1 - PESO_MEDIDA) + ritmo * PESO_MEDIDA;
+  }
+
+  // Cuánto va a durar una frase, en milisegundos.
+  duracionEstimada(frase) {
+    const caracteres = String(frase ?? '').length;
+    return (caracteres / (this.caracteresPorSegundo || RITMO_INICIAL)) * 1000;
   }
 
   async avanzarYSeguir(sesion, vaciasSeguidas) {

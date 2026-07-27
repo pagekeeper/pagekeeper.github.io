@@ -1106,7 +1106,9 @@ const ayudas = {
         el botó de l’altaveu llegeix el llibre amb la veu del navegador, començant a la
         pàgina actual. La frase que sona es va ressaltant per poder seguir-la amb la
         vista, i la pàgina avança sola quan la veu arriba al final del que es veu, així
-        que també pots llegir mirant. El panell es retira en començar per no tapar el
+        que també pots llegir mirant. Als EPUB, si una frase comença en una pàgina i
+        acaba a la següent, la pàgina canvia a mitja frase, si fa no fa per on va la
+        veu, per no deixar-te mirant un tros mentre sona la resta. El panell es retira en començar per no tapar el
         text: mentre sona, un control petit a baix permet fer pausa, continuar i
         aturar, i en pantalla ampla el mateix altaveu fa pausa i continua. En
         continuar, la frase que s’ha tallat es repeteix sencera. Els ajustos (veu i
@@ -1579,7 +1581,9 @@ const ayudas = {
         the speaker button reads the book with the browser’s voice, starting on the
         current page. The sentence being read is highlighted so you can follow it with
         your eyes, and the page turns by itself once the voice reaches the end of what
-        is on screen, so you can read along too. The panel steps aside when reading
+        is on screen, so you can read along too. In EPUBs, when a sentence starts on one
+        page and ends on the next, the page turns mid-sentence, roughly where the voice
+        is, so you are not left staring at a fragment while the rest plays. The panel steps aside when reading
         starts so it does not cover the text: while it plays, a small control at the
         bottom pauses, resumes and stops, and on a wide screen the speaker button
         itself pauses and resumes. When you resume, the interrupted sentence is read
