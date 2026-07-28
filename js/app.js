@@ -2315,6 +2315,13 @@ function crearFilaLibro({
     etiqueta: t('actionBookNote'),
     alPulsar: () => abrirNotaLibro(id, elemento.querySelector('.nombre')?.textContent ?? tituloMostrado),
   });
+  // El otro camino a la ficha, además del tiempo de la barra del pie: esa se
+  // puede apagar y en el modo inmersivo no está.
+  acciones.push({
+    icono: 'chart-column',
+    etiqueta: t('actionBookStats'),
+    alPulsar: () => abrirFichaLibro(id, elemento.querySelector('.nombre')?.textContent ?? tituloMostrado),
+  });
   if (alRenombrar) acciones.push({ icono: 'pencil', etiqueta: t('actionRename'), alPulsar: alRenombrar });
   if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
@@ -5291,6 +5298,126 @@ function pintarResumenEstadisticas() {
     : t('statsEmptyTitle');
 }
 
+// ───────────── Ficha de un libro ─────────────
+//
+// «¿Cuánto he tardado en leer esto?», que es la pregunta que no responde la
+// pantalla general: allí solo caben los más leídos. Se abre desde la barra del
+// pie del lector y desde el menú «⋯» de la biblioteca, porque la barra se
+// puede apagar y en el modo inmersivo no está.
+
+function tituloDelLibroActual() {
+  return libroActual ? nombreVisibleDeId(libroActual.id) : '';
+}
+
+// Lo que se enseña en la barra del pie. Vacío si aún no hay nada apuntado: un
+// «0 min» permanente ocuparía sitio sin decir nada.
+function tiempoDedicadoAlLibro() {
+  if (!libroActual) return '';
+  const ficha = estadisticas.estadisticasDeLibro(progreso.cargarLocal(), libroActual.id);
+  return ficha.hay ? duracionLegible(ficha.segundos) : '';
+}
+
+function cifraFicha(etiqueta, valor, pie = '') {
+  const elemento = document.createElement('li');
+  elemento.className = 'cifra-estadistica';
+  const numero = document.createElement('strong');
+  numero.className = 'cifra-valor';
+  numero.textContent = valor;
+  const nombre = document.createElement('span');
+  nombre.className = 'cifra-etiqueta';
+  nombre.textContent = etiqueta;
+  elemento.append(numero, nombre);
+  if (pie) {
+    const detalle = document.createElement('span');
+    detalle.className = 'cifra-pie';
+    detalle.textContent = pie;
+    elemento.append(detalle);
+  }
+  return elemento;
+}
+
+function pintarFichaLibro(id) {
+  const ficha = estadisticas.estadisticasDeLibro(progreso.cargarLocal(), id);
+  $('ficha-libro-vacia').classList.toggle('oculto', ficha.hay);
+  $('cifras-ficha-libro').classList.toggle('oculto', !ficha.hay);
+
+  const cifras = [];
+  if (ficha.hay) {
+    cifras.push([t('statsBookTime'), duracionLegible(ficha.segundos)]);
+    if (ficha.porcentaje !== null) {
+      cifras.push([t('statsBookRead'), `${ficha.porcentaje} %`,
+        ficha.terminado ? t('finished') : '']);
+    }
+    if (ficha.formato === 'pdf' && ficha.paginas > 0) {
+      cifras.push([t('statsPdfPages'), String(ficha.paginas)]);
+    }
+    // El ritmo se dice en minutos por página cuando pasa del minuto, y en
+    // segundos cuando no: «0 min por página» no informa de nada.
+    if (ficha.ritmo !== null) {
+      cifras.push([t('statsBookPace'), ficha.ritmo >= 60
+        ? t('statsPacePerPage', { time: duracionLegible(ficha.ritmo) })
+        : t('statsPaceSeconds', { s: Math.round(ficha.ritmo) })]);
+    }
+    // El tiempo que falta solo tiene sentido con el libro delante: fuera del
+    // lector no se sabe por dónde va la lectura de esta sesión.
+    const restante = libroActual?.id === id ? tiempoRestanteEstimado() : '';
+    if (restante) cifras.push([t('timeLeft'), restante]);
+  }
+  $('cifras-ficha-libro').replaceChildren(
+    ...cifras.map(([etiqueta, valor, pie]) => cifraFicha(etiqueta, valor, pie)),
+  );
+
+  // El reparto, solo si de verdad hay varios aparatos: con uno repetiría la
+  // cifra de arriba.
+  const varios = ficha.porDispositivo.length > 1;
+  $('reparto-ficha-libro').classList.toggle('oculto', !varios);
+  if (!varios) return;
+  const nombres = nombresDeDispositivos();
+  const mayor = ficha.porDispositivo[0].segundos;
+  $('lista-reparto-ficha').replaceChildren(...ficha.porDispositivo.map((parte) => {
+    const elemento = document.createElement('li');
+    elemento.className = 'libro-estadistica';
+    const conocido = nombres.get(parte.dispositivo);
+    const nombre = document.createElement('span');
+    nombre.className = 'titulo-estadistica';
+    nombre.textContent = conocido?.esteMismo ? t('deviceThisOne')
+      : conocido?.nombre ?? t('deviceUnknown');
+    const tiempo = document.createElement('span');
+    tiempo.className = 'tiempo-estadistica';
+    tiempo.textContent = duracionLegible(parte.segundos);
+    const barra = document.createElement('div');
+    barra.className = 'barra-libro';
+    const relleno = document.createElement('div');
+    relleno.style.width = `${Math.max(2, (parte.segundos / mayor) * 100)}%`;
+    barra.append(relleno);
+    elemento.append(nombre, tiempo, barra);
+    return elemento;
+  }));
+}
+
+let fichaAbiertaDe = null;
+
+function abrirFichaLibro(id, titulo) {
+  if (!id) return;
+  fichaAbiertaDe = id;
+  $('titulo-ficha-libro').textContent = titulo || nombreVisibleDeId(id);
+  pintarFichaLibro(id);
+  $('ficha-libro').classList.remove('oculto');
+  $('titulo-ficha-libro').focus();
+}
+
+function cerrarFichaLibro() {
+  if (!fichaAbiertaDe) return;
+  fichaAbiertaDe = null;
+  $('ficha-libro').classList.add('oculto');
+}
+
+$('cerrar-ficha-libro').addEventListener('click', cerrarFichaLibro);
+// Pulsar fuera cierra, como en el menú «⋯»: el velo es el propio contenedor.
+$('ficha-libro').addEventListener('click', (evento) => {
+  if (evento.target === $('ficha-libro')) cerrarFichaLibro();
+});
+
 function abrirEstadisticas(registrar = true) {
   $('resultado-estadisticas').textContent = '';
   pintarEstadisticas();
@@ -5321,6 +5448,7 @@ $('btn-borrar-estadisticas').addEventListener('click', () => {
 document.addEventListener('idioma-cambiado', () => {
   if (!$('vista-estadisticas').classList.contains('oculto')) pintarEstadisticas();
   if (!$('vista-ajustes').classList.contains('oculto')) pintarResumenEstadisticas();
+  if (fichaAbiertaDe) pintarFichaLibro(fichaAbiertaDe);
 });
 
 // ───────────── Barra de datos al pie ─────────────
@@ -5334,12 +5462,20 @@ function barraEstadoOculta() {
   return localStorage.getItem(CLAVE_BARRA_ESTADO_OCULTA) === '1';
 }
 
-function datoEstado(texto, titulo) {
-  const span = document.createElement('span');
-  span.className = 'dato-estado';
-  span.textContent = texto;
-  if (titulo) span.title = titulo;
-  return span;
+// La barra del pie es de datos, no de mando, así que casi todo va en un
+// <span>. El tiempo dedicado es la excepción: abre la ficha del libro, y para
+// eso tiene que ser un botón de verdad (teclado, lector de pantalla) y
+// parecerlo.
+function datoEstado(texto, titulo, alPulsar = null) {
+  const elemento = document.createElement(alPulsar ? 'button' : 'span');
+  elemento.className = alPulsar ? 'dato-estado dato-estado-pulsable' : 'dato-estado';
+  elemento.textContent = texto;
+  if (titulo) elemento.title = titulo;
+  if (alPulsar) {
+    elemento.type = 'button';
+    elemento.addEventListener('click', alPulsar);
+  }
+  return elemento;
 }
 
 // Qué se cuenta según el formato: del EPUB, la pantalla dentro del capítulo y
@@ -5348,6 +5484,14 @@ function datoEstado(texto, titulo) {
 // ambos, el tiempo que queda.
 function datosBarraEstado() {
   const datos = [];
+  // El primero de la fila: en el móvil la barra se desplaza a lo ancho y con
+  // la barra de desplazamiento oculta, así que lo que va al final no se
+  // encuentra. Y este dato, además, se pulsa.
+  const dedicado = tiempoDedicadoAlLibro();
+  if (dedicado) {
+    datos.push([dedicado, t('statusTimeSpentTitle'),
+      () => abrirFichaLibro(libroActual.id, tituloDelLibroActual())]);
+  }
   if (epubAbierto()) {
     // Un capítulo de una sola pantalla (una portadilla, una dedicatoria) no
     // tiene nada que contar: «1 / 1» solo ocupa sitio.
@@ -5381,7 +5525,7 @@ function pintarBarraEstado() {
   // de alto a mitad del libro y epub.js repaginaría el capítulo.
   barra.classList.toggle('oculto', !visible);
   const datos = visible ? datosBarraEstado() : [];
-  barra.replaceChildren(...datos.map(([texto, titulo]) => datoEstado(texto, titulo)));
+  barra.replaceChildren(...datos.map(([texto, titulo, alPulsar]) => datoEstado(texto, titulo, alPulsar)));
 }
 
 function sincronizarCasillaBarraEstado() {
@@ -7365,6 +7509,10 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  if (fichaAbiertaDe) {
+    cerrarFichaLibro();
+    return;
+  }
   if (!$('dialogo-registro').classList.contains('oculto')) {
     cerrarRegistro();
     return;

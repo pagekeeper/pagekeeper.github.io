@@ -192,6 +192,12 @@ const textos = {
     stats: 'Estadísticas de lectura', statsView: 'Ver las estadísticas',
     statsSettingsHelp: 'El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas, sumando todos tus dispositivos.',
     statsSummary: 'Tu lectura', statsLastDays: 'Los últimos 30 días',
+    actionBookStats: 'Tiempo de lectura',
+    statusTimeSpentTitle: 'Tiempo que llevas leyendo este libro. Pulsa para verlo en detalle.',
+    statsBookTime: 'Tiempo dedicado', statsBookRead: 'Leído', statsBookPace: 'Ritmo',
+    statsPacePerPage: '{time} por página', statsPaceSeconds: '{s} s por página',
+    statsBookByDevice: 'En cada dispositivo',
+    statsBookEmpty: 'Todavía no hay tiempo apuntado de este libro. En cuanto leas unos minutos con él abierto, aquí aparecerá cuánto le has dedicado.',
     statsShared: 'Suma de todos tus dispositivos: lo leído en el móvil y en el ordenador cuenta junto, y un día en el que hayas leído en los dos es un solo día.',
     statsTopBooks: 'En qué se va el tiempo', statsDataTitle: 'Estos datos',
     statsEmptyTitle: 'Todavía no hay nada que contar',
@@ -490,6 +496,12 @@ const textos = {
     stats: 'Estadístiques de lectura', statsView: 'Veure les estadístiques',
     statsSettingsHelp: 'El temps que dediques a llegir, els dies seguits que portes i els llibres als quals dediques més estona, sumant tots els teus dispositius.',
     statsSummary: 'La teva lectura', statsLastDays: 'Els darrers 30 dies',
+    actionBookStats: 'Temps de lectura',
+    statusTimeSpentTitle: 'Temps que portes llegint aquest llibre. Prem per veure’l en detall.',
+    statsBookTime: 'Temps dedicat', statsBookRead: 'Llegit', statsBookPace: 'Ritme',
+    statsPacePerPage: '{time} per pàgina', statsPaceSeconds: '{s} s per pàgina',
+    statsBookByDevice: 'A cada dispositiu',
+    statsBookEmpty: 'Encara no hi ha temps apuntat d’aquest llibre. Tan bon punt llegeixis uns minuts amb ell obert, aquí apareixerà quant li has dedicat.',
     statsShared: 'Suma de tots els teus dispositius: el que has llegit al mòbil i a l’ordinador compta junt, i un dia en què hagis llegit als dos és un sol dia.',
     statsTopBooks: 'On se’n va el temps', statsDataTitle: 'Aquestes dades',
     statsEmptyTitle: 'Encara no hi ha res a explicar',
@@ -788,6 +800,12 @@ const textos = {
     stats: 'Reading statistics', statsView: 'View the statistics',
     statsSettingsHelp: 'How much time you spend reading, how many days in a row you have kept it up, and the books that take the most of your time, adding up all your devices.',
     statsSummary: 'Your reading', statsLastDays: 'The last 30 days',
+    actionBookStats: 'Reading time',
+    statusTimeSpentTitle: 'How long you have been reading this book. Tap to see the details.',
+    statsBookTime: 'Time spent', statsBookRead: 'Read', statsBookPace: 'Pace',
+    statsPacePerPage: '{time} per page', statsPaceSeconds: '{s} s per page',
+    statsBookByDevice: 'On each device',
+    statsBookEmpty: 'No time recorded for this book yet. As soon as you read for a few minutes with it open, this is where you will see how long you have spent on it.',
     statsShared: 'Adding up all your devices: what you read on the phone and on the computer counts together, and a day you read on both is a single day.',
     statsTopBooks: 'Where the time goes', statsDataTitle: 'About this data',
     statsEmptyTitle: 'Nothing to show yet',
@@ -1088,6 +1106,11 @@ const ayudas = {
           propi servidor, i no s’envia enlloc més. Les pots esborrar quan
           vulguis des d’aquesta mateixa pantalla —s’esborren a tots els
           dispositius— sense tocar els llibres ni el progrés.</p>
+            <p>D’un llibre concret ho tens més a mà: mentre el llegeixes, la
+          barra del peu comença amb el temps que hi portes dedicat, i en prémer-lo
+          s’obre la seva fitxa, amb el que has llegit, les pàgines, el ritme, el
+          que queda i el repartiment per dispositius. La mateixa fitxa és al
+          menú «⋯» del llibre a la biblioteca.</p>
           </details>
           <details class="punto-ayuda">
           <summary>Importar i exportar</summary>
@@ -1578,6 +1601,11 @@ const ayudas = {
           You can delete it whenever you like from that same screen — it is
           deleted on every device — without touching your books or your
           progress.</p>
+            <p>For a single book it is closer at hand: while you read, the
+          bottom bar starts with the time you have spent on it, and tapping that
+          opens its card, with how much you have read, the pages, the pace, what
+          is left and the split across devices. The same card is in the book’s
+          «⋯» menu in the library.</p>
           </details>
           <details class="punto-ayuda">
           <summary>Import and export</summary>

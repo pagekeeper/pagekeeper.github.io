@@ -4,7 +4,8 @@ import assert from 'node:assert/strict';
 import {
   apuntarTiempo, fusionarTiempos, totalTiempo, normalizarTiempos,
   apuntarDia, fusionarEstadisticas, diasCombinados, normalizarEstadisticas,
-  racha, rachaMaxima, serie, librosLeidos, resumen, claveDia, DIAS_GUARDADOS,
+  racha, rachaMaxima, serie, librosLeidos, resumen, estadisticasDeLibro,
+  claveDia, DIAS_GUARDADOS,
 } from '../js/estadisticas.js';
 
 // Una fecha local concreta, para no depender del huso de quien ejecute.
@@ -223,4 +224,51 @@ test('un libro con tiempo cuenta aunque no haya días apuntados', () => {
 test('librosLeidos deja fuera lo que no se ha leído', () => {
   assert.deepEqual(librosLeidos({ 'a.pdf': { pagina: 3 }, 'b.pdf': { tiempos: {} } }), []);
   assert.deepEqual(librosLeidos(undefined), []);
+});
+
+// ───────────── Ficha de un libro ─────────────
+
+test('la ficha reúne el tiempo, el avance y el ritmo de un libro', () => {
+  const datos = {
+    libros: {
+      'manual.pdf': {
+        pagina: 60, paginas: 120,
+        tiempos: { movil: { s: 3600, p: 40 }, portatil: { s: 1800, p: 20 } },
+      },
+    },
+  };
+  const ficha = estadisticasDeLibro(datos, 'manual.pdf');
+  assert.equal(ficha.hay, true);
+  assert.equal(ficha.segundos, 5400);
+  assert.equal(ficha.paginas, 60);
+  assert.equal(ficha.porcentaje, 50);
+  assert.equal(ficha.ritmo, 90);           // 5400 s / 60 páginas
+  assert.equal(ficha.formato, 'pdf');
+  assert.deepEqual(ficha.porDispositivo.map((p) => p.dispositivo), ['movil', 'portatil']);
+});
+
+test('en EPUB no se calcula ritmo por página, porque no hay páginas fijas', () => {
+  const ficha = estadisticasDeLibro(
+    { libros: { 'novela.epub': { tiempos: { a: { s: 3600, p: 0 } } } } }, 'novela.epub');
+  assert.equal(ficha.ritmo, null);
+  assert.equal(ficha.formato, 'epub');
+});
+
+test('la ficha de un libro sin leer no inventa cifras', () => {
+  const ficha = estadisticasDeLibro({ libros: {} }, 'nuevo.pdf');
+  assert.equal(ficha.hay, false);
+  assert.equal(ficha.segundos, 0);
+  assert.equal(ficha.porcentaje, null);
+  assert.equal(ficha.ritmo, null);
+  assert.deepEqual(ficha.porDispositivo, []);
+  assert.deepEqual(estadisticasDeLibro(undefined, 'x.pdf').hay, false);
+});
+
+test('el porcentaje se queda dentro de sus límites aunque el registro venga raro', () => {
+  const pasado = estadisticasDeLibro(
+    { libros: { 'a.pdf': { pagina: 300, paginas: 120, tiempos: { d: { s: 60, p: 1 } } } } }, 'a.pdf');
+  assert.equal(pasado.porcentaje, 100);
+  const sinTotal = estadisticasDeLibro(
+    { libros: { 'b.pdf': { pagina: 5, paginas: 0, tiempos: { d: { s: 60, p: 1 } } } } }, 'b.pdf');
+  assert.equal(sinTotal.porcentaje, null);
 });

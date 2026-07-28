@@ -216,6 +216,12 @@ libros y sincronizar el progreso de lectura.
   las páginas; en EPUB no hay páginas fijas y la medida es el tiempo. Se pueden
   borrar desde la misma pantalla, en todos los dispositivos a la vez, sin tocar
   los libros ni el progreso.
+- ⏱️ **Cuánto llevas con este libro**: la barra del pie del lector abre con el
+  tiempo que le has dedicado, y al pulsarlo se despliega su ficha: el total, lo
+  leído, las páginas, el ritmo (minutos por página en los PDF), lo que falta
+  para terminarlo y el reparto por dispositivos. La misma ficha está en el menú
+  «⋯» de cada libro de la biblioteca, porque la barra del pie se puede apagar y
+  en el modo inmersivo no aparece.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
   El aumento se ve en tanto por ciento entre las dos lupas, y al pulsarlo se

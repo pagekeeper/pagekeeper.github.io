@@ -252,6 +252,36 @@ export function librosLeidos(libros) {
   return lista.sort((uno, otro) => otro.segundos - uno.segundos);
 }
 
+// Lo que se sabe de un libro suelto, para su ficha. Devuelve siempre algo
+// (con el tiempo a cero si no se ha leído), porque la ficha se abre desde el
+// propio libro y allí siempre hay algo que enseñar.
+export function estadisticasDeLibro(datos, id) {
+  const entrada = datos?.libros?.[id];
+  const tiempos = normalizarTiempos(entrada?.tiempos);
+  const total = totalTiempo(tiempos);
+  const porDispositivo = Object.entries(tiempos)
+    .map(([dispositivo, valor]) => ({ dispositivo, segundos: valor.s, paginas: valor.p }))
+    .sort((uno, otro) => otro.segundos - uno.segundos);
+  const paginas = Number(entrada?.paginas);
+  const pagina = Number(entrada?.pagina);
+  return {
+    id,
+    hay: total.s > 0,
+    segundos: total.s,
+    paginas: total.p,
+    porDispositivo,
+    formato: formatoDe(id),
+    // Minutos por página, solo en PDF y con páginas de verdad contadas: en
+    // EPUB no hay páginas fijas que promediar.
+    ritmo: formatoDe(id) === 'pdf' && total.p > 0 ? total.s / total.p : null,
+    // Cuánto se lleva leído, para acompañar al tiempo con el avance.
+    porcentaje: Number.isFinite(paginas) && paginas > 0 && Number.isFinite(pagina)
+      ? Math.min(100, Math.max(0, Math.round((pagina / paginas) * 100)))
+      : null,
+    terminado: entrada?.terminado === true,
+  };
+}
+
 // `datos` es el registro de progreso entero: de ahí salen tanto los días
 // (raíz) como el tiempo de cada libro (dentro de su entrada).
 export function resumen(datos, ahora = Date.now(), diasSerie = 30) {

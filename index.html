@@ -1094,6 +1094,11 @@
           servidor, y no se envía a ningún otro sitio. Puedes borrarlas cuando
           quieras desde esa misma pantalla —se borran en todos los
           dispositivos— sin tocar tus libros ni tu progreso.</p>
+            <p>De un libro suelto lo tienes más a mano: mientras lo lees, la
+          barra del pie empieza por el tiempo que llevas dedicado, y al pulsarlo
+          se abre su ficha, con lo leído, las páginas, el ritmo, lo que falta y
+          el reparto por dispositivos. La misma ficha está en el menú «⋯» del
+          libro en la biblioteca.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Importar y exportar</summary>
@@ -1531,6 +1536,25 @@
            lee la nota del libro sin abrir nada. -->
       <p id="nota-menu-libro" class="nota-menu-libro oculto"></p>
       <ul id="lista-menu-libro"></ul>
+    </div>
+  </div>
+
+  <!-- Ficha de un libro: cuánto se ha tardado en leerlo. Vive a este nivel,
+       fuera de las vistas, porque se abre desde dos sitios: la barra del pie
+       del lector y el menú «⋯» de la biblioteca. -->
+  <div id="ficha-libro" class="fondo-ficha-libro oculto">
+    <div class="ficha-libro" role="dialog" aria-modal="true" aria-labelledby="titulo-ficha-libro">
+      <div class="cabecera-panel-lector">
+        <h2 id="titulo-ficha-libro" tabindex="-1"></h2>
+        <button type="button" id="cerrar-ficha-libro" class="btn-icono" data-icono="x"
+          title="Cerrar" data-i18n-title="close"></button>
+      </div>
+      <p id="ficha-libro-vacia" class="ayuda oculto" data-i18n="statsBookEmpty">Todavía no hay tiempo apuntado de este libro. En cuanto leas unos minutos con él abierto, aquí aparecerá cuánto le has dedicado.</p>
+      <ul id="cifras-ficha-libro" class="cifras-estadisticas"></ul>
+      <div id="reparto-ficha-libro" class="reparto-ficha oculto">
+        <h3 data-i18n="statsBookByDevice">En cada dispositivo</h3>
+        <ul id="lista-reparto-ficha" class="lista-estadisticas-libros"></ul>
+      </div>
     </div>
   </div>
 

@@ -1071,7 +1071,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    grande del sistema, pantalla muy estrecha), se desplaza a lo ancho en lugar
    de partirse en dos líneas y comerse la lectura. */
 .barra-estado-lector {
-  flex: none; display: flex; align-items: center; justify-content: center;
+  /* «safe» centra mientras quepa y, cuando no cabe (un EPUB estrecho con el
+     capítulo, la pantalla, el tiempo dedicado y el que queda), deja de centrar
+     en vez de recortar por el principio: lo primero de la fila es lo que se
+     pulsa para ver la ficha del libro, y centrado se salía por la izquierda
+     sin manera de alcanzarlo. */
+  flex: none; display: flex; align-items: center; justify-content: safe center;
   gap: 0.7rem; overflow-x: auto; scrollbar-width: none;
   /* Alto de una línea aunque esté vacía: así no baila el área de lectura. */
   min-height: 1.15rem;
@@ -2163,3 +2168,33 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   grid-column: 1 / -1;
   font-size: 0.78rem; color: var(--texto-suave);
 }
+
+/* ── Ficha de un libro ── */
+
+/* Sobre todo lo demás y con velo: se abre desde el lector (donde hay panel de
+   índice y de marcadores por encima del texto) y desde la biblioteca. */
+.fondo-ficha-libro {
+  position: fixed; inset: 0; z-index: 96;
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem; background: color-mix(in srgb, #000 45%, transparent);
+}
+.ficha-libro {
+  width: min(30rem, 100%); max-height: calc(100dvh - 2rem); overflow: auto;
+  padding: 1rem; border: 1px solid var(--borde); border-radius: 0.75rem;
+  background: var(--fondo); color: var(--texto);
+  box-shadow: 0 10px 32px var(--sombra-fuerte);
+  display: flex; flex-direction: column; gap: 0.75rem;
+}
+.ficha-libro h2 { font-size: 1rem; }
+.reparto-ficha { display: flex; flex-direction: column; gap: 0.4rem; }
+.reparto-ficha h3 { font-size: 0.85rem; color: var(--texto-suave); font-weight: 600; }
+/* En la ficha el reparto no tiene columna de formato: el libro es uno solo. */
+.reparto-ficha .libro-estadistica { grid-template-columns: 1fr auto; }
+
+/* El único dato de la barra del pie que se pulsa. Se subraya de puntos para
+   que se note sin gritar, porque el resto de la línea no es pulsable. */
+.dato-estado-pulsable {
+  font: inherit; color: inherit; padding: 0; border: none; background: none;
+  cursor: pointer; text-decoration: underline dotted; text-underline-offset: 0.2em;
+}
+.dato-estado-pulsable:hover, .dato-estado-pulsable:focus-visible { color: var(--acento); }
