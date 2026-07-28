@@ -328,6 +328,18 @@ Las pruebas automatizadas de sincronización y WebDAV se ejecutan con:
 node --test
 ```
 
+Esas comprueban la lógica sin navegador. Las de `tests/e2e/` conducen un
+Chromium de verdad —que el PDF se pinta, que la barra del pie cabe en un
+móvil, que dos dispositivos acaban viendo el mismo tiempo de lectura— y se
+lanzan aparte:
+
+```bash
+python3 tests/e2e/todas.py
+```
+
+Necesitan Playwright de Python, y rclone solo para las que usan la nube (sin
+él se saltan). Hay más detalle en `tests/e2e/README.md`.
+
 ## Cómo funciona la sincronización
 
 - Cada vez que pasas de página, el progreso se apunta en `localStorage` y, a

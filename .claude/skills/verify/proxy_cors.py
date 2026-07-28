@@ -1,9 +1,17 @@
-"""Proxy mínimo que añade cabeceras CORS delante de rclone serve webdav."""
+"""Proxy mínimo que añade cabeceras CORS delante de rclone serve webdav.
+
+Los puertos se pueden cambiar con PUERTO_ORIGEN (donde escucha rclone) y
+PUERTO_PROXY (donde escucha esto), para poder levantar varios a la vez sin
+que choquen. Sin esas variables usa los de siempre.
+"""
 import http.server
+import os
 import urllib.request
 import urllib.error
 
-TARGET = 'http://127.0.0.1:8767'
+PUERTO_ORIGEN = int(os.environ.get('PUERTO_ORIGEN', '8767'))
+PUERTO_PROXY = int(os.environ.get('PUERTO_PROXY', '8768'))
+TARGET = f'http://127.0.0.1:{PUERTO_ORIGEN}'
 METODOS = ['GET', 'HEAD', 'PUT', 'POST', 'DELETE', 'PROPFIND', 'MKCOL', 'MOVE', 'COPY']
 
 
@@ -55,4 +63,4 @@ class Proxy(http.server.BaseHTTPRequestHandler):
 for metodo in METODOS:
     setattr(Proxy, f'do_{metodo}', Proxy._reenviar)
 
-http.server.ThreadingHTTPServer(('127.0.0.1', 8768), Proxy).serve_forever()
+http.server.ThreadingHTTPServer(('127.0.0.1', PUERTO_PROXY), Proxy).serve_forever()
