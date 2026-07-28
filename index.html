@@ -44,6 +44,8 @@
         </select>
       </label>
       <button id="btn-tema" class="btn-icono" title="Tema"></button>
+      <button id="btn-estadisticas" class="btn-icono" data-icono="chart-column"
+        title="Estadísticas de lectura" data-i18n-title="stats"></button>
       <button id="btn-archivos" class="btn-icono" data-icono="folder-input"
         title="Importar y exportar" data-i18n-title="importExport"></button>
       <button id="btn-ayuda" class="btn-icono" data-icono="circle-help" title="Ayuda" data-i18n-title="help"></button>
@@ -640,6 +642,15 @@
       <div id="panel-ajustes-datos" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-datos" tabindex="0">
       <div class="tarjeta">
+        <h2 data-i18n="stats">Estadísticas de lectura</h2>
+        <p class="ayuda" data-i18n="statsSettingsHelp">El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas. Se miden en este dispositivo y no salen de él.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-ver-estadisticas" class="btn-secundario"
+            data-i18n="statsView">Ver las estadísticas</button>
+        </div>
+        <div id="resumen-estadisticas" class="estado" role="status"></div>
+      </div>
+      <div class="tarjeta">
         <h2 data-i18n="activityLog">Registro de actividad</h2>
         <p class="ayuda" data-i18n="activityLogHelp">Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí, nunca sale de este aparato y se borra solo al cabo de una semana.</p>
         <div class="fila-botones">
@@ -808,6 +819,49 @@
             accept=".zip,application/zip,application/x-zip-compressed" hidden>
         </div>
         <div id="resultado-copia-nube" class="estado" role="status"></div>
+      </div>
+    </main>
+  </section>
+
+  <!-- ═══════════ ESTADÍSTICAS DE LECTURA ═══════════ -->
+  <section id="vista-estadisticas" class="vista oculto">
+    <header class="cabecera">
+      <button id="btn-cerrar-estadisticas" class="btn-icono" data-icono="arrow-left"
+        title="Volver" data-i18n-title="back"></button>
+      <h1 tabindex="-1" data-foco-vista data-i18n="stats">Estadísticas de lectura</h1>
+    </header>
+    <main class="contenido" tabindex="-1" data-contenido-vista>
+      <div id="estadisticas-vacio" class="tarjeta oculto">
+        <h2 data-i18n="statsEmptyTitle">Todavía no hay nada que contar</h2>
+        <p class="ayuda" data-i18n="statsEmpty">En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.</p>
+      </div>
+
+      <div id="estadisticas-contenido">
+        <div class="tarjeta">
+          <h2 data-i18n="statsSummary">Tu lectura</h2>
+          <ul id="cifras-estadisticas" class="cifras-estadisticas"></ul>
+        </div>
+
+        <div class="tarjeta">
+          <h2 data-i18n="statsLastDays">Los últimos 30 días</h2>
+          <div id="grafico-estadisticas" class="grafico-dias" role="img"></div>
+          <p id="pie-grafico" class="ayuda"></p>
+        </div>
+
+        <div id="tarjeta-libros-estadisticas" class="tarjeta">
+          <h2 data-i18n="statsTopBooks">En qué se va el tiempo</h2>
+          <ul id="libros-estadisticas" class="lista-estadisticas-libros"></ul>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2 data-i18n="statsDataTitle">Estos datos</h2>
+        <p class="ayuda" data-i18n="statsPrivacy">Se miden y se guardan solo en este navegador: no se sincronizan con la nube ni se envían a ninguna parte, así que cada dispositivo lleva su propia cuenta. Solo cuenta el tiempo con un libro abierto y pasando páginas; las pausas largas y los saltos de posición no se suman.</p>
+        <div class="fila-botones">
+          <button type="button" id="btn-borrar-estadisticas" class="btn-peligro"
+            data-i18n="statsDelete">Borrar las estadísticas</button>
+        </div>
+        <div id="resultado-estadisticas" class="estado" role="status"></div>
       </div>
     </main>
   </section>
@@ -1021,6 +1075,18 @@
             <p>
           la papelera de cada libro lo elimina (del servidor si es de la nube, o de
           este dispositivo si es local).</p>
+          </details>
+          <details class="punto-ayuda">
+            <summary>Estadísticas de lectura</summary>
+            <p>El botón del gráfico de la cabecera abre el tiempo que dedicas a
+          leer: el total, el de hoy y el de la semana, los días seguidos que
+          llevas, una barra por cada uno de los últimos treinta días y los
+          libros a los que más rato les echas. Solo se cuenta el tiempo con un
+          libro abierto y pasando páginas, así que dejar la pestaña abierta no
+          suma. Se miden en este navegador y no salen de él: cada dispositivo
+          lleva su propia cuenta y no viajan a la nube. Puedes borrarlas cuando
+          quieras desde esa misma pantalla, sin tocar tus libros ni tu
+          progreso.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Importar y exportar</summary>

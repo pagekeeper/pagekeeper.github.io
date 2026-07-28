@@ -23,6 +23,7 @@ import {
 import {
   esLibro, librosElegidos, librosArrastrados, capturarArrastre,
 } from './archivos-entrantes.js';
+import * as estadisticas from './estadisticas.js';
 import {
   librosDeCarpetaLocal, librosDeCarpetaRemota, nombreSeguro, puedeGuardarEnDisco,
 } from './descarga-carpeta.js';
@@ -48,6 +49,7 @@ const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
 const CLAVE_PDF_SIN_TEXTO = 'lector.pdfSinTexto'; // por libro y dispositivo
 const CLAVE_ULTIMA_CONCILIACION = 'lector.ultimaConciliacion'; // solo de este dispositivo
+const CLAVE_ESTADISTICAS = 'lector.estadisticas'; // solo de este dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
@@ -505,6 +507,8 @@ window.addEventListener('popstate', () => {
     abrirAjustes(false);
   } else if (destino === 'archivos') {
     abrirArchivos(false);
+  } else if (destino === 'estadisticas') {
+    abrirEstadisticas(false);
   } else {
     // Retroceder desde dentro de una carpeta lleva a la anterior, no fuera.
     volverACarpetas(history.state?.[ESTADO_CARPETAS]);
@@ -704,6 +708,7 @@ function abrirAjustes(registrar = true, pestana = null) {
   $('resultado-prueba').textContent = '';
   $('resultado-prueba').className = 'estado';
   pintarResumenRegistro();
+  pintarResumenEstadisticas();
   sincronizarSelectRecientes();
   pintarAjustesLimpieza();
   pintarDispositivos();
@@ -5030,6 +5035,7 @@ function anotarRitmo(unidad) {
   const segundos = (ahora - marca) / 1000;
   const avance = unidad - anterior;
   if (!muestraValida(segundos, avance)) return;
+  apuntarEstadistica(segundos, avance);
   const mapa = leerMapaLocal(CLAVE_RITMO);
   const semivida = epubAbierto() ? SEMIVIDA_PORCENTAJE : SEMIVIDA_PAGINAS;
   const entrada = acumularRitmo(mapa[libroActual.id], segundos, avance, semivida);
@@ -5068,6 +5074,221 @@ function pintarTiempoRestante() {
   $('tiempo-restante').classList.toggle('oculto', !texto || !barraEstadoOculta());
   pintarBarraEstado();
 }
+
+// ───────────── Estadísticas de lectura ─────────────
+//
+// Se alimentan de las mismas muestras que el ritmo: tiempo con el libro
+// delante y pasando páginas. Así lo que se enseña es lectura de verdad y no
+// pestañas abiertas, que es lo único que hace útil una racha.
+
+const LIBROS_EN_LISTA = 10;
+
+function leerEstadisticas() {
+  try {
+    return estadisticas.normalizar(JSON.parse(localStorage.getItem(CLAVE_ESTADISTICAS)));
+  } catch {
+    return estadisticas.vacio();
+  }
+}
+
+function apuntarEstadistica(segundos, avance) {
+  if (!libroActual) return;
+  const esEpub = epubAbierto();
+  const datos = estadisticas.apuntar(leerEstadisticas(), {
+    segundos,
+    // En EPUB el avance son puntos de porcentaje, no páginas: allí no hay nada
+    // que contar, y sumarlo daría una cifra de «páginas» inventada.
+    paginas: esEpub ? 0 : Math.round(avance),
+    libro: libroActual.id,
+    titulo: libroActual.nombre ?? libroActual.titulo ?? '',
+    formato: esEpub ? 'epub' : 'pdf',
+  });
+  try {
+    localStorage.setItem(CLAVE_ESTADISTICAS, JSON.stringify(datos));
+  } catch {
+    // Sin sitio en localStorage se deja de apuntar, pero leer no se interrumpe.
+  }
+}
+
+// Duración en palabras, con las mismas fórmulas que el tiempo restante.
+function duracionLegible(segundos) {
+  const minutos = Math.round(segundos / 60);
+  if (minutos < 1) return t('timeLessMinute');
+  if (minutos < 60) return t('timeMinutes', { m: minutos });
+  const h = Math.floor(minutos / 60);
+  const m = minutos % 60;
+  // «4 h» y no «4 h 0 min»: aquí los totales caen en horas redondas a menudo,
+  // al contrario que el tiempo restante, que casi nunca lo hace.
+  return m ? t('timeHoursMinutes', { h, m }) : t('statsHours', { h });
+}
+
+function diasEnPalabras(n) {
+  return tContado('statsDays', n);
+}
+
+// La fecha de un día del registro ('AAAA-MM-DD'), en corto para las barras.
+function fechaCorta(clave, conAnno = false) {
+  const [anno, mes, dia] = clave.split('-').map(Number);
+  return new Date(anno, mes - 1, dia).toLocaleDateString(idiomaActual(), {
+    day: 'numeric', month: 'short', ...(conAnno ? { year: 'numeric' } : {}),
+  });
+}
+
+function pintarCifras(resumen) {
+  const cifras = [
+    { etiqueta: t('statsTotal'), valor: duracionLegible(resumen.totalSegundos),
+      pie: diasEnPalabras(resumen.diasActivos) },
+    { etiqueta: t('statsStreak'), valor: diasEnPalabras(resumen.racha),
+      pie: resumen.racha ? t('statsBestStreak', { streak: diasEnPalabras(resumen.rachaMaxima) })
+        : t('statsNoStreak') },
+    { etiqueta: t('statsToday'), valor: duracionLegible(resumen.hoy) },
+    { etiqueta: t('statsWeek'), valor: duracionLegible(resumen.semana.segundos) },
+    { etiqueta: t('statsAverage'), valor: duracionLegible(resumen.mediaDiaria) },
+    resumen.mejorDia && { etiqueta: t('statsBestDay'),
+      valor: duracionLegible(resumen.mejorDia.segundos), pie: fechaCorta(resumen.mejorDia.dia, true) },
+    // Las páginas solo salen si se ha leído algún PDF: en una biblioteca de
+    // EPUB un «0 páginas» permanente parecería una cuenta estropeada.
+    resumen.totalPaginas > 0 && { etiqueta: t('statsPdfPages'),
+      valor: String(resumen.totalPaginas) },
+  ].filter(Boolean);
+
+  const lista = $('cifras-estadisticas');
+  lista.replaceChildren();
+  for (const cifra of cifras) {
+    const elemento = document.createElement('li');
+    elemento.className = 'cifra-estadistica';
+    const valor = document.createElement('strong');
+    valor.className = 'cifra-valor';
+    valor.textContent = cifra.valor;
+    const etiqueta = document.createElement('span');
+    etiqueta.className = 'cifra-etiqueta';
+    etiqueta.textContent = cifra.etiqueta;
+    elemento.append(valor, etiqueta);
+    if (cifra.pie) {
+      const pie = document.createElement('span');
+      pie.className = 'cifra-pie';
+      pie.textContent = cifra.pie;
+      elemento.append(pie);
+    }
+    lista.append(elemento);
+  }
+}
+
+// Barras de altura proporcional al día que más se leyó. Los días en blanco
+// dejan una raya tenue: el hueco es justamente lo que hay que ver.
+function pintarGrafico(resumen) {
+  const grafico = $('grafico-estadisticas');
+  grafico.replaceChildren();
+  const maximo = resumen.serie.reduce((mayor, punto) => Math.max(mayor, punto.segundos), 0);
+  for (const punto of resumen.serie) {
+    const columna = document.createElement('div');
+    columna.className = 'columna-dia';
+    columna.setAttribute('aria-hidden', 'true');
+    const barra = document.createElement('div');
+    barra.className = punto.segundos ? 'barra-dia' : 'barra-dia sin-lectura';
+    barra.style.height = maximo ? `${Math.max(2, (punto.segundos / maximo) * 100)}%` : '2%';
+    columna.title = punto.segundos
+      ? t('statsChartDay', { date: fechaCorta(punto.dia), time: duracionLegible(punto.segundos) })
+      : t('statsChartDayNone', { date: fechaCorta(punto.dia) });
+    columna.append(barra);
+    grafico.append(columna);
+  }
+
+  const leidos = resumen.serie.filter((punto) => punto.segundos > 0).length;
+  const total = resumen.serie.reduce((suma, punto) => suma + punto.segundos, 0);
+  const detalle = leidos
+    ? t('statsChartSummary', { days: diasEnPalabras(leidos), total: duracionLegible(total) })
+    : t('statsChartEmpty');
+  // El gráfico se anuncia como una sola imagen con su resumen: treinta barras
+  // leídas una a una no dicen nada y se tardan siglos en pasar.
+  grafico.setAttribute('aria-label',
+    `${t('statsChartLabel', { days: resumen.serie.length })} ${detalle}`);
+  $('pie-grafico').textContent = detalle;
+}
+
+function pintarLibrosLeidos(resumen) {
+  const lista = $('libros-estadisticas');
+  lista.replaceChildren();
+  const libros = resumen.libros.slice(0, LIBROS_EN_LISTA);
+  $('tarjeta-libros-estadisticas').classList.toggle('oculto', !libros.length);
+  const mayor = libros[0]?.segundos ?? 0;
+  for (const libro of libros) {
+    const elemento = document.createElement('li');
+    elemento.className = 'libro-estadistica';
+
+    const titulo = document.createElement('span');
+    titulo.className = 'titulo-estadistica';
+    titulo.textContent = libro.titulo || t('statsBookUntitled');
+
+    const formato = document.createElement('span');
+    formato.className = 'formato-estadistica';
+    formato.textContent = libro.formato === 'epub' ? 'EPUB' : 'PDF';
+
+    const tiempo = document.createElement('span');
+    tiempo.className = 'tiempo-estadistica';
+    tiempo.textContent = duracionLegible(libro.segundos);
+
+    const barra = document.createElement('div');
+    barra.className = 'barra-libro';
+    const relleno = document.createElement('div');
+    relleno.style.width = mayor ? `${Math.max(2, (libro.segundos / mayor) * 100)}%` : '0';
+    barra.append(relleno);
+
+    elemento.append(titulo, formato, tiempo, barra);
+    lista.append(elemento);
+  }
+}
+
+function pintarEstadisticas() {
+  const resumen = estadisticas.resumen(leerEstadisticas());
+  $('estadisticas-vacio').classList.toggle('oculto', resumen.hay);
+  $('estadisticas-contenido').classList.toggle('oculto', !resumen.hay);
+  if (!resumen.hay) return;
+  pintarCifras(resumen);
+  pintarGrafico(resumen);
+  pintarLibrosLeidos(resumen);
+}
+
+// Línea de la pestaña «Datos» de los ajustes, para no obligar a entrar en la
+// pantalla entera solo por ver si hay algo apuntado.
+function pintarResumenEstadisticas() {
+  const resumen = estadisticas.resumen(leerEstadisticas());
+  $('resumen-estadisticas').textContent = resumen.hay
+    ? t('statsChartSummary', {
+      days: diasEnPalabras(resumen.serie.filter((punto) => punto.segundos > 0).length),
+      total: duracionLegible(resumen.serie.reduce((suma, punto) => suma + punto.segundos, 0)),
+    })
+    : t('statsEmptyTitle');
+}
+
+function abrirEstadisticas(registrar = true) {
+  $('resultado-estadisticas').textContent = '';
+  pintarEstadisticas();
+  mostrarVista('estadisticas');
+  if (registrar) registrarVista('estadisticas');
+}
+
+$('btn-estadisticas').addEventListener('click', () => abrirEstadisticas());
+$('btn-ver-estadisticas').addEventListener('click', () => abrirEstadisticas());
+$('btn-cerrar-estadisticas').addEventListener('click', () => {
+  if (history.state?.[ESTADO_VISTA] === 'estadisticas') history.back();
+  else volverALaBiblioteca();
+});
+
+$('btn-borrar-estadisticas').addEventListener('click', () => {
+  if (!confirm(t('statsDeleteConfirm'))) return;
+  localStorage.removeItem(CLAVE_ESTADISTICAS);
+  pintarEstadisticas();
+  pintarResumenEstadisticas();
+  $('resultado-estadisticas').textContent = t('statsDeleted');
+});
+
+// Al cambiar de idioma se rehacen las cifras: llevan fechas y palabras
+// («2 días», «1 h 20 min») que el recorrido de data-i18n no alcanza.
+document.addEventListener('idioma-cambiado', () => {
+  if (!$('vista-estadisticas').classList.contains('oculto')) pintarEstadisticas();
+  if (!$('vista-ajustes').classList.contains('oculto')) pintarResumenEstadisticas();
+});
 
 // ───────────── Barra de datos al pie ─────────────
 //

@@ -2093,3 +2093,67 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* La ayuda ya no se reparte en columnas: desde que va por pestañas, cada una
    enseña lo suyo sin bajar media pantalla, y a 76rem las líneas salían tan
    largas que costaba seguirlas. Se queda al ancho de lectura de siempre. */
+
+/* ── Estadísticas de lectura ── */
+
+/* Las cifras se reparten solas: en el móvil caben dos por fila y en el
+   ordenador cuatro, sin puntos de corte propios. */
+.cifras-estadisticas {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; gap: 0.75rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+}
+.cifra-estadistica {
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.7rem 0.8rem; border: 1px solid var(--borde); border-radius: 0.6rem;
+  background: color-mix(in srgb, var(--acento) 5%, var(--fondo-tarjeta));
+}
+/* Las cifras no miden lo mismo: «3 días» y «menos de 1 min» conviven en la
+   misma rejilla, así que el reparto en dos líneas se equilibra en vez de
+   dejar una palabra suelta debajo. */
+.cifra-valor {
+  font-size: 1.3rem; line-height: 1.2; color: var(--acento); text-wrap: balance;
+}
+.cifra-etiqueta { font-size: 0.85rem; color: var(--texto); }
+.cifra-pie { font-size: 0.78rem; color: var(--texto-suave); }
+
+/* El gráfico es una tira de barras a altura fija: así el alto de la tarjeta no
+   depende de cuánto se haya leído y la página no da saltos al repintarse. */
+.grafico-dias {
+  display: flex; align-items: flex-end; gap: 2px;
+  height: 8rem; padding-top: 0.25rem;
+}
+.columna-dia {
+  flex: 1; height: 100%;
+  display: flex; align-items: flex-end;
+}
+.barra-dia {
+  width: 100%; border-radius: 2px 2px 0 0;
+  background: var(--acento);
+}
+/* Los días en blanco dejan una raya, no un hueco: el vacío también es dato y
+   sin la raya no se distingue de un borde de la tarjeta. */
+.barra-dia.sin-lectura { background: var(--borde); }
+
+.lista-estadisticas-libros { list-style: none; margin: 0; padding: 0; }
+.libro-estadistica {
+  display: grid; align-items: baseline; gap: 0.15rem 0.5rem;
+  grid-template-columns: 1fr auto auto;
+  padding: 0.5rem 0;
+}
+.libro-estadistica + .libro-estadistica { border-top: 1px solid var(--borde); }
+.titulo-estadistica {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.formato-estadistica {
+  font-size: 0.7rem; letter-spacing: 0.04em; color: var(--texto-suave);
+  border: 1px solid var(--borde); border-radius: 0.35rem; padding: 0 0.3rem;
+}
+.tiempo-estadistica { font-size: 0.85rem; color: var(--texto-suave); }
+/* La barra ocupa la fila entera bajo el título: dice de un vistazo cuánto se
+   lleva cada libro comparado con el que más. */
+.barra-libro {
+  grid-column: 1 / -1; height: 4px; border-radius: 2px;
+  background: color-mix(in srgb, var(--texto-suave) 20%, transparent);
+}
+.barra-libro > div { height: 100%; border-radius: 2px; background: var(--acento); }

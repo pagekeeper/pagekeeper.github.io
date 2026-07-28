@@ -65,6 +65,7 @@ const TRAZADOS = {
   'play': '<polygon points="6 3 20 12 6 21 6 3"/>',
   'pause': '<rect x="14" y="4" width="4" height="16" rx="1"/> <rect x="6" y="4" width="4" height="16" rx="1"/>',
   'square': '<rect width="18" height="18" x="3" y="3" rx="2"/>',
+  'chart-column': '<path d="M3 3v16a2 2 0 0 0 2 2h16"/> <path d="M18 17V9"/> <path d="M13 17V5"/> <path d="M8 17v-3"/>',
 };
 
 export function icono(nombre, clase = 'icono') {

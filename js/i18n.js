@@ -189,6 +189,28 @@ const textos = {
     noConfigHtml: '<span>No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.</span><p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>',
     syncError: 'Error de sincronización', syncFailed: 'No se pudo sincronizar el progreso: {error}',
     syncRecovered: 'Ya se ha guardado tu posición en la nube',
+    stats: 'Estadísticas de lectura', statsView: 'Ver las estadísticas',
+    statsSettingsHelp: 'El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas. Se miden en este dispositivo y no salen de él.',
+    statsSummary: 'Tu lectura', statsLastDays: 'Los últimos 30 días',
+    statsTopBooks: 'En qué se va el tiempo', statsDataTitle: 'Estos datos',
+    statsEmptyTitle: 'Todavía no hay nada que contar',
+    statsEmpty: 'En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.',
+    statsPrivacy: 'Se miden y se guardan solo en este navegador: no se sincronizan con la nube ni se envían a ninguna parte, así que cada dispositivo lleva su propia cuenta. Solo cuenta el tiempo con un libro abierto y pasando páginas; las pausas largas y los saltos de posición no se suman.',
+    statsDelete: 'Borrar las estadísticas',
+    statsDeleteConfirm: '¿Borrar las estadísticas de lectura de este dispositivo? No afecta a tus libros, a la página por la que vas ni a tus anotaciones.',
+    statsDeleted: '✓ Estadísticas borradas.',
+    statsTotal: 'Tiempo total', statsToday: 'Hoy', statsWeek: 'Últimos 7 días',
+    statsStreak: 'Días seguidos', statsAverage: 'Media por día leído',
+    statsActiveDays: 'Días con lectura', statsBestDay: 'Mejor día', statsPdfPages: 'Páginas de PDF',
+    statsBestStreak: 'tu mejor racha: {streak}', statsStreakNow: 'racha en marcha',
+    statsNoStreak: 'hoy o mañana empieza una',
+    statsDays: '{count} días', statsDaysOne: '{count} día', statsHours: '{h} h',
+    statsChartLabel: 'Gráfico del tiempo leído cada uno de los últimos {days} días.',
+    statsChartSummary: 'Has leído {days} de los últimos 30, {total} en total.',
+    statsChartEmpty: 'Aún no has leído nada en estos 30 días.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sin lectura',
+    statsBooksTracked: 'De los {count} más recientes.',
+    statsBookUntitled: 'Libro sin título',
     activityLog: 'Registro de actividad',
     activityLogHelp: 'Deja constancia de si la posición de lectura llega al servidor y de los errores que impiden que llegue. Sirve para averiguar por qué un libro se quedó atrás en otro dispositivo. Se guarda solo aquí, nunca sale de este aparato y se borra solo al cabo de una semana.',
     viewLog: 'Ver el registro', clearLog: 'Vaciar', copyLog: 'Copiar', downloadLog: 'Guardar',
@@ -464,6 +486,28 @@ const textos = {
     noConfigHtml: '<span>No hi ha cap servidor configurat. Pots obrir un llibre (PDF o EPUB) d’aquest dispositiu, o <a href="#" id="enlace-configurar">configurar el teu núvol (Nextcloud o un altre WebDAV)</a> per sincronitzar la posició de lectura entre dispositius.</span><p class="ayuda">No saps què és això o què necessites? <a href="#" id="enlace-ayuda-aviso">Llegeix l’ajuda</a>.</p>',
     syncError: 'Error de sincronització', syncFailed: 'No s’ha pogut sincronitzar el progrés: {error}',
     syncRecovered: 'Ja s’ha desat la teva posició al núvol',
+    stats: 'Estadístiques de lectura', statsView: 'Veure les estadístiques',
+    statsSettingsHelp: 'El temps que dediques a llegir, els dies seguits que portes i els llibres als quals dediques més estona. Es mesuren en aquest dispositiu i no en surten.',
+    statsSummary: 'La teva lectura', statsLastDays: 'Els darrers 30 dies',
+    statsTopBooks: 'On se’n va el temps', statsDataTitle: 'Aquestes dades',
+    statsEmptyTitle: 'Encara no hi ha res a explicar',
+    statsEmpty: 'Tan bon punt llegeixis uns minuts amb un llibre obert, aquí apareixeran el temps dedicat, els dies seguits que portes llegint i en quins llibres se’t va l’estona.',
+    statsPrivacy: 'Es mesuren i es desen només en aquest navegador: no se sincronitzen amb el núvol ni s’envien enlloc, així que cada dispositiu porta el seu propi compte. Només compta el temps amb un llibre obert i passant pàgines; les pauses llargues i els salts de posició no se sumen.',
+    statsDelete: 'Esborrar les estadístiques',
+    statsDeleteConfirm: 'Voleu esborrar les estadístiques de lectura d’aquest dispositiu? No afecta els llibres, la pàgina on ets ni les anotacions.',
+    statsDeleted: '✓ Estadístiques esborrades.',
+    statsTotal: 'Temps total', statsToday: 'Avui', statsWeek: 'Darrers 7 dies',
+    statsStreak: 'Dies seguits', statsAverage: 'Mitjana per dia llegit',
+    statsActiveDays: 'Dies amb lectura', statsBestDay: 'Millor dia', statsPdfPages: 'Pàgines de PDF',
+    statsBestStreak: 'la teva millor ratxa: {streak}', statsStreakNow: 'ratxa en marxa',
+    statsNoStreak: 'avui o demà en comença una',
+    statsDays: '{count} dies', statsDaysOne: '{count} dia', statsHours: '{h} h',
+    statsChartLabel: 'Gràfic del temps llegit cadascun dels darrers {days} dies.',
+    statsChartSummary: 'Has llegit {days} dels darrers 30, {total} en total.',
+    statsChartEmpty: 'Encara no has llegit res en aquests 30 dies.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sense lectura',
+    statsBooksTracked: 'Dels {count} més recents.',
+    statsBookUntitled: 'Llibre sense títol',
     activityLog: 'Registre d’activitat',
     activityLogHelp: 'Deixa constància de si la posició de lectura arriba al servidor i dels errors que ho impedeixen. Serveix per esbrinar per què un llibre s’ha quedat enrere en un altre dispositiu. Es desa només aquí, no surt mai d’aquest aparell i s’esborra sol al cap d’una setmana.',
     viewLog: 'Veure el registre', clearLog: 'Buidar', copyLog: 'Copiar', downloadLog: 'Desar',
@@ -739,6 +783,28 @@ const textos = {
     noConfigHtml: '<span>No server is configured. You can open a book (PDF or EPUB) from this device, or <a href="#" id="enlace-configurar">set up your cloud (Nextcloud or another WebDAV server)</a> to sync your reading position between devices.</span><p class="ayuda">Not sure what this is or what you need? <a href="#" id="enlace-ayuda-aviso">Read the help</a>.</p>',
     syncError: 'Sync error', syncFailed: 'Could not sync reading progress: {error}',
     syncRecovered: 'Your position is now saved to the cloud',
+    stats: 'Reading statistics', statsView: 'View the statistics',
+    statsSettingsHelp: 'How much time you spend reading, how many days in a row you have kept it up, and the books that take the most of your time. Measured on this device, and they never leave it.',
+    statsSummary: 'Your reading', statsLastDays: 'The last 30 days',
+    statsTopBooks: 'Where the time goes', statsDataTitle: 'About this data',
+    statsEmptyTitle: 'Nothing to show yet',
+    statsEmpty: 'As soon as you read for a few minutes with a book open, this page will show the time you spent, how many days in a row you have been reading, and which books take up your time.',
+    statsPrivacy: 'Measured and stored in this browser only: never synced to the cloud, never sent anywhere, so each device keeps its own count. Only time spent with a book open and turning pages counts; long pauses and jumps to another position are not added.',
+    statsDelete: 'Delete the statistics',
+    statsDeleteConfirm: 'Delete the reading statistics on this device? Your books, your reading position and your annotations are not affected.',
+    statsDeleted: '✓ Statistics deleted.',
+    statsTotal: 'Total time', statsToday: 'Today', statsWeek: 'Last 7 days',
+    statsStreak: 'Days in a row', statsAverage: 'Average per day read',
+    statsActiveDays: 'Days with reading', statsBestDay: 'Best day', statsPdfPages: 'PDF pages',
+    statsBestStreak: 'your best streak: {streak}', statsStreakNow: 'streak going',
+    statsNoStreak: 'today or tomorrow starts one',
+    statsDays: '{count} days', statsDaysOne: '{count} day', statsHours: '{h} h',
+    statsChartLabel: 'Chart of the time read on each of the last {days} days.',
+    statsChartSummary: 'You read on {days} of the last 30, {total} in total.',
+    statsChartEmpty: 'You have not read anything in these 30 days yet.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: no reading',
+    statsBooksTracked: 'Of the {count} most recent ones.',
+    statsBookUntitled: 'Untitled book',
     activityLog: 'Activity log',
     activityLogHelp: 'Records whether your reading position reaches the server, and the errors that stop it. Useful for finding out why a book lagged behind on another device. Stored here only; it never leaves this device, and clears itself after a week.',
     viewLog: 'View the log', clearLog: 'Clear', copyLog: 'Copy', downloadLog: 'Save',
@@ -1003,6 +1069,18 @@ const ayudas = {
         dispositiu si és local).</p>
         </details>
         <details class="punto-ayuda">
+            <summary>Estadístiques de lectura</summary>
+            <p>El botó del gràfic de la capçalera obre el temps que dediques a
+          llegir: el total, el d’avui i el de la setmana, els dies seguits que
+          portes, una barra per cadascun dels darrers trenta dies i els llibres
+          als quals dediques més estona. Només es compta el temps amb un llibre
+          obert i passant pàgines, així que deixar la pestanya oberta no suma.
+          Es mesuren en aquest navegador i no en surten: cada dispositiu porta
+          el seu propi compte i no viatgen al núvol. Les pots esborrar quan
+          vulguis des d’aquesta mateixa pantalla, sense tocar els llibres ni el
+          progrés.</p>
+          </details>
+          <details class="punto-ayuda">
           <summary>Importar i exportar</summary>
           <p>
         el botó de la carpeta amb fletxa de la capçalera obre una pantalla des d’on
@@ -1476,6 +1554,18 @@ const ayudas = {
         device if it is local).</p>
         </details>
         <details class="punto-ayuda">
+            <summary>Reading statistics</summary>
+            <p>The chart button in the header opens the time you spend reading:
+          the total, today’s and this week’s, how many days in a row you have
+          kept it up, one bar for each of the last thirty days, and the books
+          that take the most of your time. Only time with a book open and pages
+          turning is counted, so leaving the tab open adds nothing. Everything
+          is measured in this browser and never leaves it: each device keeps its
+          own count and nothing travels to the cloud. You can delete it whenever
+          you like from that same screen, without touching your books or your
+          progress.</p>
+          </details>
+          <details class="punto-ayuda">
           <summary>Import and export</summary>
           <p>
         the folder-with-arrow button in the header opens a screen where you can add

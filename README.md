@@ -201,6 +201,16 @@ libros y sincronizar el progreso de lectura.
   lectura (medido y guardado solo en el dispositivo). La estimación sigue el
   ritmo reciente: lo leído hace mucho va pesando cada vez menos, así que se
   adapta si aceleras o si llegas a un tramo más denso.
+- 📊 **Estadísticas de lectura**: el botón del gráfico de la cabecera (o
+  Ajustes → Datos) abre el tiempo que dedicas a leer: el total, el de hoy y el
+  de la semana, la media por día leído, los días seguidos que llevas con tu
+  mejor racha, una barra por cada uno de los últimos treinta días y los libros
+  a los que más rato les echas. Se alimentan de las mismas muestras que el
+  ritmo, así que solo cuenta el tiempo con un libro abierto y pasando páginas:
+  dejar la pestaña abierta no suma. En PDF se cuentan además las páginas; en
+  EPUB no hay páginas fijas y la medida es el tiempo. Se miden y se guardan
+  solo en ese navegador —no se sincronizan ni se envían a ninguna parte— y se
+  pueden borrar desde la misma pantalla sin tocar los libros ni el progreso.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
   El aumento se ve en tanto por ciento entre las dos lupas, y al pulsarlo se
