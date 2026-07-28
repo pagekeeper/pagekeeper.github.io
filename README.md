@@ -57,10 +57,9 @@ libros y sincronizar el progreso de lectura.
   (el del sistema, claro, sepia y oscuro) y el icono indica en cuál estás; la
   elección se recuerda en ese navegador. De partida sigue al sistema, también
   mientras la aplicación está abierta.
-- 📜 **El tema es el papel del libro**: no hay dos ajustes que cuadrar. El mismo
-  botón está en la barra del lector, para cambiarlo sin salir del libro: claro
-  es papel blanco, sepia el tostado de los lectores de tinta electrónica y
-  oscuro el modo noche de la página. En EPUB se cambian los colores del texto,
+- 📜 **El tema es el papel del libro**: no hay dos ajustes que cuadrar. Claro es
+  papel blanco, sepia el tostado de los lectores de tinta electrónica y oscuro
+  el modo noche de la página. En EPUB se cambian los colores del texto,
   así que las ilustraciones se ven tal cual; en PDF se tiñe la página. Con el
   tema oscuro, un segundo botón devuelve su color a las fotos y logotipos del
   PDF, dejando intactas las páginas escaneadas, donde la hoja entera es una
@@ -115,7 +114,7 @@ libros y sincronizar el progreso de lectura.
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación
   larga sigue sirviendo para ver el nombre completo. Mientras se lee, el botón
   derecho sobre la página despliega en el puntero las acciones de lectura
-  (índice, anotaciones, voz alta, modo de página, zoom, tema…). Si hay texto
+  (índice, anotaciones, voz alta, modo de página, zoom…). Si hay texto
   seleccionado se deja pasar el menú del navegador, para poder copiarlo, y en
   las pantallas táctiles no se toca la pulsación larga, que sirve para
   seleccionar y resaltar.

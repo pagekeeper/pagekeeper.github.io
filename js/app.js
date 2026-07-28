@@ -5276,10 +5276,6 @@ function actualizarMenuLector() {
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
   $('menu-doble').innerHTML = icono('columns-2') +
     `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
-  const tema = temaElegido();
-  $('menu-tema').innerHTML = icono(ICONO_TEMA[tema]) +
-    `<span>${t('themeMenu', { theme: t(NOMBRE_TEMA[tema]) })}</span>`;
-  $('menu-tema').title = t(TITULO_TEMA[tema]);
   const tiempo = tiempoRestanteEstimado();
   $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
   $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
@@ -5385,7 +5381,6 @@ for (const [idMenu, idOriginal] of [
   ['menu-pagina-completa', 'btn-pagina-completa'],
   ['menu-recorte', 'btn-recorte'],
   ['menu-zoom-mas', 'btn-zoom-mas'],
-  ['menu-tema', 'btn-tema-lector'],
   ['menu-inmersivo', 'btn-inmersivo'],
 ]) enlazarAccionMenu(idMenu, idOriginal);
 
@@ -7234,9 +7229,8 @@ function pedirPosicionLibro() {
 $('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
 // ── Tema: claro, sepia, oscuro o el del sistema ──
-// Un único botón con los cuatro estados en rueda, repetido en la barra del
-// lector porque ahí es donde más se cambia: el tema es también el papel del
-// libro. El icono enseña el estado puesto (no a dónde lleva el botón, que con
+// Un único botón, en la cabecera de la biblioteca, con los cuatro estados en
+// rueda. El icono enseña el estado puesto (no a dónde lleva el botón, que con
 // cuatro opciones no se adivina) y el título dice en voz alta cuál es y qué
 // pasa al pulsarlo.
 
@@ -7250,22 +7244,16 @@ const TITULO_TEMA = {
 
 function pintarControlesTema() {
   const elegido = temaElegido();
-  for (const id of ['btn-tema', 'btn-tema-lector']) {
-    $(id).innerHTML = icono(ICONO_TEMA[elegido]);
-    $(id).title = t(TITULO_TEMA[elegido]);
-    etiquetarPorTitulo($(id));
-  }
-  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
+  $('btn-tema').innerHTML = icono(ICONO_TEMA[elegido]);
+  $('btn-tema').title = t(TITULO_TEMA[elegido]);
+  etiquetarPorTitulo($('btn-tema'));
 }
 
-function pasarAlSiguienteTemaConAviso() {
+$('btn-tema').addEventListener('click', () => {
   // El aviso confirma el estado nuevo: entre «claro» y «el del sistema» en un
   // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
   avisar(t(NOMBRE_TEMA[pasarAlSiguienteTema()]), 1600);
-}
-
-$('btn-tema').addEventListener('click', pasarAlSiguienteTemaConAviso);
-$('btn-tema-lector').addEventListener('click', pasarAlSiguienteTemaConAviso);
+});
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
 // Su texto depende de lo que traiga el libro, así que no lo cubre el paso

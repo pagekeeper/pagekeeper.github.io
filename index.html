@@ -375,7 +375,6 @@
         data-i18n-title="cropMargins" aria-pressed="false"></button>
       <button id="btn-inmersivo" class="btn-icono" data-icono="expand"
         title="Leer a pantalla completa" data-i18n-title="immersive" aria-pressed="false"></button>
-      <button id="btn-tema-lector" class="btn-icono" title="Tema"></button>
       <button id="btn-imagenes-noche" class="btn-icono oculto" data-icono="image"
         title="Imágenes en su color" aria-pressed="false"></button>
       <button id="btn-menu-lector" class="btn-icono btn-menu-lector" data-icono="ellipsis-vertical"
@@ -427,7 +426,6 @@
             <li><button type="button" id="menu-inmersivo" class="item-menu-lector">
               <span data-icono="expand"></span><span data-i18n="immersive">Leer a pantalla completa</span>
             </button></li>
-            <li><button type="button" id="menu-tema" class="item-menu-lector"></button></li>
             <li id="fila-menu-tiempo" class="fila-tiempo-menu oculto">
               <span data-icono="clock"></span><span id="tiempo-restante-menu"></span>
             </li>
@@ -875,8 +873,7 @@
         resto del dispositivo.</p>
         <p class="ayuda">El tema es también el papel con el que se lee: claro es
         papel blanco, sepia el tostado de los lectores de tinta electrónica y
-        oscuro el modo noche de la página. Por eso el mismo botón está en la
-        barra del lector, para cambiarlo sin salir del libro.</p>
+        oscuro el modo noche de la página.</p>
       </div>
       </div>
 
@@ -1120,18 +1117,18 @@
             <summary>Papel del libro</summary>
             <p>
           el papel es el tema de la aplicación: no hay dos ajustes que cuadrar. El
-          botón del tema, que también está en la barra del lector, recorre cuatro
-          estados —el del sistema, claro, sepia (tostado, más descansado para ratos
-          largos) y oscuro— y cambia a la vez la página del libro y todo lo demás. En
-          EPUB se cambian los colores del texto, así que las ilustraciones se ven tal
-          cual; en PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
+          botón del tema, en la cabecera de la biblioteca, recorre cuatro estados —el
+          del sistema, claro, sepia (tostado, más descansado para ratos largos) y
+          oscuro— y cambia a la vez la página del libro y todo lo demás. En EPUB se
+          cambian los colores del texto, así que las ilustraciones se ven tal cual; en
+          PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Imágenes con el tema oscuro (solo PDF)</summary>
             <p>
           al invertir la página, las fotos y los logotipos quedan en negativo. El botón
-          de la imagen, que aparece junto al del tema cuando lees un PDF con el tema
-          oscuro, les devuelve su color. Se recuerda de un libro a otro. Las páginas
+          de la imagen, que aparece en la barra del lector cuando lees un PDF con el
+          tema oscuro, les devuelve su color. Se recuerda de un libro a otro. Las páginas
           escaneadas no se tocan: ahí la hoja entera es una imagen y devolverle su
           color dejaría el papel en blanco, que es justo lo que se quiere evitar de
           noche.</p>

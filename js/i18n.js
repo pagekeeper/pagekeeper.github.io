@@ -259,7 +259,6 @@ const textos = {
     themeNowLight: 'Tema: claro. Pulsa para el sepia',
     themeNowSepia: 'Tema: sepia. Pulsa para el oscuro',
     themeNowDark: 'Tema: oscuro. Pulsa para seguir el del sistema',
-    themeMenu: 'Tema: {theme}',
     actionMoveFolder: 'Mover la carpeta', moveFolderTo: 'Mover la carpeta «{name}»',
     folderMoved: 'Carpeta «{name}» movida.',
     savedToDevice: '«{title}» guardado en este dispositivo.',
@@ -535,7 +534,6 @@ const textos = {
     themeNowLight: 'Tema: clar. Prem per al sèpia',
     themeNowSepia: 'Tema: sèpia. Prem per al fosc',
     themeNowDark: 'Tema: fosc. Prem per seguir el del sistema',
-    themeMenu: 'Tema: {theme}',
     actionMoveFolder: 'Mou la carpeta', moveFolderTo: 'Mou la carpeta «{name}»',
     folderMoved: 'S’ha mogut la carpeta «{name}».',
     savedToDevice: 'S’ha desat «{title}» en aquest dispositiu.',
@@ -811,7 +809,6 @@ const textos = {
     themeNowLight: 'Theme: light. Tap for sepia',
     themeNowSepia: 'Theme: sepia. Tap for dark',
     themeNowDark: 'Theme: dark. Tap to match the system',
-    themeMenu: 'Theme: {theme}',
     actionMoveFolder: 'Move folder', moveFolderTo: 'Move the folder “{name}”',
     folderMoved: 'Folder “{name}” moved.',
     savedToDevice: '“{title}” saved to this device.',
@@ -860,7 +857,7 @@ const ayudas = {
       aria-label="Primers passos" tabindex="0">
 <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Afegeix una carpeta sencera:</strong> el botó de la carpeta amb la fletxa (i el mateix gest d’arrossegar-hi una carpeta) copia tots els PDF i EPUB que hi hagi dins, subcarpetes incloses, i refà aquesta mateixa estructura a la biblioteca. Amb el núvol funciona igual: les carpetes es creen al servidor.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
 
-<div class="tarjeta"><h2>Clar, sèpia i fosc</h2><p>El botó del tema, a la capçalera, va passant pels quatre estats cada cop que el prems: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa) i <strong>fosc</strong> (lluna). La icona et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica i fosc el mode nit de la pàgina. Per això el mateix botó és a la barra del lector, per canviar-lo sense sortir del llibre.</p></div>
+<div class="tarjeta"><h2>Clar, sèpia i fosc</h2><p>El botó del tema, a la capçalera, va passant pels quatre estats cada cop que el prems: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa) i <strong>fosc</strong> (lluna). La icona et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica i fosc el mode nit de la pàgina.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -1100,7 +1097,7 @@ const ayudas = {
           <summary>Paper del llibre</summary>
           <p>
         el paper és el tema de l’aplicació: no hi ha dos ajustos per quadrar. El botó
-        del tema, que també és a la barra del lector, recorre quatre estats —el del
+        del tema, a la capçalera de la biblioteca, recorre quatre estats —el del
         sistema, clar, sèpia (torrat, més descansat per a estones llargues) i fosc— i
         canvia alhora la pàgina del llibre i tota la resta. Als EPUB es canvien els
         colors del text, així que les il·lustracions es veuen tal qual; als PDF,
@@ -1110,7 +1107,7 @@ const ayudas = {
           <summary>Imatges amb el tema fosc (només PDF)</summary>
           <p>
         en invertir la pàgina, les fotos i els logotips queden en negatiu. El botó de
-        la imatge, que surt al costat del del tema quan llegeixes un PDF amb el tema
+        la imatge, que surt a la barra del lector quan llegeixes un PDF amb el tema
         fosc, els torna el color. Es recorda d’un llibre a l’altre. Les pàgines escanejades
         no es toquen: allà el full sencer és una imatge i tornar-li el color deixaria
         el paper en blanc, que és justament el que es vol evitar de nit.</p>
@@ -1334,7 +1331,7 @@ const ayudas = {
         reading position sync across all your devices. It needs some setting up
         first, explained further down.</li></ul></div>
 
-<div class="tarjeta"><h2>Light, sepia and dark</h2><p>The theme button in the header steps through four states each time you press it: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup) and <strong>dark</strong> (moon). The icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers and dark the page’s night mode. That is why the same button sits in the reader bar, so you can change it without leaving the book.</p></div>
+<div class="tarjeta"><h2>Light, sepia and dark</h2><p>The theme button in the header steps through four states each time you press it: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup) and <strong>dark</strong> (moon). The icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers and dark the page’s night mode.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -1570,9 +1567,9 @@ const ayudas = {
           <summary>Book paper</summary>
           <p>
         the paper is the app theme: there are no two settings to keep in step. The
-        theme button, which is also in the reader bar, cycles through four states —the
-        system one, light, sepia (warm, easier on the eyes for long sessions) and
-        dark— and changes the book page and everything else at once. In EPUBs the text
+        theme button, in the library header, cycles through four states —the system
+        one, light, sepia (warm, easier on the eyes for long sessions) and dark— and
+        changes the book page and everything else at once. In EPUBs the text
         colours change, so illustrations look untouched; in PDFs, which are already
         drawn images, the whole page is tinted.</p>
         </details>
@@ -1580,7 +1577,7 @@ const ayudas = {
           <summary>Images with the dark theme (PDF only)</summary>
           <p>
         when the page is inverted, photos and logos end up as negatives. The image
-        button, which appears next to the theme one when you read a PDF with the dark
+        button, which appears in the reader bar when you read a PDF with the dark
         theme, gives them their colour back. It is remembered from one book to the next.
         Scanned pages are left alone: there the whole sheet is an image and restoring
         its colour would leave the paper white, which is exactly what you are avoiding

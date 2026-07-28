@@ -1644,7 +1644,6 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   .barra-lector > #btn-doble,
   .barra-lector > #btn-rotar,
   .barra-lector > #btn-pagina-completa,
-  .barra-lector > #btn-tema-lector,
   .barra-lector > .tiempo-restante { display: none !important; }
   .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }
   .barra-lector > #control-texto > #btn-texto { display: none; }
