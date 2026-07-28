@@ -53,20 +53,18 @@ libros y sincronizar el progreso de lectura.
   forma parte del identificador del libro, mover uno conserva intactos su
   página, sus marcadores y sus anotaciones. El buscador sigue mirando en todas
   las carpetas.
-- 🌗 **Modo claro y oscuro**: el botón de la cabecera pasa por tres estados
-  (el del sistema, claro y oscuro) y el icono indica en cuál estás; la
+- 🌗 **Claro, sepia y oscuro**: el botón de la cabecera pasa por cuatro estados
+  (el del sistema, claro, sepia y oscuro) y el icono indica en cuál estás; la
   elección se recuerda en ese navegador. De partida sigue al sistema, también
   mientras la aplicación está abierta.
-- 📜 **Papel del libro**: un botón que recorre cuatro estados: seguir el papel
-  general (icono del contraste) o poner a ese libro solo papel claro, sepia o
-  modo noche, de manera que el icono dice si el libro va con el papel de todos
-  o con uno suyo. De partida el papel general sigue al tema de la aplicación
-  —claro con la interfaz clara, noche con la oscura—; en *Ajustes → Lector* se
-  fija otro y se devuelven a él todos los libros de golpe. En EPUB se cambian
-  los colores del texto, así que las ilustraciones se ven tal cual; en PDF se
-  tiñe la página. En modo noche, un segundo botón devuelve su color a las fotos
-  y logotipos del PDF, dejando intactas las páginas escaneadas, donde la hoja
-  entera es una imagen.
+- 📜 **El tema es el papel del libro**: no hay dos ajustes que cuadrar. El mismo
+  botón está en la barra del lector, para cambiarlo sin salir del libro: claro
+  es papel blanco, sepia el tostado de los lectores de tinta electrónica y
+  oscuro el modo noche de la página. En EPUB se cambian los colores del texto,
+  así que las ilustraciones se ven tal cual; en PDF se tiñe la página. Con el
+  tema oscuro, un segundo botón devuelve su color a las fotos y logotipos del
+  PDF, dejando intactas las páginas escaneadas, donde la hoja entera es una
+  imagen.
 - ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
   dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
   sección local; uno local sube con su botón de la nube o arrastrándolo hasta
@@ -117,7 +115,7 @@ libros y sincronizar el progreso de lectura.
   opciones que ofrece ese botón. Sobre el título no, porque ahí la pulsación
   larga sigue sirviendo para ver el nombre completo. Mientras se lee, el botón
   derecho sobre la página despliega en el puntero las acciones de lectura
-  (índice, anotaciones, voz alta, modo de página, zoom, papel…). Si hay texto
+  (índice, anotaciones, voz alta, modo de página, zoom, tema…). Si hay texto
   seleccionado se deja pasar el menú del navegador, para poder copiarlo, y en
   las pantallas táctiles no se toca la pulsación larga, que sirve para
   seleccionar y resaltar.
@@ -215,7 +213,7 @@ libros y sincronizar el progreso de lectura.
   bastante más grande. Cada página se comprueba por separado antes de
   pintarla, así que las portadas y las láminas a toda página siguen viéndose
   enteras. La preferencia se recuerda en cada dispositivo.
-- 🌙 Papel claro/sepia/noche, zoom, paso de página con botones, teclado (←/→, espacio,
+- 🌙 Papel claro, sepia u oscuro (el tema de la aplicación), zoom, paso de página con botones, teclado (←/→, espacio,
   AvPág/RePág) o deslizando el dedo.
 - 👆 **La página asoma mientras se desliza**: al arrastrar con el dedo, la
   página vecina entra de verdad por el lado, en PDF y también en EPUB, en

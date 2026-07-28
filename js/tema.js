@@ -1,18 +1,21 @@
-// Tema claro u oscuro de la interfaz.
+// Tema de la aplicación: claro, sepia u oscuro.
 //
 // De partida se sigue al sistema; en cuanto el usuario elige, su decisión manda
 // y se recuerda en este navegador. Quien aplica el tema es el atributo
 // data-tema de <html>: un script del <head> lo pone antes del primer pintado
 // (ver index.html) y aquí solo se cambia cuando hace falta.
 //
-// No tiene nada que ver con el «modo noche» del lector, que oscurece la página
-// del libro y se guarda aparte.
+// El tema no se queda en la interfaz: también es el papel con el que se lee.
+// Claro es papel blanco, sepia el tostado de los lectores de tinta electrónica
+// y oscuro el modo noche de la página. Antes eran dos ajustes aparte, con un
+// papel por libro encima; unificarlos deja una sola pregunta —«¿con qué luz
+// leo?»— en vez de tres.
 
 const CLAVE_TEMA = 'lector.tema';
-const TEMAS = ['auto', 'claro', 'oscuro'];
+const TEMAS = ['auto', 'claro', 'sepia', 'oscuro'];
 
 // Color de la barra del navegador en cada tema (el --fondo de estilos.css).
-const COLOR_BARRA = { claro: '#f8fafc', oscuro: '#0f172a' };
+const COLOR_BARRA = { claro: '#f8fafc', sepia: '#efe4cf', oscuro: '#0f172a' };
 
 const oscuroDelSistema = () => window.matchMedia?.('(prefers-color-scheme: dark)');
 
@@ -48,10 +51,11 @@ export function guardarTema(tema) {
   pintarTema();
 }
 
-// Los tres estados en rueda: seguir al sistema → claro → oscuro → seguir al
-// sistema. Que «automático» esté a un toque es la razón de que el botón cicle
-// en vez de alternar: si no, volver a él exigiría entrar en los ajustes.
-const RUEDA = { auto: 'claro', claro: 'oscuro', oscuro: 'auto' };
+// Los cuatro estados en rueda: seguir al sistema → claro → sepia → oscuro →
+// seguir al sistema. Que «automático» esté a un toque es la razón de que el
+// botón cicle en vez de alternar: si no, volver a él exigiría entrar en los
+// ajustes.
+const RUEDA = { auto: 'claro', claro: 'sepia', sepia: 'oscuro', oscuro: 'auto' };
 
 export function siguienteTema(desde = temaElegido()) {
   return RUEDA[desde] ?? 'auto';

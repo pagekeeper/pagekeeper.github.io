@@ -1,8 +1,12 @@
 /* ── Temas ──
-   El claro son los valores de partida y el oscuro los reemplaza. El tema en
-   uso lo marca un script del <head> con data-tema en <html>, así que no hace
-   falta duplicar la paleta en una consulta de medios: «automático» se resuelve
-   antes del primer pintado y no hay parpadeo al cargar.
+   El claro son los valores de partida y el sepia y el oscuro los reemplazan.
+   El tema en uso lo marca un script del <head> con data-tema en <html>, así
+   que no hace falta duplicar la paleta en una consulta de medios:
+   «automático» se resuelve antes del primer pintado y no hay parpadeo al
+   cargar.
+   El tema es también el papel del libro: --papel es el fondo de la página en
+   EPUB y --filtro-pagina el tinte con que se pinta la del PDF, que al ser una
+   imagen ya dibujada no se puede recolorear de otro modo.
    Todos los colores de texto llegan al menos a 4.5:1 sobre su fondo. */
 :root {
   color-scheme: light;
@@ -33,6 +37,40 @@
   --velo-denso: rgba(248, 250, 252, 0.9); /* fondo del indicador de carga */
   --sombra: rgba(15, 23, 42, 0.18);
   --sombra-fuerte: rgba(15, 23, 42, 0.28);
+  --papel: #ffffff;
+  --filtro-pagina: none;
+}
+
+/* El tostado clásico de los lectores de tinta electrónica, llevado a toda la
+   aplicación: quien lee así un rato largo no quiere que la biblioteca le
+   devuelva un blanco de golpe al salir del libro. */
+:root[data-tema="sepia"] {
+  color-scheme: light;
+  --fondo: #efe4cf;
+  --fondo-tarjeta: #f8f1e0;
+  --fondo-lector: #e6dcc4;
+  --texto: #3b2f24;
+  --texto-suave: #6b5942;
+  --acento: #9a4a10;
+  --acento-oscuro: #8a4310;
+  --sobre-acento: #ffffff;
+  --peligro: #a3170f;
+  --exito: #146b32;
+  --aviso: #8a5a06;
+  --formato-pdf: #a8102f;
+  --formato-epub: #0d6157;
+  --ambito-nube: #0b5a86;
+  --ambito-dispositivo: #6b5942;
+  --borde: #d8c9ab;
+  --borde-fuerte: #8a7a5c;
+  --velo: rgba(59, 47, 36, 0.35);
+  --velo-denso: rgba(244, 236, 216, 0.9);
+  --sombra: rgba(59, 47, 36, 0.18);
+  --sombra-fuerte: rgba(59, 47, 36, 0.28);
+  --papel: #f4ecd8;
+  /* Suave a propósito: tiñe la hoja del PDF sin desvirtuar las ilustraciones
+     más de lo imprescindible. */
+  --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97);
 }
 
 :root[data-tema="oscuro"] {
@@ -58,6 +96,8 @@
   --velo-denso: rgba(15, 23, 42, 0.85);
   --sombra: rgba(0, 0, 0, 0.45);
   --sombra-fuerte: rgba(0, 0, 0, 0.5);
+  --papel: #171f2e;
+  --filtro-pagina: invert(0.93) hue-rotate(180deg);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1126,12 +1166,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    su propio scroll y paginado. El usuario elige el margen de cada lado. */
 #contenedor-epub {
   position: absolute; inset: 0;
-  background: #ffffff;
+  background: var(--papel);
   --margen-texto: 10%;
   padding: 0 var(--margen-texto);
 }
-.modo-noche #contenedor-epub { background: var(--fondo-lector); }
-.modo-sepia #contenedor-epub { background: #f4ecd8; }
 #contenedor-epub iframe { border: none; }
 /* En modo continuo, epub.js ya compensa con scroll la altura de los capítulos
    que antepone; el anclaje de scroll del navegador la compensaría por segunda
@@ -1342,11 +1380,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   box-shadow: inset 0 -2px 0 rgba(var(--tinte), 0.95);
   transition: opacity 0.12s ease-in;
 }
-.modo-noche .capa-resaltados span {
+:root[data-tema="oscuro"] .capa-resaltados span {
   background: rgba(var(--tinte), 0.46); mix-blend-mode: screen;
 }
-.modo-noche .capa-voz span.voz { background: rgba(var(--tinte), 0.5); }
-.modo-noche .capa-resaltados span.nota {
+:root[data-tema="oscuro"] .capa-voz span.voz { background: rgba(var(--tinte), 0.5); }
+:root[data-tema="oscuro"] .capa-resaltados span.nota {
   background: rgba(var(--tinte), 0.42);
   border-bottom-color: rgba(var(--tinte), 0.95);
 }
@@ -1382,7 +1420,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .boton-nota-margen:hover, .boton-nota-margen:focus-visible {
   background: #38bdf8; color: #082f49; outline: 2px solid #ffffff;
 }
-.modo-noche .boton-nota-margen { background: #0c4a6e; color: #bae6fd; }
+:root[data-tema="oscuro"] .boton-nota-margen { background: #0c4a6e; color: #bae6fd; }
 
 .ventana-nota {
   position: fixed; z-index: 80; width: max-content; max-width: min(22rem, calc(100vw - 1rem));
@@ -1412,7 +1450,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: rgba(14, 165, 233, 0.35); outline: 2px solid rgba(14, 165, 233, 0.75);
   animation: pulso-busqueda 2.6s ease forwards;
 }
-.modo-noche .capa-busqueda span { mix-blend-mode: screen; }
+:root[data-tema="oscuro"] .capa-busqueda span { mix-blend-mode: screen; }
 @keyframes pulso-busqueda {
   0% { opacity: 0; }
   12%, 65% { opacity: 1; }
@@ -1428,16 +1466,11 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 
 /* Papel del PDF. La página es una imagen ya dibujada, así que no se puede
-   recolorear el fondo sin tocar la tinta: se tiñe entera con un filtro. El
-   sepia va suave a propósito, para no desvirtuar las ilustraciones más de lo
-   imprescindible.
-   El filtro vive en una variable porque lo comparten la página que se lee y
-   sus miniaturas, que cuelgan de otra parte del documento: así no pueden
-   acabar con temas distintos. */
-body { --filtro-pagina: none; }
-body.modo-noche { --filtro-pagina: invert(0.93) hue-rotate(180deg); }
-body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); }
-/* La capa de imágenes queda fuera: es justo lo que no debe filtrarse. */
+   recolorear el fondo sin tocar la tinta: se tiñe entera con el filtro que
+   trae el tema (--filtro-pagina, arriba). Va en una variable porque lo
+   comparten la página que se lee y sus miniaturas, que cuelgan de otra parte
+   del documento: así no pueden acabar con temas distintos.
+   La capa de imágenes queda fuera: es justo lo que no debe filtrarse. */
 :is(#area-lectura, .miniatura-pagina) canvas:not(.capa-imagenes) {
   filter: var(--filtro-pagina);
 }
@@ -1448,9 +1481,6 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   position: absolute; top: 0; left: 0; z-index: 1;
   pointer-events: none; filter: none; background: none; box-shadow: none;
 }
-/* El hueco alrededor de la página acompaña al papel en vez de quedarse gris. */
-.modo-sepia #area-lectura { background: #e6dcc4; }
-
 /* En modo continuo las zonas de toque laterales estorbarían al scroll. */
 #vista-lector.modo-continuo .zona-toque { display: none; }
 
@@ -1614,7 +1644,7 @@ body.modo-sepia { --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97); 
   .barra-lector > #btn-doble,
   .barra-lector > #btn-rotar,
   .barra-lector > #btn-pagina-completa,
-  .barra-lector > #btn-noche,
+  .barra-lector > #btn-tema-lector,
   .barra-lector > .tiempo-restante { display: none !important; }
   .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }
   .barra-lector > #control-texto > #btn-texto { display: none; }

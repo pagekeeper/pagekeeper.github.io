@@ -10,7 +10,7 @@ import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import {
-  iniciarTema, temaElegido, temaEfectivo, siguienteTema, pasarAlSiguienteTema,
+  iniciarTema, temaElegido, temaEfectivo, pasarAlSiguienteTema, guardarTema,
 } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
@@ -33,9 +33,11 @@ import {
 } from './copia-local.js';
 
 const CLAVE_CONFIG = 'lector.config';
-const CLAVE_NOCHE = 'lector.noche'; // heredada: solo para migrar al tema de página
-const CLAVE_TEMA_PAGINA = 'lector.temaPagina'; // general: 'auto' | 'claro' | 'sepia' | 'noche'
-const CLAVE_TEMA_PAGINA_LIBRO = 'lector.temaPaginaLibro'; // por libro, el que se cambia leyendo
+// Heredadas de cuando el papel del libro se elegía aparte del tema, y con un
+// papel propio por libro encima. Solo se leen una vez, para migrar al tema.
+const CLAVE_NOCHE_VIEJA = 'lector.noche';
+const CLAVE_TEMA_PAGINA_VIEJA = 'lector.temaPagina';
+const CLAVE_TEMA_PAGINA_LIBRO_VIEJA = 'lector.temaPaginaLibro';
 const CLAVE_IMAGENES_NATURALES = 'lector.imagenesNaturales'; // solo de este dispositivo
 const CLAVE_MODO = 'lector.modo';
 const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
@@ -92,8 +94,9 @@ const CLAVE_CONTINUAR_MAXIMO = 'lector.continuarMaximo';
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
 const CLAVES_PREFERENCIAS_COPIA = [
-  'lector.idioma', CLAVE_NOCHE, CLAVE_TEMA_PAGINA, CLAVE_TEMA_PAGINA_LIBRO,
-  CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
+  // El tema queda fuera a propósito: es de cada navegador, porque depende de
+  // su pantalla y de la luz que haya delante, no del libro.
+  'lector.idioma', CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
   CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_GUIONADO_EPUB, CLAVE_ORDEN_BIBLIOTECA,
@@ -705,7 +708,6 @@ function abrirAjustes(registrar = true, pestana = null) {
   pintarAjustesLimpieza();
   pintarDispositivos();
   pintarAjustesTexto();
-  pintarAjustesPapel();
   aplicarMargenEpub();
   mostrarPestana('ajustes', pestana ?? pestanaRecordada('ajustes', 'nube'));
   mostrarVista('ajustes');
@@ -1005,7 +1007,7 @@ function preferenciasParaCopia(ids) {
   }
   // Estos mapas pueden contener también ids de la nube: la copia local solo
   // debe revelar y restaurar las entradas de los libros incluidos.
-  for (const clave of [CLAVE_ROTACION_PDF, CLAVE_RITMO, CLAVE_TEMA_PAGINA_LIBRO]) {
+  for (const clave of [CLAVE_ROTACION_PDF, CLAVE_RITMO]) {
     try {
       const mapa = JSON.parse(preferencias[clave]);
       preferencias[clave] = JSON.stringify(Object.fromEntries(
@@ -1056,8 +1058,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   }
   const idioma = localStorage.getItem('lector.idioma');
   if (idioma) aplicarIdioma(idioma);
-  aplicarTemaPagina(temaPagina());
-  pintarAjustesPapel();
+  aplicarPapel();
   $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
   $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
   aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
@@ -4703,10 +4704,9 @@ async function abrirEnLector(datos, libro) {
   cerrarPanelTts();
   salirModoInmersivo();
   cerrarPanelTexto();
-  // El papel de este libro (el suyo, si lo cambió alguna vez, o el general)
-  // antes de dibujar la primera página, para que salga ya con su color y su
-  // capa de imágenes.
-  aplicarTemaPagina(temaPagina());
+  // El papel antes de dibujar la primera página, para que salga ya con su
+  // color y su capa de imágenes.
+  aplicarPapel();
   const avance = progreso.progresoDe(libro.id);
   mostrarVista('lector');
   registrarVistaLector();
@@ -4731,7 +4731,7 @@ async function abrirEnLector(datos, libro) {
       try {
         await lectorEpub.abrir(datos, avance?.cfi ?? null, modoActual(), {
           localizaciones: guardadas,
-          temaPagina: temaPagina(),
+          temaPagina: temaEfectivo(),
           alGuardarLocalizaciones: (json) => {
             almacen.guardarLocalizaciones(clave, datos.byteLength, json).catch(() => null);
           },
@@ -5276,10 +5276,10 @@ function actualizarMenuLector() {
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
   $('menu-doble').innerHTML = icono('columns-2') +
     `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
-  const papel = papelDelLibro();
-  $('menu-noche').innerHTML = icono(ICONO_PAGINA[papel]) +
-    `<span>${t('paperMenu', { paper: t(NOMBRE_PAGINA[papel]) })}</span>`;
-  $('menu-noche').title = t(TITULO_PAGINA[papel]);
+  const tema = temaElegido();
+  $('menu-tema').innerHTML = icono(ICONO_TEMA[tema]) +
+    `<span>${t('themeMenu', { theme: t(NOMBRE_TEMA[tema]) })}</span>`;
+  $('menu-tema').title = t(TITULO_TEMA[tema]);
   const tiempo = tiempoRestanteEstimado();
   $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
   $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
@@ -5385,7 +5385,7 @@ for (const [idMenu, idOriginal] of [
   ['menu-pagina-completa', 'btn-pagina-completa'],
   ['menu-recorte', 'btn-recorte'],
   ['menu-zoom-mas', 'btn-zoom-mas'],
-  ['menu-noche', 'btn-noche'],
+  ['menu-tema', 'btn-tema-lector'],
   ['menu-inmersivo', 'btn-inmersivo'],
 ]) enlazarAccionMenu(idMenu, idOriginal);
 
@@ -7233,147 +7233,66 @@ function pedirPosicionLibro() {
 
 $('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
-// ── Tema claro, oscuro o el del sistema ──
-// Un único botón con los tres estados en rueda. El icono enseña el estado
-// puesto (no a dónde lleva el botón, que con tres opciones no se adivina) y el
-// título dice en voz alta cuál es y qué pasa al pulsarlo.
+// ── Tema: claro, sepia, oscuro o el del sistema ──
+// Un único botón con los cuatro estados en rueda, repetido en la barra del
+// lector porque ahí es donde más se cambia: el tema es también el papel del
+// libro. El icono enseña el estado puesto (no a dónde lleva el botón, que con
+// cuatro opciones no se adivina) y el título dice en voz alta cuál es y qué
+// pasa al pulsarlo.
 
-const ICONO_TEMA = { auto: 'contrast', claro: 'sun', oscuro: 'moon' };
-const NOMBRE_TEMA = { auto: 'themeAuto', claro: 'themeLight', oscuro: 'themeDark' };
-const TITULO_TEMA = { auto: 'themeNowAuto', claro: 'themeNowLight', oscuro: 'themeNowDark' };
+const ICONO_TEMA = { auto: 'contrast', claro: 'sun', sepia: 'coffee', oscuro: 'moon' };
+const NOMBRE_TEMA = {
+  auto: 'themeAuto', claro: 'themeLight', sepia: 'themeSepia', oscuro: 'themeDark',
+};
+const TITULO_TEMA = {
+  auto: 'themeNowAuto', claro: 'themeNowLight', sepia: 'themeNowSepia', oscuro: 'themeNowDark',
+};
 
 function pintarControlesTema() {
   const elegido = temaElegido();
-  $('btn-tema').innerHTML = icono(ICONO_TEMA[elegido]);
-  $('btn-tema').title = t(TITULO_TEMA[elegido]);
-  etiquetarPorTitulo($('btn-tema'));
+  for (const id of ['btn-tema', 'btn-tema-lector']) {
+    $(id).innerHTML = icono(ICONO_TEMA[elegido]);
+    $(id).title = t(TITULO_TEMA[elegido]);
+    etiquetarPorTitulo($(id));
+  }
+  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
-$('btn-tema').addEventListener('click', () => {
+function pasarAlSiguienteTemaConAviso() {
   // El aviso confirma el estado nuevo: entre «claro» y «el del sistema» en un
   // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
   avisar(t(NOMBRE_TEMA[pasarAlSiguienteTema()]), 1600);
-});
+}
+
+$('btn-tema').addEventListener('click', pasarAlSiguienteTemaConAviso);
+$('btn-tema-lector').addEventListener('click', pasarAlSiguienteTemaConAviso);
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
 // Su texto depende de lo que traiga el libro, así que no lo cubre el paso
 // automático de traducciones.
 document.addEventListener('idioma-cambiado', () => etiquetarBotonIndice());
-
-// ── Tema de la página del libro ──
-// Papel claro, sepia o noche, en rueda como el tema de la interfaz. Es cosa
-// aparte de aquel: se puede leer en sepia con la aplicación en oscuro.
-
-const TEMAS_PAGINA = ['claro', 'sepia', 'noche'];
-// «auto» es el papel que sigue al tema de la aplicación: claro con la interfaz
-// clara, modo noche con la oscura. Solo vale como ajuste general; el botón del
-// lector reparte papeles concretos, libro a libro.
-const TEMAS_PAGINA_GENERAL = ['auto', ...TEMAS_PAGINA];
-// Lo que recorre el botón del lector. «general» es no tener papel propio: el
-// libro sigue el ajuste de todos, y el icono del contraste lo distingue de un
-// papel elegido para él solo, que es la pregunta que se hace quien lo mira.
-const TEMAS_PAGINA_LIBRO = ['general', ...TEMAS_PAGINA];
-const ICONO_PAGINA = { general: 'contrast', claro: 'sun', sepia: 'coffee', noche: 'moon' };
-const TITULO_PAGINA = {
-  general: 'pageNowGeneral', claro: 'pageNowLight', sepia: 'pageNowSepia', noche: 'pageNowDark',
-};
-// En el menú, donde la frase larga del botón ocuparía tres líneas, basta con
-// nombrar el papel puesto: pulsar la fila lleva al siguiente igualmente.
-const NOMBRE_PAGINA = {
-  general: 'paperGeneral', claro: 'paperLight', sepia: 'paperSepia', noche: 'paperDark',
-};
-
-// El papel de los libros que no tienen uno propio.
-function temaPaginaGeneral() {
-  const guardado = localStorage.getItem(CLAVE_TEMA_PAGINA);
-  if (TEMAS_PAGINA_GENERAL.includes(guardado)) return guardado;
-  // Quien ya tenía el modo noche puesto sigue con él sin enterarse del cambio.
-  return localStorage.getItem(CLAVE_NOCHE) === '1' ? 'noche' : 'auto';
-}
-
-// El papel propio de un libro, o «general» si no tiene: es lo que enseña el
-// botón del lector.
-function papelDelLibro(id = libroActual?.id) {
-  const propio = leerMapaLocal(CLAVE_TEMA_PAGINA_LIBRO)[id];
-  return TEMAS_PAGINA.includes(propio) ? propio : 'general';
-}
-
-// El papel elegido para el libro abierto: el suyo, si alguna vez se cambió
-// desde el lector, y si no el general.
-function temaPaginaElegido(id = libroActual?.id) {
-  const propio = papelDelLibro(id);
-  return propio === 'general' ? temaPaginaGeneral() : propio;
-}
-
-// El papel que se ve, ya resuelto: «auto» se traduce a lo que pida el tema de
-// la aplicación, incluido cuando ese sigue al sistema.
-function temaPagina() {
-  const elegido = temaPaginaElegido();
-  if (elegido !== 'auto') return elegido;
-  return temaEfectivo() === 'oscuro' ? 'noche' : 'claro';
-}
-
-// Un papel para este libro y solo para él. Sin libro abierto (o al pedir que
-// vuelva al general) se toca el ajuste general.
-function guardarTemaPaginaLibro(id, tema) {
-  const mapa = leerMapaLocal(CLAVE_TEMA_PAGINA_LIBRO);
-  if (tema) mapa[id] = tema;
-  else delete mapa[id];
-  localStorage.setItem(CLAVE_TEMA_PAGINA_LIBRO, JSON.stringify(mapa));
-}
-
-function guardarTemaPaginaGeneral(tema) {
-  localStorage.setItem(CLAVE_TEMA_PAGINA, tema);
-  // La clave antigua se mantiene al día por si se restaura una copia en una
-  // versión anterior de la aplicación.
-  localStorage.setItem(CLAVE_NOCHE, tema === 'noche' ? '1' : '0');
-}
-
-// ── El papel en los ajustes ──
-// Aquí se elige con qué papel se abren los libros; el botón del lector solo
-// cambia el del libro que se esté leyendo. Como desde el lector no hay vuelta
-// atrás (recorre papeles concretos), este es también el sitio donde se
-// devuelven todos los libros al papel general.
-
-function librosConPapelPropio() {
-  return Object.keys(leerMapaLocal(CLAVE_TEMA_PAGINA_LIBRO)).length;
-}
-
-function pintarAjustesPapel() {
-  const propios = librosConPapelPropio();
-  $('papel-ajustes').value = temaPaginaGeneral();
-  $('btn-papel-todos').disabled = propios === 0;
-  $('ayuda-papel-libros').textContent = propios
-    ? t('booksWithOwnPaper', { count: propios })
-    : t('noBooksWithOwnPaper');
-}
-
-$('papel-ajustes').addEventListener('change', (evento) => {
-  const valor = TEMAS_PAGINA_GENERAL.includes(evento.target.value) ? evento.target.value : 'auto';
-  guardarTemaPaginaGeneral(valor);
-  aplicarTemaPagina(temaPagina());
-  pintarAjustesPapel();
-});
-
-$('btn-papel-todos').addEventListener('click', () => {
-  localStorage.removeItem(CLAVE_TEMA_PAGINA_LIBRO);
-  aplicarTemaPagina(temaPagina());
-  pintarAjustesPapel();
-  avisar(t('paperAppliedEverywhere'));
-});
-
-document.addEventListener('idioma-cambiado', pintarAjustesPapel);
 document.addEventListener('idioma-cambiado', pintarZoom);
 
-function aplicarTemaPagina(tema) {
-  document.body.classList.toggle('modo-noche', tema === 'noche');
-  document.body.classList.toggle('modo-sepia', tema === 'sepia');
-  lectorEpub.aplicarTemaPagina(tema);
-  pintarIconoNoche();
-  aplicarImagenesNaturales();
+// ── Del papel aparte al tema único ──
+// Hasta ahora el papel del libro se elegía por su cuenta, y encima podía haber
+// uno propio por libro. Quien leía en sepia o de noche se queda con ese tema
+// en toda la aplicación, que es lo que ahora significa; las claves viejas se
+// borran para no dejar preferencias huérfanas en el navegador.
+function migrarPapelAlTema() {
+  try {
+    const papel = localStorage.getItem(CLAVE_TEMA_PAGINA_VIEJA)
+      ?? (localStorage.getItem(CLAVE_NOCHE_VIEJA) === '1' ? 'noche' : null);
+    const equivalente = { claro: 'claro', sepia: 'sepia', noche: 'oscuro' }[papel];
+    // Un tema elegido a mano manda sobre el papel heredado.
+    if (equivalente && temaElegido() === 'auto') guardarTema(equivalente);
+    for (const clave of
+      [CLAVE_NOCHE_VIEJA, CLAVE_TEMA_PAGINA_VIEJA, CLAVE_TEMA_PAGINA_LIBRO_VIEJA]) {
+      localStorage.removeItem(clave);
+    }
+  } catch { /* sin almacenamiento no hay nada que migrar */ }
 }
 
-// ── Imágenes en su color con el modo noche ──
+// ── Imágenes en su color con el tema oscuro ──
 //
 // Invertir la página deja las fotos y los logotipos en negativo. Esto los
 // devuelve a su color, y es cosa del usuario porque no hay una respuesta
@@ -7385,10 +7304,10 @@ function imagenesNaturalesActivo() {
 }
 
 // El botón solo sale cuando puede hacer algo: con un PDF abierto y la página
-// invertida. En EPUB no hace falta (allí no se filtra nada) y con papel claro
-// o sepia no hay negativo que deshacer.
+// invertida. En EPUB no hace falta (allí no se filtra nada) y con el tema
+// claro o el sepia no hay negativo que deshacer.
 function aplicarImagenesNaturales() {
-  const procede = Boolean(libroActual) && !epubAbierto() && temaPagina() === 'noche';
+  const procede = Boolean(libroActual) && !epubAbierto() && temaEfectivo() === 'oscuro';
   const activo = procede && imagenesNaturalesActivo();
   $('btn-imagenes-noche').classList.toggle('oculto', !procede);
   $('btn-imagenes-noche').setAttribute('aria-pressed', String(activo));
@@ -7410,34 +7329,15 @@ $('btn-imagenes-noche').addEventListener('click', () => {
   aplicarImagenesNaturales();
 });
 
-// El icono dice de dónde sale el papel del libro abierto: el del contraste,
-// que sigue el ajuste general, o el del papel que se le puso a él solo.
-function pintarIconoNoche() {
-  const papel = papelDelLibro();
-  $('btn-noche').innerHTML = icono(ICONO_PAGINA[papel]);
-  $('btn-noche').title = t(TITULO_PAGINA[papel]);
-  etiquetarPorTitulo($('btn-noche'));
-  if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
+// El tema es también el papel del libro: en EPUB se cambian los colores del
+// texto, así que las ilustraciones se ven tal cual, y en PDF, que es una
+// imagen ya dibujada, se tiñe la página entera con el filtro del tema.
+function aplicarPapel() {
+  lectorEpub.aplicarTemaPagina(temaEfectivo());
+  aplicarImagenesNaturales();
 }
 
-// El botón recorre los tres papeles y vuelve al general, como el del tema de
-// la interfaz: los papeles valen solo para este libro y «general» es dejarlo
-// otra vez con el de todos, sin tener que ir a los ajustes.
-$('btn-noche').addEventListener('click', () => {
-  const papel = papelDelLibro();
-  const siguiente = TEMAS_PAGINA_LIBRO[
-    (TEMAS_PAGINA_LIBRO.indexOf(papel) + 1) % TEMAS_PAGINA_LIBRO.length];
-  if (libroActual) guardarTemaPaginaLibro(libroActual.id, siguiente === 'general' ? null : siguiente);
-  else guardarTemaPaginaGeneral(siguiente === 'general' ? 'auto' : siguiente);
-  aplicarTemaPagina(temaPagina());
-  pintarAjustesPapel();
-});
-
-// Con el papel automático, cambiar el tema de la aplicación cambia también el
-// del libro: el que se lee ahora y los que no tienen papel propio.
-document.addEventListener('tema-cambiado', () => {
-  if (temaPaginaElegido() === 'auto') aplicarTemaPagina(temaPagina());
-});
+document.addEventListener('tema-cambiado', aplicarPapel);
 
 // Elementos que ya usan las flechas y el espacio para lo suyo: escribir, abrir
 // un desplegable o moverse por sus opciones.
@@ -7970,18 +7870,18 @@ document.addEventListener('idioma-cambiado', () => {
   aplicarAparienciaDoble();
   pintarTiempoRestante();
   pintarEstadoVoz();
-  pintarIconoNoche();
   if (!libroActual) cargarBiblioteca();
   else if (!$('panel-marcadores').classList.contains('oculto')) pintarMarcadores();
   else if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
 });
 iniciarIdioma();
+migrarPapelAlTema();
 iniciarTema();
 sincronizarCasillaContinuar();
 sincronizarCasillaBarraEstado();
 aplicarPlegadoContinuar();
 sincronizarSelectRecientes();
-aplicarTemaPagina(temaPagina());
+aplicarPapel();
 aplicarAparienciaModo(modoActual());
 pintarZoom();
 

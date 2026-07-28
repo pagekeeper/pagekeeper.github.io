@@ -17,11 +17,12 @@
     (() => {
       let guardado = null;
       try { guardado = localStorage.getItem('lector.tema'); } catch { /* sin almacenamiento */ }
-      const oscuro = guardado === 'oscuro' ||
-        (guardado !== 'claro' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
-      document.documentElement.dataset.tema = oscuro ? 'oscuro' : 'claro';
-      if (oscuro) {
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', '#0f172a');
+      const colores = { claro: '#f8fafc', sepia: '#efe4cf', oscuro: '#0f172a' };
+      const tema = colores[guardado] ? guardado
+        : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
+      document.documentElement.dataset.tema = tema;
+      if (tema !== 'claro') {
+        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colores[tema]);
       }
     })();
   </script>
@@ -374,7 +375,7 @@
         data-i18n-title="cropMargins" aria-pressed="false"></button>
       <button id="btn-inmersivo" class="btn-icono" data-icono="expand"
         title="Leer a pantalla completa" data-i18n-title="immersive" aria-pressed="false"></button>
-      <button id="btn-noche" class="btn-icono" title="Modo noche"></button>
+      <button id="btn-tema-lector" class="btn-icono" title="Tema"></button>
       <button id="btn-imagenes-noche" class="btn-icono oculto" data-icono="image"
         title="Imágenes en su color" aria-pressed="false"></button>
       <button id="btn-menu-lector" class="btn-icono btn-menu-lector" data-icono="ellipsis-vertical"
@@ -426,7 +427,7 @@
             <li><button type="button" id="menu-inmersivo" class="item-menu-lector">
               <span data-icono="expand"></span><span data-i18n="immersive">Leer a pantalla completa</span>
             </button></li>
-            <li><button type="button" id="menu-noche" class="item-menu-lector"></button></li>
+            <li><button type="button" id="menu-tema" class="item-menu-lector"></button></li>
             <li id="fila-menu-tiempo" class="fila-tiempo-menu oculto">
               <span data-icono="clock"></span><span id="tiempo-restante-menu"></span>
             </li>
@@ -749,27 +750,6 @@
       </div>
 
       <div class="tarjeta">
-        <h2 data-i18n="bookPaper">Papel del libro</h2>
-        <p class="ayuda" data-i18n="bookPaperHelp">Con qué papel se abren los libros. De partida sigue al tema de la aplicación: claro cuando la interfaz es clara y modo noche cuando es oscura. Mientras lees, el botón del papel cambia solo el del libro abierto y vuelve a este ajuste con el icono del contraste.</p>
-        <div class="rejilla-ajustes">
-          <label class="campo-ajuste"><span data-i18n="paperDefault">Papel de partida</span>
-            <select id="papel-ajustes">
-              <option value="auto" data-i18n="paperAuto">El del tema de la aplicación</option>
-              <option value="claro" data-i18n="paperLight">Claro</option>
-              <option value="sepia" data-i18n="paperSepia">Sepia</option>
-              <option value="noche" data-i18n="paperDark">Noche</option>
-            </select>
-          </label>
-        </div>
-        <div class="fila-botones">
-          <button id="btn-papel-todos" type="button" class="btn-secundario">
-            <span data-i18n="usePaperEverywhere">Usar este papel en todos los libros</span>
-          </button>
-        </div>
-        <p class="ayuda" id="ayuda-papel-libros"></p>
-      </div>
-
-      <div class="tarjeta">
         <h2 data-i18n="readerScreen">En pantalla</h2>
         <label class="casilla">
           <input type="checkbox" id="casilla-barra-estado" checked>
@@ -885,15 +865,18 @@
       </div>
 
 <div class="tarjeta">
-        <h2>Modo claro y modo oscuro</h2>
-        <p>El botón del tema, en la cabecera, va pasando por los tres estados
+        <h2>Claro, sepia y oscuro</h2>
+        <p>El botón del tema, en la cabecera, va pasando por los cuatro estados
         cada vez que lo pulsas: <strong>el del sistema</strong> (círculo mitad
-        claro mitad oscuro), <strong>claro</strong> (sol) y <strong>oscuro</strong>
-        (luna). El icono te dice en cuál estás y tu elección se recuerda en ese
-        navegador. De partida se usa el del sistema, así que la aplicación se
-        aclara u oscurece cuando lo hace el resto del dispositivo.</p>
-        <p class="ayuda">No lo confundas con el <strong>modo noche</strong> del
-        lector: aquel oscurece la página del libro y se guarda por separado.</p>
+        claro mitad oscuro), <strong>claro</strong> (sol), <strong>sepia</strong>
+        (taza) y <strong>oscuro</strong> (luna). El icono te dice en cuál estás y
+        tu elección se recuerda en ese navegador. De partida se usa el del
+        sistema, así que la aplicación se aclara u oscurece cuando lo hace el
+        resto del dispositivo.</p>
+        <p class="ayuda">El tema es también el papel con el que se lee: claro es
+        papel blanco, sepia el tostado de los lectores de tinta electrónica y
+        oscuro el modo noche de la página. Por eso el mismo botón está en la
+        barra del lector, para cambiarlo sin salir del libro.</p>
       </div>
       </div>
 
@@ -1136,24 +1119,19 @@
           <details class="punto-ayuda">
             <summary>Papel del libro</summary>
             <p>
-          los libros se abren con el papel general, que de partida sigue al tema de la
-          aplicación: claro con la interfaz clara y modo noche con la oscura. Mientras
-          lees, el botón del papel recorre cuatro estados: el del contraste, que es
-          seguir ese papel general, y los tres modos de lectura —papel claro, sepia
-          (tostado, más descansado para ratos largos) y modo noche—, que valen solo
-          para ese libro. Así el icono dice de un vistazo si el libro va con el papel
-          de todos o con uno suyo, y basta con seguir pulsando para devolverlo al
-          general. En <em>⚙️ Ajustes → Lector</em> se cambia el papel general y hay un
-          botón que devuelve a él todos los libros de golpe. En EPUB se
-          cambian los colores del texto, así que las ilustraciones se ven tal cual; en
-          PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
+          el papel es el tema de la aplicación: no hay dos ajustes que cuadrar. El
+          botón del tema, que también está en la barra del lector, recorre cuatro
+          estados —el del sistema, claro, sepia (tostado, más descansado para ratos
+          largos) y oscuro— y cambia a la vez la página del libro y todo lo demás. En
+          EPUB se cambian los colores del texto, así que las ilustraciones se ven tal
+          cual; en PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
           </details>
           <details class="punto-ayuda">
-            <summary>Imágenes en modo noche (solo PDF)</summary>
+            <summary>Imágenes con el tema oscuro (solo PDF)</summary>
             <p>
           al invertir la página, las fotos y los logotipos quedan en negativo. El botón
-          de la imagen, que aparece junto al del papel cuando lees un PDF en modo
-          noche, les devuelve su color. Se recuerda de un libro a otro. Las páginas
+          de la imagen, que aparece junto al del tema cuando lees un PDF con el tema
+          oscuro, les devuelve su color. Se recuerda de un libro a otro. Las páginas
           escaneadas no se tocan: ahí la hoja entera es una imagen y devolverle su
           color dejaría el papel en blanco, que es justo lo que se quiere evitar de
           noche.</p>

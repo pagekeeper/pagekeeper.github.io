@@ -164,13 +164,13 @@ export function inyectarMathJax(contents) {
   doc.head.append(script);
 }
 
-// Papel y tinta de cada tema de lectura. El sepia es el tostado clásico de
-// los lectores de tinta electrónica; con esta pareja el texto queda en 8,7:1,
-// de sobra por encima del mínimo.
+// Papel y tinta de cada tema, que son los mismos de la aplicación: el libro se
+// lee con la luz que tiene puesta todo lo demás. Con la pareja del sepia el
+// texto queda en 9,2:1, de sobra por encima del mínimo.
 const COLORES_PAGINA = {
   claro: { texto: '#1f2937', fondo: '#ffffff' },
   sepia: { texto: '#4b3a2a', fondo: '#f4ecd8' },
-  noche: { texto: '#e2e8f0', fondo: '#171f2e' },
+  oscuro: { texto: '#e2e8f0', fondo: '#171f2e' },
 };
 
 export class LectorEpub {
@@ -522,11 +522,11 @@ export class LectorEpub {
 
   // El override de epub.js llega al <body> y nada más, así que un libro que
   // fije los colores en sus propias reglas (p, div…) gana por especificidad:
-  // el texto se quedaba negro sobre el fondo del modo noche, ilegible. Esta
+  // el texto se quedaba negro sobre el fondo del tema oscuro, ilegible. Esta
   // hoja fuerza el papel en todo el capítulo. Los fondos propios se apagan
-  // para que se vea el del papel; el color del texto solo se impone de noche,
+  // para que se vea el del papel; el color del texto solo se impone en oscuro,
   // que es cuando el del libro no vale, y los enlaces se libran porque tienen
-  // el suyo. Con papel claro no se toca nada: allí los colores del libro se
+  // el suyo. Con el tema claro no se toca nada: allí los colores del libro se
   // ven como su autor los puso.
   inyectarPapel(contents) {
     const doc = contents?.document;
@@ -544,7 +544,7 @@ export class LectorEpub {
       // Las imágenes y los dibujos (fórmulas incluidas) conservan el suyo.
       reglas.push('body :not(img, svg, svg *) { background-color: transparent !important; }');
     }
-    if (this.temaPagina === 'noche') {
+    if (this.temaPagina === 'oscuro') {
       reglas.push(`body, body :not(a, a *) { color: ${texto} !important; }`);
     }
     estilo.textContent = reglas.join('\n');
