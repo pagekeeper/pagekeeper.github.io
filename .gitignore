@@ -1,0 +1,3 @@
+# Caché de Python, de las pruebas de navegador.
+__pycache__/
+*.pyc
