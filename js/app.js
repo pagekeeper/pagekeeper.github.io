@@ -5504,6 +5504,13 @@ function datosBarraEstado() {
     if (pantallas) {
       datos.push([t('statusScreens', { page: lectorEpub.pantallaLibro, total: pantallas }),
         t('statusScreensTitle')]);
+    } else if (lectorEpub.conLocalizaciones) {
+      // En páginas continuas el texto no se reparte en columnas, así que no hay
+      // pantallas que contar y la línea se quedaba casi vacía. El porcentaje es
+      // lo que sí significa algo con scroll, y es el mismo dato que enseña el
+      // PDF. Con pantallas no se pone: sería repetir la posición y gastar sitio.
+      datos.push([t('statusRead', { percent: formatearPorcentaje(lectorEpub.porcentaje, 0) }),
+        t('statusReadTitle')]);
     }
   } else if (lector.totalPaginas) {
     datos.push([t('statusPage', { page: lector.pagina, total: lector.totalPaginas }),
