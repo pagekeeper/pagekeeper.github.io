@@ -2157,3 +2157,9 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: color-mix(in srgb, var(--texto-suave) 20%, transparent);
 }
 .barra-libro > div { height: 100%; border-radius: 2px; background: var(--acento); }
+/* El reparto por dispositivos va bajo la barra, en pequeño: es el detalle que
+   explica la cifra de arriba, no compite con ella. */
+.reparto-estadistica {
+  grid-column: 1 / -1;
+  font-size: 0.78rem; color: var(--texto-suave);
+}

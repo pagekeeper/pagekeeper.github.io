@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 
 import {
   anotarPagina,
+  anotarTiempoLectura,
+  borrarEstadisticas,
+  migrarEstadisticasAntiguas,
   acatarRevocacion,
   anotarDispositivo,
   ausentes,
@@ -662,4 +665,182 @@ test('los dispositivos que llevan más del plazo sin aparecer se caen de la list
   await sincronizar(cliente);
 
   assert.deepEqual(Object.keys(nube.dispositivos), ['portatil']);
+});
+
+// ───────────── Tiempo de lectura entre dispositivos ─────────────
+
+// Un servidor de mentira compartido por los dos dispositivos de la prueba.
+function nubeCompartida() {
+  let remoto = { version: 2, libros: {} };
+  return {
+    cliente: {
+      base: 'https://nube.test/libros',
+      async leerProgreso() { return structuredClone(remoto); },
+      async escribirProgreso(datos) { remoto = structuredClone(datos); },
+    },
+    ver: () => structuredClone(remoto),
+  };
+}
+
+// Cambia de dispositivo conservando la nube. Cada uno guarda su propio
+// localStorage entre turnos: si se reiniciara al cambiar, el aparato olvidaría
+// lo suyo y la prueba no comprobaría ninguna fusión de verdad.
+function bancoDeDispositivos() {
+  const memorias = new Map();
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  return function comoDispositivo(id) {
+    if (!memorias.has(id)) memorias.set(id, new Map());
+    const memoria = memorias.get(id);
+    globalThis.localStorage = {
+      getItem: (clave) => memoria.get(clave) ?? null,
+      setItem: (clave, valor) => memoria.set(clave, String(valor)),
+      removeItem: (clave) => memoria.delete(clave),
+    };
+    localStorage.setItem('lector.idDispositivo', id);
+  };
+}
+
+test('el tiempo de un libro suma lo leído en cada dispositivo', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+
+  comoDispositivo('movil');
+  anotarPagina('novela.epub', 10, 100);
+  anotarTiempoLectura('novela.epub', 600, 0);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);            // se trae lo del móvil
+  anotarTiempoLectura('novela.epub', 300, 0);
+  await sincronizar(nube.cliente);
+
+  const tiempos = nube.ver().libros['novela.epub'].tiempos;
+  assert.deepEqual(tiempos, { movil: { s: 600, p: 0 }, portatil: { s: 300, p: 0 } });
+
+  // Y el móvil ve el total en cuanto vuelve a sincronizar.
+  comoDispositivo('movil');
+  await sincronizar(nube.cliente);
+  assert.deepEqual(progresoDe('novela.epub').tiempos,
+    { movil: { s: 600, p: 0 }, portatil: { s: 300, p: 0 } });
+});
+
+test('dos dispositivos que leen sin verse no se borran el rato al reencontrarse', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+
+  comoDispositivo('movil');
+  anotarPagina('libro.pdf', 5, 100);
+  anotarTiempoLectura('libro.pdf', 600, 20);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  // Los dos leen a la vez, cada uno sin noticias del otro.
+  anotarTiempoLectura('libro.pdf', 120, 4);
+
+  comoDispositivo('movil');
+  anotarTiempoLectura('libro.pdf', 300, 10);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+
+  const tiempos = progresoDe('libro.pdf').tiempos;
+  assert.deepEqual(tiempos, { movil: { s: 900, p: 30 }, portatil: { s: 120, p: 4 } });
+});
+
+test('los días de lectura se comparten y un mismo día en dos aparatos es uno solo', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  const hoy = new Date();
+  const clave = `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+
+  comoDispositivo('movil');
+  anotarTiempoLectura('libro.pdf', 600, 5);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  anotarTiempoLectura('libro.pdf', 300, 2);
+  await sincronizar(nube.cliente);
+
+  const estadisticas = nube.ver().estadisticas;
+  assert.equal(estadisticas.movil.dias[clave].s, 600);
+  assert.equal(estadisticas.portatil.dias[clave].s, 300);
+});
+
+test('el tiempo viaja con el libro al moverlo de carpeta', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('Curso/tema.pdf', 12, 100);
+  anotarTiempoLectura('Curso/tema.pdf', 600, 20);
+  await renombrarPorPrefijo('Curso/', 'Temario/', nube.cliente);
+  assert.deepEqual(progresoDe('Temario/tema.pdf').tiempos, { movil: { s: 600, p: 20 } });
+  assert.equal(progresoDe('Curso/tema.pdf'), null);
+});
+
+test('un libro que solo guarda tiempo se conserva; uno sin nada, no', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarTiempoLectura('solo-tiempo.pdf', 600, 20);
+  guardarTitulo('vacio.pdf', '');
+  await sincronizar(nube.cliente);
+  assert.ok(nube.ver().libros['solo-tiempo.pdf']);
+  assert.equal(nube.ver().libros['vacio.pdf'], undefined);
+});
+
+test('borrar las estadísticas las borra también en los demás dispositivos', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+
+  comoDispositivo('movil');
+  anotarPagina('libro.pdf', 5, 100);
+  anotarTiempoLectura('libro.pdf', 600, 20);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  anotarTiempoLectura('libro.pdf', 300, 10);
+  await sincronizar(nube.cliente);
+  assert.equal(Object.keys(progresoDe('libro.pdf').tiempos).length, 2);
+
+  // Se borra desde el portátil...
+  borrarEstadisticas();
+  await sincronizar(nube.cliente);
+  assert.equal(progresoDe('libro.pdf').tiempos, undefined);
+  assert.equal(nube.ver().libros['libro.pdf'].tiempos, undefined);
+  assert.equal(nube.ver().estadisticas, undefined);
+  // ...y la página por la que iba no se toca.
+  assert.equal(progresoDe('libro.pdf').pagina, 5);
+
+  // ...y el móvil lo acata al sincronizar, sin reponer su casilla.
+  comoDispositivo('movil');
+  await sincronizar(nube.cliente);
+  assert.equal(progresoDe('libro.pdf').tiempos, undefined);
+  assert.equal(cargarLocal().estadisticas, undefined);
+
+  // Lo que se lea después vuelve a contar con normalidad.
+  anotarTiempoLectura('libro.pdf', 120, 4);
+  await sincronizar(nube.cliente);
+  assert.deepEqual(nube.ver().libros['libro.pdf'].tiempos, { movil: { s: 120, p: 4 } });
+});
+
+test('rescata las estadísticas de la primera versión, que no tenían dueño', () => {
+  bancoDeDispositivos()('movil');
+  localStorage.setItem('lector.estadisticas', JSON.stringify({
+    v: 1,
+    dias: { '2026-05-04': { s: 600, p: 5 }, 'no-es-fecha': { s: 60 } },
+    libros: { 'novela.epub': { s: 900, p: 0, n: 'Novela' }, 'sin-tiempo.pdf': { s: 0 } },
+  }));
+  assert.equal(migrarEstadisticasAntiguas(), true);
+  assert.deepEqual(cargarLocal().estadisticas.movil.dias, { '2026-05-04': { s: 600, p: 5 } });
+  assert.deepEqual(progresoDe('novela.epub').tiempos, { movil: { s: 900, p: 0 } });
+  assert.equal(progresoDe('sin-tiempo.pdf'), null);
+  assert.equal(localStorage.getItem('lector.estadisticas'), null);
+  // No se repite: la segunda pasada ya no encuentra nada.
+  assert.equal(migrarEstadisticasAntiguas(), false);
 });

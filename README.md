@@ -201,16 +201,21 @@ libros y sincronizar el progreso de lectura.
   lectura (medido y guardado solo en el dispositivo). La estimación sigue el
   ritmo reciente: lo leído hace mucho va pesando cada vez menos, así que se
   adapta si aceleras o si llegas a un tramo más denso.
-- 📊 **Estadísticas de lectura**: el botón del gráfico de la cabecera (o
-  Ajustes → Datos) abre el tiempo que dedicas a leer: el total, el de hoy y el
-  de la semana, la media por día leído, los días seguidos que llevas con tu
-  mejor racha, una barra por cada uno de los últimos treinta días y los libros
-  a los que más rato les echas. Se alimentan de las mismas muestras que el
-  ritmo, así que solo cuenta el tiempo con un libro abierto y pasando páginas:
-  dejar la pestaña abierta no suma. En PDF se cuentan además las páginas; en
-  EPUB no hay páginas fijas y la medida es el tiempo. Se miden y se guardan
-  solo en ese navegador —no se sincronizan ni se envían a ninguna parte— y se
-  pueden borrar desde la misma pantalla sin tocar los libros ni el progreso.
+- 📊 **Estadísticas de lectura, sumando todos tus dispositivos**: el botón del
+  gráfico de la cabecera (o Ajustes → Datos) abre el tiempo que dedicas a leer:
+  el total, el de hoy y el de la semana, la media por día leído, los días
+  seguidos que llevas con tu mejor racha, una barra por cada uno de los últimos
+  treinta días y los libros a los que más rato les echas. **El tiempo de cada
+  libro suma lo leído en cada aparato**, y bajo su barra aparece el desglose
+  («este dispositivo 2 h · Chrome en Linux 45 min»), así que sabes cuánto te ha
+  costado leerlo aunque lo hayas leído a ratos en el móvil y a ratos en el
+  ordenador. Los días también son comunes: uno en el que hayas leído en dos
+  aparatos cuenta como un solo día de la racha. Se alimentan de las mismas
+  muestras que el ritmo, así que solo cuenta el tiempo con un libro abierto y
+  pasando páginas: dejar la pestaña abierta no suma. En PDF se cuentan además
+  las páginas; en EPUB no hay páginas fijas y la medida es el tiempo. Se pueden
+  borrar desde la misma pantalla, en todos los dispositivos a la vez, sin tocar
+  los libros ni el progreso.
 - 🔍 **Ajuste del PDF**: permite encajar el documento al ancho de la pantalla
   o mostrar la página completa, además del zoom manual y el gesto de pellizco.
   El aumento se ve en tanto por ciento entre las dos lupas, y al pulsarlo se
@@ -316,6 +321,12 @@ node --test
 - Los resaltados y las notas se guardan primero en IndexedDB. Cada libro de la
   nube usa un archivo lateral `<nombre>.pagekeeper.json`; cada anotación se
   fusiona por separado y los borrados también dejan una marca interna.
+- El tiempo de lectura viaja en ese mismo archivo, desglosado por dispositivo:
+  cada aparato solo escribe su casilla y lo que se enseña es la suma, así que
+  dos dispositivos leyendo a la vez no se pisan la cuenta y no hace falta
+  ninguna marca temporal para fusionarla. Al borrar las estadísticas se apunta
+  la fecha del borrado, y cada dispositivo la obedece la primera vez que
+  sincroniza (si no, repondría su copia).
 - Los cambios pendientes de este navegador prevalecen durante la siguiente
   sincronización aunque su reloj esté desajustado. Cuando WebDAV expone un
   `ETag`, el guardado usa `If-Match` y vuelve a leer y fusionar si otro

@@ -5,6 +5,11 @@
 //  - lector-progreso.json en el servidor WebDAV: para sincronizar entre
 //    dispositivos. La posición y los marcadores se fusionan por separado.
 
+import {
+  apuntarTiempo, apuntarDia, fusionarTiempos, fusionarEstadisticas,
+  normalizarTiempos, normalizarEstadisticas,
+} from './estadisticas.js';
+
 const CLAVE_LOCAL = 'lector.progreso';
 const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
 const CLAVE_CAMBIOS_PENDIENTES = 'lector.progreso.cambiosPendientes';
@@ -124,6 +129,7 @@ function normalizarEntrada(entrada = {}) {
   const marcadores = Array.isArray(entrada.marcadores)
     ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
     : [];
+  const tiempos = normalizarTiempos(entrada.tiempos);
   const resultado = {
     ...entrada,
     posicionActualizada,
@@ -144,6 +150,10 @@ function normalizarEntrada(entrada = {}) {
   };
   if (marcadores.length) resultado.marcadores = marcadores;
   else delete resultado.marcadores;
+  // El tiempo de lectura no lleva fecha propia: cada dispositivo tiene su
+  // casilla y solo la suya crece, así que no hay nada que datar.
+  if (Object.keys(tiempos).length) resultado.tiempos = tiempos;
+  else delete resultado.tiempos;
   return resultado;
 }
 
@@ -152,6 +162,9 @@ function normalizarDatos(datos) {
   for (const [id, entrada] of Object.entries(datos?.libros ?? {})) {
     normalizados.libros[id] = normalizarEntrada(entrada);
   }
+  const estadisticas = normalizarEstadisticas(datos?.estadisticas);
+  if (Object.keys(estadisticas).length) normalizados.estadisticas = estadisticas;
+  else delete normalizados.estadisticas;
   return normalizados;
 }
 
@@ -238,6 +251,95 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
     marcarMarcadoresPendientes(idLibro, marcadoresExtra.map(idMarcador));
   }
   return datos.libros[idLibro];
+}
+
+// ───────────── Tiempo de lectura ─────────────
+//
+// Se apunta en dos sitios a la vez, porque responden a preguntas distintas:
+// en la entrada del libro («¿cuánto he tardado en leer esto?», sumando todos
+// los aparatos) y en el registro de días («¿cuántos días seguidos llevo?»).
+// Los dos van desglosados por dispositivo, que es lo que permite sumarlos sin
+// que dos aparatos leyendo a la vez se pisen la cuenta.
+//
+// Al ir dentro de la entrada del libro, el tiempo hereda gratis todo lo demás:
+// mover el libro de carpeta se lo lleva consigo y borrarlo se lo lleva por
+// delante, igual que a los marcadores.
+export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date.now()) {
+  const dispositivo = idDispositivo();
+  const datos = cargarLocal();
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? {});
+  const tiempos = apuntarTiempo(entrada.tiempos, dispositivo, { segundos, paginas });
+  if (!Object.keys(tiempos).length) return null;
+  entrada.tiempos = tiempos;
+  datos.libros[idLibro] = entrada;
+  datos.estadisticas = apuntarDia(datos.estadisticas, dispositivo, { segundos, paginas, ahora });
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  // Sin token de cambio pendiente: el tiempo no compite con nadie, se fusiona
+  // por suma y la casilla propia siempre gana por ser la mayor.
+  return entrada.tiempos;
+}
+
+// ───────────── Borrar las estadísticas ─────────────
+//
+// Vaciar las casillas y subirlas no basta: cada dispositivo conserva las
+// suyas y la fusión (que se queda la cifra mayor) las repondría en cuanto
+// volviera a conectarse. Hace falta decir «esto se borró y cuándo», que es lo
+// que hace el sello: viaja en el archivo compartido y gana el más reciente.
+//
+// El sello es además su propia marca de «ya aplicado»: quien lo lleva guardado
+// es que ya vació lo suyo, y quien trae uno anterior (o ninguno) arrastra
+// cuentas de antes del borrado, así que le toca. Vale para los dos lados, y
+// por eso el que acaba de borrar limpia también lo que le devuelve el
+// servidor, que aún no se ha enterado.
+function vaciarEstadisticas(datos) {
+  delete datos.estadisticas;
+  for (const entrada of Object.values(datos.libros ?? {})) delete entrada?.tiempos;
+}
+
+export function borrarEstadisticas() {
+  const datos = cargarLocal();
+  vaciarEstadisticas(datos);
+  datos.estadisticasBorradas = new Date().toISOString();
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+}
+
+// Trae al registro las estadísticas de la primera versión, que vivían aparte
+// y solo en este navegador. Se vuelcan bajo el identificador de este
+// dispositivo, que es justo lo que les faltaba para poder sumarse con las de
+// los demás.
+const CLAVE_ESTADISTICAS_ANTIGUAS = 'lector.estadisticas';
+
+export function migrarEstadisticasAntiguas() {
+  let antiguas = null;
+  try {
+    antiguas = JSON.parse(localStorage.getItem(CLAVE_ESTADISTICAS_ANTIGUAS));
+  } catch { /* registro corrupto: no hay nada que rescatar */ }
+  if (!antiguas || typeof antiguas !== 'object') {
+    localStorage.removeItem(CLAVE_ESTADISTICAS_ANTIGUAS);
+    return false;
+  }
+  const dispositivo = idDispositivo();
+  const datos = cargarLocal();
+  const dias = {};
+  for (const [dia, valor] of Object.entries(antiguas.dias ?? {})) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dia)) dias[dia] = { s: Number(valor?.s) || 0, p: Number(valor?.p) || 0 };
+  }
+  datos.estadisticas = fusionarEstadisticas(datos.estadisticas, { [dispositivo]: { dias } });
+  for (const [id, valor] of Object.entries(antiguas.libros ?? {})) {
+    const segundos = Number(valor?.s) || 0;
+    if (segundos <= 0) continue;
+    const entrada = normalizarEntrada(datos.libros[id] ?? {});
+    entrada.tiempos = fusionarTiempos(entrada.tiempos, {
+      [dispositivo]: { s: segundos, p: Number(valor?.p) || 0 },
+    });
+    datos.libros[id] = entrada;
+  }
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  localStorage.removeItem(CLAVE_ESTADISTICAS_ANTIGUAS);
+  return true;
 }
 
 export function marcadoresDe(idLibro) {
@@ -485,6 +587,11 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   const marcadores = fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal);
   if (marcadores.length) resultado.marcadores = marcadores;
   else delete resultado.marcadores;
+  // El tiempo se fusiona casilla a casilla, al margen de qué lado sea el más
+  // reciente: leer en dos aparatos suma, no compite.
+  const tiempos = fusionarTiempos(localOriginal?.tiempos, remotoOriginal?.tiempos);
+  if (Object.keys(tiempos).length) resultado.tiempos = tiempos;
+  else delete resultado.tiempos;
   resultado.posicionActualizada = posicion.posicionActualizada;
   resultado.marcadoresActualizados = fechaMaxima(fechaColeccion(local), fechaColeccion(remoto));
   resultado.marcadoresVersion = 2;
@@ -539,6 +646,9 @@ function entradaAporta(entrada) {
   if (typeof entrada.terminado === 'boolean') return true;
   if (typeof entrada.titulo === 'string' && entrada.titulo.trim()) return true;
   if (typeof entrada.nota === 'string' && entrada.nota.trim()) return true;
+  // El tiempo dedicado también es memoria: un libro terminado y quitado de
+  // «Continuar leyendo» sigue diciendo cuánto costó leerlo.
+  if (Object.keys(entrada.tiempos ?? {}).length) return true;
   return Boolean(entrada.marcadores?.length);
 }
 
@@ -698,6 +808,31 @@ async function sincronizarAhora(cliente) {
     if (ajustes) {
       local.ajustes = ajustes;
       remoto.ajustes = ajustes;
+    }
+    // Un borrado de estadísticas se obedece antes de fusionar nada: si se
+    // dejara para después, el bucle de libros volvería a meter los tiempos
+    // que acaba de traer el servidor.
+    const selloLocal = local.estadisticasBorradas ?? FECHA_CERO;
+    const selloRemoto = remoto.estadisticasBorradas ?? FECHA_CERO;
+    const selloBorrado = fechaMaxima(selloLocal, selloRemoto);
+    if (selloBorrado > FECHA_CERO) {
+      local.estadisticasBorradas = selloBorrado;
+      remoto.estadisticasBorradas = selloBorrado;
+      // Solo se vacía el lado que venía por detrás: si los dos llevan el mismo
+      // sello, el borrado ya está hecho y lo que haya es lectura posterior.
+      if (selloLocal < selloBorrado) vaciarEstadisticas(local);
+      if (selloRemoto < selloBorrado) vaciarEstadisticas(remoto);
+    }
+    // Los días de lectura son de la biblioteca entera, no de un libro: como
+    // los ajustes y el registro de dispositivos, se resuelven aparte y quedan
+    // iguales en los dos lados.
+    const estadisticasFusionadas = fusionarEstadisticas(local.estadisticas, remoto.estadisticas);
+    if (Object.keys(estadisticasFusionadas).length) {
+      local.estadisticas = estadisticasFusionadas;
+      remoto.estadisticas = estadisticasFusionadas;
+    } else {
+      delete local.estadisticas;
+      delete remoto.estadisticas;
     }
     const dispositivosFusionados = fusionarDispositivos(local.dispositivos, remoto.dispositivos);
     caducarDispositivos({ dispositivos: dispositivosFusionados }, diasDeGracia(local));

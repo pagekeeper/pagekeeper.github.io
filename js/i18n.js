@@ -190,15 +190,16 @@ const textos = {
     syncError: 'Error de sincronización', syncFailed: 'No se pudo sincronizar el progreso: {error}',
     syncRecovered: 'Ya se ha guardado tu posición en la nube',
     stats: 'Estadísticas de lectura', statsView: 'Ver las estadísticas',
-    statsSettingsHelp: 'El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas. Se miden en este dispositivo y no salen de él.',
+    statsSettingsHelp: 'El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas, sumando todos tus dispositivos.',
     statsSummary: 'Tu lectura', statsLastDays: 'Los últimos 30 días',
+    statsShared: 'Suma de todos tus dispositivos: lo leído en el móvil y en el ordenador cuenta junto, y un día en el que hayas leído en los dos es un solo día.',
     statsTopBooks: 'En qué se va el tiempo', statsDataTitle: 'Estos datos',
     statsEmptyTitle: 'Todavía no hay nada que contar',
     statsEmpty: 'En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.',
-    statsPrivacy: 'Se miden y se guardan solo en este navegador: no se sincronizan con la nube ni se envían a ninguna parte, así que cada dispositivo lleva su propia cuenta. Solo cuenta el tiempo con un libro abierto y pasando páginas; las pausas largas y los saltos de posición no se suman.',
+    statsPrivacy: 'Con una nube configurada, el tiempo viaja con el progreso de lectura: cada dispositivo apunta el suyo y aquí se enseña la suma, así que sabes cuánto has tardado en leer un libro aunque lo hayas leído a ratos en cada aparato. Van en tu propio servidor WebDAV, con tus libros, y no se envían a ningún otro sitio. Sin nube configurada se quedan en este navegador. Solo cuenta el tiempo con un libro abierto y pasando páginas; las pausas largas y los saltos de posición no se suman.',
     statsDelete: 'Borrar las estadísticas',
-    statsDeleteConfirm: '¿Borrar las estadísticas de lectura de este dispositivo? No afecta a tus libros, a la página por la que vas ni a tus anotaciones.',
-    statsDeleted: '✓ Estadísticas borradas.',
+    statsDeleteConfirm: '¿Borrar las estadísticas de lectura? Se borran en todos tus dispositivos: los que estén conectados lo harán en cuanto sincronicen. No afecta a tus libros, a la página por la que vas ni a tus anotaciones.',
+    statsDeleted: '✓ Estadísticas borradas. Los demás dispositivos las borrarán al sincronizar.',
     statsTotal: 'Tiempo total', statsToday: 'Hoy', statsWeek: 'Últimos 7 días',
     statsStreak: 'Días seguidos', statsAverage: 'Media por día leído',
     statsActiveDays: 'Días con lectura', statsBestDay: 'Mejor día', statsPdfPages: 'Páginas de PDF',
@@ -487,15 +488,16 @@ const textos = {
     syncError: 'Error de sincronització', syncFailed: 'No s’ha pogut sincronitzar el progrés: {error}',
     syncRecovered: 'Ja s’ha desat la teva posició al núvol',
     stats: 'Estadístiques de lectura', statsView: 'Veure les estadístiques',
-    statsSettingsHelp: 'El temps que dediques a llegir, els dies seguits que portes i els llibres als quals dediques més estona. Es mesuren en aquest dispositiu i no en surten.',
+    statsSettingsHelp: 'El temps que dediques a llegir, els dies seguits que portes i els llibres als quals dediques més estona, sumant tots els teus dispositius.',
     statsSummary: 'La teva lectura', statsLastDays: 'Els darrers 30 dies',
+    statsShared: 'Suma de tots els teus dispositius: el que has llegit al mòbil i a l’ordinador compta junt, i un dia en què hagis llegit als dos és un sol dia.',
     statsTopBooks: 'On se’n va el temps', statsDataTitle: 'Aquestes dades',
     statsEmptyTitle: 'Encara no hi ha res a explicar',
     statsEmpty: 'Tan bon punt llegeixis uns minuts amb un llibre obert, aquí apareixeran el temps dedicat, els dies seguits que portes llegint i en quins llibres se’t va l’estona.',
-    statsPrivacy: 'Es mesuren i es desen només en aquest navegador: no se sincronitzen amb el núvol ni s’envien enlloc, així que cada dispositiu porta el seu propi compte. Només compta el temps amb un llibre obert i passant pàgines; les pauses llargues i els salts de posició no se sumen.',
+    statsPrivacy: 'Amb un núvol configurat, el temps viatja amb el progrés de lectura: cada dispositiu apunta el seu i aquí se’n mostra la suma, així saps quant has trigat a llegir un llibre encara que l’hagis llegit a estones en cada aparell. Van al teu propi servidor WebDAV, amb els teus llibres, i no s’envien enlloc més. Sense núvol configurat es queden en aquest navegador. Només compta el temps amb un llibre obert i passant pàgines; les pauses llargues i els salts de posició no se sumen.',
     statsDelete: 'Esborrar les estadístiques',
-    statsDeleteConfirm: 'Voleu esborrar les estadístiques de lectura d’aquest dispositiu? No afecta els llibres, la pàgina on ets ni les anotacions.',
-    statsDeleted: '✓ Estadístiques esborrades.',
+    statsDeleteConfirm: 'Voleu esborrar les estadístiques de lectura? S’esborren a tots els teus dispositius: els que estiguin connectats ho faran tan bon punt sincronitzin. No afecta els llibres, la pàgina on ets ni les anotacions.',
+    statsDeleted: '✓ Estadístiques esborrades. Els altres dispositius les esborraran en sincronitzar.',
     statsTotal: 'Temps total', statsToday: 'Avui', statsWeek: 'Darrers 7 dies',
     statsStreak: 'Dies seguits', statsAverage: 'Mitjana per dia llegit',
     statsActiveDays: 'Dies amb lectura', statsBestDay: 'Millor dia', statsPdfPages: 'Pàgines de PDF',
@@ -784,15 +786,16 @@ const textos = {
     syncError: 'Sync error', syncFailed: 'Could not sync reading progress: {error}',
     syncRecovered: 'Your position is now saved to the cloud',
     stats: 'Reading statistics', statsView: 'View the statistics',
-    statsSettingsHelp: 'How much time you spend reading, how many days in a row you have kept it up, and the books that take the most of your time. Measured on this device, and they never leave it.',
+    statsSettingsHelp: 'How much time you spend reading, how many days in a row you have kept it up, and the books that take the most of your time, adding up all your devices.',
     statsSummary: 'Your reading', statsLastDays: 'The last 30 days',
+    statsShared: 'Adding up all your devices: what you read on the phone and on the computer counts together, and a day you read on both is a single day.',
     statsTopBooks: 'Where the time goes', statsDataTitle: 'About this data',
     statsEmptyTitle: 'Nothing to show yet',
     statsEmpty: 'As soon as you read for a few minutes with a book open, this page will show the time you spent, how many days in a row you have been reading, and which books take up your time.',
-    statsPrivacy: 'Measured and stored in this browser only: never synced to the cloud, never sent anywhere, so each device keeps its own count. Only time spent with a book open and turning pages counts; long pauses and jumps to another position are not added.',
+    statsPrivacy: 'With cloud storage set up, reading time travels along with your reading position: each device records its own and the total is shown here, so you know how long a book took you even if you read it in bits on each device. It lives in your own WebDAV server, next to your books, and is never sent anywhere else. Without cloud storage it stays in this browser. Only time spent with a book open and turning pages counts; long pauses and jumps to another position are not added.',
     statsDelete: 'Delete the statistics',
-    statsDeleteConfirm: 'Delete the reading statistics on this device? Your books, your reading position and your annotations are not affected.',
-    statsDeleted: '✓ Statistics deleted.',
+    statsDeleteConfirm: 'Delete the reading statistics? They are deleted on all your devices: any that are connected will do so as soon as they sync. Your books, your reading position and your annotations are not affected.',
+    statsDeleted: '✓ Statistics deleted. Your other devices will delete them when they sync.',
     statsTotal: 'Total time', statsToday: 'Today', statsWeek: 'Last 7 days',
     statsStreak: 'Days in a row', statsAverage: 'Average per day read',
     statsActiveDays: 'Days with reading', statsBestDay: 'Best day', statsPdfPages: 'PDF pages',
@@ -1074,11 +1077,17 @@ const ayudas = {
           llegir: el total, el d’avui i el de la setmana, els dies seguits que
           portes, una barra per cadascun dels darrers trenta dies i els llibres
           als quals dediques més estona. Només es compta el temps amb un llibre
-          obert i passant pàgines, així que deixar la pestanya oberta no suma.
-          Es mesuren en aquest navegador i no en surten: cada dispositiu porta
-          el seu propi compte i no viatgen al núvol. Les pots esborrar quan
-          vulguis des d’aquesta mateixa pantalla, sense tocar els llibres ni el
-          progrés.</p>
+          obert i passant pàgines, així que deixar la pestanya oberta no
+          suma.</p>
+            <p>Amb un núvol configurat, les xifres sumen tots els teus
+          dispositius: el temps de cada llibre porta a sota el repartiment
+          («aquest dispositiu 2 h · Chrome en Linux 45 min»), de manera que
+          saps quant t’ha costat llegir-lo encara que l’hagis llegit a estones
+          en cada aparell, i un dia en què hagis llegit en dos compta com un sol
+          dia de la ratxa. Tot plegat viatja amb el progrés de lectura, al teu
+          propi servidor, i no s’envia enlloc més. Les pots esborrar quan
+          vulguis des d’aquesta mateixa pantalla —s’esborren a tots els
+          dispositius— sense tocar els llibres ni el progrés.</p>
           </details>
           <details class="punto-ayuda">
           <summary>Importar i exportar</summary>
@@ -1559,10 +1568,15 @@ const ayudas = {
           the total, today’s and this week’s, how many days in a row you have
           kept it up, one bar for each of the last thirty days, and the books
           that take the most of your time. Only time with a book open and pages
-          turning is counted, so leaving the tab open adds nothing. Everything
-          is measured in this browser and never leaves it: each device keeps its
-          own count and nothing travels to the cloud. You can delete it whenever
-          you like from that same screen, without touching your books or your
+          turning is counted, so leaving the tab open adds nothing.</p>
+            <p>With cloud storage set up, the figures add up all your devices:
+          each book’s time carries the split underneath (“this device 2 h ·
+          Chrome on Linux 45 min”), so you know how long it took you even if you
+          read it in bits on each device, and a day you read on two of them
+          counts as a single day of the streak. All of it travels with your
+          reading position, in your own server, and is never sent anywhere else.
+          You can delete it whenever you like from that same screen — it is
+          deleted on every device — without touching your books or your
           progress.</p>
           </details>
           <details class="punto-ayuda">

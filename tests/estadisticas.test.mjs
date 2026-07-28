@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  apuntar, resumen, racha, rachaMaxima, serie, normalizar, claveDia,
-  DIAS_GUARDADOS, LIBROS_GUARDADOS,
+  apuntarTiempo, fusionarTiempos, totalTiempo, normalizarTiempos,
+  apuntarDia, fusionarEstadisticas, diasCombinados, normalizarEstadisticas,
+  racha, rachaMaxima, serie, librosLeidos, resumen, claveDia, DIAS_GUARDADOS,
 } from '../js/estadisticas.js';
 
 // Una fecha local concreta, para no depender del huso de quien ejecute.
@@ -16,55 +17,104 @@ test('la clave del día es la fecha local, no UTC', () => {
   assert.equal(claveDia(dia(2026, 3, 7, 23)), '2026-03-07');
 });
 
-test('acumula el tiempo del día y el del libro', () => {
-  let datos = apuntar(undefined, { segundos: 60, paginas: 2, libro: 'a', titulo: 'Uno', ahora: dia(2026, 5, 4) });
-  datos = apuntar(datos, { segundos: 30, paginas: 1, libro: 'a', ahora: dia(2026, 5, 4) });
-  assert.deepEqual(datos.dias['2026-05-04'], { s: 90, p: 3 });
-  assert.equal(datos.libros.a.s, 90);
-  assert.equal(datos.libros.a.p, 3);
-  assert.equal(datos.libros.a.n, 'Uno'); // un título vacío no borra el que había
+// ───────────── Tiempo por libro ─────────────
+
+test('cada dispositivo suma en su propia casilla', () => {
+  let tiempos = apuntarTiempo(undefined, 'movil', { segundos: 60, paginas: 2 });
+  tiempos = apuntarTiempo(tiempos, 'movil', { segundos: 30, paginas: 1 });
+  tiempos = apuntarTiempo(tiempos, 'portatil', { segundos: 90, paginas: 4 });
+  assert.deepEqual(tiempos, { movil: { s: 90, p: 3 }, portatil: { s: 90, p: 4 } });
+  assert.deepEqual(totalTiempo(tiempos), { s: 180, p: 7 });
 });
 
-test('descarta las muestras imposibles', () => {
-  const datos = apuntar(undefined, { segundos: 5000, libro: 'a', ahora: dia(2026, 5, 4) });
-  assert.deepEqual(datos.dias, {});
-  for (const malo of [0, -30, NaN, Infinity, 'diez', null]) {
-    assert.deepEqual(apuntar(undefined, { segundos: malo, ahora: dia(2026, 5, 4) }).dias, {});
+test('los segundos se guardan redondeados', () => {
+  const tiempos = apuntarTiempo(undefined, 'a', { segundos: 19.641000000000002 });
+  assert.equal(tiempos.a.s, 20);
+});
+
+test('descarta las muestras imposibles y las que no dicen de quién son', () => {
+  for (const malo of [0, -30, NaN, Infinity, 'diez', null, 5000]) {
+    assert.deepEqual(apuntarTiempo(undefined, 'a', { segundos: malo }), {});
   }
+  assert.deepEqual(apuntarTiempo(undefined, '', { segundos: 60 }), {});
 });
 
-test('en EPUB no se cuentan páginas, pero sí el tiempo', () => {
-  const datos = apuntar(undefined, {
-    segundos: 120, libro: 'e', titulo: 'Novela', formato: 'epub', ahora: dia(2026, 5, 4),
+test('fusionar se queda la casilla mayor de cada dispositivo, sin mirar el reloj', () => {
+  const mio = { movil: { s: 300, p: 10 }, portatil: { s: 60, p: 1 } };
+  const suyo = { movil: { s: 120, p: 4 }, tablet: { s: 90, p: 3 } };
+  assert.deepEqual(fusionarTiempos(mio, suyo), {
+    movil: { s: 300, p: 10 },   // la mía va por delante
+    portatil: { s: 60, p: 1 },  // solo la tengo yo
+    tablet: { s: 90, p: 3 },    // solo la tiene el otro
   });
-  assert.equal(datos.dias['2026-05-04'].s, 120);
-  assert.equal(datos.dias['2026-05-04'].p, 0);
-  assert.equal(datos.libros.e.f, 'epub');
+});
+
+test('fusionar es conmutativo: da igual quién sincronice primero', () => {
+  const uno = { a: { s: 300, p: 2 }, b: { s: 50, p: 1 } };
+  const otro = { a: { s: 120, p: 1 }, c: { s: 90, p: 0 } };
+  assert.deepEqual(fusionarTiempos(uno, otro), fusionarTiempos(otro, uno));
+});
+
+test('dos dispositivos leyendo a la vez no se pisan el rato', () => {
+  // Parten del mismo estado sincronizado y cada uno lee por su cuenta.
+  const comun = { movil: { s: 600, p: 20 }, portatil: { s: 600, p: 20 } };
+  const enElMovil = apuntarTiempo(comun, 'movil', { segundos: 300, paginas: 10 });
+  const enElPortatil = apuntarTiempo(comun, 'portatil', { segundos: 120, paginas: 5 });
+  const fusionado = fusionarTiempos(enElMovil, enElPortatil);
+  assert.deepEqual(totalTiempo(fusionado), { s: 1620, p: 55 }); // 900 + 720
+});
+
+test('normalizar tira lo que no es tiempo', () => {
+  assert.deepEqual(normalizarTiempos(null), {});
+  assert.deepEqual(normalizarTiempos('roto'), {});
+  assert.deepEqual(normalizarTiempos({ a: { s: 0 }, b: { s: -5 }, c: { s: 60 } }), { c: { s: 60, p: 0 } });
+});
+
+// ───────────── Días de lectura ─────────────
+
+test('los días se apuntan por dispositivo y se combinan sumando', () => {
+  let est = apuntarDia(undefined, 'movil', { segundos: 600, paginas: 5, ahora: dia(2026, 5, 4) });
+  est = apuntarDia(est, 'portatil', { segundos: 300, paginas: 2, ahora: dia(2026, 5, 4) });
+  est = apuntarDia(est, 'movil', { segundos: 60, ahora: dia(2026, 5, 5) });
+  assert.deepEqual(diasCombinados(est), {
+    '2026-05-04': { s: 900, p: 7 },
+    '2026-05-05': { s: 60, p: 0 },
+  });
+});
+
+test('fusionar los días se queda la cifra mayor de cada día y dispositivo', () => {
+  const mias = { movil: { dias: { '2026-05-04': { s: 600, p: 5 } } } };
+  const suyas = {
+    movil: { dias: { '2026-05-04': { s: 300, p: 2 }, '2026-05-05': { s: 60, p: 0 } } },
+    tablet: { dias: { '2026-05-04': { s: 120, p: 1 } } },
+  };
+  const fusionadas = fusionarEstadisticas(mias, suyas);
+  assert.deepEqual(fusionadas.movil.dias['2026-05-04'], { s: 600, p: 5 });
+  assert.deepEqual(fusionadas.movil.dias['2026-05-05'], { s: 60, p: 0 });
+  assert.deepEqual(fusionadas.tablet.dias['2026-05-04'], { s: 120, p: 1 });
+  assert.deepEqual(fusionarEstadisticas(mias, suyas), fusionarEstadisticas(suyas, mias));
+});
+
+test('un día leído en dos dispositivos es un solo día para la racha', () => {
+  let est = apuntarDia(undefined, 'movil', { segundos: 600, ahora: dia(2026, 5, 4) });
+  est = apuntarDia(est, 'portatil', { segundos: 600, ahora: dia(2026, 5, 4) });
+  assert.equal(racha(diasCombinados(est), '2026-05-04'), 1);
 });
 
 test('la racha cuenta días seguidos y sobrevive al día en blanco de hoy', () => {
-  const dias = { '2026-05-02': { s: 60, p: 0 }, '2026-05-03': { s: 60, p: 0 }, '2026-05-04': { s: 60, p: 0 } };
+  const dias = { '2026-05-02': { s: 60 }, '2026-05-03': { s: 60 }, '2026-05-04': { s: 60 } };
   assert.equal(racha(dias, '2026-05-04'), 3);
-  // Aún no se ha leído hoy: la racha de ayer sigue viva.
-  assert.equal(racha(dias, '2026-05-05'), 3);
-  // Dos días sin leer sí la rompen.
-  assert.equal(racha(dias, '2026-05-06'), 0);
+  assert.equal(racha(dias, '2026-05-05'), 3); // hoy aún no, pero sigue viva
+  assert.equal(racha(dias, '2026-05-06'), 0); // dos días sin leer sí la rompen
 });
 
-test('la racha máxima encuentra el tramo más largo del historial', () => {
-  const dias = {
-    '2026-04-01': { s: 60, p: 0 }, '2026-04-02': { s: 60, p: 0 },
-    '2026-04-10': { s: 60, p: 0 }, '2026-04-11': { s: 60, p: 0 },
-    '2026-04-12': { s: 60, p: 0 }, '2026-04-13': { s: 60, p: 0 },
-  };
-  assert.equal(rachaMaxima(dias), 4);
+test('la racha máxima encuentra el tramo más largo y cruza el fin de año', () => {
+  assert.equal(rachaMaxima({
+    '2026-04-01': { s: 60 }, '2026-04-02': { s: 60 },
+    '2026-04-10': { s: 60 }, '2026-04-11': { s: 60 }, '2026-04-12': { s: 60 }, '2026-04-13': { s: 60 },
+  }), 4);
+  assert.equal(rachaMaxima({ '2025-12-31': { s: 60 }, '2026-01-01': { s: 60 } }), 2);
   assert.equal(rachaMaxima({}), 0);
-});
-
-test('la racha cruza el cambio de mes y el de año', () => {
-  const dias = { '2025-12-31': { s: 60, p: 0 }, '2026-01-01': { s: 60, p: 0 } };
-  assert.equal(racha(dias, '2026-01-01'), 2);
-  assert.equal(rachaMaxima(dias), 2);
 });
 
 test('la serie rellena con ceros los días sin lectura', () => {
@@ -74,83 +124,103 @@ test('la serie rellena con ceros los días sin lectura', () => {
   assert.deepEqual(puntos.map((p) => p.segundos), [0, 300, 0, 120]);
 });
 
-test('el resumen reparte los totales por ventanas y ordena los libros', () => {
-  let datos;
-  datos = apuntar(datos, { segundos: 600, paginas: 10, libro: 'a', titulo: 'A', ahora: dia(2026, 5, 1) });
-  datos = apuntar(datos, { segundos: 300, paginas: 5, libro: 'b', titulo: 'B', ahora: dia(2026, 5, 20) });
-  datos = apuntar(datos, { segundos: 900, paginas: 9, libro: 'a', titulo: 'A', ahora: dia(2026, 5, 25) });
+test('poda los días más viejos que el plazo', () => {
+  const viejo = claveDia(new Date(2026, 4, 25 - DIAS_GUARDADOS - 5));
+  const est = apuntarDia({ a: { dias: { [viejo]: { s: 60, p: 0 } } } }, 'a',
+    { segundos: 60, ahora: dia(2026, 5, 25) });
+  assert.equal(est.a.dias[viejo], undefined);
+  assert.ok(est.a.dias['2026-05-25']);
+});
 
-  const r = resumen(datos, dia(2026, 5, 25));
+test('normalizar las estadísticas aguanta lo que haya escrito otra versión', () => {
+  assert.deepEqual(normalizarEstadisticas(null), {});
+  assert.deepEqual(normalizarEstadisticas('roto'), {});
+  const limpio = normalizarEstadisticas({
+    a: { dias: { 'no-es-fecha': { s: 60 }, '2026-05-04': { s: 'x' }, '2026-05-05': { s: 60 } } },
+    b: { dias: {} },
+    c: 'basura',
+  });
+  assert.deepEqual(Object.keys(limpio), ['a']);
+  assert.deepEqual(limpio.a.dias, { '2026-05-05': { s: 60, p: 0 } });
+});
+
+// ───────────── Resumen ─────────────
+
+function registro() {
+  let estadisticas;
+  estadisticas = apuntarDia(estadisticas, 'movil', { segundos: 600, paginas: 10, ahora: dia(2026, 5, 1) });
+  estadisticas = apuntarDia(estadisticas, 'movil', { segundos: 300, paginas: 5, ahora: dia(2026, 5, 20) });
+  estadisticas = apuntarDia(estadisticas, 'portatil', { segundos: 900, paginas: 9, ahora: dia(2026, 5, 25) });
+  return {
+    estadisticas,
+    libros: {
+      'Novelas/uno.epub': { titulo: 'El uno', tiempos: { movil: { s: 600, p: 0 }, portatil: { s: 900, p: 0 } } },
+      'dos.pdf': { tiempos: { movil: { s: 300, p: 15 } } },
+      'tres.pdf': { pagina: 4 },                       // abierto, pero sin tiempo
+      'local:cuatro.pdf:99': { tiempos: { movil: { s: 60, p: 1 } } },
+    },
+  };
+}
+
+test('el resumen combina los días de todos los dispositivos', () => {
+  const r = resumen(registro(), dia(2026, 5, 25));
   assert.equal(r.hay, true);
   assert.equal(r.totalSegundos, 1800);
   assert.equal(r.totalPaginas, 24);
   assert.equal(r.diasActivos, 3);
   assert.equal(r.mediaDiaria, 600);
   assert.equal(r.hoy, 900);
-  assert.equal(r.semana.segundos, 1200);       // los días 20 y 25; el 1 queda fuera
-  assert.equal(r.semana.paginas, 14);
-  assert.equal(r.mes.segundos, 1800);          // los tres, dentro de 30 días
+  assert.equal(r.semana.segundos, 1200);   // los días 20 y 25; el 1 queda fuera
+  assert.equal(r.mes.segundos, 1800);
   assert.deepEqual(r.mejorDia, { dia: '2026-05-25', segundos: 900 });
-  assert.deepEqual(r.libros.map((l) => l.id), ['a', 'b']);
-  assert.equal(r.libros[0].segundos, 1500);
+  assert.equal(r.dispositivos, 2);
 });
 
 test('la ventana de siete días incluye hoy y los seis anteriores', () => {
-  let datos;
-  datos = apuntar(datos, { segundos: 60, ahora: dia(2026, 5, 19) }); // justo dentro
-  datos = apuntar(datos, { segundos: 60, ahora: dia(2026, 5, 18) }); // justo fuera
-  assert.equal(resumen(datos, dia(2026, 5, 25)).semana.segundos, 60);
+  let est;
+  est = apuntarDia(est, 'a', { segundos: 60, ahora: dia(2026, 5, 19) }); // justo dentro
+  est = apuntarDia(est, 'a', { segundos: 60, ahora: dia(2026, 5, 18) }); // justo fuera
+  assert.equal(resumen({ estadisticas: est }, dia(2026, 5, 25)).semana.segundos, 60);
+});
+
+test('los libros salen ordenados por tiempo total, con su desglose', () => {
+  const { libros } = resumen(registro(), dia(2026, 5, 25));
+  assert.deepEqual(libros.map((libro) => libro.id),
+    ['Novelas/uno.epub', 'dos.pdf', 'local:cuatro.pdf:99']); // 'tres.pdf' no tiene tiempo
+  assert.equal(libros[0].segundos, 1500);
+  assert.equal(libros[0].formato, 'epub');
+  assert.equal(libros[0].enLaNube, true);
+  assert.deepEqual(libros[0].porDispositivo, [
+    { dispositivo: 'portatil', segundos: 900, paginas: 0 },
+    { dispositivo: 'movil', segundos: 600, paginas: 0 },
+  ]);
+  assert.equal(libros[2].enLaNube, false);
+});
+
+test('un libro leído solo en un aparato no trae desglose que enseñar', () => {
+  const { libros } = resumen(registro(), dia(2026, 5, 25));
+  assert.equal(libros[1].porDispositivo.length, 1);
 });
 
 test('el resumen de un registro vacío no inventa nada', () => {
   const r = resumen(undefined, dia(2026, 5, 25));
   assert.equal(r.hay, false);
   assert.equal(r.totalSegundos, 0);
-  assert.equal(r.mediaDiaria, 0);
   assert.equal(r.racha, 0);
+  assert.equal(r.dispositivos, 0);
   assert.deepEqual(r.mejorDia, null);
   assert.deepEqual(r.libros, []);
   assert.equal(r.serie.length, 30);
 });
 
-test('normalizar aguanta lo que haya escrito otra versión', () => {
-  assert.deepEqual(normalizar(null).dias, {});
-  assert.deepEqual(normalizar('roto').libros, {});
-  const sucio = {
-    dias: { 'no-es-fecha': { s: 60 }, '2026-05-04': { s: 'x' }, '2026-05-05': { s: 60 } },
-    libros: { a: { s: 0 }, b: { s: 60, n: 42, f: 'raro' } },
-  };
-  const limpio = normalizar(sucio);
-  assert.deepEqual(Object.keys(limpio.dias), ['2026-05-05']);
-  assert.deepEqual(Object.keys(limpio.libros), ['b']);
-  assert.equal(limpio.libros.b.n, '');
-  assert.equal(limpio.libros.b.f, 'pdf');
+test('un libro con tiempo cuenta aunque no haya días apuntados', () => {
+  // Puede pasar tras podar los días viejos: el libro conserva su total.
+  const r = resumen({ libros: { 'uno.pdf': { tiempos: { a: { s: 600, p: 0 } } } } }, dia(2026, 5, 25));
+  assert.equal(r.hay, true);
+  assert.equal(r.libros[0].segundos, 600);
 });
 
-test('poda los días viejos y los libros que hace más que no se abren', () => {
-  let datos = { v: 1, dias: {}, libros: {} };
-  datos.dias['2024-01-01'] = { s: 60, p: 0 };
-  datos = apuntar(datos, { segundos: 60, libro: 'nuevo', ahora: dia(2026, 5, 25) });
-  assert.equal(datos.dias['2024-01-01'], undefined);
-  assert.ok(datos.dias['2026-05-25']);
-
-  let muchos = { v: 1, dias: {}, libros: {} };
-  for (let i = 0; i < LIBROS_GUARDADOS + 20; i += 1) {
-    muchos.libros[`libro-${i}`] = { s: 60, p: 0, t: i, n: '', f: 'pdf' };
-  }
-  muchos = apuntar(muchos, { segundos: 60, libro: 'ultimo', ahora: dia(2026, 5, 25) });
-  assert.equal(Object.keys(muchos.libros).length, LIBROS_GUARDADOS);
-  assert.ok(muchos.libros.ultimo);            // el que se acaba de leer se queda
-  assert.equal(muchos.libros['libro-0'], undefined); // el más antiguo cae
-});
-
-test('conserva un año largo de días', () => {
-  let datos = { v: 1, dias: {}, libros: {} };
-  const hoy = new Date(2026, 4, 25);
-  for (let i = 0; i < DIAS_GUARDADOS - 1; i += 1) {
-    const d = new Date(2026, 4, 25 - i);
-    datos.dias[claveDia(d)] = { s: 60, p: 0 };
-  }
-  datos = apuntar(datos, { segundos: 60, ahora: hoy.getTime() });
-  assert.equal(Object.keys(datos.dias).length, DIAS_GUARDADOS - 1);
+test('librosLeidos deja fuera lo que no se ha leído', () => {
+  assert.deepEqual(librosLeidos({ 'a.pdf': { pagina: 3 }, 'b.pdf': { tiempos: {} } }), []);
+  assert.deepEqual(librosLeidos(undefined), []);
 });

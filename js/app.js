@@ -49,7 +49,6 @@ const CLAVE_VELOCIDAD_TTS = 'lector.velocidadTts'; // solo de este dispositivo
 const CLAVE_COLOR_RESALTADO = 'lector.colorResaltado'; // solo de este dispositivo
 const CLAVE_PDF_SIN_TEXTO = 'lector.pdfSinTexto'; // por libro y dispositivo
 const CLAVE_ULTIMA_CONCILIACION = 'lector.ultimaConciliacion'; // solo de este dispositivo
-const CLAVE_ESTADISTICAS = 'lector.estadisticas'; // solo de este dispositivo
 
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
@@ -5083,28 +5082,13 @@ function pintarTiempoRestante() {
 
 const LIBROS_EN_LISTA = 10;
 
-function leerEstadisticas() {
-  try {
-    return estadisticas.normalizar(JSON.parse(localStorage.getItem(CLAVE_ESTADISTICAS)));
-  } catch {
-    return estadisticas.vacio();
-  }
-}
-
 function apuntarEstadistica(segundos, avance) {
   if (!libroActual) return;
-  const esEpub = epubAbierto();
-  const datos = estadisticas.apuntar(leerEstadisticas(), {
-    segundos,
-    // En EPUB el avance son puntos de porcentaje, no páginas: allí no hay nada
-    // que contar, y sumarlo daría una cifra de «páginas» inventada.
-    paginas: esEpub ? 0 : Math.round(avance),
-    libro: libroActual.id,
-    titulo: libroActual.nombre ?? libroActual.titulo ?? '',
-    formato: esEpub ? 'epub' : 'pdf',
-  });
   try {
-    localStorage.setItem(CLAVE_ESTADISTICAS, JSON.stringify(datos));
+    progreso.anotarTiempoLectura(libroActual.id, segundos,
+      // En EPUB el avance son puntos de porcentaje, no páginas: allí no hay
+      // nada que contar, y sumarlo daría una cifra de «páginas» inventada.
+      epubAbierto() ? 0 : Math.round(avance));
   } catch {
     // Sin sitio en localStorage se deja de apuntar, pero leer no se interrumpe.
   }
@@ -5206,19 +5190,46 @@ function pintarGrafico(resumen) {
   $('pie-grafico').textContent = detalle;
 }
 
+// Nombre con el que llamar a cada dispositivo en el desglose. Es el mismo que
+// enseña la lista de «Dispositivos conectados», para que se reconozcan sin
+// tener que compararlos a mano.
+function nombresDeDispositivos() {
+  const nombres = new Map();
+  for (const aparato of progreso.dispositivos()) {
+    const auto = aparato.navegador && aparato.sistema
+      ? t('deviceAuto', { browser: aparato.navegador, system: aparato.sistema })
+      : (aparato.modelo || aparato.sistema || '');
+    nombres.set(aparato.id, {
+      nombre: aparato.nombre || auto || t('deviceUnknown'),
+      esteMismo: aparato.esteMismo,
+    });
+  }
+  return nombres;
+}
+
+// El nombre visible de un libro que quizá ya no esté en la biblioteca: el que
+// le puso el usuario, y si no el del archivo (el id remoto es su ruta).
+function nombreVisibleDeId(id) {
+  const propio = progreso.tituloDe(id);
+  if (propio) return propio;
+  if (id.startsWith('local:')) return id.split(':').slice(1, -1).join(':') || id;
+  return id.split('/').pop() || id;
+}
+
 function pintarLibrosLeidos(resumen) {
   const lista = $('libros-estadisticas');
   lista.replaceChildren();
   const libros = resumen.libros.slice(0, LIBROS_EN_LISTA);
   $('tarjeta-libros-estadisticas').classList.toggle('oculto', !libros.length);
   const mayor = libros[0]?.segundos ?? 0;
+  const nombres = nombresDeDispositivos();
   for (const libro of libros) {
     const elemento = document.createElement('li');
     elemento.className = 'libro-estadistica';
 
     const titulo = document.createElement('span');
     titulo.className = 'titulo-estadistica';
-    titulo.textContent = libro.titulo || t('statsBookUntitled');
+    titulo.textContent = nombreVisibleDeId(libro.id);
 
     const formato = document.createElement('span');
     formato.className = 'formato-estadistica';
@@ -5235,13 +5246,32 @@ function pintarLibrosLeidos(resumen) {
     barra.append(relleno);
 
     elemento.append(titulo, formato, tiempo, barra);
+
+    // El desglose solo cuando hay más de un aparato en juego: con uno solo
+    // repetiría la cifra de al lado.
+    if (libro.porDispositivo.length > 1) {
+      const reparto = document.createElement('span');
+      reparto.className = 'reparto-estadistica';
+      reparto.textContent = libro.porDispositivo
+        .map((parte) => {
+          const conocido = nombres.get(parte.dispositivo);
+          const nombre = conocido?.esteMismo ? t('deviceThisOne')
+            : conocido?.nombre ?? t('deviceUnknown');
+          return `${nombre} ${duracionLegible(parte.segundos)}`;
+        })
+        .join(' · ');
+      elemento.append(reparto);
+    }
     lista.append(elemento);
   }
 }
 
 function pintarEstadisticas() {
-  const resumen = estadisticas.resumen(leerEstadisticas());
+  const resumen = estadisticas.resumen(progreso.cargarLocal());
   $('estadisticas-vacio').classList.toggle('oculto', resumen.hay);
+  // Con varios aparatos, lo que se enseña es la suma de todos: conviene
+  // decirlo, porque las cifras no cuadran con las de ninguno por separado.
+  $('nota-varios-dispositivos').classList.toggle('oculto', resumen.dispositivos < 2);
   $('estadisticas-contenido').classList.toggle('oculto', !resumen.hay);
   if (!resumen.hay) return;
   pintarCifras(resumen);
@@ -5252,7 +5282,7 @@ function pintarEstadisticas() {
 // Línea de la pestaña «Datos» de los ajustes, para no obligar a entrar en la
 // pantalla entera solo por ver si hay algo apuntado.
 function pintarResumenEstadisticas() {
-  const resumen = estadisticas.resumen(leerEstadisticas());
+  const resumen = estadisticas.resumen(progreso.cargarLocal());
   $('resumen-estadisticas').textContent = resumen.hay
     ? t('statsChartSummary', {
       days: diasEnPalabras(resumen.serie.filter((punto) => punto.segundos > 0).length),
@@ -5277,10 +5307,13 @@ $('btn-cerrar-estadisticas').addEventListener('click', () => {
 
 $('btn-borrar-estadisticas').addEventListener('click', () => {
   if (!confirm(t('statsDeleteConfirm'))) return;
-  localStorage.removeItem(CLAVE_ESTADISTICAS);
+  progreso.borrarEstadisticas();
   pintarEstadisticas();
   pintarResumenEstadisticas();
   $('resultado-estadisticas').textContent = t('statsDeleted');
+  // El borrado viaja con la sincronización: los demás dispositivos lo acatan
+  // la próxima vez que se conecten.
+  if (cliente) progreso.sincronizar(cliente).catch(() => null);
 });
 
 // Al cambiar de idioma se rehacen las cifras: llevan fechas y palabras
@@ -8085,6 +8118,10 @@ document.addEventListener('idioma-cambiado', () => {
 });
 iniciarIdioma();
 migrarPapelAlTema();
+// Las estadísticas de la primera versión vivían aparte y sin dueño: al
+// registro, bajo el identificador de este dispositivo, para que sumen con las
+// de los demás en lugar de perderse.
+progreso.migrarEstadisticasAntiguas();
 iniciarTema();
 sincronizarCasillaContinuar();
 sincronizarCasillaBarraEstado();
