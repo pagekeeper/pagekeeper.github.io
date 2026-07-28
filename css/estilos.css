@@ -1077,7 +1077,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
      pulsa para ver la ficha del libro, y centrado se salía por la izquierda
      sin manera de alcanzarlo. */
   flex: none; display: flex; align-items: center; justify-content: safe center;
-  gap: 0.7rem; overflow-x: auto; scrollbar-width: none;
+  gap: 0.4rem; overflow-x: auto; scrollbar-width: none;
   /* Alto de una línea aunque esté vacía: así no baila el área de lectura. */
   min-height: 1.15rem;
   padding: 0.25rem 0.6rem calc(0.25rem + env(safe-area-inset-bottom));
@@ -1089,7 +1089,7 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* El punto de separación es del CSS: así el JavaScript solo pone los datos
    que tenga, sin preocuparse de cuál es el primero. */
 .barra-estado-lector .dato-estado + .dato-estado::before {
-  content: '·'; margin-right: 0.7rem; color: var(--borde-fuerte);
+  content: '·'; margin-right: 0.4rem; color: var(--borde-fuerte);
 }
 /* A pantalla completa no queda nada de interfaz, tampoco esta. */
 #vista-lector.inmersivo .barra-estado-lector { display: none; }
