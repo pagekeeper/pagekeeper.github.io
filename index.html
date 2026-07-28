@@ -8,24 +8,46 @@
   <meta name="analytics-endpoint" content="https://bilateria.org/app/estadistica/pagekeeper/track.php">
   <meta name="analytics-stats-url" content="https://bilateria.org/app/estadistica/pagekeeper/admin-stats.php">
   <meta name="analytics-site-id" content="pagekeeper">
+  <!-- Política de seguridad. Es una red de seguridad por si algún día se cuela
+       contenido ajeno en la propia página: los capítulos EPUB ya se sanean y
+       llevan su propia política, mucho más estricta, en js/lector-epub.js.
+
+       Va en un <meta> porque GitHub Pages no deja poner cabeceras. Eso impide
+       usar frame-ancestors y sandbox, que solo valen como cabecera de verdad.
+
+       connect-src no puede cerrarse: la nube WebDAV la elige cada persona y
+       puede estar en cualquier dominio, incluso en http en una red local. Aun
+       así el resto sigue acotado, que es lo que evita que un descuido acabe
+       cargando código de fuera.
+
+       blob: hace falta en varios sitios propios: el worker de PDF.js, las
+       portadas guardadas, las descargas y los capítulos del EPUB.
+
+       style-src lleva 'unsafe-inline' porque el navegador cuenta como estilo
+       en línea todo lo que se escribe desde JavaScript (elemento.style.alto),
+       y así se pintan las barras del gráfico, el reparto de cada libro o el
+       ancho del panel lateral. No hay forma de dejarlo fuera sin renunciar a
+       eso; lo que de verdad protege esta política es script-src. Y blob:,
+       porque las hojas de estilo que trae cada EPUB se cargan así. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    base-uri 'self';
+    object-src 'none';
+    form-action 'self';
+    script-src 'self' https://bilateria.org;
+    style-src 'self' 'unsafe-inline' blob:;
+    img-src 'self' data: blob:;
+    font-src 'self' data:;
+    media-src 'self' data: blob:;
+    worker-src 'self' blob:;
+    frame-src 'self' data: blob:;
+    manifest-src 'self';
+    connect-src *;
+  ">
   <link rel="stylesheet" href="css/estilos.css">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
-  <script>
-    // Se aplica antes de pintar nada: si esperase al módulo, la primera imagen
-    // sería del tema que no toca y se vería el cambio de golpe.
-    (() => {
-      let guardado = null;
-      try { guardado = localStorage.getItem('lector.tema'); } catch { /* sin almacenamiento */ }
-      const colores = { claro: '#f8fafc', sepia: '#efe4cf', oscuro: '#0f172a' };
-      const tema = colores[guardado] ? guardado
-        : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
-      document.documentElement.dataset.tema = tema;
-      if (tema !== 'claro') {
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', colores[tema]);
-      }
-    })();
-  </script>
+  <script src="js/tema-inicial.js"></script>
 </head>
 <body>
 

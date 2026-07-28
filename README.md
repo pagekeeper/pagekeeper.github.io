@@ -264,6 +264,13 @@ libros y sincronizar el progreso de lectura.
 - 🔒 **Privacidad**: no hay ningún servidor intermedio. El navegador habla
   directamente con tu nube y las credenciales se guardan solo en tu navegador
   (`localStorage`).
+- 🛡️ **Los libros no ejecutan código**: cada capítulo EPUB se limpia antes de
+  mostrarse (se quitan los `<script>`, los atributos `on…` y los enlaces
+  `javascript:`) y se abre con una política propia, `default-src 'none'`, que
+  además le impide conectarse a ninguna parte. Solo el MathJax de PageKeeper
+  puede ejecutarse ahí dentro, con un permiso distinto en cada capítulo. La
+  aplicación entera lleva a su vez su propia política, que acota de dónde puede
+  salir cualquier cosa que se cargue.
 
 ## Cómo usarlo
 
@@ -355,6 +362,9 @@ node --test
 - JavaScript sin dependencias externas en tiempo de ejecución ni
   empaquetadores.
 - Service worker + manifiesto PWA para instalación y uso sin conexión.
+- Política de seguridad (CSP) declarada en `index.html`, porque GitHub Pages no
+  permite enviar cabeceras propias. `connect-src` queda abierto a propósito: la
+  nube WebDAV la elige cada persona y puede estar en cualquier dominio.
 
 ## Estadísticas de uso
 

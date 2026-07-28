@@ -18,6 +18,7 @@ import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
+const RUTA_CONFIG_MATHJAX = new URL('./mathjax-config.js', import.meta.url).href;
 
 const ELEMENTOS_ACTIVOS = 'script, iframe, frame, object, embed, applet';
 const ATRIBUTOS_URL = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'data']);
@@ -150,16 +151,21 @@ export function inyectarMathJax(contents) {
   const nonce = doc.documentElement.dataset.pagekeeperScriptNonce;
   if (!nonce) return;
 
+  // Los dos por src y en orden: el capítulo va en un iframe «srcdoc», que
+  // hereda también la política de la página, y esa no conoce el nonce de aquí,
+  // así que un script escrito dentro quedaría bloqueado. Ambos son del mismo
+  // origen, que las dos políticas admiten.
+  //
+  // async = false porque un script insertado a mano se carga asíncrono por
+  // omisión, y entonces MathJax podría arrancar antes que su configuración.
   const config = doc.createElement('script');
   config.setAttribute('nonce', nonce);
-  config.textContent = `window.MathJax = {
-    tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['$$', '$$'], ['\\\\[', '\\\\]']] },
-    options: { enableMenu: false },
-    startup: { typeset: true },
-  };`;
+  config.async = false;
+  config.src = RUTA_CONFIG_MATHJAX;
   doc.head.append(config);
   const script = doc.createElement('script');
   script.setAttribute('nonce', nonce);
+  script.async = false;
   script.src = RUTA_MATHJAX;
   doc.head.append(script);
 }
