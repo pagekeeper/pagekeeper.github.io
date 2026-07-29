@@ -6,8 +6,9 @@
 // visibles los capítulos vecinos para evitar saltos o destellos al cruzarlos.
 //
 // Fórmulas matemáticas: si el capítulo trae MathML y el navegador lo dibuja
-// de forma nativa, no se hace nada. Si trae LaTeX (\(...\), $$...$$) o el
-// navegador no entiende MathML, se inyecta MathJax (salida SVG, sin red)
+// bien de forma nativa, no se hace nada. Si trae LaTeX (\(...\), $$...$$), o
+// el navegador no entiende MathML, o lo entiende pero no tiene fuente
+// matemática (el caso de Android), se inyecta MathJax (salida SVG, sin red)
 // dentro del capítulo.
 //
 // La posición de lectura se expresa con un CFI (identificador estándar de
@@ -139,17 +140,67 @@ export function sanitizarDocumentoEpub(doc) {
   doc.head.prepend(politica);
 }
 
+// ¿Dibuja este navegador el MathML lo bastante bien como para dejárselo?
+// Entenderlo no basta: Chrome en Android trae MathML Core, pero el sistema no
+// incluye ninguna fuente con tablas MATH, así que los corchetes de las
+// matrices no se estiran y las raíces salen sin trazo. Se comprueba midiendo:
+// un corchete estirable junto a un hueco muy alto: si crece con él, hay fuente
+// matemática; si se queda del tamaño de una letra, hace falta MathJax.
+const NS_MATHML = 'http://www.w3.org/1998/Math/MathML';
+
+export function mathmlSeVeBien(contents) {
+  if (typeof contents.window?.MathMLElement !== 'function') return false;
+
+  const doc = contents.document;
+  if (!doc?.body) return false;
+  const crear = (nombre) => doc.createElementNS(NS_MATHML, nombre);
+  const formula = crear('math');
+  const fila = crear('mrow');
+  const corchete = crear('mo');
+  corchete.setAttribute('stretchy', 'true');
+  corchete.textContent = '[';
+  const hueco = crear('mspace');
+  hueco.setAttribute('height', '3em');
+  hueco.setAttribute('depth', '3em');
+  fila.append(corchete, hueco, crear('mo'));
+  formula.append(fila);
+  const caja = doc.createElement('div');
+  caja.setAttribute('style', 'position:absolute;left:-9999px;top:0;visibility:hidden');
+  caja.append(formula);
+  doc.body.append(caja);
+  const alto = corchete.getBoundingClientRect().height;
+  const referencia = hueco.getBoundingClientRect().height;
+  caja.remove();
+
+  // Sin medidas (capítulo aún sin dibujar) se prefiere MathJax: se ve bien en
+  // cualquier caso, y lo único que cuesta es cargarlo sin necesidad.
+  if (!referencia) return false;
+  return alto > referencia / 2;
+}
+
 export function inyectarMathJax(contents) {
   const doc = contents.document;
   const hayMathML = !!doc.querySelector('math');
   const texto = doc.body?.textContent ?? '';
   const hayLatex = /\\\(|\\\[|\$\$/.test(texto);
   if (!hayMathML && !hayLatex) return;
-  // MathML puro con soporte nativo del navegador: no hace falta MathJax.
-  if (!hayLatex && typeof contents.window.MathMLElement === 'function') return;
+  // MathML puro que el navegador dibuja bien: no hace falta MathJax.
+  if (!hayLatex && mathmlSeVeBien(contents)) return;
 
   const nonce = doc.documentElement.dataset.pagekeeperScriptNonce;
   if (!nonce) return;
+  if (!hayLatex) doc.documentElement.dataset.pagekeeperSoloMathml = '1';
+
+  // Una fórmula más ancha que la columna se cortaría por la mitad al paginar
+  // (en el móvil eso deja las matrices grandes a medias). El dibujo de MathJax
+  // es un SVG con proporciones propias, así que basta con dejarle encoger.
+  // El contenedor de MathJax pide tanto ancho como la fórmula, y una que no
+  // cabe en la columna se cortaría al paginar. Ajustarle el ancho al hueco
+  // disponible es cosa del propio MathJax, que mide el dibujo ya hecho; aquí
+  // solo se quita el suelo que impediría encogerlo.
+  const estilo = doc.createElement('style');
+  estilo.textContent = 'mjx-container { max-width: 100% !important; min-width: 0 !important; }';
+  doc.head.append(estilo);
 
   // Los dos por src y en orden: el capítulo va en un iframe «srcdoc», que
   // hereda también la política de la página, y esa no conoce el nonce de aquí,
