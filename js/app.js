@@ -27,6 +27,8 @@ import * as estadisticas from './estadisticas.js';
 import * as gestos from './gestos.js';
 import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
+import * as vistaAnotaciones from './vista-anotaciones.js';
+import * as vistaEstadisticas from './vista-estadisticas.js';
 import {
   librosDeCarpetaLocal, librosDeCarpetaRemota, nombreSeguro, puedeGuardarEnDisco,
 } from './descarga-carpeta.js';
@@ -56,8 +58,8 @@ const CLAVE_ULTIMA_CONCILIACION = 'lector.ultimaConciliacion'; // solo de este d
 const COLORES_RESALTADO = ['amarillo', 'verde', 'azul', 'rosa'];
 
 function colorResaltadoGuardado() {
-  const valor = localStorage.getItem(CLAVE_COLOR_RESALTADO);
-  return COLORES_RESALTADO.includes(valor) ? valor : 'amarillo';
+  return vistaAnotaciones.colorValido(
+    localStorage.getItem(CLAVE_COLOR_RESALTADO), COLORES_RESALTADO);
 }
 
 // Color efectivo de una anotación: las anteriores a la paleta no llevan el
@@ -5227,8 +5229,6 @@ function pintarTiempoRestante() {
 // delante y pasando páginas. Así lo que se enseña es lectura de verdad y no
 // pestañas abiertas, que es lo único que hace útil una racha.
 
-const LIBROS_EN_LISTA = 10;
-
 function apuntarEstadistica(segundos, avance) {
   if (!libroActual) return;
   try {
@@ -5241,16 +5241,9 @@ function apuntarEstadistica(segundos, avance) {
   }
 }
 
-// Duración en palabras, con las mismas fórmulas que el tiempo restante.
 function duracionLegible(segundos) {
-  const minutos = Math.round(segundos / 60);
-  if (minutos < 1) return t('timeLessMinute');
-  if (minutos < 60) return t('timeMinutes', { m: minutos });
-  const h = Math.floor(minutos / 60);
-  const m = minutos % 60;
-  // «4 h» y no «4 h 0 min»: aquí los totales caen en horas redondas a menudo,
-  // al contrario que el tiempo restante, que casi nunca lo hace.
-  return m ? t('timeHoursMinutes', { h, m }) : t('statsHours', { h });
+  const { clave, valores } = vistaEstadisticas.duracionEnPalabras(segundos);
+  return t(clave, valores);
 }
 
 function diasEnPalabras(n) {
@@ -5259,8 +5252,7 @@ function diasEnPalabras(n) {
 
 // La fecha de un día del registro ('AAAA-MM-DD'), en corto para las barras.
 function fechaCorta(clave, conAnno = false) {
-  const [anno, mes, dia] = clave.split('-').map(Number);
-  return new Date(anno, mes - 1, dia).toLocaleDateString(idiomaActual(), {
+  return vistaEstadisticas.fechaDeClave(clave).toLocaleDateString(idiomaActual(), {
     day: 'numeric', month: 'short', ...(conAnno ? { year: 'numeric' } : {}),
   });
 }
@@ -5305,19 +5297,28 @@ function pintarCifras(resumen) {
   }
 }
 
+// «Has leído X días, en total Y», o nada si no se ha leído ningún día.
+function resumenDeLaSerie(serie) {
+  const { diasLeidos, segundos } = vistaEstadisticas.totalesDeSerie(serie);
+  if (!diasLeidos) return null;
+  return t('statsChartSummary', {
+    days: diasEnPalabras(diasLeidos), total: duracionLegible(segundos),
+  });
+}
+
 // Barras de altura proporcional al día que más se leyó. Los días en blanco
 // dejan una raya tenue: el hueco es justamente lo que hay que ver.
 function pintarGrafico(resumen) {
   const grafico = $('grafico-estadisticas');
   grafico.replaceChildren();
-  const maximo = resumen.serie.reduce((mayor, punto) => Math.max(mayor, punto.segundos), 0);
+  const maximo = vistaEstadisticas.mayorDeLaSerie(resumen.serie);
   for (const punto of resumen.serie) {
     const columna = document.createElement('div');
     columna.className = 'columna-dia';
     columna.setAttribute('aria-hidden', 'true');
     const barra = document.createElement('div');
     barra.className = punto.segundos ? 'barra-dia' : 'barra-dia sin-lectura';
-    barra.style.height = maximo ? `${Math.max(2, (punto.segundos / maximo) * 100)}%` : '2%';
+    barra.style.height = `${vistaEstadisticas.alturaBarra(punto.segundos, maximo)}%`;
     columna.title = punto.segundos
       ? t('statsChartDay', { date: fechaCorta(punto.dia), time: duracionLegible(punto.segundos) })
       : t('statsChartDayNone', { date: fechaCorta(punto.dia) });
@@ -5325,11 +5326,7 @@ function pintarGrafico(resumen) {
     grafico.append(columna);
   }
 
-  const leidos = resumen.serie.filter((punto) => punto.segundos > 0).length;
-  const total = resumen.serie.reduce((suma, punto) => suma + punto.segundos, 0);
-  const detalle = leidos
-    ? t('statsChartSummary', { days: diasEnPalabras(leidos), total: duracionLegible(total) })
-    : t('statsChartEmpty');
+  const detalle = resumenDeLaSerie(resumen.serie) ?? t('statsChartEmpty');
   // El gráfico se anuncia como una sola imagen con su resumen: treinta barras
   // leídas una a una no dicen nada y se tardan siglos en pasar.
   grafico.setAttribute('aria-label',
@@ -5354,19 +5351,14 @@ function nombresDeDispositivos() {
   return nombres;
 }
 
-// El nombre visible de un libro que quizá ya no esté en la biblioteca: el que
-// le puso el usuario, y si no el del archivo (el id remoto es su ruta).
 function nombreVisibleDeId(id) {
-  const propio = progreso.tituloDe(id);
-  if (propio) return propio;
-  if (id.startsWith('local:')) return id.split(':').slice(1, -1).join(':') || id;
-  return id.split('/').pop() || id;
+  return vistaEstadisticas.nombreVisibleDeId(id, progreso.tituloDe(id));
 }
 
 function pintarLibrosLeidos(resumen) {
   const lista = $('libros-estadisticas');
   lista.replaceChildren();
-  const libros = resumen.libros.slice(0, LIBROS_EN_LISTA);
+  const libros = resumen.libros.slice(0, vistaEstadisticas.LIBROS_EN_LISTA);
   $('tarjeta-libros-estadisticas').classList.toggle('oculto', !libros.length);
   const mayor = libros[0]?.segundos ?? 0;
   const nombres = nombresDeDispositivos();
@@ -5389,7 +5381,9 @@ function pintarLibrosLeidos(resumen) {
     const barra = document.createElement('div');
     barra.className = 'barra-libro';
     const relleno = document.createElement('div');
-    relleno.style.width = mayor ? `${Math.max(2, (libro.segundos / mayor) * 100)}%` : '0';
+    // Sin nada leído la barra no se dibuja, al revés que en el gráfico de días,
+    // donde el hueco es lo que hay que ver.
+    relleno.style.width = mayor ? `${vistaEstadisticas.alturaBarra(libro.segundos, mayor)}%` : '0';
     barra.append(relleno);
 
     elemento.append(titulo, formato, tiempo, barra);
@@ -5430,12 +5424,8 @@ function pintarEstadisticas() {
 // pantalla entera solo por ver si hay algo apuntado.
 function pintarResumenEstadisticas() {
   const resumen = estadisticas.resumen(progreso.cargarLocal());
-  $('resumen-estadisticas').textContent = resumen.hay
-    ? t('statsChartSummary', {
-      days: diasEnPalabras(resumen.serie.filter((punto) => punto.segundos > 0).length),
-      total: duracionLegible(resumen.serie.reduce((suma, punto) => suma + punto.segundos, 0)),
-    })
-    : t('statsEmptyTitle');
+  $('resumen-estadisticas').textContent =
+    (resumen.hay && resumenDeLaSerie(resumen.serie)) || t('statsEmptyTitle');
 }
 
 // ───────────── Ficha de un libro ─────────────
@@ -6520,18 +6510,21 @@ function mostrarNotaEmergente(anotacion, rectangulo) {
   ventana.style.left = '0';
   ventana.style.top = '0';
 
-  const margen = 8;
-  const ancho = ventana.offsetWidth;
-  const alto = ventana.offsetHeight;
-  const izquierda = Math.min(
-    window.innerWidth - ancho - margen,
-    Math.max(margen, rectangulo.left),
-  );
-  let arriba = rectangulo.top - alto - margen;
-  if (arriba < margen) arriba = rectangulo.bottom + margen;
-  arriba = Math.min(window.innerHeight - alto - margen, Math.max(margen, arriba));
-  ventana.style.left = `${izquierda}px`;
-  ventana.style.top = `${arriba}px`;
+  colocarJuntoAlTexto(ventana, rectangulo, { preferir: 'arriba' });
+}
+
+// Sitúa una ventana flotante junto al pasaje subrayado. Hay que medirla ya
+// visible y en el origen, porque su tamaño depende del texto que lleve dentro.
+function colocarJuntoAlTexto(elemento, rectangulo, opciones) {
+  const { izquierda, arriba } = vistaAnotaciones.colocarFlotante({
+    ancla: rectangulo,
+    ancho: elemento.offsetWidth,
+    alto: elemento.offsetHeight,
+    ventana: { ancho: window.innerWidth, alto: window.innerHeight },
+    ...opciones,
+  });
+  elemento.style.left = `${izquierda}px`;
+  elemento.style.top = `${arriba}px`;
 }
 
 function ocultarNotaEmergente() {
@@ -6552,17 +6545,11 @@ function abrirMenuNota(id, rectangulo) {
   menu.classList.remove('oculto');
   menu.style.left = '0';
   menu.style.top = '0';
-  const margen = 8;
-  const ancho = menu.offsetWidth;
-  const alto = menu.offsetHeight;
-  const izquierda = Math.min(
-    window.innerWidth - ancho - margen,
-    Math.max(margen, rectangulo.right - ancho),
-  );
-  let arriba = rectangulo.bottom + 6;
-  if (arriba + alto > window.innerHeight - margen) arriba = rectangulo.top - alto - 6;
-  menu.style.left = `${izquierda}px`;
-  menu.style.top = `${Math.max(margen, arriba)}px`;
+  // El menú cae debajo del subrayado y alineado por su derecha, donde está el
+  // botón que lo abre.
+  colocarJuntoAlTexto(menu, rectangulo, {
+    preferir: 'abajo', alinear: 'derecha', separacion: 6,
+  });
   $('accion-editar-nota').focus();
 }
 
@@ -6643,10 +6630,11 @@ async function guardarSeleccionComoAnotacion(nota = '', color = colorResaltadoGu
   if (!libroActual || !seleccionPendiente) return;
   const seleccion = seleccionPendiente;
   const ambito = ambitoAnotacionesActual();
+  const recortada = vistaAnotaciones.recortarNota(nota);
   anotacionesActuales = await anotaciones.crear(ambito, libroActual.id, {
     ...seleccion,
-    color: COLORES_RESALTADO.includes(color) ? color : 'amarillo',
-    ...(nota.trim() ? { nota: nota.trim().slice(0, 4000) } : {}),
+    color: vistaAnotaciones.colorValido(color, COLORES_RESALTADO),
+    ...(recortada ? { nota: recortada } : {}),
   });
   cancelarSeleccion();
   mostrarResaltados();
@@ -6723,7 +6711,7 @@ $('form-editar-nota').addEventListener('submit', async (evento) => {
   evento.preventDefault();
   const id = anotacionEditandoId;
   if (!id || !libroActual) return;
-  const nota = $('texto-editar-nota').value.trim().slice(0, 4000);
+  const nota = vistaAnotaciones.recortarNota($('texto-editar-nota').value);
   try {
     anotacionesActuales = await anotaciones.actualizar(
       ambitoAnotacionesActual(), libroActual.id, id, { nota, color: colorElegidoEditor() },
@@ -6774,21 +6762,19 @@ document.addEventListener('pointerdown', (evento) => {
   cerrarMenuNota();
 });
 
-// Orden de lectura: por página en PDF y por fecha de creación en EPUB (los
-// CFI no se pueden comparar como texto plano).
 function anotacionesOrdenadas() {
-  return [...anotacionesActuales].sort((a, b) =>
-    (a.paginas?.[0]?.pagina ?? 0) - (b.paginas?.[0]?.pagina ?? 0) ||
-    (a.creado ?? '').localeCompare(b.creado ?? ''));
+  return vistaAnotaciones.ordenarAnotaciones(anotacionesActuales);
 }
 
 function pintarAnotaciones(idEnfocado = null) {
   pintarNotaLibroLector();
   const lista = $('lista-anotaciones');
   lista.replaceChildren();
-  const consulta = normalizarBusqueda($('buscar-anotaciones').value.trim());
-  const ordenadas = anotacionesOrdenadas().filter((anotacion) =>
-    !consulta || normalizarBusqueda(`${anotacion.texto ?? ''} ${anotacion.nota ?? ''}`).includes(consulta));
+  const ordenadas = vistaAnotaciones.filtrarAnotaciones(
+    anotacionesOrdenadas(),
+    normalizarBusqueda($('buscar-anotaciones').value.trim()),
+    normalizarBusqueda,
+  );
   $('btn-exportar-anotaciones').classList.toggle('oculto',
     !anotacionesActuales.length && !(libroActual && progreso.notaDe(libroActual.id)));
   const sinAnotaciones = $('sin-anotaciones');
@@ -6819,7 +6805,7 @@ function pintarAnotaciones(idEnfocado = null) {
     ubicacion.append(punto, document.createTextNode(ubicacionAnotacion(anotacion)));
     ir.append(ubicacion);
     ir.addEventListener('click', async () => {
-      const destino = anotacion.cfi ?? anotacion.paginas?.[0]?.pagina;
+      const destino = vistaAnotaciones.destinoDeAnotacion(anotacion);
       if (destino !== undefined) await saltarConHistorial(destino).catch((error) => avisar(error.message, 5000));
       cerrarPanelAnotaciones();
     });
@@ -6866,35 +6852,25 @@ function ubicacionExportacion(anotacion) {
 function markdownAnotaciones() {
   const fecha = new Date().toLocaleDateString(idiomaActual(),
     { year: 'numeric', month: 'long', day: 'numeric' });
-  const lineas = [
-    `# ${t('exportHeader', { title: libroActual.titulo })}`,
-    '',
-    `${t('exportSource')} · ${fecha}`,
-    '',
-  ];
-  // La nota del libro va primero y entera: habla del libro, no de un pasaje,
-  // así que no encaja en la lista de subrayados que viene detrás.
-  const nota = progreso.notaDe(libroActual.id);
-  if (nota) lineas.push(`## ${t('bookNote')}`, '', nota, '');
-  for (const anotacion of anotacionesOrdenadas()) {
-    lineas.push('---', '');
-    const cita = (anotacion.texto ?? '').trim();
-    if (cita) {
-      for (const linea of cita.split('\n')) lineas.push(`> ${linea}`);
-      lineas.push('');
-    }
-    if (anotacion.nota) lineas.push(`**${t('note')}:** ${anotacion.nota.trim()}`, '');
-    const ubicacion = ubicacionExportacion(anotacion);
-    if (ubicacion) lineas.push(`*${ubicacion}*`, '');
-  }
-  return lineas.join('\n');
+  return vistaAnotaciones.markdownDeAnotaciones({
+    anotaciones: anotacionesOrdenadas(),
+    notaLibro: progreso.notaDe(libroActual.id),
+    ubicacionDe: ubicacionExportacion,
+    textos: {
+      cabecera: t('exportHeader', { title: libroActual.titulo }),
+      origen: `${t('exportSource')} · ${fecha}`,
+      notaDelLibro: t('bookNote'),
+      nota: t('note'),
+    },
+  });
 }
 
 function exportarAnotaciones() {
   // Con nota y sin subrayados también hay algo que llevarse.
   if (!libroActual || !(anotacionesActuales.length || progreso.notaDe(libroActual.id))) return;
-  const titulo = libroActual.titulo.replace(/[\\/:*?"<>|]/g, ' ').replace(/\s+/g, ' ').trim();
-  const nombre = `${titulo || 'libro'} - ${t('annotations').toLowerCase()}.md`;
+  const nombre = vistaAnotaciones.nombreDeArchivo(
+    libroActual.titulo, t('annotations').toLowerCase(),
+  );
   entregarDescarga(nombre, markdownAnotaciones(), 'text/markdown');
   avisar(t('annotationsExported'));
 }
