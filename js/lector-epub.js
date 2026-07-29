@@ -799,8 +799,24 @@ export class LectorEpub {
   cambiarTamano(delta) {
     this.tamano = Math.min(300, Math.max(60, this.tamano + delta));
     this.vista?.themes.fontSize(this.tamano + '%');
+    this.reajustarFormulas();
     this.programarIconosNotas();
     this.remedirPantallas();
+  }
+
+  // Las fórmulas dibujadas por MathJax crecen con la letra, pero llevan puesto
+  // un tope en píxeles para no salirse de la columna; con la letra nueva ese
+  // tope sobra o se queda corto, así que se recalcula. Se espera al reparto en
+  // columnas, que es lo que fija el ancho disponible.
+  reajustarFormulas() {
+    for (const contents of this.vista?.getContents?.() ?? []) {
+      const ventana = contents.window;
+      if (!ventana?.pagekeeperAjustarFormulas) continue;
+      ventana.requestAnimationFrame?.(() => ventana.pagekeeperAjustarFormulas?.());
+      // El repaginado de epub.js no es inmediato: una segunda pasada, ya con
+      // las columnas rehechas, es la que deja el ancho definitivo.
+      setTimeout(() => ventana.pagekeeperAjustarFormulas?.(), 300);
+    }
   }
 
   // ───────────── Ajustes tipográficos (fuente e interlineado) ─────────────

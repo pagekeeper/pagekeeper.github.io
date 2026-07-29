@@ -17,23 +17,31 @@ const soloMathML = document.documentElement.dataset.pagekeeperSoloMathml === '1'
 // eso deja media matriz fuera de la pantalla. MathJax dibuja un SVG con
 // proporciones propias, así que basta con encogerlo hasta el ancho disponible;
 // se hace con medidas en píxeles porque un max-width en porcentaje no llega a
-// aplicarse sobre el SVG una vez repartido el capítulo en columnas.
+// aplicarse sobre el SVG una vez repartido el capítulo en columnas. Un límite
+// en píxeles, eso sí, deja de valer en cuanto cambia el cuerpo de letra: el
+// dibujo mide en «ex» y crece con la letra, así que hay que volver a medir
+// (por eso el lector puede llamar aquí; ver `pagekeeperAjustarFormulas`).
 function ajustarFormulasAnchas() {
   for (const dibujo of document.querySelectorAll('mjx-container > svg')) {
+    // Antes de medir se suelta lo puesto la vez anterior, para partir siempre
+    // del tamaño que la fórmula pide con la letra de ahora.
+    dibujo.style.removeProperty('max-width');
+    dibujo.style.removeProperty('height');
     // Una fórmula aparte ocupa una línea entera y su propio contenedor mide lo
     // que la columna; una fórmula en mitad de un párrafo va en línea y no mide
     // nada, así que ahí el hueco lo da el bloque que la contiene.
     const marco = dibujo.parentElement;
     const hueco = marco.clientWidth || marco.parentElement?.clientWidth || 0;
-    if (!hueco) continue;
+    if (!hueco || dibujo.getBoundingClientRect().width <= hueco) continue;
     // Con «important», que epub.js limita ya todos los SVG del capítulo al
     // ancho de la columna entera y esa regla ganaría a un estilo en línea.
-    dibujo.style.removeProperty('max-width');
-    if (dibujo.getBoundingClientRect().width <= hueco) continue;
     dibujo.style.setProperty('max-width', `${hueco}px`, 'important');
     dibujo.style.setProperty('height', 'auto', 'important');
   }
 }
+
+// El lector avisa por aquí cuando cambia el cuerpo de letra.
+window.pagekeeperAjustarFormulas = ajustarFormulasAnchas;
 
 window.MathJax = {
   tex: soloMathML
