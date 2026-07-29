@@ -232,7 +232,9 @@ libros y sincronizar el progreso de lectura.
   El aumento se ve en tanto por ciento entre las dos lupas, y al pulsarlo se
   abre un panel con los ajustes automáticos, los aumentos más usados y un hueco
   para escribir el que se quiera. En EPUB ese porcentaje es el tamaño de la
-  letra.
+  letra. El aumento es de cada libro: el facsímil escaneado se queda al 160 %
+  sin que la novela de al lado crezca con él, y un libro que se estrena se abre
+  al 100 %, ajustado al ancho.
 - ✂️ **Recortar los márgenes**: el botón ✂ analiza el documento, detecta el
   blanco que rodea al texto y lo quita, de modo que en móvil la letra se ve
   bastante más grande. Cada página se comprueba por separado antes de
@@ -251,7 +253,9 @@ libros y sincronizar el progreso de lectura.
   al final de línea, con las preferencias guardadas localmente en cada
   dispositivo. Están en dos sitios que enseñan lo mismo: el botón de la letra
   del lector, para tocarlos mientras se lee, y **Ajustes → Lector**, para
-  encontrarlos sin abrir un libro. El partido viene activado y se aplica aunque el EPUB no lo
+  encontrarlos sin abrir un libro. El margen y la alineación son de cada libro
+  cuando se cambian leyendo; lo que se elige en **Ajustes → Lector** es el
+  punto de partida de los libros que aún no los han tocado. El partido viene activado y se aplica aunque el EPUB no lo
   contemple (lo hace el navegador con el diccionario del idioma del libro, que
   se toma de sus metadatos si el capítulo no lo declara); se puede dejar como
   venga en cada libro o desactivarlo.

@@ -63,12 +63,21 @@ function colorDeAnotacion(anotacion) {
   if (COLORES_RESALTADO.includes(anotacion?.color)) return anotacion.color;
   return anotacion?.nota ? 'azul' : 'amarillo';
 }
-const CLAVE_ZOOM_PDF = 'lector.zoomPdf';    // solo de este dispositivo
-const CLAVE_AJUSTE_PDF = 'lector.ajustePdf'; // ancho, página o zoom personalizado
+// Ajustes que son de cada libro, no de la aplicación: el aumento que pide un
+// facsímil escaneado no es el de una novela, y subir la letra de una no tiene
+// por qué agrandar las demás. Son mapas id de libro → valor; el libro que
+// nunca se ha tocado se abre con lo que venga de fábrica. Como los demás
+// ajustes de aspecto, son de este dispositivo: dependen de su pantalla.
+const CLAVE_ZOOM_LIBRO = 'lector.zoomLibro';   // { zoom, ajuste } de cada PDF
+const CLAVE_LETRA_LIBRO = 'lector.letraLibro'; // cuerpo de letra de cada EPUB
+const CLAVE_MARGEN_LIBRO = 'lector.margenLibro';
+const CLAVE_ALINEACION_LIBRO = 'lector.alineacionLibro';
+const CLAVES_AJUSTES_POR_LIBRO = [
+  CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
+];
 const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
 const CLAVE_INDICE_ABIERTO = 'lector.indiceAbierto'; // solo de este dispositivo
 const CLAVE_ANCHO_INDICE = 'lector.anchoIndice'; // solo de este dispositivo
-const CLAVE_LETRA_EPUB = 'lector.letraEpub'; // solo de este dispositivo
 const CLAVE_MARGEN_EPUB = 'lector.margenEpub'; // solo de este dispositivo
 const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
@@ -103,7 +112,8 @@ const CLAVES_PREFERENCIAS_COPIA = [
   // su pantalla y de la luz que haya delante, no del libro.
   'lector.idioma', CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
-  CLAVE_ZOOM_PDF, CLAVE_AJUSTE_PDF, CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_LETRA_EPUB, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
+  CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
+  CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_GUIONADO_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA,
   // Las dos secciones, no solo una: que la copia restaurara el pliegue del
@@ -133,6 +143,8 @@ const MARGEN_EPUB_INICIAL = 10;
 const MARGEN_EPUB_MAXIMO = 30;
 
 function margenEpubActual() {
+  const propio = ajusteDelLibro(CLAVE_MARGEN_LIBRO);
+  if (Number.isFinite(propio) && propio >= 0 && propio <= MARGEN_EPUB_MAXIMO) return propio;
   const guardado = localStorage.getItem(CLAVE_MARGEN_EPUB);
   // Migra las tres opciones de versiones anteriores a valores aproximados.
   const anterior = { completo: 0, medio: 10, estrecho: 22 }[guardado];
@@ -177,6 +189,8 @@ function interlineadoEpubGuardado() {
 }
 
 function alineacionEpubGuardada() {
+  const propia = ajusteDelLibro(CLAVE_ALINEACION_LIBRO);
+  if (propia === 'izquierda' || propia === 'libro') return propia;
   return localStorage.getItem(CLAVE_ALINEACION_EPUB) === 'izquierda' ? 'izquierda' : 'libro';
 }
 
@@ -188,19 +202,31 @@ function guionadoEpubGuardado() {
   return valor === 'libro' || valor === 'nunca' ? valor : 'auto';
 }
 
+// El aumento es de cada PDF: un libro sin ajuste propio se abre al 100 % y
+// ajustado al ancho, que es lo que trae la aplicación de fábrica.
 function zoomPdfGuardado() {
-  const valor = parseFloat(localStorage.getItem(CLAVE_ZOOM_PDF));
+  const valor = ajusteDelLibro(CLAVE_ZOOM_LIBRO)?.zoom;
   return valor >= 0.1 && valor <= 4 ? valor : 1;
 }
 
 function ajustePdfGuardado() {
-  const valor = localStorage.getItem(CLAVE_AJUSTE_PDF);
+  const valor = ajusteDelLibro(CLAVE_ZOOM_LIBRO)?.ajuste;
   return ['ancho', 'pagina', 'personalizado'].includes(valor) ? valor : 'ancho';
 }
 
+// Se guardan juntos porque juntos describen el aumento: el zoom a secas, sin
+// saber si es sobre el ancho o sobre la página, no dice nada.
+function guardarZoomPdf() {
+  guardarAjusteDelLibro(CLAVE_ZOOM_LIBRO, { zoom: lector.zoom, ajuste: lector.ajuste });
+}
+
 function letraEpubGuardada() {
-  const valor = parseInt(localStorage.getItem(CLAVE_LETRA_EPUB), 10);
+  const valor = ajusteDelLibro(CLAVE_LETRA_LIBRO);
   return valor >= 60 && valor <= 300 ? valor : 100;
+}
+
+function guardarLetraEpub() {
+  guardarAjusteDelLibro(CLAVE_LETRA_LIBRO, lectorEpub.tamano);
 }
 
 function recorteGuardado() {
@@ -218,6 +244,21 @@ function leerMapaLocal(clave) {
   } catch {
     return {};
   }
+}
+
+// Ajustes de cada libro: solo existen mientras hay uno abierto. Sin libro
+// (Ajustes → Lector) no hay a quién aplicárselos, y quien pregunte recibe
+// «nada guardado», que es lo que hace caer en el valor de partida.
+function ajusteDelLibro(clave, id = libroActual?.id) {
+  return id ? leerMapaLocal(clave)[id] : undefined;
+}
+
+function guardarAjusteDelLibro(clave, valor, id = libroActual?.id) {
+  if (!id) return;
+  const mapa = leerMapaLocal(clave);
+  if (valor === undefined || valor === null) delete mapa[id];
+  else mapa[id] = valor;
+  localStorage.setItem(clave, JSON.stringify(mapa));
 }
 
 function rotacionPdfDe(id) {
@@ -2075,7 +2116,11 @@ function colocarMenuFlotante(menu, ancla) {
   const abreArriba = y + menu.offsetHeight > window.innerHeight - margen
     && caja.top - menu.offsetHeight - 4 > margen;
   if (abreArriba) y = caja.top - menu.offsetHeight - 4;
-  else y = Math.min(y, Math.max(margen, window.innerHeight - menu.offsetHeight - margen));
+  // Pase lo que pase, dentro de la ventana: el menú flota en una capa fija que
+  // no se desplaza, así que si se fuera detrás del borde con su ancla no
+  // habría manera de alcanzarlo.
+  y = Math.min(Math.max(margen, y),
+    Math.max(margen, window.innerHeight - menu.offsetHeight - margen));
   menu.style.left = `${x}px`;
   menu.style.top = `${y}px`;
   menu.classList.toggle('abre-arriba', abreArriba);
@@ -4861,6 +4906,15 @@ async function subirLibroActual() {
       progreso.anotarPagina(destino, lector.pagina, lector.totalPaginas, extra);
     }
     await anotaciones.transferir('local', idLocal, cliente.base, destino).catch(() => null);
+    // El aumento y el aspecto que se le habían dado al libro viajan con él:
+    // subirlo a la nube no debería devolverlo al tamaño de fábrica.
+    for (const clave of CLAVES_AJUSTES_POR_LIBRO) {
+      const valor = ajusteDelLibro(clave, idLocal);
+      if (valor !== undefined) {
+        guardarAjusteDelLibro(clave, valor, destino);
+        guardarAjusteDelLibro(clave, null, idLocal);
+      }
+    }
 
     libroActual = {
       id: destino,
@@ -7063,11 +7117,10 @@ async function aplicarZoom(porcentaje) {
   if (epubAbierto()) {
     const acotado = Math.min(300, Math.max(60, Math.round(porcentaje)));
     lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
-    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+    guardarLetraEpub();
   } else {
     await lector.fijarPorcentaje(porcentaje);
-    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-    localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+    guardarZoomPdf();
     aplicarAparienciaAjustePdf();
   }
   pintarZoom();
@@ -7099,8 +7152,7 @@ $('btn-ancho-auto').addEventListener('click', alternarPanelZoom);
 $('zoom-ancho').addEventListener('click', async () => {
   cerrarPanelZoom();
   await lector.ajustar('ancho');
-  localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-  localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+  guardarZoomPdf();
   aplicarAparienciaAjustePdf();
   pintarZoom();
 });
@@ -7125,11 +7177,10 @@ document.addEventListener('click', (evento) => {
 async function ajustarZoom(direccion) {
   if (epubAbierto()) {
     lectorEpub.cambiarTamano(direccion * 10);
-    localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+    guardarLetraEpub();
   } else {
     await lector.cambiarZoom(direccion > 0 ? 1.2 : 1 / 1.2);
-    localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-    localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+    guardarZoomPdf();
     aplicarAparienciaAjustePdf();
   }
   pintarZoom();
@@ -7158,7 +7209,10 @@ const AJUSTES_TEXTO_EPUB = [
     aplicar: (valor) => lectorEpub.cambiarGuionado(valor),
   },
   {
+    // La alineación es de cada libro: hay ediciones que solo se leen bien
+    // justificadas y otras a las que la justificación les abre ríos.
     id: 'alineacion-epub', clave: CLAVE_ALINEACION_EPUB, inicial: 'libro',
+    porLibro: CLAVE_ALINEACION_LIBRO,
     leer: () => alineacionEpubGuardada(),
     aplicar: (valor) => lectorEpub.cambiarAlineacion(valor),
   },
@@ -7189,9 +7243,12 @@ for (const ajuste of AJUSTES_TEXTO_EPUB) {
   for (const mando of mandosDe(ajuste.id)) {
     mando.addEventListener('change', (evento) => {
       const valor = evento.target.value;
-      // Lo que viene de fábrica no se guarda: así una versión futura puede
-      // cambiar el valor de partida sin arrastrar el antiguo.
-      if (valor === ajuste.inicial) localStorage.removeItem(ajuste.clave);
+      // Con un libro delante, el cambio es suyo y de nadie más. Desde Ajustes,
+      // sin libro abierto, lo que se toca es el valor de partida de los que
+      // todavía no tienen el suyo, y ahí lo que viene de fábrica no se guarda:
+      // así una versión futura puede cambiarlo sin arrastrar el antiguo.
+      if (ajuste.porLibro && libroActual) guardarAjusteDelLibro(ajuste.porLibro, valor);
+      else if (valor === ajuste.inicial) localStorage.removeItem(ajuste.clave);
       else localStorage.setItem(ajuste.clave, valor);
       ajuste.aplicar(valor);
       pintarAjustesTexto(); // el otro mando enseña lo mismo
@@ -7215,15 +7272,20 @@ $('btn-texto').addEventListener('click', () => {
 for (const mando of mandosDe('margen-epub')) {
   mando.addEventListener('input', (evento) => {
     const valor = Number(evento.target.value);
-    localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
+    if (libroActual) guardarAjusteDelLibro(CLAVE_MARGEN_LIBRO, valor);
+    else localStorage.setItem(CLAVE_MARGEN_EPUB, String(valor));
     aplicarMargenEpub(valor);
   });
 }
 
 function restablecerAjustesTexto() {
   localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
+  // «Restablecer» devuelve todo a como viene de fábrica, así que el libro
+  // abierto también suelta lo que hubiera decidido por su cuenta.
+  guardarAjusteDelLibro(CLAVE_MARGEN_LIBRO, null);
   for (const ajuste of AJUSTES_TEXTO_EPUB) {
     localStorage.removeItem(ajuste.clave);
+    if (ajuste.porLibro) guardarAjusteDelLibro(ajuste.porLibro, null);
     ajuste.aplicar(ajuste.leer());
   }
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
@@ -7657,8 +7719,7 @@ $('btn-recorte').addEventListener('click', async () => {
 $('btn-pagina-completa').addEventListener('click', async () => {
   if (epubAbierto()) return;
   await lector.ajustar('pagina');
-  localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-  localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+  guardarZoomPdf();
   aplicarAparienciaAjustePdf();
 });
 
@@ -7734,6 +7795,17 @@ function migrarPapelAlTema() {
       localStorage.removeItem(clave);
     }
   } catch { /* sin almacenamiento no hay nada que migrar */ }
+}
+
+// El aumento del PDF y el cuerpo de letra del EPUB eran de la aplicación
+// entera; ahora son de cada libro y arrancan al 100 %. Los valores sueltos que
+// quedaran de antes ya no los lee nadie, así que se retiran.
+function limpiarAjustesGlobalesViejos() {
+  try {
+    for (const clave of ['lector.zoomPdf', 'lector.ajustePdf', 'lector.letraEpub']) {
+      localStorage.removeItem(clave);
+    }
+  } catch { /* sin almacenamiento no hay nada que limpiar */ }
 }
 
 // ── Imágenes en su color con el tema oscuro ──
@@ -7963,8 +8035,7 @@ async function terminarPellizco() {
   contenedor.style.transformOrigin = '';
   if (Math.abs(factor - 1) < 0.03) return;
   await lector.cambiarZoom(factor);
-  localStorage.setItem(CLAVE_ZOOM_PDF, String(lector.zoom));
-  localStorage.setItem(CLAVE_AJUSTE_PDF, lector.ajuste);
+  guardarZoomPdf();
   aplicarAparienciaAjustePdf();
   const area = $('area-lectura');
   area.scrollLeft = (scrollLeft + centroX) * factor - centroX;
@@ -8256,7 +8327,7 @@ function pellizcarEpub(puntos) {
 function terminarPellizcoEpub() {
   if (!pellizcoEpub) return;
   pellizcoEpub = null;
-  localStorage.setItem(CLAVE_LETRA_EPUB, String(lectorEpub.tamano));
+  guardarLetraEpub();
   pintarZoom();
   ultimoPellizco = Date.now(); // que el gesto de página no remate el pellizco
 }
@@ -8338,6 +8409,7 @@ document.addEventListener('idioma-cambiado', () => {
 });
 iniciarIdioma();
 migrarPapelAlTema();
+limpiarAjustesGlobalesViejos();
 // Las estadísticas de la primera versión vivían aparte y sin dueño: al
 // registro, bajo el identificador de este dispositivo, para que sumen con las
 // de los demás en lugar de perderse.
