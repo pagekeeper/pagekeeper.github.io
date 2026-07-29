@@ -2,7 +2,7 @@
 // dispositivo; si no existe se usa el idioma preferido del navegador.
 
 const CLAVE_IDIOMA = 'lector.idioma';
-const IDIOMAS = ['es', 'ca', 'en'];
+const IDIOMAS = ['es', 'ca', 'en', 'fr'];
 
 const textos = {
   es: {
@@ -926,6 +926,9 @@ const textos = {
     textAlignment: 'Alignment', bookAlignment: 'Book alignment',
     unjustifiedAlignment: 'Unjustified',
   },
+  // El francés se traduce poco a poco: lo que falta aquí sale en inglés,
+  // ver el "??" de t() más abajo.
+  fr: {},
 };
 
 const ayudas = {
@@ -1927,7 +1930,7 @@ function resolverIdioma() {
 }
 
 export function t(clave, valores = {}) {
-  const texto = textos[idioma]?.[clave] ?? textos.es[clave] ?? clave;
+  const texto = textos[idioma]?.[clave] ?? textos.en[clave] ?? textos.es[clave] ?? clave;
   return texto.replace(/\{(\w+)\}/g, (_, nombre) => valores[nombre] ?? '');
 }
 
@@ -1965,7 +1968,7 @@ export function aplicarIdioma(nuevo) {
   });
   document.querySelectorAll('[data-i18n-ayuda]').forEach((elemento) => {
     if (!originales.has(elemento)) originales.set(elemento, elemento.innerHTML);
-    elemento.innerHTML = idioma === 'es' ? originales.get(elemento) : ayudas[idioma];
+    elemento.innerHTML = idioma === 'es' ? originales.get(elemento) : (ayudas[idioma] ?? ayudas.en);
   });
   document.querySelectorAll('[data-i18n-title]').forEach((elemento) => {
     elemento.title = t(elemento.dataset.i18nTitle);
