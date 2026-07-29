@@ -8165,10 +8165,23 @@ $('area-lectura').addEventListener('touchcancel', () => { if (gesto) limpiarGest
 // El PDF se amplía escalando el lienzo, pero un EPUB no tiene lienzo: lo que
 // se cambia es el cuerpo del texto y el capítulo se recompone. Recomponerlo en
 // cada movimiento del dedo sería lentísimo, así que el gesto se traduce a
-// saltos de un 10 %, los mismos que dan los botones de zoom, y solo se aplica
-// cuando el pellizco ha crecido lo bastante como para justificar uno.
+// saltos de un 10 %, los mismos que dan los botones de zoom.
+//
+// El gesto va amortiguado. Llevar la letra al mismo ritmo que se separan los
+// dedos la disparaba: en una pantalla de móvil un pellizco corriente dobla la
+// distancia enseguida, y con ella el cuerpo del texto, sin que hubiera manera
+// de pararse en un tamaño concreto. Con la raíz cuadrada hay que separar los
+// dedos al cuádruple para doblar la letra, que es lo que deja afinarla.
+//
+// Y va de un salto en un salto, con una pausa entre ellos y una zona muerta
+// antes del siguiente: cada cambio recompone el capítulo entero, así que el
+// tamaño sube o baja al ritmo que el lector puede seguir, y no salta adelante
+// y atrás por un temblor del dedo.
 
 const SALTO_LETRA = 10;
+const SUAVIZADO_PELLIZCO = 0.5;
+const ZONA_MUERTA = 0.75;
+const ESPERA_ENTRE_SALTOS = 180;
 let pellizcoEpub = null;
 
 function distanciaEntre(puntos) {
@@ -8177,14 +8190,19 @@ function distanciaEntre(puntos) {
 
 function pellizcarEpub(puntos) {
   if (!pellizcoEpub) {
-    pellizcoEpub = { inicial: distanciaEntre(puntos), tamano: lectorEpub.tamano };
+    pellizcoEpub = { inicial: distanciaEntre(puntos), tamano: lectorEpub.tamano, ultimo: 0 };
     return;
   }
-  const factor = distanciaEntre(puntos) / (pellizcoEpub.inicial || 1);
-  // Se redondea al salto más cercano para no recomponer por cada píxel.
-  const objetivo = Math.round(pellizcoEpub.tamano * factor / SALTO_LETRA) * SALTO_LETRA;
-  const acotado = Math.min(300, Math.max(60, objetivo));
+  const bruto = distanciaEntre(puntos) / (pellizcoEpub.inicial || 1);
+  const objetivo = pellizcoEpub.tamano * bruto ** SUAVIZADO_PELLIZCO;
+  const diferencia = objetivo - lectorEpub.tamano;
+  if (Math.abs(diferencia) < SALTO_LETRA * ZONA_MUERTA) return;
+  const ahora = Date.now();
+  if (ahora - pellizcoEpub.ultimo < ESPERA_ENTRE_SALTOS) return;
+  const paso = Math.sign(diferencia) * SALTO_LETRA;
+  const acotado = Math.min(300, Math.max(60, lectorEpub.tamano + paso));
   if (acotado === lectorEpub.tamano) return;
+  pellizcoEpub.ultimo = ahora;
   lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
 }
 
