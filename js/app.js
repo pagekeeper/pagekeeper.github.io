@@ -81,6 +81,10 @@ const CLAVE_PLEGADA_NUBE = 'lector.plegadaNube';   // solo de este dispositivo
 const CLAVE_PLEGADA_LOCAL = 'lector.plegadaLocal'; // solo de este dispositivo
 const CLAVE_AVISO_CONFIG_CERRADO = 'lector.avisoConfigCerrado'; // solo de este dispositivo
 const CLAVE_EJEMPLOS_PRECARGADOS = 'lector.ejemplosPrecargados'; // solo de este dispositivo
+// El aviso de los ejemplos precargados: '1' mientras siga teniendo sentido
+// enseñarlo, y se borra en cuanto el usuario dice que no quiere verlo más o
+// se queda sin ejemplos en la biblioteca.
+const CLAVE_AVISO_EJEMPLOS = 'lector.avisoEjemplos'; // solo de este dispositivo
 const CLAVE_CONTINUAR_OCULTOS = 'lector.continuarOcultos';
 // Ausente o distinta de '1' significa visible: el bloque se enseña salvo que
 // se pida lo contrario, así que no hay nada que guardar en el caso normal.
@@ -774,6 +778,11 @@ $('btn-cerrar-aviso-config').addEventListener('click', () => {
   $('aviso-sin-config').classList.add('oculto');
 });
 
+// El aviso de los ejemplos: la «x» lo aparta hasta el próximo arranque y el
+// botón lo retira definitivamente.
+$('btn-cerrar-aviso-ejemplos').addEventListener('click', () => ocultarAvisoEjemplos(false));
+$('btn-ocultar-aviso-ejemplos').addEventListener('click', () => ocultarAvisoEjemplos(true));
+
 // ── Exportar / importar configuración por enlace ──
 // El enlace lleva la configuración en el fragmento (#cfg=…), que nunca se
 // envía al servidor: solo lo lee el lector al abrirse.
@@ -1378,7 +1387,44 @@ async function precargarLibrosEjemplo() {
       asegurarMiniatura(libro.id, formatoDe(ejemplo.nombre), datos);
     }
     localStorage.setItem(CLAVE_EJEMPLOS_PRECARGADOS, '1');
+    // Los ejemplos aparecen sin que nadie los haya pedido: conviene explicar
+    // de dónde salen y que se pueden borrar.
+    localStorage.setItem(CLAVE_AVISO_EJEMPLOS, '1');
   } catch { /* sin conexión: se reintentará en el próximo arranque */ }
+}
+
+// Cerrar el aviso con la «x» solo vale para esta visita; «No volver a mostrar»
+// es lo que lo retira para siempre.
+let avisoEjemplosCerrado = false;
+
+function nombresLibrosEjemplo() {
+  return new Set(Object.values(LIBROS_EJEMPLO).flat().map((ejemplo) => ejemplo.nombre));
+}
+
+// El aviso acompaña a los ejemplos: si ya no queda ninguno en la biblioteca
+// (los ha borrado, que es justo lo que el aviso explica cómo hacer) no hay
+// nada que contar y no volverá a aparecer.
+function actualizarAvisoEjemplos(librosLocales, inventarioFiable) {
+  const aviso = $('aviso-ejemplos');
+  if (localStorage.getItem(CLAVE_AVISO_EJEMPLOS) !== '1') {
+    aviso.classList.add('oculto');
+    return;
+  }
+  if (inventarioFiable) {
+    const ejemplos = nombresLibrosEjemplo();
+    if (!librosLocales.some((libro) => ejemplos.has(libro.nombre))) {
+      localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
+      aviso.classList.add('oculto');
+      return;
+    }
+  }
+  aviso.classList.toggle('oculto', avisoEjemplosCerrado);
+}
+
+function ocultarAvisoEjemplos(paraSiempre) {
+  avisoEjemplosCerrado = true;
+  if (paraSiempre) localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
+  $('aviso-ejemplos').classList.add('oculto');
 }
 
 function mostrarLibroEjemplo(mostrar) {
@@ -3750,6 +3796,7 @@ async function cargarLibrosLocales() {
     ]);
     inventarioFiable = true;
   } catch { /* IndexedDB no disponible (p. ej. navegación privada) */ }
+  actualizarAvisoEjemplos(todos, inventarioFiable);
   // Restos de un borrado que se quedó a medias: aquí el inventario manda y no
   // hay que esperar a nada (ver progreso.conciliarLocales).
   progreso.conciliarLocales(
