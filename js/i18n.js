@@ -2219,6 +2219,524 @@ const ayudas = {
 <div class="tarjeta"><h2>Privacy</h2><p>There is no intermediary server: your browser connects directly to your cloud. The URL, username and password are stored only in this browser.</p></div>
     </div>
   `,
+
+  fr: `
+    <div class="pestanas" data-grupo="ayuda" role="tablist"
+      aria-label="Sections de l’aide">
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-empezar" data-panel="empezar"
+        aria-selected="true">Premiers pas</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+        aria-selected="false" tabindex="-1">Bibliothèque</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-lector" data-panel="lector"
+        aria-selected="false" tabindex="-1">Lecteur</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-nube" data-panel="nube"
+        aria-selected="false" tabindex="-1">Nuage</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+        aria-selected="false" tabindex="-1">Confidentialité</button>
+    </div>
+
+    <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+      aria-label="Premiers pas" tabindex="0">
+<div class="tarjeta"><h2>Que fait PageKeeper ?</h2><p>Il lit les livres PDF et EPUB, formules mathématiques comprises, sur un téléphone, une tablette ou un ordinateur, et se souvient de votre position de lecture.</p><ul class="lista-ayuda"><li><strong>Ajouter un livre depuis votre appareil (bouton « + ») :</strong> ça
+        fonctionne aussitôt, sans compte ni réglage. Le livre est conservé dans la
+        bibliothèque de ce navigateur et l’application se souvient d’où vous en étiez
+        resté. Le seul hic : tout reste uniquement sur cet appareil. Vous pouvez aussi
+        déposer un ou plusieurs PDF ou EPUB sur la section locale.</li><li><strong>Ajouter un dossier entier :</strong> le bouton de dossier avec la flèche (et déposer un dossier sur la section) copie tous les PDF et EPUB qu’il contient, sous-dossiers compris, et reconstruit la même arborescence dans votre bibliothèque. Cela fonctionne de la même façon avec le nuage, où les dossiers sont créés sur le serveur.</li><li><strong>Connecter un nuage (WebDAV) :</strong> vos livres et votre
+        position de lecture se synchronisent sur tous vos appareils. Cela demande
+        d’abord un peu de configuration, expliquée plus bas.</li></ul></div>
+
+<div class="tarjeta"><h2>Clair, sépia et sombre</h2><p>Le bouton de thème dans l’en-tête parcourt quatre états à chaque pression : <strong>celui du système</strong> (cercle mi-clair mi-sombre), <strong>clair</strong> (soleil), <strong>sépia</strong> (tasse) et <strong>sombre</strong> (lune). L’icône indique lequel est actif, et votre choix est mémorisé dans ce navigateur. Il démarre sur le thème du système, pour que l’application suive le reste de l’appareil.</p><p class="ayuda">Le thème, c’est aussi le papier sur lequel vous lisez : le clair est un papier blanc, le sépia le ton chaud des liseuses à encre électronique et le sombre le mode nuit de la page.</p></div>
+    </div>
+
+    <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+      aria-label="Bibliothèque" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Vos livres en un coup d’œil</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Continuer la lecture</summary>
+          <p>
+        votre dernière lecture se trouve en haut. Sur un grand écran, les lectures récentes
+        apparaissent toutes ensemble sous forme de cartes avec une grande couverture et le
+        titre complet ; sur un écran étroit, elles se déplient sous « Voir plus ». Vous
+        pouvez retirer celles dont vous ne voulez plus ; dans
+        <em>⚙️ Réglages → Bibliothèque</em>, vous choisissez combien en afficher et pouvez
+        désactiver complètement l’encadré, si vous préférez aller droit à vos livres. Il
+        n’apparaît que sur l’écran d’accueil : entrer dans un dossier le range pour faire
+        de la place à son contenu. Un livre retiré revient dès que vous le rouvrez. Les
+        livres terminés et les fichiers qui n’existent plus restent hors de cette liste.
+        Le menu « ⋯ » de chaque carte propose les mêmes actions que la bibliothèque
+        (renommer, déplacer, envoyer ou enregistrer, hors ligne, supprimer…), pour ne
+        jamais avoir à faire défiler la page à la recherche du livre sur lequel agir.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Tri et états</summary>
+          <p>
+        vous pouvez trier par lecture récente, titre, auteur ou progression, filtrer les
+        livres en attente, en cours ou terminés, et marquer n’importe lequel comme
+        terminé. Touchez l’étiquette « Terminé » elle-même pour la retirer ; elle
+        disparaît aussi toute seule si vous rouvrez le livre, sans perdre votre
+        progression. Un livre à 0 % compte comme en attente même s’il a déjà été ouvert.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Couvertures</summary>
+          <p>
+        elles sont créées automatiquement (la couverture de l’EPUB ou la première page du
+        PDF) et montrent la progression de lecture de chaque livre. Le champ de recherche
+        de la bibliothèque filtre par nom de fichier, titre, auteur, format et autres
+        métadonnées disponibles. Sur mobile, un appui long sur un titre tronqué l’affiche
+        en entier.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Résumé du livre</summary>
+          <p>
+        si le fichier contient un résumé dans ses métadonnées (la description de l’EPUB ou
+        le sujet du PDF), il apparaît dans un petit encadré au survol de la carte, aussi
+        bien dans « Continuer la lecture » que dans les deux bibliothèques, et aussi sous
+        le titre dans le menu « ⋯ », ce qui permet de le lire sur un écran tactile.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Livre d’exemple</summary>
+          <p>
+        quand la bibliothèque est complètement vide, vous pouvez ajouter et ouvrir un
+        livre d’exemple dans la langue de l’interface. Ensuite, il se comporte comme
+        n’importe quel autre livre local.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Dossiers</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Dossiers sur cet appareil</summary>
+          <p>
+        la section « Sur cet appareil » peut elle aussi être organisée en dossiers avec le
+        bouton de dossier plus. Touchez un dossier pour l’ouvrir (le chemin apparaît
+        au-dessus de la liste pour pouvoir revenir en arrière), renommez-le ou
+        supprimez-le depuis son menu « ⋯ », et déplacez un livre avec son option
+        « Déplacer vers un autre dossier » ou en le faisant glisser sur le dossier. Les
+        dossiers se déplacent aussi : utilisez « Déplacer le dossier » ou faites-les
+        glisser sur un autre dossier ou sur une étape du chemin, et tout leur contenu
+        voyage avec eux. Déplacer un livre ici ne change rien d’autre : il garde sa page,
+        ses signets et ses annotations. Les nouveaux livres arrivent dans le dossier
+        ouvert, et le champ de recherche les trouve toujours où qu’ils soient.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Dossiers dans le nuage</summary>
+          <p>
+        la section « Dans le nuage » montre les sous-dossiers de votre dossier et permet
+        d’y entrer (le chemin apparaît au-dessus de la liste pour pouvoir revenir en
+        arrière). Vous pouvez créer de nouveaux dossiers, les renommer ou les supprimer
+        depuis leur menu « ⋯ » (en supprimer un retire aussi son contenu) et déplacer un
+        livre d’un dossier à un autre avec son bouton de déplacement ou en le faisant
+        glisser sur un dossier de la liste (ou sur une étape du chemin), en conservant la
+        progression et les signets. Les dossiers se déplacent aussi : utilisez « Déplacer
+        le dossier » ou faites-les glisser sur un autre dossier ou sur une étape du
+        chemin, et tout leur contenu voyage avec eux. Ni le déplacement ni le
+        renommage ne coûtent rien à ce qu’ils contiennent : les livres à l’intérieur
+        gardent leur page, leurs signets, leurs annotations et leur note, tout comme les
+        sous-dossiers.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Télécharger un dossier entier</summary>
+          <p>
+        le menu « ⋯ » de chaque dossier l’enregistre en entier, avec ses sous-dossiers et
+        tous les livres qu’il contient. Sur Chrome, Edge et Opera pour ordinateur, vous
+        choisissez où le placer et il est copié tel quel ; sur les autres navigateurs
+        (Firefox, Safari, mobile), il est téléchargé sous forme d’un unique fichier
+        ZIP.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Revenir en arrière</summary>
+          <p>
+        le bouton (ou le geste) de retour du navigateur remonte d’un dossier au lieu de
+        quitter PageKeeper : depuis un sous-dossier, il va au précédent, et depuis la
+        racine, il quitte bel et bien l’application. Il ferme aussi le lecteur, l’aide ou
+        les réglages.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Déplacer, enregistrer et supprimer</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Envoyer dans le nuage</summary>
+          <p>
+        une fois un nuage configuré, le bouton nuage de chaque livre local le copie dans
+        votre dossier distant en gardant la page où vous en étiez ; vous pouvez aussi
+        envoyer un fichier avec le « + » ou le déposer sur la section « Dans le nuage »,
+        et vous pouvez faire glisser un livre depuis « Sur cet appareil » vers le nuage ou
+        vers un de ses dossiers. Tout est envoyé dans le dossier actuellement ouvert.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Déplacer des livres entre bibliothèques</summary>
+          <p>
+        un livre du nuage peut être stocké sur l’appareil avec « Enregistrer sur cet
+        appareil » ou en le faisant glisser sur la section locale (ou l’un de ses
+        dossiers) ; et un livre de l’appareil monte dans le nuage avec son propre bouton
+        ou en le faisant glisser sur « Dans le nuage ». Dans les deux cas, il s’agit d’une
+        copie : l’original reste en place et chaque bibliothèque garde sa propre position
+        de lecture.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Disponible hors ligne</summary>
+          <p>
+        le bouton nuage avec flèche enregistre une copie gérée du livre distant. Si le
+        réseau tombe en panne, PageKeeper l’affiche et l’ouvre automatiquement. Le bouton
+        vert retire uniquement cette copie sans supprimer le livre du nuage.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Télécharger</summary>
+          <p>
+        le bouton de téléchargement enregistre une copie du fichier (PDF ou EPUB) sur
+        l’appareil, qu’il vienne du nuage ou de la bibliothèque locale.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Supprimer</summary>
+          <p>
+        la corbeille de chaque livre le supprime (du serveur s’il s’agit d’un livre du
+        nuage, ou de cet appareil s’il est local).</p>
+        </details>
+        <details class="punto-ayuda">
+            <summary>Statistiques de lecture</summary>
+            <p>Le bouton graphique dans l’en-tête ouvre le temps que vous passez à lire :
+          le total, celui d’aujourd’hui et de cette semaine, combien de jours d’affilée
+          vous avez tenu, une barre pour chacun des trente derniers jours, et les livres
+          qui prennent le plus de votre temps. Seul le temps avec un livre ouvert et les
+          pages qui tournent est compté, donc laisser l’onglet ouvert n’ajoute rien.</p>
+            <p>Avec un nuage configuré, les chiffres additionnent tous vos appareils :
+          le temps de chaque livre porte la répartition en dessous (« cet appareil 2 h ·
+          Chrome sur Linux 45 min »), pour savoir combien de temps il vous a pris même en
+          le lisant par bouts sur chaque appareil, et un jour où vous avez lu sur deux
+          d’entre eux ne compte que pour un seul jour de la série. Tout cela voyage avec
+          votre position de lecture, sur votre propre serveur, et n’est jamais envoyé
+          ailleurs. Vous pouvez le supprimer quand vous voulez depuis ce même écran — il
+          est supprimé sur tous les appareils — sans toucher à vos livres ni à votre
+          progression.</p>
+            <p>Pour un seul livre, c’est encore plus à portée de main : pendant la
+          lecture, la barre du bas commence par le temps que vous y avez passé, et la
+          toucher ouvre sa fiche, avec ce que vous avez lu, les pages, le rythme, ce
+          qu’il reste et la répartition entre appareils. La même fiche se trouve dans le
+          menu « ⋯ » du livre, dans la bibliothèque.</p>
+          </details>
+          <details class="punto-ayuda">
+          <summary>Importer et exporter</summary>
+          <p>
+        le bouton de dossier avec flèche dans l’en-tête ouvre un écran où vous pouvez
+        ajouter des livres et télécharger ou restaurer des copies ZIP. Il y a une copie
+        pour les livres « Sur cet appareil » et une autre pour toute la bibliothèque
+        WebDAV, sous-dossiers compris. Les deux conservent la progression, les signets et
+        les annotations ; aucune ne contient votre mot de passe. Pour enregistrer l’URL,
+        l’utilisateur et le mot de passe d’application séparément, utilisez
+        <em>Réglages → Transférer la configuration vers un autre appareil</em>.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+      aria-label="Lecteur" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Afficher la page</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Mode de lecture</summary>
+          <p>
+        page par page (comme un livre) ou pages continues avec défilement vertical.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Tourner les pages</summary>
+          <p>
+        faites glisser latéralement et la page suit votre doigt, montrant vers où elle se
+        dirige ; changez d’avis à mi-chemin et elle revient en glissant. Toucher les
+        marges gauche et droite, ou utiliser les flèches et la barre d’espace, fait faire
+        à la page ce même mouvement toute seule, pour le voir aussi sur un ordinateur.
+        Dans les PDF, la page voisine apparaît vraiment en partie. Avec les pages
+        continues, ou en zoomant, c’est le défilement qui prend le relais et il n’y a
+        pas d’animation.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Deux pages côte à côte</summary>
+          <p>
+        en mode page par page, le bouton à deux colonnes affiche les pages par paires
+        (idéal sur les grands écrans) ; un autre toucher revient à une seule page.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Faire pivoter la page (PDF uniquement)</summary>
+          <p>
+        le bouton de rotation tourne le document de 90° à chaque pression, pratique pour
+        les scans de travers ou au format paysage. La rotation est mémorisée par livre sur
+        cet appareil.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Plein écran</summary>
+          <p>
+        un toucher au centre de la page masque la barre du haut pour lire sans
+        distraction ; un autre toucher la fait réapparaître.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ajuster et zoomer</summary>
+          <p>
+        les trois contrôles de zoom sont regroupés : les deux loupes, qui agrandissent et
+        réduisent, et le niveau de zoom en pourcentage entre les deux. Toucher ce nombre
+        ouvre un panneau avec « Ajuster à la largeur », « Ajuster la page entière », les
+        niveaux de zoom les plus utilisés et une case où saisir n’importe quel autre
+        (205 %, si c’est ce qui vous convient). Dans les PDF, le pourcentage est celui de
+        la page — 100 % est sa taille naturelle, donc l’ajuster à la largeur peut donner
+        n’importe quel chiffre — et dans les EPUB, celui du texte. En zoomant, vous
+        pouvez faire glisser la page avec la souris ou le doigt, et sur les écrans
+        tactiles, pincer pour zoomer : dans les PDF cela change le zoom, dans les EPUB la
+        taille du texte.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Temps restant</summary>
+          <p>
+        après quelques minutes de lecture, une estimation du temps restant pour finir le
+        livre apparaît, calculée à partir de votre rythme réel sur cet appareil.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Texte et couleur</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Réglages du texte (EPUB uniquement)</summary>
+          <p>
+        le bouton de la lettre permet de choisir la police (celle du livre, avec ou sans
+        empattements), l’alignement, l’interligne, la marge des deux côtés et si les mots
+        se coupent en fin de ligne. Les mêmes réglages se trouvent dans <em>⚙️ Réglages →
+        Lecteur</em>, pour les voir et les changer sans ouvrir de livre ; les deux
+        endroits affichent toujours la même chose. La coupure des mots est activée par
+        défaut : sur un écran étroit, et encore plus avec un texte justifié, c’est ce qui
+        évite les grands espaces entre les mots. Le navigateur s’en charge selon la
+        langue du livre, donc elle peut ne pas être disponible pour toutes les langues ;
+        vous pouvez aussi la laisser comme dans chaque livre, ou ne jamais couper.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Papier du livre</summary>
+          <p>
+        le papier, c’est le thème de l’application : il n’y a pas deux réglages à
+        synchroniser. Le bouton de thème, dans l’en-tête de la bibliothèque, parcourt
+        quatre états — celui du système, clair, sépia (chaud, plus reposant pour les
+        longues séances) et sombre — et change à la fois la page du livre et tout le
+        reste. Dans les EPUB, les couleurs du texte changent, pour que les illustrations
+        restent intactes ; dans les PDF, qui sont déjà des images composées, c’est toute
+        la page qui est teintée.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Images avec le thème sombre (PDF uniquement)</summary>
+          <p>
+        quand la page est inversée, les photos et les logos se retrouvent en négatif. Le
+        bouton image, qui apparaît dans la barre du lecteur en lisant un PDF avec le
+        thème sombre, leur rend leur couleur. Ce choix est mémorisé d’un livre à l’autre.
+        Les pages numérisées ne sont pas concernées : là, toute la feuille est une image,
+        et lui rendre sa couleur laisserait le papier blanc, ce qu’on cherche justement à
+        éviter la nuit.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Se repérer dans le livre</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Aller à un endroit précis</summary>
+          <p>
+        touchez l’indicateur de page (ou le pourcentage dans les EPUB) pour y sauter
+        directement.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Sommaire et miniatures</summary>
+          <p>
+        le bouton de panneau ouvre ce que le livre contient, et son libellé indique quoi :
+        le sommaire, les miniatures des pages, ou les deux. À l’ouverture, le chapitre où
+        vous êtes est mis en évidence et visible, sans avoir à le chercher. Sur un grand
+        écran, le panneau latéral reste ouvert d’un livre à l’autre jusqu’à ce que vous le
+        fermiez.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Signets</summary>
+          <p>
+        le bouton de signet enregistre la position actuelle pour pouvoir y revenir
+        quand vous voulez. Vous pouvez lui donner un nom et le modifier plus tard. Dans
+        les livres du nuage, les signets se synchronisent entre appareils avec la
+        position de lecture.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Revenir après un saut</summary>
+          <p>
+        après avoir utilisé le sommaire, la recherche ou le sélecteur de position, des
+        boutons apparaissent pour revenir en arrière ou avancer à nouveau. Sur mobile,
+        ils se trouvent de chaque côté de l’indicateur de page ou de pourcentage.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Rechercher dans le livre</summary>
+          <p>
+        la loupe trouve des mots ou des phrases, vous emmène exactement à l’endroit voulu
+        et le laisse surligné quelques secondes pour le repérer d’un coup d’œil.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Annoter et écouter</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Surlignages et notes</summary>
+          <p>
+        sélectionnez du texte dans un PDF ou un EPUB et choisissez une couleur de
+        surlignage (jaune, vert, bleu ou rose), ou ajoutez une note. La couleur peut être
+        changée plus tard en modifiant l’annotation. Le bouton marqueur affiche toutes
+        les annotations du livre. Dans les livres du nuage, elles se synchronisent même
+        en travaillant hors ligne.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Exporter les annotations</summary>
+          <p>
+        le bouton de téléchargement dans le panneau des annotations enregistre tous les
+        surlignages et notes du livre dans un fichier Markdown (.md), avec leur page ou
+        position, prêt pour vos notes ou pour des applications comme Obsidian.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Lecture à voix haute</summary>
+          <p>
+        le bouton haut-parleur lit le livre avec la voix du navigateur, en commençant à
+        la page actuelle. La phrase en cours de lecture est surlignée pour la suivre des
+        yeux, et la page tourne toute seule une fois que la voix atteint la fin de ce qui
+        est à l’écran, pour pouvoir suivre en même temps. Dans les EPUB, quand une phrase
+        commence sur une page et se termine sur la suivante, la page tourne en plein
+        milieu de la phrase, à peu près là où en est la voix, pour ne pas rester à
+        regarder un fragment pendant que le reste se lit. Le panneau s’efface au début de
+        la lecture pour ne pas cacher le texte : pendant qu’elle joue, un petit contrôle
+        en bas permet de mettre en pause, reprendre et arrêter, et sur un grand écran, le
+        bouton haut-parleur lui-même permet de mettre en pause et de reprendre. En
+        reprenant, la phrase interrompue est relue depuis le début. Les réglages (voix et
+        vitesse) se rouvrent depuis le menu « ⋯ ». Tourner une page à la main arrête la
+        lecture. Cela ne fonctionne pas sur les PDF numérisés sans texte.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>À propos des PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Texte et liens du PDF</summary>
+          <p>
+        vous pouvez sélectionner et copier le texte, et les liens propres au PDF
+        fonctionnent : les liens internes (sommaire, références) sautent à leur page et
+        les liens externes s’ouvrent dans un autre onglet.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>PDF protégés</summary>
+          <p>
+        si un PDF est chiffré, PageKeeper demande son mot de passe pour l’ouvrir. Le mot
+        de passe n’est pas conservé.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+      aria-label="Nuage" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Qu’est-ce que le WebDAV ?</h2>
+        <p>C’est un moyen standard d’accéder à des fichiers stockés sur un serveur par
+        internet, comme s’il s’agissait d’un dossier distant. PageKeeper l’utilise pour
+        lire vos livres et pour enregistrer votre position de lecture dans votre propre
+        nuage, afin de pouvoir continuer depuis un autre appareil.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Important : tous les nuages ne fonctionnent pas</h2>
+        <p>Le lecteur s’exécute dans le navigateur et, par sécurité, celui-ci
+        n’autorise une connexion à un serveur que si ce serveur le permet
+        expressément (une règle technique appelée <em>CORS</em>). Cela écarte presque
+        tous les services commerciaux :</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive :</strong> non, ils
+          n’offrent pas de WebDAV utilisable de cette façon.</li>
+          <li><strong>Koofr, pCloud, Yandex et similaires :</strong> ils ont
+          bien du WebDAV, mais bloquent l’accès depuis les pages web, et vous ne
+          pouvez pas y changer quoi que ce soit car le serveur ne vous appartient
+          pas.</li>
+          <li><strong>Nextcloud ou ownCloud avec l’autorisation activée :</strong>
+          en pratique, c’est la seule option qui fonctionne pour la synchronisation.</li>
+        </ul>
+      </div>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Je n’ai pas mon propre serveur (le cas le plus fréquent)</summary>
+        <p>Presque personne n’a son propre serveur, et ce n’est pas grave. Vous avez
+        deux options :</p>
+        <ul class="lista-ayuda">
+          <li><strong>Quelqu’un vous donne accès à son Nextcloud</strong> (un
+          proche, votre établissement, votre équipe au travail…). Demandez-lui
+          trois choses : l’<em>URL de votre dossier WebDAV</em>, votre
+          <em>nom d’utilisateur</em> et un <em>mot de passe d’application</em>.
+          Avec cela, vous synchronisez déjà entre appareils, sans rien configurer
+          vous-même.</li>
+          <li><strong>Personne ne vous donne accès :</strong> ajoutez vos livres
+          avec le « + » sous « Sur cet appareil ». La lecture fonctionne tout
+          aussi bien ; vous perdez seulement la synchronisation automatique entre
+          appareils.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>J’ai ou j’administre Nextcloud / ownCloud</summary>
+        <p>Pour permettre à PageKeeper de se connecter :</p>
+        <ul class="lista-ayuda">
+          <li>Installez l’application <strong>WebAppPassword</strong> et ajoutez
+          le domaine de cette liseuse (<code id="ayuda-dominio">ce site</code>)
+          aux origines autorisées.</li>
+          <li>Créez un <strong>mot de passe d’application</strong> (Réglages →
+          Sécurité). N’utilisez pas votre mot de passe principal.</li>
+          <li>Dans les <strong>⚙️ Réglages</strong> de cette liseuse, saisissez
+          l’URL de votre dossier (par exemple
+          <code>https://votre-nuage.com/remote.php/dav/files/UTILISATEUR/Livres</code>),
+          votre nom d’utilisateur et ce mot de passe.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Transférer la configuration vers un autre appareil</summary>
+        <p>Une fois votre nuage configuré, <strong>⚙️ Réglages → « Copier le lien
+        de configuration »</strong> vous donne un lien qui transporte tout (URL,
+        utilisateur et mot de passe). Ouvrez-le sur un autre appareil et il sera
+        configuré aussitôt. Ne le partagez que par des canaux privés et
+        supprimez-le après usage.</p>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable destacado">
+        <summary>🤖 Bloqué dans la configuration ? Demandez à une IA</summary>
+        <p>Configurer un serveur demande un peu d’effort, mais une intelligence
+        artificielle (ChatGPT, Claude, Gemini…) peut vous guider pas à pas.
+        Copiez-collez des questions comme celles-ci :</p>
+        <ul class="lista-ayuda">
+          <li>« J’ai un serveur Nextcloud. Comment installer l’application
+          <em>WebAppPassword</em> et autoriser l’accès WebDAV depuis un site
+          hébergé à <code id="ayuda-dominio-ia">ce site</code> ? »</li>
+          <li>« Comment créer un mot de passe d’application dans Nextcloud ? »</li>
+          <li>« Le service de stockage en nuage <em>[nom]</em> autorise-t-il
+          l’accès WebDAV depuis le navigateur (CORS) pour un site externe ? »</li>
+        </ul>
+      </details>
+      </div>
+
+    <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+      aria-label="Confidentialité" tabindex="0" hidden>
+<div class="tarjeta"><h2>Confidentialité</h2><p>Il n’y a aucun serveur intermédiaire : votre navigateur se connecte directement à votre nuage. L’URL, l’utilisateur et le mot de passe sont enregistrés uniquement dans ce navigateur.</p></div>
+    </div>
+  `,
 };
 
 const originales = new WeakMap();
