@@ -81,6 +81,10 @@
           <span>No hay ningún servidor configurado. Puedes abrir un libro (PDF o EPUB) de este dispositivo, o <a href="#" id="enlace-configurar">configurar tu nube (Nextcloud u otro WebDAV)</a> para sincronizar la posición de lectura entre dispositivos.</span>
           <p class="ayuda">¿No sabes qué es esto o qué necesitas? <a href="#" id="enlace-ayuda-aviso">Lee la ayuda</a>.</p>
         </div>
+        <label class="casilla casilla-aviso">
+          <input type="checkbox" id="no-mostrar-aviso-config" checked>
+          <span data-i18n="dontShowAgain">No volver a mostrar</span>
+        </label>
       </div>
 
       <div id="aviso-ejemplos" class="tarjeta aviso-cerrable oculto">
@@ -90,10 +94,10 @@
           <h2>Dos libros para empezar</h2>
           <span>Tu biblioteca incluye dos libros de ejemplo para que puedas probar PageKeeper desde el primer momento. Son tuyos: puedes leerlos, conservarlos o borrarlos cuando quieras desde el menú de acciones de cada libro.</span>
         </div>
-        <div class="acciones-aviso">
-          <button type="button" id="btn-ocultar-aviso-ejemplos" class="btn-secundario btn-aviso"
-            data-i18n="dontShowAgain">No volver a mostrar</button>
-        </div>
+        <label class="casilla casilla-aviso">
+          <input type="checkbox" id="no-mostrar-aviso-ejemplos" checked>
+          <span data-i18n="dontShowAgain">No volver a mostrar</span>
+        </label>
       </div>
 
       <section id="libro-ejemplo" class="libro-ejemplo oculto">

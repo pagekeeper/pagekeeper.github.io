@@ -812,17 +812,28 @@ $('enlace-configurar').addEventListener('click', (evento) => {
   evento.preventDefault();
   abrirAjustes(true, 'nube');
 });
-// El aviso de «sin servidor» se puede cerrar: quien no usa nube no tiene por
-// qué verlo siempre. La nube sigue accesible desde los ajustes.
+// Los dos avisos funcionan igual: la «x» los aparta de la vista y la casilla,
+// que viene marcada, decide si vuelven. Con leerlos basta, así que no hace
+// falta cerrarlos para que no reaparezcan; quien quiera seguir viéndolos la
+// desmarca. La nube sigue accesible desde los ajustes.
 $('btn-cerrar-aviso-config').addEventListener('click', () => {
-  localStorage.setItem(CLAVE_AVISO_CONFIG_CERRADO, '1');
+  avisoConfigALaVista = false;
   $('aviso-sin-config').classList.add('oculto');
 });
 
-// El aviso de los ejemplos: la «x» lo aparta hasta el próximo arranque y el
-// botón lo retira definitivamente.
-$('btn-cerrar-aviso-ejemplos').addEventListener('click', () => ocultarAvisoEjemplos(false));
-$('btn-ocultar-aviso-ejemplos').addEventListener('click', () => ocultarAvisoEjemplos(true));
+$('no-mostrar-aviso-config').addEventListener('change', (evento) => {
+  localStorage.setItem(CLAVE_AVISO_CONFIG_CERRADO, evento.target.checked ? '1' : AVISO_SIEMPRE);
+});
+
+$('btn-cerrar-aviso-ejemplos').addEventListener('click', () => {
+  avisoEjemplosALaVista = false;
+  $('aviso-ejemplos').classList.add('oculto');
+});
+
+$('no-mostrar-aviso-ejemplos').addEventListener('change', (evento) => {
+  if (evento.target.checked) localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
+  else localStorage.setItem(CLAVE_AVISO_EJEMPLOS, AVISO_SIEMPRE);
+});
 
 // ── Exportar / importar configuración por enlace ──
 // El enlace lleva la configuración en el fragmento (#cfg=…), que nunca se
@@ -1434,9 +1445,16 @@ async function precargarLibrosEjemplo() {
   } catch { /* sin conexión: se reintentará en el próximo arranque */ }
 }
 
-// Cerrar el aviso con la «x» solo vale para esta visita; «No volver a mostrar»
-// es lo que lo retira para siempre.
-let avisoEjemplosCerrado = false;
+// Un aviso sale una vez y con la casilla ya marcada: haberlo tenido delante
+// cuenta como haberlo leído, así que se apunta en el acto que no vuelva. Lo
+// que quede de visita se mantiene a la vista aunque la marca ya diga otra
+// cosa, para que se pueda desmarcar o cerrar con calma.
+let avisoEjemplosALaVista = null; // null mientras no se ha decidido en esta visita
+let avisoConfigALaVista = null;
+// Desmarcar la casilla es una decisión que también se recuerda: si no, el
+// aviso volvería a darse por leído en el siguiente arranque y habría que
+// desmarcarla una y otra vez.
+const AVISO_SIEMPRE = 'siempre';
 
 function nombresLibrosEjemplo() {
   return new Set(Object.values(LIBROS_EJEMPLO).flat().map((ejemplo) => ejemplo.nombre));
@@ -1447,25 +1465,44 @@ function nombresLibrosEjemplo() {
 // nada que contar y no volverá a aparecer.
 function actualizarAvisoEjemplos(librosLocales, inventarioFiable) {
   const aviso = $('aviso-ejemplos');
-  if (localStorage.getItem(CLAVE_AVISO_EJEMPLOS) !== '1') {
-    aviso.classList.add('oculto');
-    return;
-  }
-  if (inventarioFiable) {
+  const guardado = localStorage.getItem(CLAVE_AVISO_EJEMPLOS);
+  // Nada apuntado: o no se precargó nada, o el aviso ya cumplió. La decisión
+  // se deja sin tomar porque la biblioteca se pinta una primera vez antes de
+  // que termine la precarga, y entonces todavía no hay nada que contar.
+  if (guardado && inventarioFiable) {
     const ejemplos = nombresLibrosEjemplo();
     if (!librosLocales.some((libro) => ejemplos.has(libro.nombre))) {
       localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
+      avisoEjemplosALaVista = false;
       aviso.classList.add('oculto');
       return;
     }
   }
-  aviso.classList.toggle('oculto', avisoEjemplosCerrado);
+  if (avisoEjemplosALaVista === null && guardado) {
+    avisoEjemplosALaVista = true;
+    // Enseñarlo ya cuenta como haberlo leído; a quien desmarcó la casilla se
+    // la deja como la dejó, y el aviso le sigue saliendo.
+    if (guardado === '1') localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
+    $('no-mostrar-aviso-ejemplos').checked = guardado !== AVISO_SIEMPRE;
+  }
+  aviso.classList.toggle('oculto', !avisoEjemplosALaVista);
 }
 
-function ocultarAvisoEjemplos(paraSiempre) {
-  avisoEjemplosCerrado = true;
-  if (paraSiempre) localStorage.removeItem(CLAVE_AVISO_EJEMPLOS);
-  $('aviso-ejemplos').classList.add('oculto');
+// El de «sin servidor», igual: quien no usa nube lo lee una vez y no vuelve a
+// aparecer, salvo que desmarque la casilla.
+function actualizarAvisoConfig(hayConfig) {
+  const aviso = $('aviso-sin-config');
+  if (hayConfig) {
+    aviso.classList.add('oculto');
+    return;
+  }
+  if (avisoConfigALaVista === null) {
+    const guardado = localStorage.getItem(CLAVE_AVISO_CONFIG_CERRADO);
+    avisoConfigALaVista = guardado !== '1';
+    if (guardado === null) localStorage.setItem(CLAVE_AVISO_CONFIG_CERRADO, '1');
+    $('no-mostrar-aviso-config').checked = guardado !== AVISO_SIEMPRE;
+  }
+  aviso.classList.toggle('oculto', !avisoConfigALaVista);
 }
 
 function mostrarLibroEjemplo(mostrar) {
@@ -1512,8 +1549,7 @@ async function cargarBiblioteca() {
   $('continuar-leyendo').classList.add('oculto');
 
   const hayConfig = cliente !== null;
-  $('aviso-sin-config').classList.toggle('oculto',
-    hayConfig || localStorage.getItem(CLAVE_AVISO_CONFIG_CERRADO) === '1');
+  actualizarAvisoConfig(hayConfig);
   $('zona-remota').classList.toggle('oculto', !hayConfig);
   // La sección local solo tiene sentido en la raíz: dentro de una subcarpeta
   // de la nube distraería y sus libros no pertenecen a esa carpeta.
