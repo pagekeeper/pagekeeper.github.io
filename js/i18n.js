@@ -2,7 +2,7 @@
 // dispositivo; si no existe se usa el idioma preferido del navegador.
 
 const CLAVE_IDIOMA = 'lector.idioma';
-const IDIOMAS = ['es', 'ca', 'en', 'fr'];
+const IDIOMAS = ['es', 'ca', 'gl', 'eu', 'en', 'fr'];
 
 const textos = {
   es: {
@@ -1232,6 +1232,620 @@ const textos = {
     hyphenationBook: 'Comme dans le livre', hyphenationNever: 'Ne jamais couper',
     textAlignment: 'Alignement', bookAlignment: 'Celui du livre',
     unjustifiedAlignment: 'Non justifié',
+  },
+  gl: {
+    appTagline: 'Lector de libros electrónicos',
+    language: 'Idioma', help: 'Axuda', settings: 'Axustes', back: 'Volver', cloud: 'Na nube',
+    device: 'Neste dispositivo', addLocal: 'Engadir un libro (PDF ou EPUB) deste dispositivo',
+    addCloud: 'Subir un libro (PDF ou EPUB) á nube', reload: 'Recargar',
+    addLocalFolder: 'Engadir un cartafol enteiro deste dispositivo',
+    addCloudFolder: 'Subir un cartafol enteiro á nube',
+    backLibrary: 'Volver á biblioteca', saveCloud: 'Gardar na miña nube', zoom: 'Zoom', zoomOut: 'Reducir', autoWidth: 'Axustar ao ancho', fitPage: 'Axustar a páxina completa', cropMargins: 'Recortar as marxes', skipToContent: 'Saltar ao contido', bookIndexShort: 'Índice', thumbnails: 'Miniaturas', resizePanel: 'Cambiar o ancho do panel', bookNavigation: 'Navegación do libro', pageThumbnails: 'Miniaturas das páxinas', noMarginsToCrop: 'Esta obra non ten marxes que recortar.', zoomIn: 'Ampliar',
+    zoomLevel: 'Aumento:', zoomChange: 'Preme para cambialo',
+    zoomSettings: 'Escoller o aumento', customZoom: 'Outro', apply: 'Aplicar',
+    moreReaderActions: 'Máis accións', readerActions: 'Accións de lectura',
+    previous: 'Páxina anterior', next: 'Páxina seguinte', goPage: 'Ir a unha páxina',
+    marginSide: 'Marxe lateral', noMargin: 'Sen marxe', moreMargin: 'Máis marxe',
+    zoomHelp: 'Gárdase só para este libro.',
+    marginHelp: 'O texto reaxústase ao mover o control. A marxe é deste libro.', reset: 'Restabelecer',
+    webdavFolder: 'URL do cartafol WebDAV', user: 'Usuario', appPassword: 'Contrasinal de aplicación',
+    webdav: 'Nube (WebDAV)', transferConfig: 'Levar a configuración a outro dispositivo',
+    webdavShort: 'Nube', settingsData: 'Datos', settingsSections: 'Seccións dos axustes',
+    epubTextSettings: 'Texto dos EPUB',
+    epubTextSettingsHelp: 'Como se compón o texto dos libros EPUB (os PDF chegan xa maquetados e non admiten estes cambios). Os mesmos axustes están á man mentres les, no botón da letra. Aquí decides con que empeza cada libro novo: a marxe e o aliñamento que cambies cun libro aberto son só dese libro.',
+    resetTextSettings: 'Restabelecer o texto',
+    importExport: 'Importar e exportar', addBooks: 'Engadir libros',
+    addBooksHelp: 'Engade PDF ou EPUB ao dispositivo ou súbeos ao cartafol da nube que teñas aberto.',
+    addToDevice: 'Engadir ao dispositivo', uploadToCloud: 'Subir á nube',
+    addFolderToDevice: 'Engadir un cartafol ao dispositivo', uploadFolderToCloud: 'Subir un cartafol á nube',
+    localBackup: 'Biblioteca deste dispositivo',
+    localBackupHelp: 'Garda nun ZIP os libros de «Neste dispositivo», o seu progreso, marcadores, anotacións e preferencias. Non inclúe a configuración nin o contrasinal da nube; podes gardalos á parte desde Axustes.',
+    exportLocalBackup: 'Crear copia', restoreLocalBackup: 'Restaurar no dispositivo',
+    creatingBackup: 'Creando a copia…', restoringBackup: 'Restaurando a copia…',
+    noLocalBooksBackup: 'Non hai libros locais para copiar.',
+    backupCreated: 'Copia creada correctamente ({count} libros).',
+    backupRestored: 'Copia restaurada correctamente ({count} libros).',
+    backupFailed: 'Non se puido crear a copia: {error}', restoreFailed: 'Non se puido restaurar: {error}',
+    invalidBackup: 'O arquivo non é unha copia válida de PageKeeper.',
+    wrongLocalBackup: 'Esta é unha copia da nube, non do dispositivo.',
+    restoreBackupConfirm: 'Restaurar esta copia? Os libros co mesmo identificador e os seus datos locais serán substituídos; os demais conservaranse.',
+    pdfPasswordTitle: 'PDF protexido', pdfPasswordHelp: 'Introduce o contrasinal para abrir este PDF. Non se gardará.',
+    pdfPassword: 'Contrasinal do PDF', pdfPasswordIncorrect: 'O contrasinal non é correcto.',
+    pdfNoTextTitle: 'PDF sen texto seleccionable',
+    pdfNoTextBadge: 'SEN TEXTO',
+    pdfNoTextHelp: 'Este documento parece estar escaneado. A busca, a selección e a lectura en voz alta non funcionarán correctamente.',
+    pdfNoTextStep1: 'Descarga o PDF desde o menú do libro.',
+    pdfNoTextStep2: 'Ábreo en Scribe OCR e xera unha copia PDF con texto.',
+    pdfNoTextStep3: 'Descarga esa copia e vólvea subir a PageKeeper.',
+    pdfNoTextPrivacy: 'PageKeeper non enviará o documento: terás que seleccionalo ti na ferramenta externa.',
+    openScribeOcr: 'Abrir Scribe OCR', understood: 'Entendido',
+    open: 'Abrir', openFailed: 'Non se puido abrir o libro: {error}',
+    cloudBackup: 'Biblioteca da nube',
+    cloudBackupHelp: 'Garda nun ZIP todos os PDF e EPUB do cartafol WebDAV e dos seus subcartafoles, xunto co progreso, os marcadores e as anotacións.',
+    exportCloudBackup: 'Crear copia da nube', restoreCloudBackup: 'Restaurar na nube',
+    cloudBackupNeedsConfig: 'Configura primeiro unha nube WebDAV en Axustes.',
+    readingCloudLibrary: 'Lendo a biblioteca da nube…',
+    noCloudBooksBackup: 'Non hai libros na nube para copiar.',
+    backingUpCloudBook: 'Copiando {current} de {total}: «{title}»…',
+    cloudBackupCreated: 'Copia da nube creada correctamente ({count} libros).',
+    restoreCloudConfirm: 'Restaurar esta copia na nube configurada? Crearanse os seus subcartafoles e sobrescribiranse os libros que teñan a mesma ruta.',
+    restoringCloudBackup: 'Preparando a restauración na nube…',
+    restoringCloudBook: 'Subindo {current} de {total}: «{title}»…',
+    cloudBackupRestored: 'Copia restaurada na nube ({count} libros).',
+    wrongCloudBackup: 'Esta é unha copia do dispositivo, non da nube.',
+    testConnection: 'Probar conexión', save: 'Gardar', deleteConfig: 'Borrar configuración',
+    copyConfig: 'Copiar ligazón de configuración', exportConfigFile: 'Gardar configuración',
+    importConfigFile: 'Restaurar configuración', configFileSaved: '✓ Configuración gardada nun arquivo.',
+    invalidConfigFile: 'O arquivo non contén unha configuración válida de PageKeeper.',
+    credits: 'Créditos', license: 'Licenza MIT', source: 'Código fonte',
+    privacy: 'Privacidade',
+    analyticsNotice: 'Esta aplicación recolle unicamente estatísticas de uso agregadas cun sistema propio para coñecer a súa utilización e mellorar a ferramenta. Non se almacenan enderezos IP nin se usan cookies de analítica para as persoas visitantes.',
+    continueReading: 'Continuar lendo', recentCount: 'Cantas lecturas amosar', recentAuto: 'As que caiban', recentN: '{count} lecturas',
+    recentCountHelp: '«As que caiban» amosa tres ou catro segundo o ancho da pantalla. As demais están a un toque, en «Ver máis».', removeContinue: 'Quitar «Continuar lendo» da biblioteca', continueRemoved: 'Quitouse «Continuar lendo». Podes volver a amosalo en Axustes → Biblioteca.', continueReadingHelp: 'A túa lectura máis recente, coas demais a un toque',
+    devices: 'Dispositivos conectados',
+    devicesHelp: 'Os navegadores que están a usar esta biblioteca, coa última vez que sincronizaron. Se ves un que non recoñeces, cambia o contrasinal de aplicación.',
+    devicesRevokeHelp: '⚠️ «Desconectar» pídelle ao dispositivo que esqueza a configuración da nube e a volva pedir, e só ten efecto a próxima vez que se abra alí. Non retira o acceso ao servidor: para iso hai que borrar o contrasinal de aplicación na túa nube.',
+    devicesNone: 'Aínda non se conectou ningún dispositivo.',
+    deviceThisOne: 'este dispositivo', deviceUnknown: 'Dispositivo sen nome',
+    deviceAuto: '{browser} en {system}', deviceCode: 'código {code}',
+    deviceLastSeen: 'última vez: {when}', deviceNeverSeen: 'sen datos',
+    deviceToday: 'hoxe', deviceYesterday: 'onte', deviceDaysAgo: 'hai {count} días',
+    deviceRevokedPending: 'desconectado, á espera de que se abra',
+    deviceRevoked: 'desconectado',
+    deviceRename: 'Cambiar o nome', deviceRenamePrompt: 'Nome para este dispositivo',
+    deviceDisconnect: 'Desconectar',
+    deviceDisconnectConfirm: 'Desconectar «{name}»? A próxima vez que se abra alí, PageKeeper esquecerá a configuración da nube e a pedirá de novo. O acceso ao servidor non se retira: para iso, borra o contrasinal de aplicación na túa nube.',
+    deviceDisconnected: 'Pedíuse a desconexión. Terá efecto a próxima vez que se abra PageKeeper nese dispositivo.',
+    deviceWasDisconnected: 'Este dispositivo desconectouse desde outro aparello: volve escribir os datos da túa nube para seguir sincronizando.',
+    cleanup: 'Libros que xa non están',
+    cleanupHelp: 'Cando un libro desaparece da nube, a súa marca de lectura, os seus marcadores e as súas notas quedan aquí. Primeiro bótase en falta e só despois se borran, por se o libro estivese fóra de alcance un anaco.',
+    cleanupDays: 'Canto se espera antes de borralos',
+    cleanupNever: 'Non borralos nunca',
+    cleanupDays7: 'Unha semana', cleanupDays15: 'Quince días', cleanupDays30: 'Un mes',
+    cleanupDays60: 'Dous meses', cleanupDays90: 'Tres meses',
+    cleanupDaysHelp: 'Este prazo compártese cos teus outros dispositivos, para que todos borren o mesmo día.',
+    cleanupCheck: 'Comprobar a nube', cleanupNow: 'Borrar agora',
+    cleanupChecking: 'Mirando que hai na nube…',
+    cleanupNoCloud: 'Sen nube configurada. Os libros deste dispositivo límpanse sós ao borralos, sen espera.',
+    cleanupUnchecked: 'Aínda non se comprobou a nube nesta sesión.',
+    cleanupClean: 'Todo en orde: {count} elementos na nube e ningunha marca de lectura pendente de borrar.',
+    cleanupCleanOne: 'Todo en orde: 1 elemento na nube e ningunha marca de lectura pendente de borrar.',
+    cleanupMissingOne: 'Bótase en falta 1 libro; a súa marca de lectura segue gardada:',
+    cleanupSideFilesOne: 'Hai ademais 1 arquivo de anotacións sen o seu libro.',
+    cleanupConfirmOne: 'Borrar agora a marca de lectura, os marcadores e as notas de 1 libro que xa non está? Non se pode desfacer.',
+    cleanupDoneOne: 'Limpouse 1 libro que xa non estaba.',
+    cleanupMissing: 'Bótanse en falta {count} libros; a súa marca de lectura segue gardada:',
+    cleanupMissingOn: '{name} — borarase o {date}',
+    cleanupMissingNever: '{name} — non se borrará (escolliches non borrar nunca)',
+    cleanupSideFiles: 'Hai ademais {count} arquivos de anotacións sen o seu libro.',
+    cleanupConfirm: 'Borrar agora a marca de lectura, os marcadores e as notas de {count} libros que xa non están? Non se pode desfacer.',
+    cleanupDone: 'Limpáronse {count} libros que xa non estaban.',
+    cleanupNothing: 'Non había nada que borrar: os libros volveron aparecer.',
+    showMoreRecent: 'Ver {count} máis', showFewerRecent: 'Ver menos',
+    removeFromContinue: 'Quitar «{title}» de Continuar lendo',
+    filterBy: 'Amosar', filterAll: 'Todos', filterReading: 'Lendo', filterPending: 'Pendentes', filterFinished: 'Rematados',
+    sortBy: 'Ordenar por', sortRecent: 'Lectura recente', sortTitle: 'Título', sortAuthor: 'Autor', sortProgress: 'Progreso',
+    viewLabel: 'Vista', viewList: 'Vista de lista', viewGrid: 'Vista de grella',
+    toggleSection: 'Pregar ou despregar a sección',
+    markFinished: 'Marcar «{title}» como rematado', markUnfinished: 'Quitar a etiqueta «Rematado» de «{title}»', finished: 'Rematado',
+    sampleBookHeading: 'Comeza cun libro de exemplo', sampleBookHelp: 'A túa biblioteca está baleira. Engade un destes exemplos para probar PageKeeper:',
+    loadingSampleBook: 'Preparando o libro de exemplo…',
+    loadingLibrary: 'Cargando biblioteca…', noCloudBooks: 'Aínda non hai libros sincronizados. Usa o botón de subir para engadir o primeiro.',
+    notStarted: 'sen empezar', read: 'lido', page: 'Páxina', of: 'de',
+    bookActions: 'Accións de «{title}»',
+    actionUpload: 'Subir á nube', actionMove: 'Mover a outro cartafol', actionDownload: 'Descargar',
+    actionOffline: 'Dispoñible sen conexión', actionRemoveOffline: 'Quitar a copia sen conexión',
+    actionUpdateOffline: 'Actualizar a copia sen conexión', actionDelete: 'Borrar',
+    actionBookNote: 'Nota do libro', bookNote: 'Nota do libro', bookNoteLabel: 'A túa nota sobre este libro',
+    bookNotePlaceholder: 'De que vai, por onde o deixaches, que queres lembrar…',
+    actionFolderNote: 'Nota do cartafol', folderNote: 'Nota do cartafol',
+    folderNotePlaceholder: 'Que gardas aquí e para que…',
+    noFolderNote: 'Aínda non hai ningunha nota sobre este cartafol.',
+    editBookNote: 'Escribir a nota do libro', noBookNote: 'Aínda non hai ningunha nota sobre este libro.',
+    actionRename: 'Cambiar o nome',
+    actionMarkFinished: 'Marcar como rematado', actionMarkUnfinished: 'Quitar «Rematado»',
+    renameBookPrompt: 'Nome para amosar na biblioteca (déixao baleiro para usar o do arquivo):',
+    actionDeleteFolder: 'Borrar o cartafol',
+    actionDownloadFolderZip: 'Descargar o cartafol (ZIP)',
+    actionSaveFolderToDisk: 'Gardar o cartafol no equipo',
+    packingFolder: 'Preparando o cartafol…',
+    packingFolderItem: '«{title}» ({current} de {total})',
+    folderDownloadedOne: 'Cartafol «{name}» gardado: 1 libro.',
+    folderDownloadedMany: 'Cartafol «{name}» gardado: {count} libros.',
+    folderHasNoBooks: 'Ese cartafol non contén ningún libro que descargar.',
+    folderDownloadedPartial: 'Cartafol «{name}» gardado. Sen incluír: {failed} de {total}.',
+    folderDownloadFailed: 'Non se puido obter ningún libro do cartafol.',
+    bookGone: 'o libro xa non está no almacén deste dispositivo',
+    removeOfflineConfirm: 'Quitar a copia sen conexión de «{title}»? O libro da nube non se borrará.',
+    savingOffline: 'Gardando «{title}» para ler sen conexión…', offlineSaved: '«{title}» xa está dispoñible sen conexión ({size} MB).',
+    offlineRemoved: 'Copia sen conexión eliminada. O libro segue na nube.', availableOffline: 'SEN CONEXIÓN', offlineOutdated: 'ACTUALIZAR',
+    offlineLibrary: 'Sen conexión: amósanse as copias gardadas neste dispositivo.',
+    offlineFolderEmpty: 'Non hai copias sen conexión neste cartafol.', openedOfflineCopy: 'Aberto desde a copia sen conexión.',
+    offlineUpdateFailed: 'O libro abriuse, pero non se puido actualizar a súa copia sen conexión.',
+    storageFull: 'Non hai espazo suficiente para gardar «{title}» sen conexión.',
+    fillUrlUser: 'Enche polo menos a URL e o usuario.', configSaved: 'Configuración gardada.', connecting: 'Conectando…',
+    connectionOk: '✓ Conexión correcta: {count} libros atopados.', configDeleted: 'Configuración borrada.',
+    invalidConfigLink: 'A ligazón de configuración non é válida.', cloudConfigImported: 'Configuración da nube importada.',
+    copyLinkFirst: 'Enche (ou garda) antes a URL e o usuario.', linkCopied: '✓ Ligazón copiada. Ábrea no outro dispositivo.',
+    copyLinkPrompt: 'Copia a ligazón e ábrea no outro dispositivo:',
+    downloading: 'Descargando «{title}»…', opening: 'Abrindo «{title}»…', adding: 'Engadindo «{title}»…', uploading: 'Subindo «{title}» á túa nube…', deleting: 'Borrando «{title}»…',
+    cloudBookDeleted: 'Libro borrado da nube.', localBookDeleted: 'Libro borrado deste dispositivo.',
+    cloudBookDeletedPending: 'Libro borrado. A limpeza do progreso reintentarase cando volva a conexión.',
+    cloudUploaded: '«{title}» subido á túa nube.', cloudSaved: 'Gardado na túa nube. Xa se sincroniza entre dispositivos.',
+    continuing: 'Continuando onde o deixaches', continuingPage: 'Continuando na páxina {page}',
+    overwrite: 'Xa existe «{title}» na túa nube. Queres sobrescribilo?',
+    deleteCloudConfirm: 'Borrar «{title}» da túa nube? Eliminarase o arquivo do servidor.',
+    deleteLocalConfirm: 'Borrar «{title}» deste dispositivo?',
+    deleteConfigConfirm: 'Borrar a configuración do servidor? O progreso gardado na nube non se toca.',
+    replaceConfigConfirm: 'A configuración importada substituirá a configuración de nube actual. Continuar?',
+    epubMargin: '{value} % por lado', pageMode: 'Ver páxina a páxina (como un libro)', scrollMode: 'Ver páxinas continuas (desprazamento)',
+    twoPages: 'Ver dúas páxinas xuntas', onePage: 'Ver unha soa páxina', rotatePage: 'Xirar a páxina',
+    readAloud: 'Lectura en voz alta', ttsPlay: 'Ler desde aquí', ttsPause: 'Pausar', ttsResume: 'Continuar',
+    ttsStop: 'Deter', ttsVoice: 'Voz', ttsAutoVoice: 'Automática', ttsSpeed: 'Velocidade',
+    ttsHelp: 'Empeza na páxina actual, resalta a frase que soa e pasa de páxina soa.',
+    ttsNoSupport: 'Este navegador non permite a lectura en voz alta.',
+    ttsNoText: 'Non se atopou texto para ler (pode ser un documento escaneado).',
+    immersive: 'Ler a pantalla completa', immersiveExit: 'Saír da pantalla completa',
+    timeLeft: 'Tempo de lectura restante estimado', timeLeftMenu: 'Tempo restante: {time}',
+    reader: 'Lector', readerScreen: 'En pantalla', showStatusBar: 'Amosar a barra de datos ao pé',
+    showStatusBarHelp: 'A liña do final do lector coa páxina do capítulo, a pantalla do libro, a porcentaxe lida e o tempo que queda. Ao ocultala gáñase ese pouco de alto para o texto.',
+    statusChapter: '{page} / {total} do cap.', statusChapterTitle: 'Pantalla dentro do capítulo',
+    statusScreens: 'Pant. {page} de ~{total}',
+    statusScreensTitle: 'Pantallas que ocupa o libro neste dispositivo, coa letra e a marxe de agora. É unha estimación e cambia ao tocar eses axustes.',
+    statusPage: 'Páxina {page} de {total}', statusPageTitle: 'Páxina do documento',
+    statusRead: '{percent} % lido', statusReadTitle: 'Parte do libro que levas lida',
+    timeLessMinute: '< 1 m', timeMinutes: '{m} m', timeHoursMinutes: '{h} h {m} m', goPercent: 'Ir á porcentaxe do libro (0–100):', goToPage: 'Ir á páxina (1–{total}):',
+    sampleNoticeHtml: '<h2>Dous libros para empezar</h2><span>A túa biblioteca inclúe dous libros de exemplo para que poidas probar PageKeeper desde o primeiro momento. Son teus: podes lelos, conservalos ou borralos cando queiras desde o menú de accións de cada libro.</span>',
+    dontShowAgain: 'Non volver amosar',
+    noConfigHtml: '<span>Non hai ningún servidor configurado. Podes abrir un libro (PDF ou EPUB) deste dispositivo, ou <a href="#" id="enlace-configurar">configurar a túa nube (Nextcloud ou outro WebDAV)</a> para sincronizar a posición de lectura entre dispositivos.</span><p class="ayuda">Non sabes que é isto ou que necesitas? <a href="#" id="enlace-ayuda-aviso">Le a axuda</a>.</p>',
+    syncError: 'Erro de sincronización', syncFailed: 'Non se puido sincronizar o progreso: {error}',
+    syncRecovered: 'Xa se gardou a túa posición na nube',
+    stats: 'Estatísticas de lectura', statsView: 'Ver as estatísticas',
+    statsSettingsHelp: 'O tempo que dedicas a ler, os días seguidos que levas e os libros aos que máis tempo lles dedicas, sumando todos os teus dispositivos.',
+    statsSummary: 'A túa lectura', statsLastDays: 'Os últimos 30 días',
+    actionBookStats: 'Tempo de lectura',
+    statusTimeSpentTitle: 'Tempo que levas lendo este libro. Preme para velo en detalle.',
+    statsBookTime: 'Tempo dedicado', statsBookRead: 'Lido', statsBookPace: 'Ritmo',
+    statsPacePerPage: '{time} por páxina', statsPaceSeconds: '{s} s por páxina',
+    statsBookByDevice: 'En cada dispositivo',
+    statsBookEmpty: 'Aínda non hai tempo apuntado deste libro. En canto leas uns minutos con el aberto, aquí aparecerá canto lle dedicaches.',
+    statsShared: 'Suma de todos os teus dispositivos: o lido no móbil e no ordenador conta xunto, e un día no que lixeses nos dous é un só día.',
+    statsTopBooks: 'En que se vai o tempo', statsDataTitle: 'Estes datos',
+    statsEmptyTitle: 'Aínda non hai nada que contar',
+    statsEmpty: 'En canto leas uns minutos cun libro aberto, aquí aparecerán o tempo dedicado, os días seguidos que levas lendo e en que libros se che vai o tempo.',
+    statsPrivacy: 'Cunha nube configurada, o tempo viaxa co progreso de lectura: cada dispositivo apunta o seu e aquí amósase a suma, así que sabes canto tardaches en ler un libro aínda que o lesses a anacos en cada aparello. Van no teu propio servidor WebDAV, cos teus libros, e non se envían a ningún outro sitio. Sen nube configurada quedan neste navegador. Só conta o tempo cun libro aberto e pasando páxinas; as pausas longas e os saltos de posición non se suman.',
+    statsDelete: 'Borrar as estatísticas',
+    statsDeleteConfirm: 'Borrar as estatísticas de lectura? Bórranse en todos os teus dispositivos: os que estean conectados farano en canto sincronicen. Non afecta os teus libros, á páxina pola que vas nin ás túas anotacións.',
+    statsDeleted: '✓ Estatísticas borradas. Os demais dispositivos borraranas ao sincronizar.',
+    statsTotal: 'Tempo total', statsToday: 'Hoxe', statsWeek: 'Últimos 7 días',
+    statsStreak: 'Días seguidos', statsAverage: 'Media por día lido',
+    statsActiveDays: 'Días con lectura', statsBestDay: 'Mellor día', statsPdfPages: 'Páxinas de PDF',
+    statsBestStreak: 'a túa mellor racha: {streak}', statsStreakNow: 'racha en marcha',
+    statsNoStreak: 'hoxe ou mañá empeza unha',
+    statsDays: '{count} días', statsDaysOne: '{count} día', statsHours: '{h} h',
+    statsChartLabel: 'Gráfico do tempo lido cada un dos últimos {days} días.',
+    statsChartSummary: 'Lixeches {days} dos últimos 30, {total} en total.',
+    statsChartEmpty: 'Aínda non liches nada nestes 30 días.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sen lectura',
+    statsBooksTracked: 'Dos {count} máis recentes.',
+    statsBookUntitled: 'Libro sen título',
+    activityLog: 'Rexistro de actividade',
+    activityLogHelp: 'Deixa constancia de se a posición de lectura chega ao servidor e dos erros que o impiden. Serve para saber por que un libro quedou atrás noutro dispositivo. Gárdase só aquí, nunca sae deste aparello e bórrase só ao cabo dunha semana.',
+    viewLog: 'Ver o rexistro', clearLog: 'Baleirar', copyLog: 'Copiar', downloadLog: 'Gardar',
+    logEmpty: 'Aínda non hai nada rexistrado.',
+    logWithErrors: '{errores} erro(s) rexistrados',
+    logNoErrors: '{total} eventos, ningún con erro',
+    logCopied: 'Rexistro copiado', logCopyFailed: 'Non se puido copiar; usa «Gardar»',
+    logRecovered: 'subiu tras {intentos} intento(s) fallido(s)',
+    logRetrying: 'reintentando (fallos seguidos: {intentos})',
+    logOffline: 'sen conexión: espérase a recuperala',
+    logBackOnline: 'conexión recuperada', logWentOffline: 'conexión perdida',
+    cloudScope: 'Libros e progreso dispoñibles en todos os teus dispositivos',
+    localScope: 'Libros gardados unicamente neste dispositivo',
+    emptyLocalAction: 'Engadir libros só a este dispositivo',
+    emptyLocalHelp: 'Non se sincronizarán. Selecciona arquivos PDF ou EPUB, ou arrástraos aquí.',
+    webdavHelpHtml: 'Compatible con Nextcloud, ownCloud e calquera servidor WebDAV. Os PDF do cartafol indicado aparecerán na túa biblioteca e a posición de lectura sincronizarase entre todos os teus dispositivos. Non sabes que pór aquí? <a href="#" id="enlace-ayuda-ajustes">Le a axuda</a>.',
+    passwordHelpHtml: '⚠️ En Nextcloud crea un <strong>contrasinal de aplicación</strong> (Axustes → Seguridade), non uses o teu contrasinal principal. Ademais, para que o navegador poida conectar, o servidor debe permitir CORS: en Nextcloud instala a app <strong>WebAppPassword</strong> e engade o dominio deste lector. Os datos gárdanse unicamente neste navegador.',
+    transferHelp: 'Podes copiar unha ligazón ou gardar un arquivo coa URL, o usuario e o contrasinal de aplicación, e abrilo noutro dispositivo. ⚠️ A ligazón e o arquivo permiten acceder á túa nube: gárdaos en privado e elimina as copias que xa non precises.',
+    creditsHtml: 'Construído con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconas <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    dropLocal: 'Solta aquí para gardar neste dispositivo', dropCloud: 'Solta aquí para subir á nube',
+    unsupportedFiles: 'Só se poden engadir arquivos PDF ou EPUB.',
+    noBooksInFolder: 'Ese cartafol non contén ningún PDF nin EPUB.', localAddedOne: 'Libro gardado neste dispositivo.', localAddedMany: '{count} libros gardados neste dispositivo.',
+    saveFailed: 'Non se puido gardar «{title}»: {error}',
+    searchLibrary: 'Buscar na biblioteca', clearSearch: 'Borrar a busca', searchLibraryPlaceholder: 'Buscar por título, autor…',
+    showIndex: 'Amosar o índice', hideIndex: 'Ocultar o índice',
+    showThumbs: 'Amosar as miniaturas', hideThumbs: 'Ocultar as miniaturas',
+    showIndexThumbs: 'Amosar o índice e as miniaturas',
+    hideIndexThumbs: 'Ocultar o índice e as miniaturas',
+    searchBook: 'Buscar dentro do libro', bookIndex: 'Índice do libro', bookStart: 'Inicio do libro', historyNavigation: 'Historial de navegación', backPosition: 'Volver á posición anterior', forwardPosition: 'Avanzar á posición seguinte', pageAndHistory: 'Páxina e historial de navegación', wordOrPhrase: 'Palabra ou frase', search: 'Buscar', close: 'Pechar',
+    searchingBook: 'Buscando no libro…', searchProgress: 'Buscando… {done}/{total} · {count} resultados.', noSearchResults: 'Non se atoparon resultados.', searchResults: '{count} resultados.',
+    chapter: 'Capítulo', noLibraryResults: 'Non hai libros que coincidan coa busca.',
+    searchingFolders: 'Buscando tamén dentro dos cartafoles…', inFolder: 'No cartafol «{name}»',
+    bookmarks: 'Marcadores', bookmark: 'Marcador', addBookmark: 'Engadir un marcador aquí',
+    annotations: 'Anotacións', noAnnotations: 'Aínda non hai anotacións.',
+    highlightColor: 'Cor do resalte', highlightYellow: 'Resaltar en amarelo',
+    highlightGreen: 'Resaltar en verde', highlightBlue: 'Resaltar en azul', highlightPink: 'Resaltar en rosa',
+    exportAnnotations: 'Exportar as anotacións (Markdown)', exportHeader: 'Anotacións de «{title}»',
+    exportSource: 'Exportadas de PageKeeper', annotationsExported: 'Anotacións exportadas.',
+    searchAnnotations: 'Buscar nas anotacións', noAnnotationResults: 'Non hai anotacións que coincidan.',
+    selectionActions: 'Accións para o texto seleccionado', highlight: 'Resaltar', addNote: 'Engadir nota',
+    note: 'Nota', notePrompt: 'Nota sobre o texto seleccionado:', editNote: 'Editar nota', deleteAnnotation: 'Borrar anotación', deleteAnnotationConfirm: 'Borrar esta anotación?', noteActions: 'Opcións da nota',
+    annotationAdded: 'Anotación gardada.', annotationDeleted: 'Anotación borrada.',
+    bookmarkName: 'Nome do marcador', bookmarkNamePlaceholder: 'Nome do marcador (opcional)',
+    bookmarkNamePrompt: 'Nome do marcador (déixao baleiro para quitalo):', editBookmark: 'Cambiar o nome do marcador',
+    noBookmarks: 'Aínda non hai marcadores.', bookmarkAdded: 'Marcador engadido.',
+    bookmarkRenamed: 'Nome do marcador actualizado.',
+    bookmarkRemoved: 'Marcador borrado.', bookmarkExists: 'Xa hai un marcador nesta posición.',
+    deleteBookmark: 'Borrar o marcador',
+    cloudRoot: 'Inicio', currentFolder: 'Cartafol actual', targetFolder: 'Cartafol de destino',
+    newFolder: 'Crear un cartafol', folderNamePrompt: 'Nome do cartafol novo:',
+    invalidFolderName: 'O nome do cartafol non é válido.',
+    creatingFolder: 'Creando o cartafol «{name}»…', folderCreated: 'Cartafol «{name}» creado.',
+    renamingFolder: 'Cambiando o nome de «{name}»…',
+    openFolder: 'Abrir o cartafol «{name}»',
+    folderEmpty: 'Baleiro', folderItemsOne: '1 elemento', folderItems: '{count} elementos',
+    sectionFoldersOne: '1 cartafol', sectionFolders: '{count} cartafoles',
+    sectionBooksOne: '1 libro', sectionBooks: '{count} libros',
+    deleteFolderConfirm: 'Borrar o cartafol «{name}» e todo o seu contido da túa nube?',
+    folderDeleted: 'Cartafol borrado da nube.', emptyFolder: 'Este cartafol está baleiro.',
+    deviceRoot: 'Inicio', actionRenameFolder: 'Cambiar o nome do cartafol',
+    actionSaveToDevice: 'Gardar neste dispositivo',
+    imagesInvertedOff: 'Devolver a súa cor ás imaxes',
+    imagesInvertedOn: 'Imaxes na súa cor: activado. Preme para invertelas coa páxina',
+    library: 'Biblioteca', showContinueReading: 'Amosar «Continuar lendo»',
+    showContinueReadingHelp: 'O recadro coas túas últimas lecturas, enriba da biblioteca. Ao ocultalo, os libros seguen onde estaban e conservan a súa páxina.',
+    themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sepia', themeDark: 'Escuro',
+    themeNowAuto: 'Tema: o do sistema. Preme para o claro',
+    themeNowLight: 'Tema: claro. Preme para o sepia',
+    themeNowSepia: 'Tema: sepia. Preme para o escuro',
+    themeNowDark: 'Tema: escuro. Preme para seguir o do sistema',
+    actionMoveFolder: 'Mover o cartafol', moveFolderTo: 'Mover o cartafol «{name}»',
+    folderMoved: 'Cartafol «{name}» movido.',
+    savedToDevice: '«{title}» gardado neste dispositivo.',
+    folderRenamePrompt: 'Nome novo do cartafol:', folderRenamed: 'Cartafol renomeado.',
+    folderExists: 'Xa hai un cartafol con ese nome aquí.',
+    deleteLocalFolderConfirm: 'Borrar o cartafol «{name}» e todos os libros que contén deste dispositivo?',
+    localFolderDeleted: 'Cartafol borrado deste dispositivo.',
+    emptyLocalFolder: 'Este cartafol non ten libros todavía.',
+    moveToDeviceFolder: 'Mover «{title}» a outro cartafol do dispositivo',
+    moveBook: 'Mover «{title}» a outro cartafol', moveHere: 'Mover aquí',
+    moving: 'Movendo «{title}»…', bookMoved: '«{title}» movido.', cancel: 'Cancelar',
+    loadingFolders: 'Cargando cartafoles…', noSubfolders: 'Non hai subcartafoles.',
+    textSettings: 'Axustes de texto', fontFamily: 'Tipo de letra',
+    bookFont: 'A do libro', serifFont: 'Con serifa', sansFont: 'Sen serifa',
+    lineSpacing: 'Interliñado', bookSpacing: 'O do libro', spacingCompact: 'Compacto',
+    spacingNormal: 'Normal', spacingWide: 'Amplo', spacingWider: 'Moi amplo',
+    hyphenation: 'Partir palabras', hyphenationAuto: 'Si, ao final de liña',
+    hyphenationBook: 'Como o libro', hyphenationNever: 'Non partir',
+    textAlignment: 'Aliñamento', bookAlignment: 'O do libro',
+    unjustifiedAlignment: 'Sen xustificar',
+  },
+  eu: {
+    appTagline: 'Liburu elektronikoen irakurgailua',
+    language: 'Hizkuntza', help: 'Laguntza', settings: 'Ezarpenak', back: 'Itzuli', cloud: 'Hodeian',
+    device: 'Gailu honetan', addLocal: 'Gehitu liburu bat (PDF edo EPUB) gailu honetatik',
+    addCloud: 'Igo liburu bat (PDF edo EPUB) hodeira', reload: 'Berrkargatu',
+    addLocalFolder: 'Gehitu karpeta oso bat gailu honetatik',
+    addCloudFolder: 'Igo karpeta oso bat hodeira',
+    backLibrary: 'Itzuli liburutegira', saveCloud: 'Gorde nire hodeian', zoom: 'Zooma', zoomOut: 'Txikitu', autoWidth: 'Egokitu zabalerara', fitPage: 'Egokitu orrialde osoa', cropMargins: 'Moztu marjinak', skipToContent: 'Jauzi edukira', bookIndexShort: 'Aurkibidea', thumbnails: 'Miniaturak', resizePanel: 'Aldatu panelaren zabalera', bookNavigation: 'Liburuko nabigazioa', pageThumbnails: 'Orrialdeen miniaturak', noMarginsToCrop: 'Lan honek ez du mozteko marjinarik.', zoomIn: 'Handitu',
+    zoomLevel: 'Zooma:', zoomChange: 'Sakatu aldatzeko',
+    zoomSettings: 'Aukeratu zoom-maila', customZoom: 'Beste bat', apply: 'Aplikatu',
+    moreReaderActions: 'Ekintza gehiago', readerActions: 'Irakurketa-ekintzak',
+    previous: 'Aurreko orrialdea', next: 'Hurrengo orrialdea', goPage: 'Joan orrialde batera',
+    marginSide: 'Alboko marjina', noMargin: 'Marjinarik gabe', moreMargin: 'Marjina gehiago',
+    zoomHelp: 'Liburu honentzat soilik gordetzen da.',
+    marginHelp: 'Testua birrantolatzen da kontrola mugitzean. Marjina liburu honetakoa da.', reset: 'Berrezarri',
+    webdavFolder: 'WebDAV karpetaren URLa', user: 'Erabiltzailea', appPassword: 'Aplikazio-pasahitza',
+    webdav: 'Hodeia (WebDAV)', transferConfig: 'Eraman konfigurazioa beste gailu batera',
+    webdavShort: 'Hodeia', settingsData: 'Datuak', settingsSections: 'Ezarpenen atalak',
+    epubTextSettings: 'EPUBen testua',
+    epubTextSettingsHelp: 'EPUB liburuen testua nola konposatzen den (PDFak jadanik maketatuta iristen dira eta ez dute aldaketa hau onartzen). Ezarpen berak eskura daude irakurtzen ari zarela, letraren botoian. Hemen erabakitzen duzu liburu berri bakoitza zerekin hasten den: liburu bat irekita duzula aldatzen dituzun marjina eta lerrokatzea liburu horrenak baino ez dira.',
+    resetTextSettings: 'Berrezarri testua',
+    importExport: 'Inportatu eta esportatu', addBooks: 'Gehitu liburuak',
+    addBooksHelp: 'Gehitu PDF edo EPUB gailura, edo igo une honetan irekita duzun hodeiko karpetara.',
+    addToDevice: 'Gehitu gailura', uploadToCloud: 'Igo hodeira',
+    addFolderToDevice: 'Gehitu karpeta bat gailura', uploadFolderToCloud: 'Igo karpeta bat hodeira',
+    localBackup: 'Gailu honetako liburutegia',
+    localBackupHelp: '«Gailu honetan» dauden liburuak, haien aurrerapena, laster-markak, oharrak eta hobespenak ZIP batean gordetzen ditu. Ez dira konfigurazioa ez hodeiko pasahitza sartzen; Ezarpenetatik gorde ditzakezu bereizita.',
+    exportLocalBackup: 'Sortu kopia', restoreLocalBackup: 'Leheneratu gailuan',
+    creatingBackup: 'Kopia sortzen…', restoringBackup: 'Kopia leheneratzen…',
+    noLocalBooksBackup: 'Ez dago liburu lokalik kopiatzeko.',
+    backupCreated: 'Kopia ondo sortu da ({count} liburu).',
+    backupRestored: 'Kopia ondo leheneratu da ({count} liburu).',
+    backupFailed: 'Ezin izan da kopia sortu: {error}', restoreFailed: 'Ezin izan da leheneratu: {error}',
+    invalidBackup: 'Fitxategi hau ez da PageKeeperren baliozko kopia bat.',
+    wrongLocalBackup: 'Hau hodeiko kopia bat da, ez gailukoa.',
+    restoreBackupConfirm: 'Kopia hau leheneratu? Identifikatzaile bera duten liburuak eta haien datu lokalak ordeztu egingo dira; gainerakoak mantendu egingo dira.',
+    pdfPasswordTitle: 'Babestutako PDFa', pdfPasswordHelp: 'Sartu pasahitza PDF hau irekitzeko. Ez da gordeko.',
+    pdfPassword: 'PDFaren pasahitza', pdfPasswordIncorrect: 'Pasahitza ez da zuzena.',
+    pdfNoTextTitle: 'Testu hautagarririk gabeko PDFa',
+    pdfNoTextBadge: 'TESTURIK GABE',
+    pdfNoTextHelp: 'Dokumentu hau eskaneatuta dagoela dirudi. Bilaketak, hautapenak eta ozen irakurtzeak ez dute behar bezala funtzionatuko.',
+    pdfNoTextStep1: 'Deskargatu PDFa liburuaren menutik.',
+    pdfNoTextStep2: 'Ireki Scribe OCRen eta sortu testua duen PDF kopia bat.',
+    pdfNoTextStep3: 'Deskargatu kopia hori eta igo berriro PageKeeperrera.',
+    pdfNoTextPrivacy: 'PageKeeperrek ez du dokumentua bidaliko: zuk zeuk hautatu beharko duzu kanpoko tresnan.',
+    openScribeOcr: 'Ireki Scribe OCR', understood: 'Ulertuta',
+    open: 'Ireki', openFailed: 'Ezin izan da liburua ireki: {error}',
+    cloudBackup: 'Hodeiko liburutegia',
+    cloudBackupHelp: 'WebDAV karpetako eta bere azpikarpetetako PDF eta EPUB guztiak, aurrerapena, laster-markak eta oharrekin batera, ZIP batean gordetzen ditu.',
+    exportCloudBackup: 'Sortu hodeiko kopia', restoreCloudBackup: 'Leheneratu hodeian',
+    cloudBackupNeedsConfig: 'Konfiguratu lehenengo WebDAV hodei bat Ezarpenetan.',
+    readingCloudLibrary: 'Hodeiko liburutegia irakurtzen…',
+    noCloudBooksBackup: 'Ez dago hodeiko liburutik kopiatzeko.',
+    backingUpCloudBook: '{current}/{total} kopiatzen: «{title}»…',
+    cloudBackupCreated: 'Hodeiko kopia ondo sortu da ({count} liburu).',
+    restoreCloudConfirm: 'Kopia hau konfiguratutako hodeian leheneratu? Bere azpikarpetak sortuko dira eta bide bera duten liburuak gainidatziko dira.',
+    restoringCloudBackup: 'Hodeiko leheneratzea prestatzen…',
+    restoringCloudBook: '{current}/{total} igotzen: «{title}»…',
+    cloudBackupRestored: 'Kopia hodeian leheneratu da ({count} liburu).',
+    wrongCloudBackup: 'Hau gailuko kopia bat da, ez hodeikoa.',
+    testConnection: 'Probatu konexioa', save: 'Gorde', deleteConfig: 'Ezabatu konfigurazioa',
+    copyConfig: 'Kopiatu konfigurazio-esteka', exportConfigFile: 'Gorde konfigurazioa',
+    importConfigFile: 'Leheneratu konfigurazioa', configFileSaved: '✓ Konfigurazioa fitxategi batean gorde da.',
+    invalidConfigFile: 'Fitxategiak ez du PageKeeperren baliozko konfiguraziorik.',
+    credits: 'Kredituak', license: 'MIT lizentzia', source: 'Iturburu-kodea',
+    privacy: 'Pribatutasuna',
+    analyticsNotice: 'Aplikazio honek erabilera-estatistika agregatuak baino ez ditu biltzen, norberaren sistema batekin, tresna nola erabiltzen den ezagutu eta hobetzeko. Ez da IP helbiderik gordetzen, ez eta analitika-cookierik erabiltzen ere bisitarientzat.',
+    continueReading: 'Jarraitu irakurtzen', recentCount: 'Zenbat irakurketa erakutsi', recentAuto: 'Sartzen diren guztiak', recentN: '{count} irakurketa',
+    recentCountHelp: '«Sartzen diren guztiak» hiru edo lau erakusten ditu pantailaren zabaleraren arabera. Gainerakoak ukitu batera daude, «Ikusi gehiago» atalean.', removeContinue: 'Kendu «Jarraitu irakurtzen» liburutegitik', continueRemoved: '«Jarraitu irakurtzen» kendu da. Berriro erakuts dezakezu Ezarpenak → Liburutegia atalean.', continueReadingHelp: 'Zure azken irakurketa, gainerakoak ukitu batera',
+    devices: 'Konektatutako gailuak',
+    devicesHelp: 'Liburutegi hau erabiltzen ari diren nabigatzaileak, azken sinkronizazio-unearekin. Ezagutzen ez duzun bat ikusten baduzu, aldatu aplikazio-pasahitza.',
+    devicesRevokeHelp: '⚠️ «Deskonektatu» gailuari hodeiaren konfigurazioa ahazteko eta berriro eskatzeko esaten dio, eta han irekitzen den hurrengo aldian bakarrik izango du eragina. Ez du zerbitzarirako sarbidea kentzen: horretarako, ezabatu aplikazio-pasahitza zure hodeian.',
+    devicesNone: 'Oraindik ez da gailurik konektatu.',
+    deviceThisOne: 'gailu hau', deviceUnknown: 'Izenik gabeko gailua',
+    deviceAuto: '{browser}, {system} sisteman', deviceCode: '{code} kodea',
+    deviceLastSeen: 'azken aldiz: {when}', deviceNeverSeen: 'daturik ez',
+    deviceToday: 'gaur', deviceYesterday: 'atzo', deviceDaysAgo: 'duela {count} egun',
+    deviceRevokedPending: 'deskonektatuta, irekitzeko zain',
+    deviceRevoked: 'deskonektatuta',
+    deviceRename: 'Aldatu izena', deviceRenamePrompt: 'Gailu honen izena',
+    deviceDisconnect: 'Deskonektatu',
+    deviceDisconnectConfirm: '«{name}» deskonektatu? Han PageKeeper hurrengo aldiz irekitzean, hodeiaren konfigurazioa ahaztu eta berriro eskatuko du. Zerbitzarirako sarbidea ez da kentzen: horretarako, ezabatu aplikazio-pasahitza zure hodeian.',
+    deviceDisconnected: 'Deskonexioa eskatu da. Gailu horretan PageKeeper hurrengo aldiz irekitzean izango du eragina.',
+    deviceWasDisconnected: 'Gailu hau beste batetik deskonektatu da: idatzi berriro zure hodeiaren datuak sinkronizatzen jarraitzeko.',
+    cleanup: 'Jada ez dauden liburuak',
+    cleanupHelp: 'Liburu bat hodeitik desagertzen denean, bere irakurketa-marka, laster-markak eta oharrak hemen geratzen dira. Lehenik falta dela adierazten da, eta gero baino ez dira ezabatzen, liburua une batez eskuragarri ez egotearen ordez.',
+    cleanupDays: 'Zenbat itxaron ezabatu aurretik',
+    cleanupNever: 'Ez ezabatu inoiz',
+    cleanupDays7: 'Aste bat', cleanupDays15: 'Hamabost egun', cleanupDays30: 'Hilabete bat',
+    cleanupDays60: 'Bi hilabete', cleanupDays90: 'Hiru hilabete',
+    cleanupDaysHelp: 'Epe hau zure beste gailuekin partekatzen da, guztiek egun berean ezaba dezaten.',
+    cleanupCheck: 'Egiaztatu hodeia', cleanupNow: 'Ezabatu orain',
+    cleanupChecking: 'Hodeian dagoena begiratzen…',
+    cleanupNoCloud: 'Hodeirik konfiguratu gabe. Gailu honetako liburuak bakarrik garbitzen dira ezabatzean, itxaron gabe.',
+    cleanupUnchecked: 'Oraindik ez da hodeia egiaztatu saio honetan.',
+    cleanupClean: 'Dena ondo dago: {count} elementu hodeian eta ezabatzeko zain dagoen irakurketa-markarik ez.',
+    cleanupCleanOne: 'Dena ondo dago: elementu 1 hodeian eta ezabatzeko zain dagoen irakurketa-markarik ez.',
+    cleanupMissingOne: 'Liburu 1 falta da; bere irakurketa-marka gordeta jarraitzen du:',
+    cleanupSideFilesOne: 'Gainera, oharren fitxategi 1 dago bere liburuaren gabe.',
+    cleanupConfirmOne: 'Jada ez dagoen liburu 1en irakurketa-marka, laster-markak eta oharrak orain ezabatu? Ezin da desegin.',
+    cleanupDoneOne: 'Jada ez zegoen liburu 1 garbitu da.',
+    cleanupMissing: '{count} liburu falta dira; haien irakurketa-marka gordeta jarraitzen du:',
+    cleanupMissingOn: '{name} — {date} datan ezabatuko da',
+    cleanupMissingNever: '{name} — ez da ezabatuko (inoiz ez ezabatzea aukeratu duzu)',
+    cleanupSideFiles: 'Gainera, {count} oharren fitxategi daude beren liburuaren gabe.',
+    cleanupConfirm: 'Jada ez dauden {count} liburuen irakurketa-marka, laster-markak eta oharrak orain ezabatu? Ezin da desegin.',
+    cleanupDone: 'Jada ez zeuden {count} liburu garbitu dira.',
+    cleanupNothing: 'Ez zegoen ezabatzeko ezer: liburuak berriro agertu dira.',
+    showMoreRecent: 'Ikusi {count} gehiago', showFewerRecent: 'Ikusi gutxiago',
+    removeFromContinue: 'Kendu «{title}» Jarraitu irakurtzen ataletik',
+    filterBy: 'Erakutsi', filterAll: 'Guztiak', filterReading: 'Irakurtzen', filterPending: 'Zain', filterFinished: 'Amaituta',
+    sortBy: 'Ordenatu honela', sortRecent: 'Irakurketa berriena', sortTitle: 'Izenburua', sortAuthor: 'Egilea', sortProgress: 'Aurrerapena',
+    viewLabel: 'Ikuspegia', viewList: 'Zerrenda-ikuspegia', viewGrid: 'Sareta-ikuspegia',
+    toggleSection: 'Tolestu edo zabaldu atala',
+    markFinished: '«{title}» amaituta gisa markatu', markUnfinished: 'Kendu «Amaituta» etiketa «{title}»-tik', finished: 'Amaituta',
+    sampleBookHeading: 'Hasi adibidezko liburu batekin', sampleBookHelp: 'Zure liburutegia hutsik dago. Gehitu adibide hauetako bat PageKeeper probatzeko:',
+    loadingSampleBook: 'Adibidezko liburua prestatzen…',
+    loadingLibrary: 'Liburutegia kargatzen…', noCloudBooks: 'Oraindik ez dago sinkronizatutako liburu bat ere. Erabili igotzeko botoia lehenengoa gehitzeko.',
+    notStarted: 'hasi gabe', read: 'irakurrita', page: 'Orrialdea', of: 'guztira',
+    bookActions: '«{title}»-ren ekintzak',
+    actionUpload: 'Igo hodeira', actionMove: 'Eraman beste karpeta batera', actionDownload: 'Deskargatu',
+    actionOffline: 'Lineaz kanpo eskuragarri', actionRemoveOffline: 'Kendu lineaz kanpoko kopia',
+    actionUpdateOffline: 'Eguneratu lineaz kanpoko kopia', actionDelete: 'Ezabatu',
+    actionBookNote: 'Liburuaren oharra', bookNote: 'Liburuaren oharra', bookNoteLabel: 'Liburu honi buruzko zure oharra',
+    bookNotePlaceholder: 'Zertaz doan, non utzi zenuen, zer gogoratu nahi duzun…',
+    actionFolderNote: 'Karpetaren oharra', folderNote: 'Karpetaren oharra',
+    folderNotePlaceholder: 'Zer gordetzen duzun hemen eta zertarako…',
+    noFolderNote: 'Oraindik ez dago oharrik karpeta honi buruz.',
+    editBookNote: 'Idatzi liburuaren oharra', noBookNote: 'Oraindik ez dago oharrik liburu honi buruz.',
+    actionRename: 'Aldatu izena',
+    actionMarkFinished: 'Markatu amaituta gisa', actionMarkUnfinished: 'Kendu «Amaituta»',
+    renameBookPrompt: 'Liburutegian erakusteko izena (utzi hutsik fitxategiarena erabiltzeko):',
+    actionDeleteFolder: 'Ezabatu karpeta',
+    actionDownloadFolderZip: 'Deskargatu karpeta (ZIP)',
+    actionSaveFolderToDisk: 'Gorde karpeta ekipoan',
+    packingFolder: 'Karpeta prestatzen…',
+    packingFolderItem: '«{title}» ({current}/{total})',
+    folderDownloadedOne: '«{name}» karpeta gorde da: liburu 1.',
+    folderDownloadedMany: '«{name}» karpeta gorde da: {count} liburu.',
+    folderHasNoBooks: 'Karpeta horrek ez du deskargatzeko liburu bat ere.',
+    folderDownloadedPartial: '«{name}» karpeta gorde da. Ez dira sartu: {failed}/{total}.',
+    folderDownloadFailed: 'Ezin izan da karpetako liburu bat ere lortu.',
+    bookGone: 'liburua ez dago jada gailu honen biltegian',
+    removeOfflineConfirm: '«{title}»-ren lineaz kanpoko kopia kendu? Hodeiko liburua ez da ezabatuko.',
+    savingOffline: '«{title}» lineaz kanpo irakurtzeko gordetzen…', offlineSaved: '«{title}» lineaz kanpo eskuragarri dago jada ({size} MB).',
+    offlineRemoved: 'Lineaz kanpoko kopia ezabatu da. Liburua hodeian jarraitzen du.', availableOffline: 'LINEAZ KANPO', offlineOutdated: 'EGUNERATU',
+    offlineLibrary: 'Lineaz kanpo: gailu honetan gordetako kopiak erakusten dira.',
+    offlineFolderEmpty: 'Ez dago lineaz kanpoko koparik karpeta honetan.', openedOfflineCopy: 'Lineaz kanpoko kopiatik irekita.',
+    offlineUpdateFailed: 'Liburua ireki da, baina ezin izan da bere lineaz kanpoko kopia eguneratu.',
+    storageFull: 'Ez dago nahikoa lekurik «{title}» lineaz kanpo gordetzeko.',
+    fillUrlUser: 'Bete gutxienez URLa eta erabiltzailea.', configSaved: 'Konfigurazioa gorde da.', connecting: 'Konektatzen…',
+    connectionOk: '✓ Konexioa ondo: {count} liburu aurkitu dira.', configDeleted: 'Konfigurazioa ezabatu da.',
+    invalidConfigLink: 'Konfigurazio-esteka ez da baliozkoa.', cloudConfigImported: 'Hodeiaren konfigurazioa inportatu da.',
+    copyLinkFirst: 'Bete (edo gorde) lehenengo URLa eta erabiltzailea.', linkCopied: '✓ Esteka kopiatu da. Ireki beste gailuan.',
+    copyLinkPrompt: 'Kopiatu esteka eta ireki beste gailuan:',
+    downloading: '«{title}» deskargatzen…', opening: '«{title}» irekitzen…', adding: '«{title}» gehitzen…', uploading: '«{title}» zure hodeira igotzen…', deleting: '«{title}» ezabatzen…',
+    cloudBookDeleted: 'Liburua hodeitik ezabatu da.', localBookDeleted: 'Liburua gailu honetatik ezabatu da.',
+    cloudBookDeletedPending: 'Liburua ezabatu da. Aurrerapena garbitzea berriro saiatuko da konexioa itzultzean.',
+    cloudUploaded: '«{title}» zure hodeira igo da.', cloudSaved: 'Zure hodeian gorde da. Gailuen artean sinkronizatzen da jada.',
+    continuing: 'Utzi zenuen tokitik jarraitzen', continuingPage: '{page} orrialdean jarraitzen',
+    overwrite: '«{title}» jada existitzen da zure hodeian. Gainidatzi nahi duzu?',
+    deleteCloudConfirm: '«{title}» zure hodeitik ezabatu? Fitxategia zerbitzaritik kenduko da.',
+    deleteLocalConfirm: '«{title}» gailu honetatik ezabatu?',
+    deleteConfigConfirm: 'Zerbitzariaren konfigurazioa ezabatu? Hodeian gordetako aurrerapena ez da ukituko.',
+    replaceConfigConfirm: 'Inportatutako konfigurazioak uneko hodeiaren konfigurazioa ordeztuko du. Jarraitu?',
+    epubMargin: '% {value} alde bakoitzean', pageMode: 'Ikusi orrialdez orrialde (liburu bat bezala)', scrollMode: 'Ikusi orrialde jarraituak (korritzea)',
+    twoPages: 'Ikusi bi orrialde elkarrekin', onePage: 'Ikusi orrialde bakarra', rotatePage: 'Biratu orrialdea',
+    readAloud: 'Ozen irakurtzea', ttsPlay: 'Irakurri hemendik', ttsPause: 'Pausatu', ttsResume: 'Jarraitu',
+    ttsStop: 'Gelditu', ttsVoice: 'Ahotsa', ttsAutoVoice: 'Automatikoa', ttsSpeed: 'Abiadura',
+    ttsHelp: 'Uneko orrialdean hasten da, entzuten ari den esaldia nabarmentzen du eta orrialdez bakarrik aldatzen da.',
+    ttsNoSupport: 'Nabigatzaile honek ez du ozen irakurtzea onartzen.',
+    ttsNoText: 'Ez da irakurtzeko testurik aurkitu (eskaneatutako dokumentu bat izan daiteke).',
+    immersive: 'Irakurri pantaila osoan', immersiveExit: 'Irten pantaila osotik',
+    timeLeft: 'Falta den irakurketa-denbora estimatua', timeLeftMenu: 'Falta den denbora: {time}',
+    reader: 'Irakurgailua', readerScreen: 'Pantailan', showStatusBar: 'Erakutsi datu-barra behean',
+    showStatusBarHelp: 'Irakurgailuaren beheko lerroa, kapituluko orrialdea, liburuaren pantaila, irakurritako ehunekoa eta falta den denbora dituena. Ezkutatzean, altuera pixka bat testuari itzultzen zaio.',
+    statusChapter: '{page} / {total} kap.', statusChapterTitle: 'Kapituluko pantaila',
+    statusScreens: '{page}. pant. ~{total}etik',
+    statusScreensTitle: 'Liburuak gailu honetan hartzen dituen pantailak, uneko letra eta marjinarekin. Estimazio bat da eta ezarpen horiek ukitzean aldatzen da.',
+    statusPage: '{page}. orrialdea, {total}etik', statusPageTitle: 'Dokumentuaren orrialdea',
+    statusRead: '% {percent} irakurrita', statusReadTitle: 'Irakurritako liburuaren zatia',
+    timeLessMinute: '< 1 min', timeMinutes: '{m} min', timeHoursMinutes: '{h} h {m} min', goPercent: 'Joan liburuaren ehunekora (0–100):', goToPage: 'Joan orrialdera (1–{total}):',
+    sampleNoticeHtml: '<h2>Bi liburu hasteko</h2><span>Zure liburutegiak adibidezko bi liburu ditu, PageKeeper hasieratik bertatik proba dezazun. Zureak dira: irakur, gorde edo ezaba ditzakezu nahi duzunean, liburu bakoitzaren ekintza-menutik.</span>',
+    dontShowAgain: 'Ez erakutsi berriro',
+    noConfigHtml: '<span>Ez dago zerbitzaririk konfiguratuta. Liburu bat (PDF edo EPUB) gailu honetatik ireki dezakezu, edo <a href="#" id="enlace-configurar">zure hodeia konfiguratu (Nextcloud edo beste WebDAV bat)</a> irakurketaren posizioa gailuen artean sinkronizatzeko.</span><p class="ayuda">Ez dakizu hau zer den edo zer behar duzun? <a href="#" id="enlace-ayuda-aviso">Irakurri laguntza</a>.</p>',
+    syncError: 'Sinkronizazio-errorea', syncFailed: 'Ezin izan da aurrerapena sinkronizatu: {error}',
+    syncRecovered: 'Zure posizioa hodeian gorde da jada',
+    stats: 'Irakurketa-estatistikak', statsView: 'Ikusi estatistikak',
+    statsSettingsHelp: 'Irakurtzen ematen duzun denbora, jarraian daramatzazun egunak eta denbora gehien hartzen duten liburuak, zure gailu guztiak batuta.',
+    statsSummary: 'Zure irakurketa', statsLastDays: 'Azken 30 egunak',
+    actionBookStats: 'Irakurketa-denbora',
+    statusTimeSpentTitle: 'Liburu hau irakurtzen daramazun denbora. Sakatu xehetasunean ikusteko.',
+    statsBookTime: 'Emandako denbora', statsBookRead: 'Irakurrita', statsBookPace: 'Erritmoa',
+    statsPacePerPage: 'orrialdeko {time}', statsPaceSeconds: 'orrialdeko {s} s',
+    statsBookByDevice: 'Gailu bakoitzean',
+    statsBookEmpty: 'Oraindik ez dago liburu honetako denborarik apuntatuta. Liburua irekita minutu batzuk irakurri bezain laster, hemen agertuko da zenbat denbora eman diozun.',
+    statsShared: 'Zure gailu guztien batura: mugikorrean eta ordenagailuan irakurritakoa batera zenbatzen da, eta bietan irakurri duzun egun bat serie bereko egun bakar gisa zenbatzen da.',
+    statsTopBooks: 'Nora doan denbora', statsDataTitle: 'Datu hauei buruz',
+    statsEmptyTitle: 'Oraindik ez dago zer kontatu',
+    statsEmpty: 'Liburu bat irekita minutu batzuk irakurri bezain laster, orrialde honetan agertuko dira emandako denbora, jarraian daramatzazun egunak eta denbora gehien hartzen duten liburuak.',
+    statsPrivacy: 'Hodeia konfiguratuta dagoenean, irakurketa-denborak irakurketaren posizioarekin bidaiatzen du: gailu bakoitzak berea apuntatzen du eta hemen batura erakusten da, gailu bakoitzean zatika irakurri arren liburu batek zenbat denbora hartu dizun jakiteko. Zure WebDAV zerbitzari propioan bidaiatzen dute, zure liburuekin batera, eta ez dira inora bidaltzen. Hodeirik konfiguratu gabe, nabigatzaile honetan gelditzen dira. Liburu bat irekita eta orrialdeak pasatzen dituzun denbora bakarrik zenbatzen da; etenaldi luzeak eta posizio-jauziak ez dira batzen.',
+    statsDelete: 'Ezabatu estatistikak',
+    statsDeleteConfirm: 'Irakurketa-estatistikak ezabatu? Zure gailu guztietan ezabatzen dira: konektatuta daudenek sinkronizatzean egingo dute. Ez die eragiten zure liburuei, zauden orrialdeari edo zure oharrei.',
+    statsDeleted: '✓ Estatistikak ezabatu dira. Beste gailuek sinkronizatzean ezabatuko dituzte.',
+    statsTotal: 'Denbora osoa', statsToday: 'Gaur', statsWeek: 'Azken 7 egunak',
+    statsStreak: 'Jarraian dauden egunak', statsAverage: 'Irakurritako eguneko batez bestekoa',
+    statsActiveDays: 'Irakurketa-egunak', statsBestDay: 'Egunik onena', statsPdfPages: 'PDF orrialdeak',
+    statsBestStreak: 'zure serie onena: {streak}', statsStreakNow: 'serie martxan',
+    statsNoStreak: 'gaur edo bihar hasten da bat',
+    statsDays: '{count} egun', statsDaysOne: '{count} egun', statsHours: '{h} h',
+    statsChartLabel: 'Azken {days} egunetako bakoitzean irakurritako denboraren grafikoa.',
+    statsChartSummary: 'Azken 30etatik {days}etan irakurri duzu, {total} guztira.',
+    statsChartEmpty: 'Ez duzu ezer irakurri azken 30 egunotan.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: irakurketarik ez',
+    statsBooksTracked: 'Azken {count}en artean.',
+    statsBookUntitled: 'Izenbururik gabeko liburua',
+    activityLog: 'Jarduera-erregistroa',
+    activityLogHelp: 'Irakurketa-posizioa zerbitzarira iristen den ala ez, eta iristea eragozten duten erroreak jasotzen ditu. Balio du liburu bat beste gailu batean atzean gelditu zergatik jakiteko. Hemen bakarrik gordetzen da, inoiz ez du gailu hau uzten eta bakarrik astebete pasa ondoren ezabatzen da.',
+    viewLog: 'Ikusi erregistroa', clearLog: 'Hustu', copyLog: 'Kopiatu', downloadLog: 'Gorde',
+    logEmpty: 'Oraindik ez dago ezer erregistratuta.',
+    logWithErrors: '{errores} errore erregistratuta',
+    logNoErrors: '{total} gertaera, bat bera ere errorerik gabe',
+    logCopied: 'Erregistroa kopiatu da', logCopyFailed: 'Ezin izan da kopiatu; erabili «Gorde»',
+    logRecovered: 'huts egindako {intentos} saioren ondoren igo da',
+    logRetrying: 'berriro saiatzen (jarraian huts egindakoak: {intentos})',
+    logOffline: 'lineaz kanpo: konexioa itzultzeko zain',
+    logBackOnline: 'konexioa berreskuratu da', logWentOffline: 'konexioa galdu da',
+    cloudScope: 'Zure gailu guztietan eskuragarri dauden liburuak eta aurrerapena',
+    localScope: 'Gailu honetan bakarrik gordetako liburuak',
+    emptyLocalAction: 'Gehitu liburuak gailu honetara bakarrik',
+    emptyLocalHelp: 'Ez dira sinkronizatuko. Hautatu PDF edo EPUB fitxategiak, edo arrastatu hona.',
+    webdavHelpHtml: 'Nextcloud, ownCloud eta edozein WebDAV zerbitzarirekin bateragarria. Adierazitako karpetako PDFak zure liburutegian agertuko dira eta irakurketaren posizioa zure gailu guztien artean sinkronizatuko da. Ez dakizu zer jarri hemen? <a href="#" id="enlace-ayuda-ajustes">Irakurri laguntza</a>.',
+    passwordHelpHtml: '⚠️ Nextclouden sortu <strong>aplikazio-pasahitz</strong> bat (Ezarpenak → Segurtasuna), ez erabili zure pasahitz nagusia. Gainera, nabigatzaileak konektatu ahal izateko, zerbitzariak CORS onartu behar du: Nextclouden instalatu <strong>WebAppPassword</strong> aplikazioa eta gehitu irakurgailu honen domeinua. Datuak nabigatzaile honetan bakarrik gordetzen dira.',
+    transferHelp: 'Esteka bat kopiatu edo URLa, erabiltzailea eta aplikazio-pasahitza dituen fitxategi bat gorde ditzakezu, eta beste gailu batean ireki. ⚠️ Estekak eta fitxategiak zure hodeirako sarbidea ematen dute: gorde pribatuki eta ezabatu behar ez dituzun kopiak.',
+    creditsHtml: '<a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) eta <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> ikonoekin (ISC) eraikia.',
+    dropLocal: 'Askatu hemen gailu honetan gordetzeko', dropCloud: 'Askatu hemen hodeira igotzeko',
+    unsupportedFiles: 'PDF edo EPUB fitxategiak baino ezin dira gehitu.',
+    noBooksInFolder: 'Karpeta horrek ez du PDF edo EPUB fitxategirik.', localAddedOne: 'Liburua gailu honetan gorde da.', localAddedMany: '{count} liburu gailu honetan gorde dira.',
+    saveFailed: 'Ezin izan da «{title}» gorde: {error}',
+    searchLibrary: 'Bilatu liburutegian', clearSearch: 'Garbitu bilaketa', searchLibraryPlaceholder: 'Bilatu izenburu, egilearen arabera…',
+    showIndex: 'Erakutsi aurkibidea', hideIndex: 'Ezkutatu aurkibidea',
+    showThumbs: 'Erakutsi miniaturak', hideThumbs: 'Ezkutatu miniaturak',
+    showIndexThumbs: 'Erakutsi aurkibidea eta miniaturak',
+    hideIndexThumbs: 'Ezkutatu aurkibidea eta miniaturak',
+    searchBook: 'Bilatu liburuaren barruan', bookIndex: 'Liburuaren aurkibidea', bookStart: 'Liburuaren hasiera', historyNavigation: 'Nabigazio-historia', backPosition: 'Itzuli aurreko posiziora', forwardPosition: 'Aurreratu hurrengo posiziora', pageAndHistory: 'Orrialdea eta nabigazio-historia', wordOrPhrase: 'Hitza edo esaldia', search: 'Bilatu', close: 'Itxi',
+    searchingBook: 'Liburuan bilatzen…', searchProgress: 'Bilatzen… {done}/{total} · {count} emaitza.', noSearchResults: 'Ez da emaitzarik aurkitu.', searchResults: '{count} emaitza.',
+    chapter: 'Kapitulua', noLibraryResults: 'Ez dago bilaketarekin bat datorren liburu bat ere.',
+    searchingFolders: 'Karpeten barruan ere bilatzen…', inFolder: '«{name}» karpetan',
+    bookmarks: 'Laster-markak', bookmark: 'Laster-marka', addBookmark: 'Gehitu laster-marka bat hemen',
+    annotations: 'Oharrak', noAnnotations: 'Oraindik ez dago oharrik.',
+    highlightColor: 'Nabarmentze-kolorea', highlightYellow: 'Nabarmendu horiz',
+    highlightGreen: 'Nabarmendu berdez', highlightBlue: 'Nabarmendu urdinez', highlightPink: 'Nabarmendu arrosaz',
+    exportAnnotations: 'Esportatu oharrak (Markdown)', exportHeader: '«{title}»-ren oharrak',
+    exportSource: 'PageKeeperretik esportatuta', annotationsExported: 'Oharrak esportatu dira.',
+    searchAnnotations: 'Bilatu oharretan', noAnnotationResults: 'Ez dago bat datorren oharrik.',
+    selectionActions: 'Hautatutako testuarentzako ekintzak', highlight: 'Nabarmendu', addNote: 'Gehitu oharra',
+    note: 'Oharra', notePrompt: 'Hautatutako testuari buruzko oharra:', editNote: 'Editatu oharra', deleteAnnotation: 'Ezabatu oharra', deleteAnnotationConfirm: 'Ohar hau ezabatu?', noteActions: 'Oharraren aukerak',
+    annotationAdded: 'Oharra gorde da.', annotationDeleted: 'Oharra ezabatu da.',
+    bookmarkName: 'Laster-markaren izena', bookmarkNamePlaceholder: 'Laster-markaren izena (aukerakoa)',
+    bookmarkNamePrompt: 'Laster-markaren izena (utzi hutsik kentzeko):', editBookmark: 'Aldatu laster-markaren izena',
+    noBookmarks: 'Oraindik ez dago laster-markarik.', bookmarkAdded: 'Laster-marka gehitu da.',
+    bookmarkRenamed: 'Laster-markaren izena eguneratu da.',
+    bookmarkRemoved: 'Laster-marka ezabatu da.', bookmarkExists: 'Jada badago laster-marka bat posizio honetan.',
+    deleteBookmark: 'Ezabatu laster-marka',
+    cloudRoot: 'Hasiera', currentFolder: 'Uneko karpeta', targetFolder: 'Helmugako karpeta',
+    newFolder: 'Sortu karpeta bat', folderNamePrompt: 'Karpeta berriaren izena:',
+    invalidFolderName: 'Karpetaren izena ez da baliozkoa.',
+    creatingFolder: '«{name}» karpeta sortzen…', folderCreated: '«{name}» karpeta sortu da.',
+    renamingFolder: '«{name}»-ren izena aldatzen…',
+    openFolder: 'Ireki «{name}» karpeta',
+    folderEmpty: 'Hutsik', folderItemsOne: 'elementu 1', folderItems: '{count} elementu',
+    sectionFoldersOne: 'karpeta 1', sectionFolders: '{count} karpeta',
+    sectionBooksOne: 'liburu 1', sectionBooks: '{count} liburu',
+    deleteFolderConfirm: '«{name}» karpeta eta bere eduki guztia zure hodeitik ezabatu?',
+    folderDeleted: 'Karpeta hodeitik ezabatu da.', emptyFolder: 'Karpeta hau hutsik dago.',
+    deviceRoot: 'Hasiera', actionRenameFolder: 'Aldatu karpetaren izena',
+    actionSaveToDevice: 'Gorde gailu honetan',
+    imagesInvertedOff: 'Itzuli irudiei euren kolorea',
+    imagesInvertedOn: 'Irudiak euren kolorean: aktibatuta. Sakatu orrialdearekin batera alderantzikatzeko',
+    library: 'Liburutegia', showContinueReading: 'Erakutsi «Jarraitu irakurtzen»',
+    showContinueReadingHelp: 'Zure azken irakurketak dituen kutxa, liburutegiaren gainean. Ezkutatzean, liburuak zeuden tokian jarraitzen dute eta euren orrialdea mantentzen dute.',
+    themeAuto: 'Sistemarena', themeLight: 'Argia', themeSepia: 'Sepia', themeDark: 'Iluna',
+    themeNowAuto: 'Gaia: sistemarena. Sakatu argirako',
+    themeNowLight: 'Gaia: argia. Sakatu sepiarako',
+    themeNowSepia: 'Gaia: sepia. Sakatu ilunerako',
+    themeNowDark: 'Gaia: iluna. Sakatu sistemarena jarraitzeko',
+    actionMoveFolder: 'Eraman karpeta', moveFolderTo: '«{name}» karpeta eraman',
+    folderMoved: '«{name}» karpeta eraman da.',
+    savedToDevice: '«{title}» gailu honetan gorde da.',
+    folderRenamePrompt: 'Karpetaren izen berria:', folderRenamed: 'Karpetaren izena aldatu da.',
+    folderExists: 'Jada badago izen hori duen karpeta bat hemen.',
+    deleteLocalFolderConfirm: '«{name}» karpeta eta bertan dituen liburu guztiak gailu honetatik ezabatu?',
+    localFolderDeleted: 'Karpeta gailu honetatik ezabatu da.',
+    emptyLocalFolder: 'Karpeta honek ez du liburu bat ere oraindik.',
+    moveToDeviceFolder: 'Eraman «{title}» gailuko beste karpeta batera',
+    moveBook: 'Eraman «{title}» beste karpeta batera', moveHere: 'Eraman hona',
+    moving: '«{title}» eramaten…', bookMoved: '«{title}» eraman da.', cancel: 'Utzi',
+    loadingFolders: 'Karpetak kargatzen…', noSubfolders: 'Azpikarpetarik ez.',
+    textSettings: 'Testu-ezarpenak', fontFamily: 'Letra-mota',
+    bookFont: 'Liburuarena', serifFont: 'Serifarekin', sansFont: 'Serifarik gabe',
+    lineSpacing: 'Lerroartea', bookSpacing: 'Liburuarena', spacingCompact: 'Trinkoa',
+    spacingNormal: 'Normala', spacingWide: 'Zabala', spacingWider: 'Oso zabala',
+    hyphenation: 'Hitzak zatitzea', hyphenationAuto: 'Bai, lerro amaieran',
+    hyphenationBook: 'Liburuak bezala', hyphenationNever: 'Ez zatitu inoiz',
+    textAlignment: 'Lerrokatzea', bookAlignment: 'Liburuarena',
+    unjustifiedAlignment: 'Justifikatu gabe',
   },
 };
 
@@ -2735,6 +3349,1015 @@ const ayudas = {
     <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
       aria-label="Confidentialité" tabindex="0" hidden>
 <div class="tarjeta"><h2>Confidentialité</h2><p>Il n’y a aucun serveur intermédiaire : votre navigateur se connecte directement à votre nuage. L’URL, l’utilisateur et le mot de passe sont enregistrés uniquement dans ce navigateur.</p></div>
+    </div>
+  `,
+
+
+  gl: `
+    <div class="pestanas" data-grupo="ayuda" role="tablist"
+      aria-label="Seccións da axuda">
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-empezar" data-panel="empezar"
+        aria-selected="true">Primeiros pasos</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+        aria-selected="false" tabindex="-1">Biblioteca</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-lector" data-panel="lector"
+        aria-selected="false" tabindex="-1">Lector</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-nube" data-panel="nube"
+        aria-selected="false" tabindex="-1">Nube</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+        aria-selected="false" tabindex="-1">Privacidade</button>
+    </div>
+
+    <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+      aria-label="Primeiros pasos" tabindex="0">
+<div class="tarjeta"><h2>Que fai PageKeeper?</h2><p>Le libros PDF e EPUB, fórmulas matemáticas incluídas, nun teléfono, unha tableta ou un ordenador, e lembra a túa posición de lectura.</p><ul class="lista-ayuda"><li><strong>Engadir un libro desde o teu dispositivo (botón «+»):</strong> funciona
+        ao instante, sen contas nin axustes. O libro gárdase na biblioteca dese
+        navegador e lembra por onde o deixaches. O único pero: todo queda unicamente
+        nese dispositivo. Tamén podes arrastrar un ou varios PDF ou EPUB á sección
+        local.</li><li><strong>Engadir un cartafol enteiro:</strong> o botón de cartafol coa frecha (e arrastrar un cartafol á sección) copia todos os PDF e EPUB que contén, subcartafoles incluídos, e reconstrúe a mesma estrutura na túa biblioteca. Funciona igual coa nube, onde os cartafoles se crean no servidor.</li><li><strong>Conectar unha nube (WebDAV):</strong> os teus libros e a túa
+        posición de lectura sincronízanse en todos os teus dispositivos. Require
+        primeiro algo de configuración, explicada máis abaixo.</li></ul></div>
+
+<div class="tarjeta"><h2>Claro, sepia e escuro</h2><p>O botón de tema da cabeceira percorre catro estados cada vez que o premes: <strong>o do sistema</strong> (círculo medio claro medio escuro), <strong>claro</strong> (sol), <strong>sepia</strong> (cunca) e <strong>escuro</strong> (lúa). A icona indica en cal estás, e a túa escolla lémbrase nese navegador. Comeza no tema do sistema, para que a aplicación siga o resto do dispositivo.</p><p class="ayuda">O tema é tamén o papel no que les: o claro é papel branco, o sepia o ton cálido dos lectores de tinta electrónica e o escuro o modo noite da páxina.</p></div>
+    </div>
+
+    <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+      aria-label="Biblioteca" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Os teus libros dun ollo</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Continuar lendo</summary>
+          <p>
+        a túa última lectura ocupa o primeiro posto. Nunha pantalla ancha, as lecturas
+        recentes móstranse todas xuntas como tarxetas cunha portada grande e o título
+        completo; nunha pantalla estreita, despregan baixo «Ver máis». Podes retirar as
+        que xa non queiras; en <em>⚙️ Axustes → Biblioteca</em> escolles cantas
+        mostrar e podes desactivar de todo o recadro, se prefires ir directo aos teus
+        libros. Só aparece na pantalla de inicio: entrar nun cartafol retírao para
+        deixar sitio ao que contén. Un libro retirado volve cando o abres de novo. Os
+        libros rematados e os arquivos que xa non existen quedan fóra desta lista. O
+        menú «⋯» de cada tarxeta ofrece as mesmas accións que a biblioteca (renomear,
+        mover, subir ou gardar, sen conexión, borrar…), para non ter que baixar
+        buscando o libro sobre o que actuar.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Orde e estados</summary>
+          <p>
+        podes ordenar por lectura recente, título, autor ou progreso, filtrar os libros
+        pendentes, en curso ou rematados, e marcar calquera deles como rematado. Preme
+        a propia etiqueta «Rematado» para quitala; tamén desaparece soa se volves abrir
+        o libro, sen perder o progreso. Un libro ao 0 % conta como pendente aínda que
+        xa se abrise.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Portadas</summary>
+          <p>
+        créanse automaticamente (a portada do EPUB ou a primeira páxina do PDF) e
+        mostran o progreso de lectura de cada libro. A caixa de busca da biblioteca
+        filtra por nome de arquivo, título, autor, formato e outros metadatos
+        dispoñibles. No móbil, unha presión longa nun título truncado móstrao enteiro.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Resumo do libro</summary>
+          <p>
+        se o arquivo trae unha sinopse nos seus metadatos (a descrición do EPUB ou o
+        asunto do PDF), aparece nun pequeno recadro ao pasar por riba da tarxeta, tanto
+        en «Continuar lendo» como en calquera das dúas bibliotecas, e tamén baixo o
+        título no menú «⋯», que é como se le nunha pantalla táctil.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Libro de exemplo</summary>
+          <p>
+        cando a biblioteca está completamente baleira podes engadir e abrir unha obra
+        de exemplo no idioma da interface. Despois compórtase como calquera outro
+        libro local.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Cartafoles</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Cartafoles neste dispositivo</summary>
+          <p>
+        a sección «Neste dispositivo» tamén se pode organizar en cartafoles co botón
+        de cartafol con máis. Preme un cartafol para abrilo (a ruta aparece enriba da
+        lista para poder volver), renoméao ou bórrao desde o seu menú «⋯», e move un
+        libro coa súa opción «Mover a outro cartafol» ou arrastrándoo sobre o
+        cartafol. Os cartafoles móvense tamén: usa «Mover o cartafol» ou arrástraos
+        sobre outro cartafol ou sobre un chanzo da ruta, e todo o seu contido viaxa con
+        eles. Mover un libro aquí non cambia nada máis: mantén a súa páxina, os seus
+        marcadores e as súas anotacións. Os libros novos chegan ao cartafol que teñas
+        aberto, e a caixa de busca segue atopándoos onde queira que estean.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Cartafoles na nube</summary>
+          <p>
+        a sección «Na nube» mostra os subcartafoles do teu cartafol e permite
+        entrar neles (a ruta aparece enriba da lista para poder volver). Podes crear
+        cartafoles novos, renomealos ou borralos desde o seu menú «⋯» (borrar un
+        tamén retira o seu contido) e mover un libro dun cartafol a outro co seu botón
+        de mover ou arrastrándoo sobre un cartafol da lista (ou sobre un chanzo da
+        ruta), conservando o progreso e os marcadores. Os cartafoles móvense tamén:
+        usa «Mover o cartafol» ou arrástraos sobre outro cartafol ou sobre un chanzo da
+        ruta, e todo o seu contido viaxa con eles. Nin mover nin renomear custa nada ao
+        que conteñen: os libros de dentro conservan a súa páxina, os seus marcadores,
+        as súas anotacións e a súa nota, e os subcartafoles tamén.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Descargar un cartafol enteiro</summary>
+          <p>
+        o menú «⋯» de cada cartafol gárdao completo, cos seus subcartafoles e todos os
+        libros que contén. En Chrome, Edge e Opera de escritorio escolles onde
+        colocalo e cópiase tal cal; nos demais navegadores (Firefox, Safari, móbil)
+        descárgase como un único arquivo ZIP.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Volver atrás</summary>
+          <p>
+        o botón (ou o xesto) de volver do navegador sobe un cartafol en lugar de saír
+        de PageKeeper: desde un subcartafol vai ao anterior, e desde a raíz si que sae.
+        Tamén pecha o lector, a axuda ou os axustes.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Mover, gardar e borrar</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Subir á nube</summary>
+          <p>
+        cunha nube configurada, o botón de nube de cada libro local cópiao ao teu
+        cartafol remoto conservando a páxina na que vas; tamén podes subir un arquivo
+        co «+» ou soltalo na sección «Na nube», e podes arrastrar un libro desde
+        «Neste dispositivo» á nube ou a un dos seus cartafoles. Todo se sobe ao
+        cartafol que teñas aberto.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Mover libros entre bibliotecas</summary>
+          <p>
+        un libro da nube pódese gardar no dispositivo con «Gardar neste dispositivo»
+        ou arrastrándoo sobre a sección local (ou un dos seus cartafoles); e un libro
+        do dispositivo sobe co seu propio botón ou arrastrándoo sobre «Na nube». En
+        ambos os casos trátase dunha copia: o orixinal queda no seu sitio e cada
+        biblioteca garda a súa propia posición de lectura.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Dispoñible sen conexión</summary>
+          <p>
+        o botón de nube con frecha garda unha copia xestionada do libro remoto. Se
+        falla a rede, PageKeeper amósaa e ábrea automaticamente. O botón verde retira
+        só esa copia sen borrar o libro da nube.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Descargar</summary>
+          <p>
+        o botón de descarga garda unha copia do arquivo (PDF ou EPUB) no dispositivo,
+        veña da nube ou da biblioteca local.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Borrar</summary>
+          <p>
+        o lixo de cada libro elimínao (do servidor se é un libro da nube, ou deste
+        dispositivo se é local).</p>
+        </details>
+        <details class="punto-ayuda">
+            <summary>Estatísticas de lectura</summary>
+            <p>O botón do gráfico da cabeceira abre o tempo que dedicas a ler:
+          o total, o de hoxe e o desta semana, cantos días seguidos levas, unha barra
+          para cada un dos últimos trinta días e os libros aos que máis tempo lles
+          dedicas. Só conta o tempo cun libro aberto e pasando páxinas, así que deixar
+          a lapela aberta non suma nada.</p>
+            <p>Cunha nube configurada, as cifras suman todos os teus dispositivos:
+          o tempo de cada libro leva embaixo o reparto («este dispositivo 2 h ·
+          Chrome en Linux 45 min»), así que sabes canto tardaches en lelo aínda que o
+          lesses a anacos en cada aparello, e un día no que liches en dous deles conta
+          como un só día da racha. Todo isto viaxa coa túa posición de lectura, no teu
+          propio servidor, e nunca se envía a ningún outro sitio. Podes borralas cando
+          queiras desde esa mesma pantalla — bórranse en todos os dispositivos — sen
+          tocar os teus libros nin o teu progreso.</p>
+            <p>Dun único libro tenllo aínda máis a man: mentres les, a barra de abaixo
+          comeza co tempo que lle levas dedicado, e ao tocala ábrese a súa ficha, con
+          canto liches, as páxinas, o ritmo, o que falta e o reparto entre
+          dispositivos. A mesma ficha está no menú «⋯» do libro, na biblioteca.</p>
+          </details>
+          <details class="punto-ayuda">
+          <summary>Importar e exportar</summary>
+          <p>
+        o botón de cartafol con frecha da cabeceira abre unha pantalla onde podes
+        engadir libros e descargar ou restaurar copias ZIP. Hai unha copia para os
+        libros «Neste dispositivo» e outra para toda a biblioteca WebDAV, subcartafoles
+        incluídos. Ambas conservan o progreso, os marcadores e as anotacións; ningunha
+        contén o teu contrasinal. Para gardar a URL, o usuario e o contrasinal de
+        aplicación por separado, usa <em>Axustes → Levar a configuración a outro
+        dispositivo</em>.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+      aria-label="Lector" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Ver a páxina</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Modo de lectura</summary>
+          <p>
+        páxina a páxina (como un libro) ou páxinas continuas con desprazamento
+        vertical.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Pasar páxina</summary>
+          <p>
+        arrastra cara aos lados e a páxina segue o teu dedo, mostrando cara a onde se
+        dirixe; se te arrepentes a medio camiño, volve deslizando ao seu sitio. Premer
+        as marxes esquerda e dereita, ou usar as frechas e a barra espazadora, fai que
+        a páxina faga soa ese mesmo percorrido, para velo tamén nun ordenador. Nos PDF a
+        páxina veciña asómase de verdade. Coas páxinas continuas, ou con zoom, é o
+        desprazamento o que manda e non hai animación.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Dúas páxinas xuntas</summary>
+          <p>
+        no modo páxina a páxina, o botón de dúas columnas mostra as páxinas por
+        parellas (ideal en pantallas anchas); outro toque volve a unha soa páxina.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Xirar a páxina (só PDF)</summary>
+          <p>
+        o botón de xiro rota o documento 90° cada vez, útil para escaneos torcidos ou
+        apaisados. O xiro lémbrase por libro neste dispositivo.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Pantalla completa</summary>
+          <p>
+        un toque no centro da páxina agocha a barra superior para ler sen distraccións;
+        outro toque tráea de volta.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Axustar e ampliar</summary>
+          <p>
+        os tres controis do zoom van xuntos: as dúas lupas, que amplían e reducen, e o
+        nivel de zoom en porcentaxe entre elas. Ao premer ese número ábrese un panel
+        con «Axustar ao ancho», «Axustar a páxina completa», os niveis de zoom máis
+        usados e unha caixa onde escribir calquera outro (205 %, se é o que che
+        convén). Nos PDF a porcentaxe é a da páxina —o 100 % é o seu tamaño natural, así
+        que axustala ao ancho pode dar calquera cifra— e nos EPUB é a do texto. Con
+        zoom podes arrastrar a páxina co rato ou co dedo, e nas pantallas táctiles
+        pizcar para ampliar: nos PDF cambia o zoom, nos EPUB o tamaño do texto.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Tempo restante</summary>
+          <p>
+        despois duns minutos de lectura, aparece unha estimación do tempo que falta
+        para rematar o libro, calculada a partir do teu ritmo real neste dispositivo.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Texto e cor</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Axustes de texto (só EPUB)</summary>
+          <p>
+        o botón da letra permite escoller o tipo de letra (o do libro, con serifa ou
+        sen ela), o aliñamento, o interliñado, a marxe a ambos os lados e se as
+        palabras se parten ao final de liña. Os mesmos axustes están en <em>⚙️ Axustes
+        → Lector</em>, para velos e cambialos sen abrir ningún libro; os dous lugares
+        mostran sempre o mesmo. Partir palabras vén activado por defecto: nunha
+        pantalla estreita, e aínda máis co texto xustificado, é o que evita os grandes
+        ocos entre palabras. Faino o navegador segundo o idioma do libro, así que pode
+        non estar dispoñible para todos os idiomas; tamén se pode deixar como veña en
+        cada libro, ou non partir nunca.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Papel do libro</summary>
+          <p>
+        o papel é o tema da aplicación: non hai dous axustes que cadrar. O botón de
+        tema, na cabeceira da biblioteca, percorre catro estados —o do sistema, claro,
+        sepia (cálido, máis descansado en sesións longas) e escuro— e cambia á vez a
+        páxina do libro e todo o demais. Nos EPUB cambian as cores do texto, así que as
+        ilustracións se ven intactas; nos PDF, que xa son imaxes debuxadas, tínxese a
+        páxina enteira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Imaxes co tema escuro (só PDF)</summary>
+          <p>
+        cando a páxina se inverte, as fotos e os logotipos quedan en negativo. O botón
+        de imaxe, que aparece na barra do lector ao ler un PDF co tema escuro,
+        devólvelles a súa cor. Lémbrase dun libro a outro. As páxinas escaneadas
+        déixanse tal cal: alí a folla enteira é unha imaxe e devolverlle a cor deixaría
+        o papel en branco, que é xustamente o que se busca evitar pola noite.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Moverse polo libro</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Ir a un punto</summary>
+          <p>
+        preme o indicador de páxina (ou a porcentaxe nos EPUB) para saltar
+        directamente alí.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Índice e miniaturas</summary>
+          <p>
+        o botón de panel abre o que traia o libro, e a súa etiqueta indica cal: o
+        índice, as miniaturas das páxinas ou ambas as cousas. Ao abrilo, o capítulo no
+        que vas queda resaltado e á vista, sen ter que buscalo. Nunha pantalla ancha, o
+        panel lateral queda aberto dun libro a outro ata que o pechas ti.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Marcadores</summary>
+          <p>
+        o botón de marcador garda a posición actual para volver a ela cando queiras.
+        Podes poñerlle un nome e cambialo máis tarde. Nos libros da nube, os
+        marcadores sincronízanse entre dispositivos xunto coa posición de lectura.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Volver despois dun salto</summary>
+          <p>
+        despois de usar o índice, a busca ou o selector de posición, aparecen botóns
+        para volver atrás ou avanzar de novo. No móbil sitúanse a ambos os lados do
+        indicador de páxina ou porcentaxe.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Buscar dentro do libro</summary>
+          <p>
+        a lupa atopa palabras ou frases, lévate ao punto exacto e déixao resaltado
+        uns segundos para localizalo dun ollo.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Anotar e escoitar</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Resaltados e notas</summary>
+          <p>
+        selecciona texto nun PDF ou EPUB e escolle unha cor de resalte (amarelo,
+        verde, azul ou rosa) ou engade unha nota. A cor pódese cambiar máis tarde ao
+        editar a anotación. O botón do marcador de texto mostra todas as anotacións do
+        libro. Nos libros da nube sincronízanse mesmo traballando sen conexión.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Exportar anotacións</summary>
+          <p>
+        o botón de descarga do panel de anotacións garda todos os resaltados e notas
+        do libro nun arquivo Markdown (.md), coa súa páxina ou posición, listo para os
+        teus apuntamentos ou para aplicacións como Obsidian.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Lectura en voz alta</summary>
+          <p>
+        o botón do altofalante le o libro coa voz do navegador, comezando na páxina
+        actual. A frase que se está lendo vaise resaltando para poder seguila coa
+        vista, e a páxina avanza soa cando a voz chega ao final do que hai en pantalla,
+        así que tamén podes seguir a lectura. Nos EPUB, cando unha frase comeza nunha
+        páxina e remata na seguinte, a páxina cambia a media frase, máis ou menos por
+        onde vai a voz, para non deixarte mirando un fragmento mentres soa o resto. O
+        panel retírase ao comezar a lectura para non tapar o texto: mentres soa, un
+        pequeno control abaixo permite pausar, continuar e deter, e nunha pantalla
+        ancha o propio botón do altofalante pausa e continúa. Ao continuar, a frase
+        interrompida lese de novo desde o inicio. Os axustes (voz e velocidade)
+        ábrense de novo desde o menú «⋯». Pasar unha páxina á man detén a lectura. Non
+        funciona en PDF escaneados sen texto.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Sobre os PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Texto e ligazóns do PDF</summary>
+          <p>
+        podes seleccionar e copiar texto, e as ligazóns propias do PDF funcionan: as
+        internas (índice, referencias) saltan á súa páxina e as externas ábrense
+        noutra lapela.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>PDF protexidos</summary>
+          <p>
+        se un PDF está cifrado, PageKeeper pide o seu contrasinal para abrilo. O
+        contrasinal non se garda.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+      aria-label="Nube" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Que é o WebDAV?</h2>
+        <p>É unha forma estándar de acceder a arquivos gardados nun servidor a través de
+        internet, coma se fose un cartafol remoto. PageKeeper úsao para ler os teus
+        libros e para gardar a túa posición de lectura na túa propia nube, para poder
+        continuar desde outro dispositivo.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Importante: nin toda nube vale</h2>
+        <p>O lector execútase dentro do navegador e, por seguridade, este só permite
+        unha conexión a un servidor se ese servidor o autoriza expresamente (unha
+        regra técnica chamada <em>CORS</em>). Iso descarta case todos os servizos
+        comerciais:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> non valen; non
+          ofrecen un WebDAV que se poida usar así.</li>
+          <li><strong>Koofr, pCloud, Yandex e similares:</strong> teñen WebDAV,
+          pero bloquean o acceso desde páxinas web, e non podes cambiar iso
+          porque o servidor non é teu.</li>
+          <li><strong>Nextcloud ou ownCloud co permiso activado:</strong> na
+          práctica, é a única opción que funciona para sincronizar.</li>
+        </ul>
+      </div>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Non teño servidor propio (o caso máis habitual)</summary>
+        <p>Case ninguén ten servidor propio, e non pasa nada. Tes dúas opcións:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Alguén dáche acceso ao seu Nextcloud</strong> (un familiar,
+          o teu centro, o teu equipo no traballo…). Pídelle tres cousas: a
+          <em>URL do teu cartafol WebDAV</em>, o teu <em>usuario</em> e un
+          <em>contrasinal de aplicación</em>. Con iso xa sincronizas entre
+          dispositivos, sen configurar nada ti mesmo.</li>
+          <li><strong>Ninguén che dá acceso:</strong> engade os teus libros co
+          «+» baixo «Neste dispositivo». A lectura funciona igual de ben;
+          só perdes a sincronización automática entre dispositivos.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Teño ou administro Nextcloud / ownCloud</summary>
+        <p>Para deixar que PageKeeper se conecte:</p>
+        <ul class="lista-ayuda">
+          <li>Instala a app <strong>WebAppPassword</strong> e engade o dominio
+          deste lector (<code id="ayuda-dominio">este sitio</code>) ás orixes
+          permitidas.</li>
+          <li>Crea un <strong>contrasinal de aplicación</strong> (Axustes →
+          Seguridade). Non uses o teu contrasinal principal.</li>
+          <li>Nos <strong>⚙️ Axustes</strong> deste lector, escribe a URL do teu
+          cartafol (por exemplo
+          <code>https://a-tua-nube.com/remote.php/dav/files/USUARIO/Libros</code>),
+          o teu usuario e ese contrasinal.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Levar a configuración a outro dispositivo</summary>
+        <p>Unha vez configurada a túa nube, <strong>⚙️ Axustes → «Copiar ligazón
+        de configuración»</strong> dáche unha ligazón que leva todo (URL,
+        usuario e contrasinal). Ábrea noutro dispositivo e quedará configurado
+        ao instante. Compártea só por canles privadas e bórraa despois de
+        usala.</p>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable destacado">
+        <summary>🤖 Atrancado configurándoo? Pregúntalle a unha IA</summary>
+        <p>Configurar un servidor require algo de esforzo, pero unha intelixencia
+        artificial (ChatGPT, Claude, Gemini…) pode guiarte paso a paso. Copia e
+        pega preguntas coma estas:</p>
+        <ul class="lista-ayuda">
+          <li>«Teño un servidor Nextcloud. Como instalo a app
+          <em>WebAppPassword</em> e permito o acceso WebDAV desde un sitio
+          aloxado en <code id="ayuda-dominio-ia">este sitio</code>?»</li>
+          <li>«Como creo un contrasinal de aplicación en Nextcloud?»</li>
+          <li>«O servizo de nube <em>[nome]</em> permite o acceso WebDAV desde o
+          navegador (CORS) para un sitio web externo?»</li>
+        </ul>
+      </details>
+      </div>
+
+    <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+      aria-label="Privacidade" tabindex="0" hidden>
+<div class="tarjeta"><h2>Privacidade</h2><p>Non hai ningún servidor intermediario: o teu navegador conéctase directamente á túa nube. A URL, o usuario e o contrasinal gárdanse unicamente neste navegador.</p></div>
+    </div>
+  `,
+
+  eu: `
+    <div class="pestanas" data-grupo="ayuda" role="tablist"
+      aria-label="Laguntzaren atalak">
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-empezar" data-panel="empezar"
+        aria-selected="true">Lehen urratsak</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+        aria-selected="false" tabindex="-1">Liburutegia</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-lector" data-panel="lector"
+        aria-selected="false" tabindex="-1">Irakurgailua</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-nube" data-panel="nube"
+        aria-selected="false" tabindex="-1">Hodeia</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+        aria-selected="false" tabindex="-1">Pribatutasuna</button>
+    </div>
+
+    <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+      aria-label="Lehen urratsak" tabindex="0">
+<div class="tarjeta"><h2>Zer egiten du PageKeeperrek?</h2><p>PDF eta EPUB liburuak irakurtzen ditu, formula matematikoak barne, telefono, tableta edo ordenagailu batean, eta zure irakurketa-posizioa gogoratzen du.</p><ul class="lista-ayuda"><li><strong>Gehitu liburu bat zure gailutik («+» botoia):</strong> berehala
+        funtzionatzen du, konturik eta ezarpenik gabe. Liburua nabigatzaile horren
+        liburutegian gordetzen da eta non utzi zenuen gogoratzen du. Aparteko gauza
+        bakarra: dena gailu horretan bakarrik gelditzen da. PDF edo EPUB bat edo
+        gehiago atal lokalera ere arrasta ditzakezu.</li><li><strong>Gehitu karpeta oso bat:</strong> gezia duen karpeta-botoiak (eta karpeta bat atalera arrastatzeak) barruan dituen PDF eta EPUB guztiak kopiatzen ditu, azpikarpetak barne, eta egitura bera berreraikitzen du zure liburutegian. Modu berean funtzionatzen du hodeiarekin, non karpetak zerbitzarian sortzen diren.</li><li><strong>Konektatu hodei bat (WebDAV):</strong> zure liburuak eta zure
+        irakurketa-posizioa zure gailu guztien artean sinkronizatzen dira. Lehenik
+        konfigurazio pixka bat behar du, aurrerago azalduta.</li></ul></div>
+
+<div class="tarjeta"><h2>Argia, sepia eta iluna</h2><p>Goiburuko gai-botoiak lau egoera zeharkatzen ditu sakatu bakoitzean: <strong>sistemarena</strong> (erdi argi erdi ilun zirkulua), <strong>argia</strong> (eguzkia), <strong>sepia</strong> (kikara) eta <strong>iluna</strong> (ilargia). Ikonoak zein daukazun esaten dizu, eta zure aukera nabigatzaile horretan gogoratzen da. Sistemaren gaiarekin hasten da, aplikazioak gailuaren gainerakoa jarraitu dezan.</p><p class="ayuda">Gaia irakurtzen duzun papera ere bada: argia paper zuria da, sepia tinta elektronikoko irakurgailuen tono beroa eta iluna orriaren gau-modua.</p></div>
+    </div>
+
+    <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+      aria-label="Liburutegia" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Zure liburuak begi-kolpe batean</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Jarraitu irakurtzen</summary>
+          <p>
+        zure azken irakurketa goian dago. Pantaila zabalean, azken irakurketak
+        azal handi eta izenburu osoko txartel gisa agertzen dira, denak batera;
+        pantaila estuan, «Ikusi gehiago» azpian zabaltzen dira. Nahi ez dituzunak
+        kendu ditzakezu; <em>⚙️ Ezarpenak → Liburutegia</em> atalean zenbat erakutsi
+        aukeratzen duzu eta kutxa osoa itzali dezakezu, zure liburuetara zuzenean
+        joatea nahiago baduzu. Hasierako pantailan bakarrik agertzen da: karpeta batean
+        sartzeak barruan dagoenari lekua egiteko baztertzen du. Baztertutako liburu bat
+        berriro irekitzean itzultzen da. Amaitutako liburuak eta jada existitzen ez
+        diren fitxategiak zerrenda honetatik kanpo geratzen dira. Txartel bakoitzaren
+        «⋯» menuak liburutegiak dituen ekintza berak eskaintzen ditu (izena aldatu,
+        eraman, igo edo gorde, lineaz kanpo, ezabatu…), liburua bilatzeko behera
+        joan behar izan gabe.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ordena eta egoerak</summary>
+          <p>
+        irakurketa berriaren, izenburuaren, egilearen edo aurrerapenaren arabera
+        ordenatu, zain, irakurtzen edo amaituta dauden liburuak iragazi eta edozein
+        amaituta gisa marka dezakezu. Sakatu «Amaituta» etiketa bera kentzeko; liburua
+        berriro irekitzean ere bakarrik desagertzen da, aurrerapena galdu gabe.
+        % 0an dagoen liburu bat zain gisa zenbatzen da, irekita egon arren.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Azalak</summary>
+          <p>
+        automatikoki sortzen dira (EPUBaren azala edo PDFaren lehen orrialdea) eta
+        liburu bakoitzaren irakurketa-aurrerapena erakusten dute. Liburutegiaren
+        bilaketa-koadroak fitxategi-izenaren, izenburuaren, egilearen, formatuaren eta
+        beste metadatu erabilgarrien arabera iragazten du. Mugikorrean, moztutako
+        izenburu baten gainean luze sakatzeak osorik erakusten du.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Liburuaren laburpena</summary>
+          <p>
+        fitxategiak bere metadatuetan laburpen bat baldin badu (EPUBaren
+        deskribapena edo PDFaren gaia), txartelaren gainean sagua jartzean kutxa txiki
+        batean agertzen da, bai «Jarraitu irakurtzen» atalean bai bi liburutegietan,
+        eta baita izenburuaren azpian «⋯» menuan ere, hori baita pantaila ukigarri
+        batean irakurtzeko modua.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Adibidezko liburua</summary>
+          <p>
+        liburutegia guztiz hutsik dagoenean, interfazearen hizkuntzan dagoen
+        adibidezko lan bat gehitu eta ireki dezakezu. Ondoren beste edozein liburu
+        lokal bezala jokatzen du.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Karpetak</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Gailu honetako karpetak</summary>
+          <p>
+        «Gailu honetan» atala ere karpetatan antola daiteke gehi ikurra duen
+        karpeta-botoiaren bidez. Sakatu karpeta bat irekitzeko (bidea zerrendaren
+        gainean agertzen da atzera egiteko), izena aldatu edo ezabatu bere «⋯»
+        menutik, eta eraman liburu bat «Eraman beste karpeta batera» aukerarekin edo
+        karpetaren gainean arrastatuz. Karpetak ere mugitzen dira: erabili «Eraman
+        karpeta» edo arrastatu beste karpeta baten gainera edo bidearen urrats
+        baten gainera, eta barruan duten guztia haiekin bidaiatzen du. Liburu bat
+        hemen mugitzeak ez du beste ezer aldatzen: bere orrialdea, laster-markak eta
+        oharrak mantentzen ditu. Liburu berriak irekita duzun karpetara heltzen dira,
+        eta bilaketa-koadroak beti aurkitzen ditu, edonon egon.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Hodeiko karpetak</summary>
+          <p>
+        «Hodeian» atalak zure karpetaren azpikarpetak erakusten ditu eta sartzen
+        uzten dizu (bidea zerrendaren gainean agertzen da atzera egiteko). Karpeta
+        berriak sor ditzakezu, izena aldatu edo bere «⋯» menutik ezabatu (bat
+        ezabatzeak bere edukia ere kentzen du) eta liburu bat karpeta batetik
+        bestera eraman bere eramateko botoiarekin edo zerrendako karpeta baten
+        gainean arrastatuz (edo bidearen urrats baten gainean), aurrerapena eta
+        laster-markak mantenduz. Karpetak ere mugitzen dira: erabili «Eraman
+        karpeta» edo arrastatu beste karpeta baten gainera edo bidearen urrats
+        baten gainera, eta barruan duten guztia haiekin bidaiatzen du. Ez mugitzeak ez
+        eta izena aldatzeak ere ez die ezer kentzen barruan dutenei: barruko
+        liburuek beren orrialdea, laster-markak, oharrak eta nota mantentzen dituzte,
+        eta azpikarpetek berdin.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Deskargatu karpeta oso bat</summary>
+          <p>
+        karpeta bakoitzaren «⋯» menuak osorik gordetzen du, bere azpikarpeta eta
+        barruan dituen liburu guztiekin. Mahaigaineko Chrome, Edge eta Operan non
+        jarri aukeratzen duzu eta dagoen bezala kopiatzen da; beste nabigatzaile
+        batzuetan (Firefox, Safari, mugikorra) ZIP fitxategi bakar gisa deskargatzen
+        da.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Atzera egin</summary>
+          <p>
+        nabigatzailearen atzera botoiak (edo keinuak) karpeta bat igotzen du
+        PageKeeper uzteko ordez: azpikarpeta batetik aurrekora joaten da, eta
+        errotik bai uzten du. Irakurgailua, laguntza edo ezarpenak ere ixten ditu.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Eraman, gorde eta ezabatu</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Igo hodeira</summary>
+          <p>
+        hodei bat konfiguratuta dagoela, liburu lokal bakoitzaren hodei-botoiak zauden
+        orrialdea mantenduz zure urruneko karpetara kopiatzen du; fitxategi bat «+»
+        botoiarekin ere igo dezakezu, edo «Hodeian» atalera arrastatu, eta liburu bat
+        «Gailu honetan» ataletik hodeira edo bere karpeta batera arrasta dezakezu. Dena
+        irekita duzun karpetara igotzen da.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Liburuak liburutegien artean eraman</summary>
+          <p>
+        hodeiko liburu bat «Gorde gailu honetan» erabiliz edo atal lokalaren (edo
+        bere karpeta baten) gainean arrastatuz gorde daiteke gailuan; eta gailuko
+        liburu bat bere botoiarekin edo «Hodeian» ataleraren gainean arrastatuz igotzen
+        da. Bi kasuetan ere kopia bat da: jatorrizkoa bere lekuan geratzen da eta
+        liburutegi bakoitzak bere irakurketa-posizioa gordetzen du.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Lineaz kanpo eskuragarri</summary>
+          <p>
+        gezia duen hodei-botoiak urruneko liburuaren kudeatutako kopia bat gordetzen
+        du. Sarea huts egiten badu, PageKeeperrek erakusten eta automatikoki
+        irekitzen du. Botoi berdeak kopia hori bakarrik kentzen du, liburua hodeitik
+        ezabatu gabe.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Deskargatu</summary>
+          <p>
+        deskarga-botoiak fitxategiaren kopia bat (PDF edo EPUB) gordetzen du gailuan,
+        hodeitik nahiz liburutegi lokaletik badator.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ezabatu</summary>
+          <p>
+        liburu bakoitzaren zakarrontziak ezabatzen du (zerbitzaritik hodeiko liburua
+        bada, edo gailu honetatik lokala bada).</p>
+        </details>
+        <details class="punto-ayuda">
+            <summary>Irakurketa-estatistikak</summary>
+            <p>Goiburuko grafiko-botoiak irakurtzen ematen duzun denbora irekitzen
+          du: guztira, gaurkoa eta asteko denbora, zenbat egun jarraian daramatzazun,
+          azken hogeita hamar egunetako bakoitzeko barra bat, eta denbora gehien
+          hartzen duten liburuak. Liburu bat irekita eta orrialdeak pasatzen dituzun
+          denbora bakarrik zenbatzen da, beraz fitxa irekita uzteak ez du ezer
+          gehitzen.</p>
+            <p>Hodei bat konfiguratuta dagoela, zenbakiek zure gailu guztiak batzen
+          dituzte: liburu bakoitzaren denborak azpian banaketa darama («gailu hau
+          2 o · Chrome Linuxen 45 min»), gailu bakoitzean zatika irakurri arren
+          zenbat denbora hartu dizun jakiteko, eta bietan irakurritako egun bat
+          seriearen egun bakar gisa zenbatzen da. Guztia zure irakurketa-posizioarekin
+          bidaiatzen du, zure zerbitzari propioan, eta ez da inora bidaltzen. Pantaila
+          horretatik bertatik ezaba ditzakezu nahi duzunean — gailu guztietan
+          ezabatzen dira — zure liburuak edo aurrerapena ukitu gabe.</p>
+            <p>Liburu bakar batentzat are eskurago dago: irakurtzen ari zarela,
+          beheko barra hari eman diozun denborarekin hasten da, eta hori sakatzeak
+          bere txartela irekitzen du, irakurritakoarekin, orrialdeekin, erritmoarekin,
+          falta denarekin eta gailuen arteko banaketarekin. Txartel bera dago
+          liburuaren «⋯» menuan, liburutegian.</p>
+          </details>
+          <details class="punto-ayuda">
+          <summary>Inportatu eta esportatu</summary>
+          <p>
+        goiburuko gezia duen karpeta-botoiak liburuak gehitu eta ZIP kopiak deskargatu
+        edo leheneratu ditzakezun pantaila bat irekitzen du. Kopia bat dago «Gailu
+        honetan» dauden liburuentzat eta beste bat WebDAV liburutegi osoarentzat,
+        azpikarpetak barne. Biek gordetzen dituzte aurrerapena, laster-markak eta
+        oharrak; bat ere ez du zure pasahitza gordetzen. URLa, erabiltzailea eta
+        aplikazio-pasahitza bereizita gordetzeko, erabili <em>Ezarpenak → Eraman
+        konfigurazioa beste gailu batera</em>.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+      aria-label="Irakurgailua" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Orrialdea ikustea</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Irakurketa-modua</summary>
+          <p>
+        orrialdez orrialde (liburu bat bezala) edo etengabeko orrialdeak
+        korritze bertikalarekin.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Orrialdeak pasatzea</summary>
+          <p>
+        arrastatu alboetara eta orrialdeak zure hatza jarraitzen du, norantz
+        doan erakutsiz; erdibidean iritzia aldatzen baduzu, deslizatuz itzultzen da.
+        Ezker eta eskuineko marjinak sakatzeak, edo geziak eta zuriune-barra
+        erabiltzeak, orrialdeari ibilbide hori bera bakarrik egiten dio, ordenagailu
+        batean ere ikusteko. PDFetan ondoko orrialdea benetan asomatzen da. Etengabeko
+        orrialdeekin, edo zoomarekin, korritzeak agintzen du eta ez dago
+        animaziorik.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Bi orrialde elkarrekin</summary>
+          <p>
+        orrialdez orrialdeko moduan, bi zutabeko botoiak orrialdeak bikoteka
+        erakusten ditu (aproposa pantaila zabaletan); beste ukitu batek orrialde
+        bakarrera itzultzen du.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Biratu orrialdea (PDF bakarrik)</summary>
+          <p>
+        biratzeko botoiak dokumentua 90° biratzen du sakatu bakoitzean, baliagarria
+        okertutako edo horizontaleko eskaneoentzat. Biraketa liburuko gogoratzen da
+        gailu honetan.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Pantaila osoa</summary>
+          <p>
+        orrialdearen erdian ukitzeak goiko barra ezkutatzen du distrakziorik gabe
+        irakurtzeko; beste ukitu batek berreskuratzen du.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Egokitu eta zoom egin</summary>
+          <p>
+        zoomaren hiru kontrolak elkarrekin daude: handitu eta txikitzen duten bi
+        luparrak, eta artean ehunekotan zoom-maila. Zenbaki hori sakatzeak «Egokitu
+        zabalerara», «Egokitu orrialde osoa», gehien erabiltzen diren zoom-mailak eta
+        nahi duzun beste edozein idazteko kutxa (% 205, hori bada komeni zaizuna)
+        dituen panel bat irekitzen du. PDFetan ehunekoa orrialdearena da —% 100 bere
+        neurri naturala da, beraz zabalerara egokitzeak edozein zifra eman dezake— eta
+        EPUBetan testuarena da. Zoomarekin orrialdea saguarekin edo hatzarekin
+        arrasta dezakezu, eta pantaila ukigarrietan atximurra egin dezakezu handitzeko:
+        PDFetan zooma aldatzen du, EPUBetan testuaren tamaina.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Falta den denbora</summary>
+          <p>
+        irakurketa-minutu batzuen ondoren, liburua amaitzeko falta den denboraren
+        estimazio bat agertzen da, gailu honetan duzun benetako erritmotik kalkulatuta.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Testua eta kolorea</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Testu-ezarpenak (EPUB bakarrik)</summary>
+          <p>
+        letraren botoiak letra-mota aukeratzen uzten dizu (liburuarena, serifarekin
+        edo gabe), lerrokatzea, lerroartea, bi aldeetako marjina eta hitzak lerro
+        amaieran zatitzen diren ala ez. Ezarpen berak <em>⚙️ Ezarpenak →
+        Irakurgailua</em> atalean daude, liburu bat ireki gabe ikusi eta aldatzeko;
+        bi tokiek beti gauza bera erakusten dute. Zatitzea lehenetsita dago aktibatuta:
+        pantaila estuan, eta are gehiago testu justifikatuarekin, hitzen arteko tarte
+        handiak saihesten dituen gauza da. Nabigatzaileak liburuaren hizkuntzaren
+        arabera egiten du, beraz baliteke hizkuntza guztientzat erabilgarri ez
+        egotea; liburu bakoitzak duen bezala ere utz dezakezu, edo inoiz ez zatitu.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Liburuaren papera</summary>
+          <p>
+        papera aplikazioaren gaia da: ez dago bi ezarpen bat etortzeko. Liburutegiaren
+        goiburuko gai-botoiak lau egoera zeharkatzen ditu —sistemarena, argia, sepia
+        (beroa, saio luzeetan atsedengarriagoa) eta iluna— eta liburuaren orrialdea eta
+        gainerako guztia batera aldatzen ditu. EPUBetan testuaren koloreak aldatzen
+        dira, ilustrazioak ukitu gabe geratu daitezen; PDFetan, jada marraztutako
+        irudiak direnez, orrialde osoa tindatzen da.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Irudiak gai ilunarekin (PDF bakarrik)</summary>
+          <p>
+        orrialdea alderantzikatzean, argazkiak eta logotipoak negatibo gisa geratzen
+        dira. Gai ilunarekin PDF bat irakurtzean irakurgailuaren barran agertzen den
+        irudi-botoiak beren kolorea itzultzen die. Liburu batetik bestera gogoratzen
+        da. Eskaneatutako orrialdeak ukitu gabe geratzen dira: han orri osoa irudi bat
+        da eta kolorea itzultzeak papera zuri utziko luke, gauean saihestu nahi den
+        hain justu.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Liburuan mugitzea</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Joan puntu batera</summary>
+          <p>
+        ukitu orrialde-adierazlea (edo ehunekoa EPUBetan) bertara zuzenean
+        saltatzeko.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Aurkibidea eta miniaturak</summary>
+          <p>
+        panel-botoiak liburuak daramana irekitzen du, eta bere etiketak zein den
+        esaten du: aurkibidea, orrialdeen miniaturak edo biak. Irekitzean, zauden
+        kapitulua nabarmenduta eta ikusgai agertzen da, bilatu gabe. Pantaila zabalean,
+        alboko panela liburu batetik bestera irekita geratzen da zuk itxi arte.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Laster-markak</summary>
+          <p>
+        laster-marka-botoiak uneko posizioa gordetzen du nahi duzunean itzultzeko.
+        Izena jarri eta geroago alda diezaiokezu. Hodeiko liburuetan, laster-markak
+        gailuen artean sinkronizatzen dira irakurketa-posizioarekin batera.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Jauzi baten ondoren itzuli</summary>
+          <p>
+        aurkibidea, bilaketa edo posizio-hautatzailea erabili ondoren, atzera egiteko
+        edo berriro aurreratzeko botoiak agertzen dira. Mugikorrean orrialde- edo
+        ehuneko-adierazlearen bi aldeetan kokatzen dira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Bilatu liburuaren barruan</summary>
+          <p>
+        luparrak hitzak edo esaldiak aurkitzen ditu, puntu zehatzera eramaten zaitu eta
+        segundo batzuez nabarmenduta uzten du begi-kolpe batean ikusteko.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Oharrak eta entzutea</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Nabarmentzeak eta oharrak</summary>
+          <p>
+        hautatu testua PDF edo EPUB batean eta aukeratu nabarmentze-kolore bat
+        (horia, berdea, urdina edo arrosa) edo gehitu ohar bat. Kolorea geroago alda
+        daiteke oharra editatzean. Markatzaile-botoiak liburuko ohar guztiak
+        erakusten ditu. Hodeiko liburuetan lineaz kanpo lan egitean ere
+        sinkronizatzen dira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Esportatu oharrak</summary>
+          <p>
+        oharren panelaren deskarga-botoiak liburuko nabarmentze eta ohar guztiak
+        Markdown fitxategi batean (.md) gordetzen ditu, bere orrialde edo posizioarekin,
+        zure apunteentzat edo Obsidian bezalako aplikazioentzat prest.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ozen irakurtzea</summary>
+          <p>
+        bozgorailu-botoiak liburua nabigatzailearen ahotsarekin irakurtzen du, uneko
+        orrialdean hasita. Entzuten ari den esaldia nabarmentzen joaten da begiekin
+        jarraitu ahal izateko, eta orrialdea bakarrik aurreratzen da ahotsak
+        pantailan dagoenaren amaierara heltzen denean, jarraitzeko ere. EPUBetan,
+        esaldi bat orrialde batean hasi eta hurrengoan amaitzen denean, orrialdea
+        esaldi erdian aldatzen da, gutxi gorabehera ahotsa dagoen puntuan, gainerakoa
+        entzuten den bitartean zati bati begira ez uzteko. Panela alde batera egiten
+        da irakurketa hastean testua estali ez dezan: entzuten ari den bitartean,
+        beheko kontrol txiki batek pausatu, jarraitu eta gelditu egiten du, eta
+        pantaila zabalean bozgorailu-botoiak berak pausatu eta jarraitzen du.
+        Jarraitzean, eten den esaldia hasieratik berriro entzuten da. Ezarpenak
+        (ahotsa eta abiadura) «⋯» menutik berriro irekitzen dira. Eskuz orrialdea
+        aldatzeak irakurketa gelditzen du. Ez du funtzionatzen testurik gabeko
+        eskaneatutako PDFetan.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>PDFei buruz</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>PDFaren testua eta estekak</summary>
+          <p>
+        testua hauta eta kopia dezakezu, eta PDFaren berezko estekek funtzionatzen
+        dute: barnekoek (aurkibidea, erreferentziak) beren orrialdera saltatzen dute
+        eta kanpokoek beste fitxa batean irekitzen dira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Babestutako PDFak</summary>
+          <p>
+        PDF bat zifratuta badago, PageKeeperrek pasahitza eskatzen du irekitzeko.
+        Pasahitza ez da gordetzen.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+      aria-label="Hodeia" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Zer da WebDAV?</h2>
+        <p>Zerbitzari batean gordetako fitxategietara internet bidez, urruneko
+        karpeta bat balitz bezala, iristeko modu estandar bat da. PageKeeperrek
+        zure liburuak irakurtzeko eta zure irakurketa-posizioa zure hodei propioan
+        gordetzeko erabiltzen du, beste gailu batetik jarraitu ahal izateko.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Garrantzitsua: hodei guztiek ez dute balio</h2>
+        <p>Irakurgailua nabigatzailearen barruan exekutatzen da, eta segurtasunagatik,
+        nabigatzaileak zerbitzari batekiko konexioa baino ez du onartzen zerbitzari
+        horrek berariaz baimentzen badu (<em>CORS</em> izeneko arau tekniko bat).
+        Horrek merkataritza-zerbitzu ia guztiak baztertzen ditu:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> ez dute balio;
+          ez dute modu honetan erabil daitekeen WebDAVrik eskaintzen.</li>
+          <li><strong>Koofr, pCloud, Yandex eta antzekoak:</strong> WebDAV badute,
+          baina web orrialdeetatik sarbidea blokeatzen dute, eta ezin duzu hori
+          aldatu zerbitzaria ez delako zurea.</li>
+          <li><strong>Nextcloud edo ownCloud baimena aktibatuta:</strong>
+          praktikan, sinkronizatzeko funtzionatzen duen aukera bakarra da.</li>
+        </ul>
+      </div>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Ez dut nire zerbitzaririk (ohikoena)</summary>
+        <p>Ia inork ez du bere zerbitzaririk, eta ez da arazorik. Bi aukera dituzu:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Norbaitek bere Nextcloudera sarbidea ematen dizu</strong>
+          (senide bat, zure ikastetxea, laneko taldea…). Eskatu hiru gauza: zure
+          <em>WebDAV karpetaren URLa</em>, zure <em>erabiltzaile-izena</em> eta
+          <em>aplikazio-pasahitz</em> bat. Horrekin jada gailuen artean
+          sinkronizatzen duzu, ezer zeuk konfiguratu gabe.</li>
+          <li><strong>Inork ez dizu sarbidea ematen:</strong> gehitu zure liburuak
+          «Gailu honetan» azpiko «+» botoiarekin. Irakurketak berdin funtzionatzen
+          du; gailuen arteko sinkronizazio automatikoa bakarrik galtzen duzu.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Nextcloud / ownCloud dut edo administratzen dut</summary>
+        <p>PageKeeper konekta dadin:</p>
+        <ul class="lista-ayuda">
+          <li>Instalatu <strong>WebAppPassword</strong> aplikazioa eta gehitu
+          irakurgailu honen domeinua (<code id="ayuda-dominio">gune hau</code>)
+          baimendutako jatorrien artean.</li>
+          <li>Sortu <strong>aplikazio-pasahitz</strong> bat (Ezarpenak →
+          Segurtasuna). Ez erabili zure pasahitz nagusia.</li>
+          <li>Irakurgailu honen <strong>⚙️ Ezarpenak</strong> atalean, idatzi
+          zure karpetaren URLa (adibidez
+          <code>https://zure-hodeia.com/remote.php/dav/files/ERABILTZAILEA/Liburuak</code>),
+          zure erabiltzaile-izena eta pasahitz hori.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Eraman konfigurazioa beste gailu batera</summary>
+        <p>Zure hodeia konfiguratuta dagoenean, <strong>⚙️ Ezarpenak → «Kopiatu
+        konfigurazio-esteka»</strong> guztia daraman esteka bat ematen dizu (URLa,
+        erabiltzailea eta pasahitza). Ireki beste gailu batean eta berehala
+        konfiguratuta geratuko da. Partekatu bakarrik kanal pribatuen bidez eta
+        ezabatu erabili ondoren.</p>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable destacado">
+        <summary>🤖 Konfiguratzen trabatuta? Galdetu AI bati</summary>
+        <p>Zerbitzari bat konfiguratzeak lan pixka bat behar du, baina adimen
+        artifizial batek (ChatGPT, Claude, Gemini…) urratsez urrats gidatuko zaitu.
+        Kopiatu eta itsatsi honelako galderak:</p>
+        <ul class="lista-ayuda">
+          <li>«Nextcloud zerbitzari bat dut. Nola instalatzen dut
+          <em>WebAppPassword</em> aplikazioa eta nola baimentzen dut WebDAV sarbidea
+          <code id="ayuda-dominio-ia">gune hau</code>n ostatatutako gune batetik?»</li>
+          <li>«Nola sortzen dut aplikazio-pasahitz bat Nextclouden?»</li>
+          <li>«<em>[izena]</em> hodei-zerbitzuak WebDAV sarbidea onartzen du
+          nabigatzailetik (CORS) kanpoko webgune batentzat?»</li>
+        </ul>
+      </details>
+      </div>
+
+    <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+      aria-label="Pribatutasuna" tabindex="0" hidden>
+<div class="tarjeta"><h2>Pribatutasuna</h2><p>Ez dago bitarteko zerbitzaririk: zure nabigatzailea zure hodeira zuzenean konektatzen da. URLa, erabiltzailea eta pasahitza nabigatzaile honetan bakarrik gordetzen dira.</p></div>
     </div>
   `,
 };
