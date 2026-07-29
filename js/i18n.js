@@ -2,7 +2,7 @@
 // dispositivo; si no existe se usa el idioma preferido del navegador.
 
 const CLAVE_IDIOMA = 'lector.idioma';
-const IDIOMAS = ['es', 'ca', 'gl', 'eu', 'en', 'fr'];
+const IDIOMAS = ['es', 'ca', 'gl', 'eu', 'en', 'fr', 'de', 'pt'];
 
 const textos = {
   es: {
@@ -1846,6 +1846,620 @@ const textos = {
     hyphenationBook: 'Liburuak bezala', hyphenationNever: 'Ez zatitu inoiz',
     textAlignment: 'Lerrokatzea', bookAlignment: 'Liburuarena',
     unjustifiedAlignment: 'Justifikatu gabe',
+  },
+  de: {
+    appTagline: 'E-Book-Reader',
+    language: 'Sprache', help: 'Hilfe', settings: 'Einstellungen', back: 'Zurück', cloud: 'In der Cloud',
+    device: 'Auf diesem Gerät', addLocal: 'Ein Buch (PDF oder EPUB) von diesem Gerät hinzufügen',
+    addCloud: 'Ein Buch (PDF oder EPUB) in die Cloud hochladen', reload: 'Neu laden',
+    addLocalFolder: 'Einen ganzen Ordner von diesem Gerät hinzufügen',
+    addCloudFolder: 'Einen ganzen Ordner in die Cloud hochladen',
+    backLibrary: 'Zurück zur Bibliothek', saveCloud: 'In meiner Cloud speichern', zoom: 'Zoom', zoomOut: 'Verkleinern', autoWidth: 'An Breite anpassen', fitPage: 'Ganze Seite anpassen', cropMargins: 'Ränder zuschneiden', skipToContent: 'Zum Inhalt springen', bookIndexShort: 'Inhalt', thumbnails: 'Miniaturansichten', resizePanel: 'Breite des Bedienfelds ändern', bookNavigation: 'Navigation im Buch', pageThumbnails: 'Seitenminiaturen', noMarginsToCrop: 'Dieses Buch hat keine zuschneidbaren Ränder.', zoomIn: 'Vergrößern',
+    zoomLevel: 'Zoom:', zoomChange: 'Zum Ändern tippen',
+    zoomSettings: 'Zoomstufe wählen', customZoom: 'Andere', apply: 'Anwenden',
+    moreReaderActions: 'Weitere Aktionen', readerActions: 'Leseaktionen',
+    previous: 'Vorherige Seite', next: 'Nächste Seite', goPage: 'Zu einer Seite springen',
+    marginSide: 'Seitenrand', noMargin: 'Kein Rand', moreMargin: 'Mehr Rand',
+    zoomHelp: 'Wird nur für dieses Buch gespeichert.',
+    marginHelp: 'Der Text passt sich beim Bewegen des Reglers neu an. Der Rand gehört zu diesem Buch.', reset: 'Zurücksetzen',
+    webdavFolder: 'URL des WebDAV-Ordners', user: 'Benutzername', appPassword: 'App-Passwort',
+    webdav: 'Cloud (WebDAV)', transferConfig: 'Konfiguration auf ein anderes Gerät übertragen',
+    webdavShort: 'Cloud', settingsData: 'Daten', settingsSections: 'Einstellungsbereiche',
+    epubTextSettings: 'EPUB-Text',
+    epubTextSettingsHelp: 'So wird der Text von EPUB-Büchern gesetzt (PDFs kommen bereits fertig gesetzt an und übernehmen diese Änderungen nicht). Dieselben Einstellungen sind auch während des Lesens über die Schriftschaltfläche erreichbar. Hier legst du fest, womit jedes neue Buch beginnt: Der Rand und die Ausrichtung, die du bei geöffnetem Buch änderst, gelten nur für dieses Buch.',
+    resetTextSettings: 'Text zurücksetzen',
+    importExport: 'Importieren und exportieren', addBooks: 'Bücher hinzufügen',
+    addBooksHelp: 'Füge PDF- oder EPUB-Dateien zum Gerät hinzu oder lade sie in den gerade geöffneten Cloud-Ordner hoch.',
+    addToDevice: 'Zum Gerät hinzufügen', uploadToCloud: 'In die Cloud hochladen',
+    addFolderToDevice: 'Einen Ordner zum Gerät hinzufügen', uploadFolderToCloud: 'Einen Ordner in die Cloud hochladen',
+    localBackup: 'Bibliothek auf diesem Gerät',
+    localBackupHelp: 'Speichert die Bücher unter „Auf diesem Gerät“, ihren Fortschritt, Lesezeichen, Anmerkungen und Einstellungen in einer ZIP-Datei. Die Cloud-Konfiguration und das Passwort sind nicht enthalten; du kannst sie separat unter Einstellungen sichern.',
+    exportLocalBackup: 'Sicherung erstellen', restoreLocalBackup: 'Auf dem Gerät wiederherstellen',
+    creatingBackup: 'Sicherung wird erstellt…', restoringBackup: 'Sicherung wird wiederhergestellt…',
+    noLocalBooksBackup: 'Es gibt keine lokalen Bücher zum Sichern.',
+    backupCreated: 'Sicherung erfolgreich erstellt ({count} Bücher).',
+    backupRestored: 'Sicherung erfolgreich wiederhergestellt ({count} Bücher).',
+    backupFailed: 'Sicherung konnte nicht erstellt werden: {error}', restoreFailed: 'Wiederherstellung fehlgeschlagen: {error}',
+    invalidBackup: 'Diese Datei ist keine gültige PageKeeper-Sicherung.',
+    wrongLocalBackup: 'Dies ist eine Cloud-Sicherung, keine Gerätesicherung.',
+    restoreBackupConfirm: 'Diese Sicherung wiederherstellen? Bücher mit derselben Kennung und ihre lokalen Daten werden ersetzt; alle anderen bleiben erhalten.',
+    pdfPasswordTitle: 'Geschütztes PDF', pdfPasswordHelp: 'Gib das Passwort ein, um dieses PDF zu öffnen. Es wird nicht gespeichert.',
+    pdfPassword: 'PDF-Passwort', pdfPasswordIncorrect: 'Das Passwort ist falsch.',
+    pdfNoTextTitle: 'PDF ohne auswählbaren Text',
+    pdfNoTextBadge: 'KEIN TEXT',
+    pdfNoTextHelp: 'Dieses Dokument scheint gescannt zu sein. Suche, Textauswahl und Vorlesen funktionieren nicht richtig.',
+    pdfNoTextStep1: 'Lade das PDF über das Buchmenü herunter.',
+    pdfNoTextStep2: 'Öffne es in Scribe OCR und erstelle eine PDF-Kopie mit Text.',
+    pdfNoTextStep3: 'Lade diese Kopie herunter und lade sie wieder zu PageKeeper hoch.',
+    pdfNoTextPrivacy: 'PageKeeper sendet das Dokument nicht: Du musst es selbst im externen Werkzeug auswählen.',
+    openScribeOcr: 'Scribe OCR öffnen', understood: 'Verstanden',
+    open: 'Öffnen', openFailed: 'Buch konnte nicht geöffnet werden: {error}',
+    cloudBackup: 'Cloud-Bibliothek',
+    cloudBackupHelp: 'Speichert alle PDF- und EPUB-Dateien im WebDAV-Ordner und seinen Unterordnern zusammen mit Fortschritt, Lesezeichen und Anmerkungen in einer ZIP-Datei.',
+    exportCloudBackup: 'Cloud-Sicherung erstellen', restoreCloudBackup: 'In der Cloud wiederherstellen',
+    cloudBackupNeedsConfig: 'Richte zuerst eine WebDAV-Cloud unter Einstellungen ein.',
+    readingCloudLibrary: 'Cloud-Bibliothek wird gelesen…',
+    noCloudBooksBackup: 'Es gibt keine Cloud-Bücher zum Sichern.',
+    backingUpCloudBook: 'Sichere {current} von {total}: „{title}“…',
+    cloudBackupCreated: 'Cloud-Sicherung erfolgreich erstellt ({count} Bücher).',
+    restoreCloudConfirm: 'Diese Sicherung in der konfigurierten Cloud wiederherstellen? Die Unterordner werden erstellt und Bücher mit demselben Pfad überschrieben.',
+    restoringCloudBackup: 'Wiederherstellung in der Cloud wird vorbereitet…',
+    restoringCloudBook: 'Lade {current} von {total} hoch: „{title}“…',
+    cloudBackupRestored: 'Sicherung in der Cloud wiederhergestellt ({count} Bücher).',
+    wrongCloudBackup: 'Dies ist eine Gerätesicherung, keine Cloud-Sicherung.',
+    testConnection: 'Verbindung testen', save: 'Speichern', deleteConfig: 'Konfiguration löschen',
+    copyConfig: 'Konfigurationslink kopieren', exportConfigFile: 'Konfiguration speichern',
+    importConfigFile: 'Konfiguration wiederherstellen', configFileSaved: '✓ Konfiguration in einer Datei gespeichert.',
+    invalidConfigFile: 'Die Datei enthält keine gültige PageKeeper-Konfiguration.',
+    credits: 'Danksagungen', license: 'MIT-Lizenz', source: 'Quellcode',
+    privacy: 'Datenschutz',
+    analyticsNotice: 'Diese Anwendung erfasst nur aggregierte Nutzungsstatistiken mit einem selbst betriebenen System, um zu verstehen, wie sie genutzt wird, und sie zu verbessern. Es werden keine IP-Adressen gespeichert und keine Analyse-Cookies für Besucher verwendet.',
+    continueReading: 'Weiterlesen', recentCount: 'Wie viele Lektüren anzeigen', recentAuto: 'So viele wie passen', recentN: '{count} Lektüren',
+    recentCountHelp: '„So viele wie passen“ zeigt je nach Bildschirmbreite drei oder vier an. Die übrigen sind einen Fingertipp entfernt, unter „Mehr anzeigen“.', removeContinue: '„Weiterlesen“ aus der Bibliothek entfernen', continueRemoved: '„Weiterlesen“ wurde entfernt. Du kannst es unter Einstellungen → Bibliothek wieder anzeigen.', continueReadingHelp: 'Deine letzte Lektüre, die anderen einen Fingertipp entfernt',
+    devices: 'Verbundene Geräte',
+    devicesHelp: 'Die Browser, die diese Bibliothek verwenden, mit dem Zeitpunkt der letzten Synchronisierung. Erkennst du einen nicht, ändere das App-Passwort.',
+    devicesRevokeHelp: '⚠️ „Trennen“ bittet das Gerät, die Cloud-Einstellungen zu vergessen und erneut abzufragen; das wirkt erst, wenn PageKeeper dort das nächste Mal geöffnet wird. Der Serverzugriff wird dadurch nicht entzogen: Lösche dafür das App-Passwort in deiner Cloud.',
+    devicesNone: 'Noch kein Gerät hat sich verbunden.',
+    deviceThisOne: 'dieses Gerät', deviceUnknown: 'Unbenanntes Gerät',
+    deviceAuto: '{browser} unter {system}', deviceCode: 'Code {code}',
+    deviceLastSeen: 'zuletzt gesehen: {when}', deviceNeverSeen: 'keine Daten',
+    deviceToday: 'heute', deviceYesterday: 'gestern', deviceDaysAgo: 'vor {count} Tagen',
+    deviceRevokedPending: 'getrennt, wartet aufs Öffnen',
+    deviceRevoked: 'getrennt',
+    deviceRename: 'Umbenennen', deviceRenamePrompt: 'Name für dieses Gerät',
+    deviceDisconnect: 'Trennen',
+    deviceDisconnectConfirm: '„{name}“ trennen? Beim nächsten Öffnen von PageKeeper dort werden die Cloud-Einstellungen vergessen und erneut abgefragt. Der Serverzugriff wird nicht entzogen: Lösche dafür das App-Passwort in deiner Cloud.',
+    deviceDisconnected: 'Trennung angefordert. Sie wirkt beim nächsten Öffnen von PageKeeper auf diesem Gerät.',
+    deviceWasDisconnected: 'Dieses Gerät wurde von einem anderen aus getrennt: Gib die Cloud-Daten erneut ein, um die Synchronisierung fortzusetzen.',
+    cleanup: 'Bücher, die nicht mehr da sind',
+    cleanupHelp: 'Wenn ein Buch aus der Cloud verschwindet, bleiben seine Leseposition, Lesezeichen und Notizen hier erhalten. Es wird zunächst als fehlend vermerkt und erst später gelöscht, falls das Buch nur vorübergehend nicht erreichbar war.',
+    cleanupDays: 'Wie lange vor dem Löschen gewartet wird',
+    cleanupNever: 'Nie löschen',
+    cleanupDays7: 'Eine Woche', cleanupDays15: 'Fünfzehn Tage', cleanupDays30: 'Ein Monat',
+    cleanupDays60: 'Zwei Monate', cleanupDays90: 'Drei Monate',
+    cleanupDaysHelp: 'Diese Wartezeit wird mit deinen anderen Geräten geteilt, damit alle am selben Tag löschen.',
+    cleanupCheck: 'Cloud prüfen', cleanupNow: 'Jetzt löschen',
+    cleanupChecking: 'Prüfe, was in der Cloud liegt…',
+    cleanupNoCloud: 'Keine Cloud eingerichtet. Bücher auf diesem Gerät werden beim Löschen sofort bereinigt, ohne Wartezeit.',
+    cleanupUnchecked: 'Die Cloud wurde in dieser Sitzung noch nicht geprüft.',
+    cleanupClean: 'Alles in Ordnung: {count} Elemente in der Cloud, keine zu löschenden Lesemarkierungen.',
+    cleanupCleanOne: 'Alles in Ordnung: 1 Element in der Cloud, keine zu löschenden Lesemarkierungen.',
+    cleanupMissingOne: '1 Buch fehlt; seine Leseposition ist noch gespeichert:',
+    cleanupSideFilesOne: 'Außerdem gibt es 1 Anmerkungsdatei ohne ihr Buch.',
+    cleanupConfirmOne: 'Jetzt Leseposition, Lesezeichen und Notizen von 1 nicht mehr vorhandenen Buch löschen? Das kann nicht rückgängig gemacht werden.',
+    cleanupDoneOne: '1 nicht mehr vorhandenes Buch wurde bereinigt.',
+    cleanupMissing: '{count} Bücher fehlen; ihre Lesepositionen sind noch gespeichert:',
+    cleanupMissingOn: '{name} — wird am {date} gelöscht',
+    cleanupMissingNever: '{name} — wird nicht gelöscht (du hast „nie löschen“ gewählt)',
+    cleanupSideFiles: 'Außerdem gibt es {count} Anmerkungsdateien ohne ihr Buch.',
+    cleanupConfirm: 'Jetzt Leseposition, Lesezeichen und Notizen von {count} nicht mehr vorhandenen Büchern löschen? Das kann nicht rückgängig gemacht werden.',
+    cleanupDone: '{count} nicht mehr vorhandene Bücher wurden bereinigt.',
+    cleanupNothing: 'Nichts zu löschen: Die Bücher sind zurück.',
+    showMoreRecent: '{count} weitere anzeigen', showFewerRecent: 'Weniger anzeigen',
+    removeFromContinue: '„{title}“ aus Weiterlesen entfernen',
+    filterBy: 'Anzeigen', filterAll: 'Alle', filterReading: 'In Arbeit', filterPending: 'Ausstehend', filterFinished: 'Beendet',
+    sortBy: 'Sortieren nach', sortRecent: 'Zuletzt gelesen', sortTitle: 'Titel', sortAuthor: 'Autor', sortProgress: 'Fortschritt',
+    viewLabel: 'Ansicht', viewList: 'Listenansicht', viewGrid: 'Rasteransicht',
+    toggleSection: 'Abschnitt ein- oder ausklappen',
+    markFinished: '„{title}“ als beendet markieren', markUnfinished: 'Markierung „Beendet“ von „{title}“ entfernen', finished: 'Beendet',
+    sampleBookHeading: 'Mit einem Beispielbuch starten', sampleBookHelp: 'Deine Bibliothek ist leer. Füge eines dieser Beispiele hinzu, um PageKeeper auszuprobieren:',
+    loadingSampleBook: 'Beispielbuch wird vorbereitet…',
+    loadingLibrary: 'Bibliothek wird geladen…', noCloudBooks: 'Es sind noch keine Bücher synchronisiert. Nutze die Hochladen-Schaltfläche, um das erste hinzuzufügen.',
+    notStarted: 'nicht begonnen', read: 'gelesen', page: 'Seite', of: 'von',
+    bookActions: 'Aktionen für „{title}“',
+    actionUpload: 'In die Cloud hochladen', actionMove: 'In einen anderen Ordner verschieben', actionDownload: 'Herunterladen',
+    actionOffline: 'Offline verfügbar', actionRemoveOffline: 'Offline-Kopie entfernen',
+    actionUpdateOffline: 'Offline-Kopie aktualisieren', actionDelete: 'Löschen',
+    actionBookNote: 'Buchnotiz', bookNote: 'Buchnotiz', bookNoteLabel: 'Deine Notiz zu diesem Buch',
+    bookNotePlaceholder: 'Worum es geht, wo du aufgehört hast, was du dir merken willst…',
+    actionFolderNote: 'Ordnernotiz', folderNote: 'Ordnernotiz',
+    folderNotePlaceholder: 'Was du hier aufbewahrst und wofür…',
+    noFolderNote: 'Noch keine Notiz zu diesem Ordner.',
+    editBookNote: 'Buchnotiz schreiben', noBookNote: 'Noch keine Notiz zu diesem Buch.',
+    actionRename: 'Umbenennen',
+    actionMarkFinished: 'Als beendet markieren', actionMarkUnfinished: '„Beendet“ entfernen',
+    renameBookPrompt: 'Name für die Anzeige in der Bibliothek (leer lassen für den Dateinamen):',
+    actionDeleteFolder: 'Ordner löschen',
+    actionDownloadFolderZip: 'Ordner herunterladen (ZIP)',
+    actionSaveFolderToDisk: 'Ordner auf dem Computer speichern',
+    packingFolder: 'Ordner wird vorbereitet…',
+    packingFolderItem: '„{title}“ ({current} von {total})',
+    folderDownloadedOne: 'Ordner „{name}“ gespeichert: 1 Buch.',
+    folderDownloadedMany: 'Ordner „{name}“ gespeichert: {count} Bücher.',
+    folderHasNoBooks: 'Dieser Ordner enthält keine herunterladbaren Bücher.',
+    folderDownloadedPartial: 'Ordner „{name}“ gespeichert. Nicht enthalten: {failed} von {total}.',
+    folderDownloadFailed: 'Es konnte kein Buch aus dem Ordner abgerufen werden.',
+    bookGone: 'das Buch befindet sich nicht mehr im Speicher dieses Geräts',
+    removeOfflineConfirm: 'Offline-Kopie von „{title}“ entfernen? Das Cloud-Buch wird nicht gelöscht.',
+    savingOffline: '„{title}“ wird zum Offline-Lesen gespeichert…', offlineSaved: '„{title}“ ist jetzt offline verfügbar ({size} MB).',
+    offlineRemoved: 'Offline-Kopie entfernt. Das Buch bleibt in der Cloud.', availableOffline: 'OFFLINE', offlineOutdated: 'AKTUALISIEREN',
+    offlineLibrary: 'Offline: Es werden die auf diesem Gerät gespeicherten Kopien angezeigt.',
+    offlineFolderEmpty: 'Es gibt keine Offline-Kopien in diesem Ordner.', openedOfflineCopy: 'Aus der Offline-Kopie geöffnet.',
+    offlineUpdateFailed: 'Das Buch wurde geöffnet, aber seine Offline-Kopie konnte nicht aktualisiert werden.',
+    storageFull: 'Nicht genug Speicherplatz, um „{title}“ offline zu speichern.',
+    fillUrlUser: 'Gib mindestens URL und Benutzername ein.', configSaved: 'Konfiguration gespeichert.', connecting: 'Verbindung wird hergestellt…',
+    connectionOk: '✓ Verbindung erfolgreich: {count} Bücher gefunden.', configDeleted: 'Konfiguration gelöscht.',
+    invalidConfigLink: 'Der Konfigurationslink ist ungültig.', cloudConfigImported: 'Cloud-Konfiguration importiert.',
+    copyLinkFirst: 'Gib zuerst URL und Benutzername ein (oder speichere sie).', linkCopied: '✓ Link kopiert. Öffne ihn auf dem anderen Gerät.',
+    copyLinkPrompt: 'Kopiere den Link und öffne ihn auf dem anderen Gerät:',
+    downloading: '„{title}“ wird heruntergeladen…', opening: '„{title}“ wird geöffnet…', adding: '„{title}“ wird hinzugefügt…', uploading: '„{title}“ wird in deine Cloud hochgeladen…', deleting: '„{title}“ wird gelöscht…',
+    cloudBookDeleted: 'Buch aus der Cloud gelöscht.', localBookDeleted: 'Buch von diesem Gerät gelöscht.',
+    cloudBookDeletedPending: 'Buch gelöscht. Die Bereinigung des Fortschritts wird erneut versucht, sobald die Verbindung zurückkehrt.',
+    cloudUploaded: '„{title}“ in deine Cloud hochgeladen.', cloudSaved: 'In deiner Cloud gespeichert. Synchronisiert jetzt zwischen Geräten.',
+    continuing: 'Setzt dort fort, wo du aufgehört hast', continuingPage: 'Setzt auf Seite {page} fort',
+    overwrite: '„{title}“ existiert bereits in deiner Cloud. Möchtest du es überschreiben?',
+    deleteCloudConfirm: '„{title}“ aus deiner Cloud löschen? Die Datei wird vom Server entfernt.',
+    deleteLocalConfirm: '„{title}“ von diesem Gerät löschen?',
+    deleteConfigConfirm: 'Serverkonfiguration löschen? Der in der Cloud gespeicherte Fortschritt bleibt unberührt.',
+    replaceConfigConfirm: 'Die importierte Konfiguration ersetzt die aktuelle Cloud-Konfiguration. Fortfahren?',
+    epubMargin: '{value} % je Seite', pageMode: 'Seite für Seite anzeigen (wie ein Buch)', scrollMode: 'Fortlaufende Seiten anzeigen (Scrollen)',
+    twoPages: 'Zwei Seiten nebeneinander anzeigen', onePage: 'Nur eine Seite anzeigen', rotatePage: 'Seite drehen',
+    readAloud: 'Vorlesen', ttsPlay: 'Von hier vorlesen', ttsPause: 'Pause', ttsResume: 'Fortsetzen',
+    ttsStop: 'Stopp', ttsVoice: 'Stimme', ttsAutoVoice: 'Automatisch', ttsSpeed: 'Geschwindigkeit',
+    ttsHelp: 'Beginnt auf der aktuellen Seite, hebt den vorgelesenen Satz hervor und blättert von selbst weiter.',
+    ttsNoSupport: 'Dieser Browser unterstützt das Vorlesen nicht.',
+    ttsNoText: 'Es wurde kein lesbarer Text gefunden (möglicherweise ein gescanntes Dokument).',
+    immersive: 'Im Vollbild lesen', immersiveExit: 'Vollbild verlassen',
+    timeLeft: 'Geschätzte verbleibende Lesezeit', timeLeftMenu: 'Verbleibende Zeit: {time}',
+    reader: 'Lesegerät', readerScreen: 'Auf dem Bildschirm', showStatusBar: 'Statusleiste unten anzeigen',
+    showStatusBarHelp: 'Die Zeile am unteren Rand des Lesers mit der Seite im Kapitel, dem Bildschirm des Buches, dem gelesenen Prozentsatz und der verbleibenden Zeit. Sie auszublenden gibt dem Text etwas mehr Höhe.',
+    statusChapter: '{page} / {total} im Kap.', statusChapterTitle: 'Bildschirm innerhalb des Kapitels',
+    statusScreens: 'Bildsch. {page} von ~{total}',
+    statusScreensTitle: 'Bildschirme, die das Buch auf diesem Gerät mit der aktuellen Schriftgröße und dem Rand einnimmt. Das ist eine Schätzung und ändert sich bei Anpassung dieser Einstellungen.',
+    statusPage: 'Seite {page} von {total}', statusPageTitle: 'Seite des Dokuments',
+    statusRead: '{percent} % gelesen', statusReadTitle: 'Wie viel des Buches du gelesen hast',
+    timeLessMinute: '< 1 Min.', timeMinutes: '{m} Min.', timeHoursMinutes: '{h} Std. {m} Min.', goPercent: 'Zum Prozentsatz des Buches springen (0–100):', goToPage: 'Zur Seite springen (1–{total}):',
+    sampleNoticeHtml: '<h2>Zwei Bücher zum Einstieg</h2><span>Deine Bibliothek enthält zwei Beispielbücher, damit du PageKeeper sofort ausprobieren kannst. Sie gehören dir: Du kannst sie lesen, behalten oder jederzeit über das Aktionsmenü jedes Buches löschen.</span>',
+    dontShowAgain: 'Nicht mehr anzeigen',
+    noConfigHtml: '<span>Es ist kein Server konfiguriert. Du kannst ein Buch (PDF oder EPUB) von diesem Gerät öffnen oder <a href="#" id="enlace-configurar">deine Cloud einrichten (Nextcloud oder einen anderen WebDAV-Server)</a>, um die Leseposition zwischen Geräten zu synchronisieren.</span><p class="ayuda">Weißt du nicht, was das ist oder was du brauchst? <a href="#" id="enlace-ayuda-aviso">Lies die Hilfe</a>.</p>',
+    syncError: 'Synchronisierungsfehler', syncFailed: 'Fortschritt konnte nicht synchronisiert werden: {error}',
+    syncRecovered: 'Deine Position ist jetzt in der Cloud gespeichert',
+    stats: 'Lesestatistiken', statsView: 'Statistiken ansehen',
+    statsSettingsHelp: 'Wie viel Zeit du mit Lesen verbringst, wie viele Tage in Folge du dranbleibst und die Bücher, denen du am meisten Zeit widmest, über alle deine Geräte hinweg summiert.',
+    statsSummary: 'Deine Lektüre', statsLastDays: 'Die letzten 30 Tage',
+    actionBookStats: 'Lesezeit',
+    statusTimeSpentTitle: 'Wie lange du dieses Buch schon liest. Tippen, um Details zu sehen.',
+    statsBookTime: 'Verbrachte Zeit', statsBookRead: 'Gelesen', statsBookPace: 'Tempo',
+    statsPacePerPage: '{time} pro Seite', statsPaceSeconds: '{s} s pro Seite',
+    statsBookByDevice: 'Auf jedem Gerät',
+    statsBookEmpty: 'Für dieses Buch ist noch keine Zeit erfasst. Sobald du ein paar Minuten mit geöffnetem Buch liest, erscheint hier, wie viel Zeit du ihm gewidmet hast.',
+    statsShared: 'Über alle deine Geräte summiert: Was du auf dem Handy und dem Computer liest, zählt zusammen, und ein Tag, an dem du auf beiden gelesen hast, zählt als ein Tag.',
+    statsTopBooks: 'Wofür die Zeit draufgeht', statsDataTitle: 'Über diese Daten',
+    statsEmptyTitle: 'Noch nichts zu zeigen',
+    statsEmpty: 'Sobald du ein paar Minuten mit geöffnetem Buch liest, zeigt diese Seite die verbrachte Zeit, die Tage in Folge und die Bücher, denen du am meisten Zeit widmest.',
+    statsPrivacy: 'Bei eingerichteter Cloud reist die Lesezeit mit der Leseposition: Jedes Gerät erfasst seine eigene, und hier wird die Summe angezeigt, sodass du weißt, wie lange ein Buch gedauert hat, auch wenn du es auf jedem Gerät in Etappen gelesen hast. Sie liegt auf deinem eigenen WebDAV-Server, neben deinen Büchern, und wird nirgendwohin gesendet. Ohne eingerichtete Cloud bleibt sie in diesem Browser. Nur die Zeit mit geöffnetem Buch und Umblättern zählt; lange Pausen und Positionssprünge werden nicht addiert.',
+    statsDelete: 'Statistiken löschen',
+    statsDeleteConfirm: 'Lesestatistiken löschen? Sie werden auf allen deinen Geräten gelöscht: Verbundene Geräte tun dies, sobald sie synchronisieren. Deine Bücher, deine Leseposition und deine Anmerkungen sind nicht betroffen.',
+    statsDeleted: '✓ Statistiken gelöscht. Deine anderen Geräte löschen sie beim Synchronisieren.',
+    statsTotal: 'Gesamtzeit', statsToday: 'Heute', statsWeek: 'Letzte 7 Tage',
+    statsStreak: 'Tage in Folge', statsAverage: 'Durchschnitt pro Lesetag',
+    statsActiveDays: 'Tage mit Lektüre', statsBestDay: 'Bester Tag', statsPdfPages: 'PDF-Seiten',
+    statsBestStreak: 'deine beste Serie: {streak}', statsStreakNow: 'Serie läuft',
+    statsNoStreak: 'heute oder morgen beginnt eine',
+    statsDays: '{count} Tage', statsDaysOne: '{count} Tag', statsHours: '{h} Std.',
+    statsChartLabel: 'Diagramm der gelesenen Zeit an jedem der letzten {days} Tage.',
+    statsChartSummary: 'Du hast an {days} der letzten 30 Tage gelesen, {total} insgesamt.',
+    statsChartEmpty: 'Du hast in diesen 30 Tagen noch nichts gelesen.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: keine Lektüre',
+    statsBooksTracked: 'Von den {count} zuletzt gelesenen.',
+    statsBookUntitled: 'Buch ohne Titel',
+    activityLog: 'Aktivitätsprotokoll',
+    activityLogHelp: 'Hält fest, ob die Leseposition den Server erreicht, und die Fehler, die das verhindern. Nützlich, um herauszufinden, warum ein Buch auf einem anderen Gerät zurückgeblieben ist. Wird nur hier gespeichert, verlässt dieses Gerät nie und löscht sich nach einer Woche von selbst.',
+    viewLog: 'Protokoll ansehen', clearLog: 'Leeren', copyLog: 'Kopieren', downloadLog: 'Speichern',
+    logEmpty: 'Noch nichts protokolliert.',
+    logWithErrors: '{errores} Fehler protokolliert',
+    logNoErrors: '{total} Ereignisse, keine Fehler',
+    logCopied: 'Protokoll kopiert', logCopyFailed: 'Konnte nicht kopiert werden; nutze „Speichern“',
+    logRecovered: 'nach {intentos} fehlgeschlagenen Versuchen hochgeladen',
+    logRetrying: 'erneuter Versuch (aufeinanderfolgende Fehler: {intentos})',
+    logOffline: 'offline: wartet auf die Verbindung',
+    logBackOnline: 'Verbindung wiederhergestellt', logWentOffline: 'Verbindung verloren',
+    cloudScope: 'Bücher und Fortschritt auf allen deinen Geräten verfügbar',
+    localScope: 'Bücher nur auf diesem Gerät gespeichert',
+    emptyLocalAction: 'Bücher nur auf diesem Gerät hinzufügen',
+    emptyLocalHelp: 'Sie werden nicht synchronisiert. Wähle PDF- oder EPUB-Dateien aus oder ziehe sie hierher.',
+    webdavHelpHtml: 'Kompatibel mit Nextcloud, ownCloud und jedem WebDAV-Server. PDFs im angegebenen Ordner erscheinen in deiner Bibliothek, und die Leseposition wird zwischen allen deinen Geräten synchronisiert. Weißt du nicht, was du hier eintragen sollst? <a href="#" id="enlace-ayuda-ajustes">Lies die Hilfe</a>.',
+    passwordHelpHtml: '⚠️ Erstelle in Nextcloud ein <strong>App-Passwort</strong> (Einstellungen → Sicherheit); verwende nicht dein Hauptpasswort. Außerdem muss der Server CORS erlauben, damit sich der Browser verbinden kann: Installiere in Nextcloud die App <strong>WebAppPassword</strong> und füge die Domain dieses Readers hinzu. Die Daten werden nur in diesem Browser gespeichert.',
+    transferHelp: 'Du kannst einen Link kopieren oder eine Datei mit URL, Benutzername und App-Passwort speichern und sie auf einem anderen Gerät öffnen. ⚠️ Der Link und die Datei ermöglichen Zugriff auf deine Cloud: Bewahre sie privat auf und lösche nicht mehr benötigte Kopien.',
+    creditsHtml: 'Erstellt mit <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) und <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>-Symbolen (ISC).',
+    dropLocal: 'Hier ablegen, um auf diesem Gerät zu speichern', dropCloud: 'Hier ablegen, um in die Cloud hochzuladen',
+    unsupportedFiles: 'Es können nur PDF- oder EPUB-Dateien hinzugefügt werden.',
+    noBooksInFolder: 'Dieser Ordner enthält keine PDF- oder EPUB-Dateien.', localAddedOne: 'Buch auf diesem Gerät gespeichert.', localAddedMany: '{count} Bücher auf diesem Gerät gespeichert.',
+    saveFailed: '„{title}“ konnte nicht gespeichert werden: {error}',
+    searchLibrary: 'Bibliothek durchsuchen', clearSearch: 'Suche löschen', searchLibraryPlaceholder: 'Nach Titel, Autor suchen…',
+    showIndex: 'Inhaltsverzeichnis anzeigen', hideIndex: 'Inhaltsverzeichnis ausblenden',
+    showThumbs: 'Miniaturansichten anzeigen', hideThumbs: 'Miniaturansichten ausblenden',
+    showIndexThumbs: 'Inhaltsverzeichnis und Miniaturansichten anzeigen',
+    hideIndexThumbs: 'Inhaltsverzeichnis und Miniaturansichten ausblenden',
+    searchBook: 'Im Buch suchen', bookIndex: 'Inhaltsverzeichnis', bookStart: 'Buchanfang', historyNavigation: 'Navigationsverlauf', backPosition: 'Zur vorherigen Position zurück', forwardPosition: 'Zur nächsten Position vor', pageAndHistory: 'Seite und Navigationsverlauf', wordOrPhrase: 'Wort oder Satz', search: 'Suchen', close: 'Schließen',
+    searchingBook: 'Suche im Buch…', searchProgress: 'Suche… {done}/{total} · {count} Ergebnisse.', noSearchResults: 'Keine Ergebnisse gefunden.', searchResults: '{count} Ergebnisse.',
+    chapter: 'Kapitel', noLibraryResults: 'Keine Bücher passen zur Suche.',
+    searchingFolders: 'Durchsucht auch Ordner…', inFolder: 'Im Ordner „{name}“',
+    bookmarks: 'Lesezeichen', bookmark: 'Lesezeichen', addBookmark: 'Hier ein Lesezeichen hinzufügen',
+    annotations: 'Anmerkungen', noAnnotations: 'Noch keine Anmerkungen.',
+    highlightColor: 'Markierungsfarbe', highlightYellow: 'Gelb markieren',
+    highlightGreen: 'Grün markieren', highlightBlue: 'Blau markieren', highlightPink: 'Pink markieren',
+    exportAnnotations: 'Anmerkungen exportieren (Markdown)', exportHeader: 'Anmerkungen zu „{title}“',
+    exportSource: 'Aus PageKeeper exportiert', annotationsExported: 'Anmerkungen exportiert.',
+    searchAnnotations: 'In Anmerkungen suchen', noAnnotationResults: 'Keine passenden Anmerkungen.',
+    selectionActions: 'Aktionen für ausgewählten Text', highlight: 'Markieren', addNote: 'Notiz hinzufügen',
+    note: 'Notiz', notePrompt: 'Notiz zum ausgewählten Text:', editNote: 'Notiz bearbeiten', deleteAnnotation: 'Anmerkung löschen', deleteAnnotationConfirm: 'Diese Anmerkung löschen?', noteActions: 'Notizoptionen',
+    annotationAdded: 'Anmerkung gespeichert.', annotationDeleted: 'Anmerkung gelöscht.',
+    bookmarkName: 'Name des Lesezeichens', bookmarkNamePlaceholder: 'Name des Lesezeichens (optional)',
+    bookmarkNamePrompt: 'Name des Lesezeichens (leer lassen, um es zu entfernen):', editBookmark: 'Namen des Lesezeichens ändern',
+    noBookmarks: 'Noch keine Lesezeichen.', bookmarkAdded: 'Lesezeichen hinzugefügt.',
+    bookmarkRenamed: 'Name des Lesezeichens aktualisiert.',
+    bookmarkRemoved: 'Lesezeichen gelöscht.', bookmarkExists: 'An dieser Position gibt es bereits ein Lesezeichen.',
+    deleteBookmark: 'Lesezeichen löschen',
+    cloudRoot: 'Start', currentFolder: 'Aktueller Ordner', targetFolder: 'Zielordner',
+    newFolder: 'Einen Ordner erstellen', folderNamePrompt: 'Name des neuen Ordners:',
+    invalidFolderName: 'Der Ordnername ist ungültig.',
+    creatingFolder: 'Ordner „{name}“ wird erstellt…', folderCreated: 'Ordner „{name}“ erstellt.',
+    renamingFolder: '„{name}“ wird umbenannt…',
+    openFolder: 'Ordner „{name}“ öffnen',
+    folderEmpty: 'Leer', folderItemsOne: '1 Element', folderItems: '{count} Elemente',
+    sectionFoldersOne: '1 Ordner', sectionFolders: '{count} Ordner',
+    sectionBooksOne: '1 Buch', sectionBooks: '{count} Bücher',
+    deleteFolderConfirm: 'Ordner „{name}“ und seinen gesamten Inhalt aus deiner Cloud löschen?',
+    folderDeleted: 'Ordner aus der Cloud gelöscht.', emptyFolder: 'Dieser Ordner ist leer.',
+    deviceRoot: 'Start', actionRenameFolder: 'Ordner umbenennen',
+    actionSaveToDevice: 'Auf diesem Gerät speichern',
+    imagesInvertedOff: 'Bildern ihre Farbe zurückgeben',
+    imagesInvertedOn: 'Bilder in ihrer Farbe: aktiv. Zum Invertieren mit der Seite tippen',
+    library: 'Bibliothek', showContinueReading: '„Weiterlesen“ anzeigen',
+    showContinueReadingHelp: 'Der Kasten mit deinen letzten Lektüren über der Bibliothek. Ihn auszublenden lässt die Bücher, wo sie waren, mit ihrer Seite unverändert.',
+    themeAuto: 'Systemvorgabe', themeLight: 'Hell', themeSepia: 'Sepia', themeDark: 'Dunkel',
+    themeNowAuto: 'Design: Systemvorgabe. Für Hell tippen',
+    themeNowLight: 'Design: Hell. Für Sepia tippen',
+    themeNowSepia: 'Design: Sepia. Für Dunkel tippen',
+    themeNowDark: 'Design: Dunkel. Für Systemvorgabe tippen',
+    actionMoveFolder: 'Ordner verschieben', moveFolderTo: 'Ordner „{name}“ verschieben',
+    folderMoved: 'Ordner „{name}“ verschoben.',
+    savedToDevice: '„{title}“ auf diesem Gerät gespeichert.',
+    folderRenamePrompt: 'Neuer Ordnername:', folderRenamed: 'Ordner umbenannt.',
+    folderExists: 'Hier gibt es bereits einen Ordner mit diesem Namen.',
+    deleteLocalFolderConfirm: 'Ordner „{name}“ und alle darin enthaltenen Bücher von diesem Gerät löschen?',
+    localFolderDeleted: 'Ordner von diesem Gerät gelöscht.',
+    emptyLocalFolder: 'Dieser Ordner hat noch keine Bücher.',
+    moveToDeviceFolder: '„{title}“ in einen anderen Ordner auf dem Gerät verschieben',
+    moveBook: '„{title}“ in einen anderen Ordner verschieben', moveHere: 'Hierher verschieben',
+    moving: '„{title}“ wird verschoben…', bookMoved: '„{title}“ verschoben.', cancel: 'Abbrechen',
+    loadingFolders: 'Ordner werden geladen…', noSubfolders: 'Keine Unterordner.',
+    textSettings: 'Texteinstellungen', fontFamily: 'Schriftart',
+    bookFont: 'Die des Buches', serifFont: 'Serifenschrift', sansFont: 'Serifenlose Schrift',
+    lineSpacing: 'Zeilenabstand', bookSpacing: 'Der des Buches', spacingCompact: 'Kompakt',
+    spacingNormal: 'Normal', spacingWide: 'Weit', spacingWider: 'Sehr weit',
+    hyphenation: 'Silbentrennung', hyphenationAuto: 'Ja, am Zeilenende',
+    hyphenationBook: 'Wie im Buch', hyphenationNever: 'Nie trennen',
+    textAlignment: 'Ausrichtung', bookAlignment: 'Die des Buches',
+    unjustifiedAlignment: 'Nicht ausgerichtet',
+  },
+  pt: {
+    appTagline: 'Leitor de livros eletrónicos',
+    language: 'Idioma', help: 'Ajuda', settings: 'Definições', back: 'Voltar', cloud: 'Na nuvem',
+    device: 'Neste dispositivo', addLocal: 'Adicionar um livro (PDF ou EPUB) deste dispositivo',
+    addCloud: 'Enviar um livro (PDF ou EPUB) para a nuvem', reload: 'Recarregar',
+    addLocalFolder: 'Adicionar uma pasta inteira deste dispositivo',
+    addCloudFolder: 'Enviar uma pasta inteira para a nuvem',
+    backLibrary: 'Voltar à biblioteca', saveCloud: 'Guardar na minha nuvem', zoom: 'Zoom', zoomOut: 'Reduzir', autoWidth: 'Ajustar à largura', fitPage: 'Ajustar a página inteira', cropMargins: 'Recortar as margens', skipToContent: 'Saltar para o conteúdo', bookIndexShort: 'Índice', thumbnails: 'Miniaturas', resizePanel: 'Alterar a largura do painel', bookNavigation: 'Navegação do livro', pageThumbnails: 'Miniaturas das páginas', noMarginsToCrop: 'Esta obra não tem margens para recortar.', zoomIn: 'Ampliar',
+    zoomLevel: 'Zoom:', zoomChange: 'Toque para alterar',
+    zoomSettings: 'Escolher o nível de zoom', customZoom: 'Outro', apply: 'Aplicar',
+    moreReaderActions: 'Mais ações', readerActions: 'Ações de leitura',
+    previous: 'Página anterior', next: 'Página seguinte', goPage: 'Ir para uma página',
+    marginSide: 'Margem lateral', noMargin: 'Sem margem', moreMargin: 'Mais margem',
+    zoomHelp: 'Guardado apenas para este livro.',
+    marginHelp: 'O texto reajusta-se ao mover o controlo. A margem é deste livro.', reset: 'Repor',
+    webdavFolder: 'URL da pasta WebDAV', user: 'Utilizador', appPassword: 'Palavra-passe de aplicação',
+    webdav: 'Nuvem (WebDAV)', transferConfig: 'Levar a configuração para outro dispositivo',
+    webdavShort: 'Nuvem', settingsData: 'Dados', settingsSections: 'Secções das definições',
+    epubTextSettings: 'Texto dos EPUB',
+    epubTextSettingsHelp: 'Como o texto dos livros EPUB é composto (os PDF chegam já paginados e não aceitam estas alterações). Os mesmos ajustes estão à mão enquanto lê, no botão da letra. Aqui decide com que começa cada livro novo: a margem e o alinhamento que altere com um livro aberto são só desse livro.',
+    resetTextSettings: 'Repor o texto',
+    importExport: 'Importar e exportar', addBooks: 'Adicionar livros',
+    addBooksHelp: 'Adicione PDF ou EPUB ao dispositivo ou envie-os para a pasta da nuvem que tenha aberta.',
+    addToDevice: 'Adicionar ao dispositivo', uploadToCloud: 'Enviar para a nuvem',
+    addFolderToDevice: 'Adicionar uma pasta ao dispositivo', uploadFolderToCloud: 'Enviar uma pasta para a nuvem',
+    localBackup: 'Biblioteca deste dispositivo',
+    localBackupHelp: 'Guarda num ZIP os livros de «Neste dispositivo», o seu progresso, marcadores, anotações e preferências. Não inclui a configuração nem a palavra-passe da nuvem; pode guardá-las à parte em Definições.',
+    exportLocalBackup: 'Criar cópia', restoreLocalBackup: 'Restaurar no dispositivo',
+    creatingBackup: 'A criar a cópia…', restoringBackup: 'A restaurar a cópia…',
+    noLocalBooksBackup: 'Não há livros locais para copiar.',
+    backupCreated: 'Cópia criada com sucesso ({count} livros).',
+    backupRestored: 'Cópia restaurada com sucesso ({count} livros).',
+    backupFailed: 'Não foi possível criar a cópia: {error}', restoreFailed: 'Não foi possível restaurar: {error}',
+    invalidBackup: 'Este ficheiro não é uma cópia válida do PageKeeper.',
+    wrongLocalBackup: 'Esta é uma cópia da nuvem, não do dispositivo.',
+    restoreBackupConfirm: 'Restaurar esta cópia? Os livros com o mesmo identificador e os seus dados locais serão substituídos; os restantes serão mantidos.',
+    pdfPasswordTitle: 'PDF protegido', pdfPasswordHelp: 'Introduza a palavra-passe para abrir este PDF. Não será guardada.',
+    pdfPassword: 'Palavra-passe do PDF', pdfPasswordIncorrect: 'A palavra-passe não está correta.',
+    pdfNoTextTitle: 'PDF sem texto selecionável',
+    pdfNoTextBadge: 'SEM TEXTO',
+    pdfNoTextHelp: 'Este documento parece estar digitalizado. A pesquisa, a seleção e a leitura em voz alta não funcionarão corretamente.',
+    pdfNoTextStep1: 'Transfira o PDF a partir do menu do livro.',
+    pdfNoTextStep2: 'Abra-o no Scribe OCR e gere uma cópia PDF com texto.',
+    pdfNoTextStep3: 'Transfira essa cópia e volte a enviá-la para o PageKeeper.',
+    pdfNoTextPrivacy: 'O PageKeeper não enviará o documento: terá de o selecionar você mesmo na ferramenta externa.',
+    openScribeOcr: 'Abrir o Scribe OCR', understood: 'Percebido',
+    open: 'Abrir', openFailed: 'Não foi possível abrir o livro: {error}',
+    cloudBackup: 'Biblioteca da nuvem',
+    cloudBackupHelp: 'Guarda num ZIP todos os PDF e EPUB da pasta WebDAV e das suas subpastas, juntamente com o progresso, os marcadores e as anotações.',
+    exportCloudBackup: 'Criar cópia da nuvem', restoreCloudBackup: 'Restaurar na nuvem',
+    cloudBackupNeedsConfig: 'Configure primeiro uma nuvem WebDAV em Definições.',
+    readingCloudLibrary: 'A ler a biblioteca da nuvem…',
+    noCloudBooksBackup: 'Não há livros na nuvem para copiar.',
+    backingUpCloudBook: 'A copiar {current} de {total}: «{title}»…',
+    cloudBackupCreated: 'Cópia da nuvem criada com sucesso ({count} livros).',
+    restoreCloudConfirm: 'Restaurar esta cópia na nuvem configurada? As suas subpastas serão criadas e os livros com o mesmo caminho serão substituídos.',
+    restoringCloudBackup: 'A preparar a restauração na nuvem…',
+    restoringCloudBook: 'A enviar {current} de {total}: «{title}»…',
+    cloudBackupRestored: 'Cópia restaurada na nuvem ({count} livros).',
+    wrongCloudBackup: 'Esta é uma cópia do dispositivo, não da nuvem.',
+    testConnection: 'Testar ligação', save: 'Guardar', deleteConfig: 'Eliminar configuração',
+    copyConfig: 'Copiar hiperligação de configuração', exportConfigFile: 'Guardar configuração',
+    importConfigFile: 'Restaurar configuração', configFileSaved: '✓ Configuração guardada num ficheiro.',
+    invalidConfigFile: 'O ficheiro não contém uma configuração válida do PageKeeper.',
+    credits: 'Créditos', license: 'Licença MIT', source: 'Código-fonte',
+    privacy: 'Privacidade',
+    analyticsNotice: 'Esta aplicação recolhe apenas estatísticas de utilização agregadas com um sistema próprio, para conhecer a sua utilização e melhorar a ferramenta. Não são armazenados endereços IP nem são usados cookies de análise para os visitantes.',
+    continueReading: 'Continuar a ler', recentCount: 'Quantas leituras mostrar', recentAuto: 'As que couberem', recentN: '{count} leituras',
+    recentCountHelp: '«As que couberem» mostra três ou quatro consoante a largura do ecrã. As restantes ficam a um toque, em «Ver mais».', removeContinue: 'Remover «Continuar a ler» da biblioteca', continueRemoved: '«Continuar a ler» foi removido. Pode voltar a mostrá-lo em Definições → Biblioteca.', continueReadingHelp: 'A sua leitura mais recente, com as restantes a um toque',
+    devices: 'Dispositivos ligados',
+    devicesHelp: 'Os navegadores que estão a usar esta biblioteca, com a última vez que sincronizaram. Se vir um que não reconhece, mude a palavra-passe de aplicação.',
+    devicesRevokeHelp: '⚠️ «Desligar» pede ao dispositivo para esquecer a configuração da nuvem e voltar a pedi-la, e só produz efeito na próxima vez que abrir aí. Não retira o acesso ao servidor: para isso, elimine a palavra-passe de aplicação na sua nuvem.',
+    devicesNone: 'Ainda nenhum dispositivo se ligou.',
+    deviceThisOne: 'este dispositivo', deviceUnknown: 'Dispositivo sem nome',
+    deviceAuto: '{browser} em {system}', deviceCode: 'código {code}',
+    deviceLastSeen: 'última vez: {when}', deviceNeverSeen: 'sem dados',
+    deviceToday: 'hoje', deviceYesterday: 'ontem', deviceDaysAgo: 'há {count} dias',
+    deviceRevokedPending: 'desligado, à espera de abrir',
+    deviceRevoked: 'desligado',
+    deviceRename: 'Mudar o nome', deviceRenamePrompt: 'Nome para este dispositivo',
+    deviceDisconnect: 'Desligar',
+    deviceDisconnectConfirm: 'Desligar «{name}»? Na próxima vez que abrir aí, o PageKeeper esquecerá a configuração da nuvem e voltará a pedi-la. O acesso ao servidor não é retirado: para isso, elimine a palavra-passe de aplicação na sua nuvem.',
+    deviceDisconnected: 'Desligação pedida. Produzirá efeito na próxima vez que o PageKeeper for aberto nesse dispositivo.',
+    deviceWasDisconnected: 'Este dispositivo foi desligado a partir de outro: introduza novamente os dados da sua nuvem para continuar a sincronizar.',
+    cleanup: 'Livros que já não estão lá',
+    cleanupHelp: 'Quando um livro desaparece da nuvem, a sua marca de leitura, marcadores e notas ficam aqui. Primeiro é assinalado como em falta e só depois é eliminado, caso o livro estivesse fora de alcance por algum tempo.',
+    cleanupDays: 'Quanto tempo esperar antes de os eliminar',
+    cleanupNever: 'Nunca os eliminar',
+    cleanupDays7: 'Uma semana', cleanupDays15: 'Quinze dias', cleanupDays30: 'Um mês',
+    cleanupDays60: 'Dois meses', cleanupDays90: 'Três meses',
+    cleanupDaysHelp: 'Este prazo é partilhado com os seus outros dispositivos, para que todos eliminem no mesmo dia.',
+    cleanupCheck: 'Verificar a nuvem', cleanupNow: 'Eliminar agora',
+    cleanupChecking: 'A verificar o que há na nuvem…',
+    cleanupNoCloud: 'Sem nuvem configurada. Os livros deste dispositivo são limpos automaticamente ao eliminá-los, sem espera.',
+    cleanupUnchecked: 'A nuvem ainda não foi verificada nesta sessão.',
+    cleanupClean: 'Tudo em ordem: {count} elementos na nuvem e nenhuma marca de leitura pendente de eliminação.',
+    cleanupCleanOne: 'Tudo em ordem: 1 elemento na nuvem e nenhuma marca de leitura pendente de eliminação.',
+    cleanupMissingOne: 'Falta 1 livro; a sua marca de leitura continua guardada:',
+    cleanupSideFilesOne: 'Há ainda 1 ficheiro de anotações sem o seu livro.',
+    cleanupConfirmOne: 'Eliminar agora a marca de leitura, os marcadores e as notas de 1 livro que já não está lá? Não pode ser desfeito.',
+    cleanupDoneOne: 'Foi limpo 1 livro que já não estava lá.',
+    cleanupMissing: 'Faltam {count} livros; a sua marca de leitura continua guardada:',
+    cleanupMissingOn: '{name} — será eliminado em {date}',
+    cleanupMissingNever: '{name} — não será eliminado (escolheu nunca eliminar)',
+    cleanupSideFiles: 'Há ainda {count} ficheiros de anotações sem o seu livro.',
+    cleanupConfirm: 'Eliminar agora a marca de leitura, os marcadores e as notas de {count} livros que já não estão lá? Não pode ser desfeito.',
+    cleanupDone: 'Foram limpos {count} livros que já não estavam lá.',
+    cleanupNothing: 'Não havia nada para eliminar: os livros voltaram a aparecer.',
+    showMoreRecent: 'Ver mais {count}', showFewerRecent: 'Ver menos',
+    removeFromContinue: 'Remover «{title}» de Continuar a ler',
+    filterBy: 'Mostrar', filterAll: 'Todos', filterReading: 'A ler', filterPending: 'Pendentes', filterFinished: 'Concluídos',
+    sortBy: 'Ordenar por', sortRecent: 'Leitura recente', sortTitle: 'Título', sortAuthor: 'Autor', sortProgress: 'Progresso',
+    viewLabel: 'Vista', viewList: 'Vista de lista', viewGrid: 'Vista em grelha',
+    toggleSection: 'Recolher ou expandir a secção',
+    markFinished: 'Marcar «{title}» como concluído', markUnfinished: 'Remover a etiqueta «Concluído» de «{title}»', finished: 'Concluído',
+    sampleBookHeading: 'Comece com um livro de exemplo', sampleBookHelp: 'A sua biblioteca está vazia. Adicione um destes exemplos para experimentar o PageKeeper:',
+    loadingSampleBook: 'A preparar o livro de exemplo…',
+    loadingLibrary: 'A carregar a biblioteca…', noCloudBooks: 'Ainda não há livros sincronizados. Use o botão de envio para adicionar o primeiro.',
+    notStarted: 'não iniciado', read: 'lido', page: 'Página', of: 'de',
+    bookActions: 'Ações de «{title}»',
+    actionUpload: 'Enviar para a nuvem', actionMove: 'Mover para outra pasta', actionDownload: 'Transferir',
+    actionOffline: 'Disponível offline', actionRemoveOffline: 'Remover a cópia offline',
+    actionUpdateOffline: 'Atualizar a cópia offline', actionDelete: 'Eliminar',
+    actionBookNote: 'Nota do livro', bookNote: 'Nota do livro', bookNoteLabel: 'A sua nota sobre este livro',
+    bookNotePlaceholder: 'Do que trata, onde o deixou, o que quer lembrar…',
+    actionFolderNote: 'Nota da pasta', folderNote: 'Nota da pasta',
+    folderNotePlaceholder: 'O que guarda aqui e para quê…',
+    noFolderNote: 'Ainda não há nenhuma nota sobre esta pasta.',
+    editBookNote: 'Escrever a nota do livro', noBookNote: 'Ainda não há nenhuma nota sobre este livro.',
+    actionRename: 'Mudar o nome',
+    actionMarkFinished: 'Marcar como concluído', actionMarkUnfinished: 'Remover «Concluído»',
+    renameBookPrompt: 'Nome a mostrar na biblioteca (deixe em branco para usar o do ficheiro):',
+    actionDeleteFolder: 'Eliminar a pasta',
+    actionDownloadFolderZip: 'Transferir a pasta (ZIP)',
+    actionSaveFolderToDisk: 'Guardar a pasta no computador',
+    packingFolder: 'A preparar a pasta…',
+    packingFolderItem: '«{title}» ({current} de {total})',
+    folderDownloadedOne: 'Pasta «{name}» guardada: 1 livro.',
+    folderDownloadedMany: 'Pasta «{name}» guardada: {count} livros.',
+    folderHasNoBooks: 'Essa pasta não contém nenhum livro para transferir.',
+    folderDownloadedPartial: 'Pasta «{name}» guardada. Não incluídos: {failed} de {total}.',
+    folderDownloadFailed: 'Não foi possível obter nenhum livro da pasta.',
+    bookGone: 'o livro já não está no armazenamento deste dispositivo',
+    removeOfflineConfirm: 'Remover a cópia offline de «{title}»? O livro da nuvem não será eliminado.',
+    savingOffline: 'A guardar «{title}» para leitura offline…', offlineSaved: '«{title}» já está disponível offline ({size} MB).',
+    offlineRemoved: 'Cópia offline eliminada. O livro continua na nuvem.', availableOffline: 'OFFLINE', offlineOutdated: 'ATUALIZAR',
+    offlineLibrary: 'Offline: são mostradas as cópias guardadas neste dispositivo.',
+    offlineFolderEmpty: 'Não há cópias offline nesta pasta.', openedOfflineCopy: 'Aberto a partir da cópia offline.',
+    offlineUpdateFailed: 'O livro abriu-se, mas não foi possível atualizar a sua cópia offline.',
+    storageFull: 'Não há espaço suficiente para guardar «{title}» offline.',
+    fillUrlUser: 'Preencha pelo menos o URL e o utilizador.', configSaved: 'Configuração guardada.', connecting: 'A ligar…',
+    connectionOk: '✓ Ligação bem-sucedida: {count} livros encontrados.', configDeleted: 'Configuração eliminada.',
+    invalidConfigLink: 'A hiperligação de configuração não é válida.', cloudConfigImported: 'Configuração da nuvem importada.',
+    copyLinkFirst: 'Preencha (ou guarde) primeiro o URL e o utilizador.', linkCopied: '✓ Hiperligação copiada. Abra-a no outro dispositivo.',
+    copyLinkPrompt: 'Copie a hiperligação e abra-a no outro dispositivo:',
+    downloading: 'A transferir «{title}»…', opening: 'A abrir «{title}»…', adding: 'A adicionar «{title}»…', uploading: 'A enviar «{title}» para a sua nuvem…', deleting: 'A eliminar «{title}»…',
+    cloudBookDeleted: 'Livro eliminado da nuvem.', localBookDeleted: 'Livro eliminado deste dispositivo.',
+    cloudBookDeletedPending: 'Livro eliminado. A limpeza do progresso será repetida quando a ligação voltar.',
+    cloudUploaded: '«{title}» enviado para a sua nuvem.', cloudSaved: 'Guardado na sua nuvem. Já sincroniza entre dispositivos.',
+    continuing: 'A continuar onde ficou', continuingPage: 'A continuar na página {page}',
+    overwrite: '«{title}» já existe na sua nuvem. Quer substituí-lo?',
+    deleteCloudConfirm: 'Eliminar «{title}» da sua nuvem? O ficheiro será removido do servidor.',
+    deleteLocalConfirm: 'Eliminar «{title}» deste dispositivo?',
+    deleteConfigConfirm: 'Eliminar a configuração do servidor? O progresso guardado na nuvem não é afetado.',
+    replaceConfigConfirm: 'A configuração importada substituirá a configuração de nuvem atual. Continuar?',
+    epubMargin: '{value} % de cada lado', pageMode: 'Ver página a página (como um livro)', scrollMode: 'Ver páginas contínuas (deslocamento)',
+    twoPages: 'Ver duas páginas juntas', onePage: 'Ver uma só página', rotatePage: 'Rodar a página',
+    readAloud: 'Leitura em voz alta', ttsPlay: 'Ler a partir daqui', ttsPause: 'Pausar', ttsResume: 'Continuar',
+    ttsStop: 'Parar', ttsVoice: 'Voz', ttsAutoVoice: 'Automática', ttsSpeed: 'Velocidade',
+    ttsHelp: 'Começa na página atual, realça a frase que está a soar e passa de página sozinha.',
+    ttsNoSupport: 'Este navegador não permite a leitura em voz alta.',
+    ttsNoText: 'Não foi encontrado texto para ler (pode ser um documento digitalizado).',
+    immersive: 'Ler em ecrã inteiro', immersiveExit: 'Sair do ecrã inteiro',
+    timeLeft: 'Tempo de leitura restante estimado', timeLeftMenu: 'Tempo restante: {time}',
+    reader: 'Leitor', readerScreen: 'No ecrã', showStatusBar: 'Mostrar a barra de dados em baixo',
+    showStatusBarHelp: 'A linha no fundo do leitor com a página do capítulo, o ecrã do livro, a percentagem lida e o tempo que falta. Ao escondê-la, ganha-se um pouco de altura para o texto.',
+    statusChapter: '{page} / {total} do cap.', statusChapterTitle: 'Ecrã dentro do capítulo',
+    statusScreens: 'Ecrã {page} de ~{total}',
+    statusScreensTitle: 'Ecrãs que o livro ocupa neste dispositivo, com a letra e a margem atuais. É uma estimativa e muda ao alterar esses ajustes.',
+    statusPage: 'Página {page} de {total}', statusPageTitle: 'Página do documento',
+    statusRead: '{percent} % lido', statusReadTitle: 'Parte do livro que já leu',
+    timeLessMinute: '< 1 min', timeMinutes: '{m} min', timeHoursMinutes: '{h} h {m} min', goPercent: 'Ir para a percentagem do livro (0–100):', goToPage: 'Ir para a página (1–{total}):',
+    sampleNoticeHtml: '<h2>Dois livros para começar</h2><span>A sua biblioteca inclui dois livros de exemplo para poder experimentar o PageKeeper desde já. São seus: pode lê-los, guardá-los ou eliminá-los quando quiser, a partir do menu de ações de cada livro.</span>',
+    dontShowAgain: 'Não mostrar novamente',
+    noConfigHtml: '<span>Não há nenhum servidor configurado. Pode abrir um livro (PDF ou EPUB) deste dispositivo, ou <a href="#" id="enlace-configurar">configurar a sua nuvem (Nextcloud ou outro WebDAV)</a> para sincronizar a posição de leitura entre dispositivos.</span><p class="ayuda">Não sabe o que é isto ou de que precisa? <a href="#" id="enlace-ayuda-aviso">Leia a ajuda</a>.</p>',
+    syncError: 'Erro de sincronização', syncFailed: 'Não foi possível sincronizar o progresso: {error}',
+    syncRecovered: 'A sua posição já está guardada na nuvem',
+    stats: 'Estatísticas de leitura', statsView: 'Ver as estatísticas',
+    statsSettingsHelp: 'O tempo que dedica a ler, os dias seguidos que leva e os livros a que dedica mais tempo, somando todos os seus dispositivos.',
+    statsSummary: 'A sua leitura', statsLastDays: 'Os últimos 30 dias',
+    actionBookStats: 'Tempo de leitura',
+    statusTimeSpentTitle: 'Tempo que leva a ler este livro. Toque para ver em detalhe.',
+    statsBookTime: 'Tempo dedicado', statsBookRead: 'Lido', statsBookPace: 'Ritmo',
+    statsPacePerPage: '{time} por página', statsPaceSeconds: '{s} s por página',
+    statsBookByDevice: 'Em cada dispositivo',
+    statsBookEmpty: 'Ainda não há tempo registado para este livro. Assim que ler uns minutos com ele aberto, aqui aparecerá quanto tempo lhe dedicou.',
+    statsShared: 'Soma de todos os seus dispositivos: o que leu no telemóvel e no computador conta em conjunto, e um dia em que tenha lido em ambos conta como um só dia.',
+    statsTopBooks: 'Onde vai o tempo', statsDataTitle: 'Sobre estes dados',
+    statsEmptyTitle: 'Ainda não há nada a mostrar',
+    statsEmpty: 'Assim que ler uns minutos com um livro aberto, aqui aparecerão o tempo dedicado, os dias seguidos que leva a ler e os livros a que dedica mais tempo.',
+    statsPrivacy: 'Com uma nuvem configurada, o tempo de leitura viaja com a posição de leitura: cada dispositivo regista o seu e aqui mostra-se a soma, para saber quanto tempo demorou a ler um livro mesmo que o tenha lido aos poucos em cada aparelho. Ficam no seu próprio servidor WebDAV, junto com os seus livros, e nunca são enviados para mais lado nenhum. Sem nuvem configurada, ficam neste navegador. Só conta o tempo com um livro aberto e a passar páginas; pausas longas e saltos de posição não são somados.',
+    statsDelete: 'Eliminar as estatísticas',
+    statsDeleteConfirm: 'Eliminar as estatísticas de leitura? São eliminadas em todos os seus dispositivos: os que estiverem ligados fá-lo-ão assim que sincronizarem. Não afeta os seus livros, a página em que vai nem as suas anotações.',
+    statsDeleted: '✓ Estatísticas eliminadas. Os outros dispositivos eliminam-nas ao sincronizar.',
+    statsTotal: 'Tempo total', statsToday: 'Hoje', statsWeek: 'Últimos 7 dias',
+    statsStreak: 'Dias seguidos', statsAverage: 'Média por dia lido',
+    statsActiveDays: 'Dias com leitura', statsBestDay: 'Melhor dia', statsPdfPages: 'Páginas de PDF',
+    statsBestStreak: 'a sua melhor sequência: {streak}', statsStreakNow: 'sequência em curso',
+    statsNoStreak: 'hoje ou amanhã começa uma',
+    statsDays: '{count} dias', statsDaysOne: '{count} dia', statsHours: '{h} h',
+    statsChartLabel: 'Gráfico do tempo lido em cada um dos últimos {days} dias.',
+    statsChartSummary: 'Leu em {days} dos últimos 30, {total} no total.',
+    statsChartEmpty: 'Ainda não leu nada nestes 30 dias.',
+    statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sem leitura',
+    statsBooksTracked: 'Dos {count} mais recentes.',
+    statsBookUntitled: 'Livro sem título',
+    activityLog: 'Registo de atividade',
+    activityLogHelp: 'Regista se a posição de leitura chega ao servidor e os erros que o impedem. Serve para perceber por que razão um livro ficou atrasado noutro dispositivo. Guarda-se apenas aqui, nunca sai deste aparelho e apaga-se sozinho ao fim de uma semana.',
+    viewLog: 'Ver o registo', clearLog: 'Limpar', copyLog: 'Copiar', downloadLog: 'Guardar',
+    logEmpty: 'Ainda não há nada registado.',
+    logWithErrors: '{errores} erro(s) registados',
+    logNoErrors: '{total} eventos, nenhum com erro',
+    logCopied: 'Registo copiado', logCopyFailed: 'Não foi possível copiar; use «Guardar»',
+    logRecovered: 'enviado após {intentos} tentativa(s) falhada(s)',
+    logRetrying: 'a tentar novamente (falhas seguidas: {intentos})',
+    logOffline: 'offline: à espera de recuperar a ligação',
+    logBackOnline: 'ligação recuperada', logWentOffline: 'ligação perdida',
+    cloudScope: 'Livros e progresso disponíveis em todos os seus dispositivos',
+    localScope: 'Livros guardados apenas neste dispositivo',
+    emptyLocalAction: 'Adicionar livros apenas a este dispositivo',
+    emptyLocalHelp: 'Não serão sincronizados. Selecione ficheiros PDF ou EPUB, ou arraste-os para aqui.',
+    webdavHelpHtml: 'Compatível com Nextcloud, ownCloud e qualquer servidor WebDAV. Os PDF da pasta indicada aparecerão na sua biblioteca e a posição de leitura sincronizará entre todos os seus dispositivos. Não sabe o que colocar aqui? <a href="#" id="enlace-ayuda-ajustes">Leia a ajuda</a>.',
+    passwordHelpHtml: '⚠️ No Nextcloud, crie uma <strong>palavra-passe de aplicação</strong> (Definições → Segurança); não use a sua palavra-passe principal. Além disso, para o navegador conseguir ligar-se, o servidor tem de permitir CORS: no Nextcloud, instale a aplicação <strong>WebAppPassword</strong> e adicione o domínio deste leitor. Os dados são guardados apenas neste navegador.',
+    transferHelp: 'Pode copiar uma hiperligação ou guardar um ficheiro com o URL, o utilizador e a palavra-passe de aplicação, e abri-lo noutro dispositivo. ⚠️ A hiperligação e o ficheiro permitem aceder à sua nuvem: guarde-os em privado e elimine as cópias de que já não precisa.',
+    creditsHtml: 'Construído com <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e ícones <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    dropLocal: 'Largue aqui para guardar neste dispositivo', dropCloud: 'Largue aqui para enviar para a nuvem',
+    unsupportedFiles: 'Só é possível adicionar ficheiros PDF ou EPUB.',
+    noBooksInFolder: 'Essa pasta não contém nenhum PDF nem EPUB.', localAddedOne: 'Livro guardado neste dispositivo.', localAddedMany: '{count} livros guardados neste dispositivo.',
+    saveFailed: 'Não foi possível guardar «{title}»: {error}',
+    searchLibrary: 'Pesquisar na biblioteca', clearSearch: 'Limpar a pesquisa', searchLibraryPlaceholder: 'Pesquisar por título, autor…',
+    showIndex: 'Mostrar o índice', hideIndex: 'Esconder o índice',
+    showThumbs: 'Mostrar as miniaturas', hideThumbs: 'Esconder as miniaturas',
+    showIndexThumbs: 'Mostrar o índice e as miniaturas',
+    hideIndexThumbs: 'Esconder o índice e as miniaturas',
+    searchBook: 'Pesquisar dentro do livro', bookIndex: 'Índice do livro', bookStart: 'Início do livro', historyNavigation: 'Histórico de navegação', backPosition: 'Voltar à posição anterior', forwardPosition: 'Avançar para a posição seguinte', pageAndHistory: 'Página e histórico de navegação', wordOrPhrase: 'Palavra ou frase', search: 'Pesquisar', close: 'Fechar',
+    searchingBook: 'A pesquisar no livro…', searchProgress: 'A pesquisar… {done}/{total} · {count} resultados.', noSearchResults: 'Não foram encontrados resultados.', searchResults: '{count} resultados.',
+    chapter: 'Capítulo', noLibraryResults: 'Não há livros que correspondam à pesquisa.',
+    searchingFolders: 'A pesquisar também dentro das pastas…', inFolder: 'Na pasta «{name}»',
+    bookmarks: 'Marcadores', bookmark: 'Marcador', addBookmark: 'Adicionar um marcador aqui',
+    annotations: 'Anotações', noAnnotations: 'Ainda não há anotações.',
+    highlightColor: 'Cor do realce', highlightYellow: 'Realçar a amarelo',
+    highlightGreen: 'Realçar a verde', highlightBlue: 'Realçar a azul', highlightPink: 'Realçar a rosa',
+    exportAnnotations: 'Exportar as anotações (Markdown)', exportHeader: 'Anotações de «{title}»',
+    exportSource: 'Exportadas do PageKeeper', annotationsExported: 'Anotações exportadas.',
+    searchAnnotations: 'Pesquisar nas anotações', noAnnotationResults: 'Não há anotações correspondentes.',
+    selectionActions: 'Ações para o texto selecionado', highlight: 'Realçar', addNote: 'Adicionar nota',
+    note: 'Nota', notePrompt: 'Nota sobre o texto selecionado:', editNote: 'Editar nota', deleteAnnotation: 'Eliminar anotação', deleteAnnotationConfirm: 'Eliminar esta anotação?', noteActions: 'Opções da nota',
+    annotationAdded: 'Anotação guardada.', annotationDeleted: 'Anotação eliminada.',
+    bookmarkName: 'Nome do marcador', bookmarkNamePlaceholder: 'Nome do marcador (opcional)',
+    bookmarkNamePrompt: 'Nome do marcador (deixe em branco para o remover):', editBookmark: 'Mudar o nome do marcador',
+    noBookmarks: 'Ainda não há marcadores.', bookmarkAdded: 'Marcador adicionado.',
+    bookmarkRenamed: 'Nome do marcador atualizado.',
+    bookmarkRemoved: 'Marcador eliminado.', bookmarkExists: 'Já existe um marcador nesta posição.',
+    deleteBookmark: 'Eliminar o marcador',
+    cloudRoot: 'Início', currentFolder: 'Pasta atual', targetFolder: 'Pasta de destino',
+    newFolder: 'Criar uma pasta', folderNamePrompt: 'Nome da nova pasta:',
+    invalidFolderName: 'O nome da pasta não é válido.',
+    creatingFolder: 'A criar a pasta «{name}»…', folderCreated: 'Pasta «{name}» criada.',
+    renamingFolder: 'A mudar o nome de «{name}»…',
+    openFolder: 'Abrir a pasta «{name}»',
+    folderEmpty: 'Vazia', folderItemsOne: '1 elemento', folderItems: '{count} elementos',
+    sectionFoldersOne: '1 pasta', sectionFolders: '{count} pastas',
+    sectionBooksOne: '1 livro', sectionBooks: '{count} livros',
+    deleteFolderConfirm: 'Eliminar a pasta «{name}» e todo o seu conteúdo da sua nuvem?',
+    folderDeleted: 'Pasta eliminada da nuvem.', emptyFolder: 'Esta pasta está vazia.',
+    deviceRoot: 'Início', actionRenameFolder: 'Mudar o nome da pasta',
+    actionSaveToDevice: 'Guardar neste dispositivo',
+    imagesInvertedOff: 'Devolver a sua cor às imagens',
+    imagesInvertedOn: 'Imagens na sua cor: ativado. Toque para as inverter com a página',
+    library: 'Biblioteca', showContinueReading: 'Mostrar «Continuar a ler»',
+    showContinueReadingHelp: 'O quadro com as suas últimas leituras, por cima da biblioteca. Ao escondê-lo, os livros continuam onde estavam e mantêm a sua página.',
+    themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sépia', themeDark: 'Escuro',
+    themeNowAuto: 'Tema: o do sistema. Toque para o claro',
+    themeNowLight: 'Tema: claro. Toque para o sépia',
+    themeNowSepia: 'Tema: sépia. Toque para o escuro',
+    themeNowDark: 'Tema: escuro. Toque para seguir o do sistema',
+    actionMoveFolder: 'Mover a pasta', moveFolderTo: 'Mover a pasta «{name}»',
+    folderMoved: 'Pasta «{name}» movida.',
+    savedToDevice: '«{title}» guardado neste dispositivo.',
+    folderRenamePrompt: 'Novo nome da pasta:', folderRenamed: 'Pasta renomeada.',
+    folderExists: 'Já há uma pasta com esse nome aqui.',
+    deleteLocalFolderConfirm: 'Eliminar a pasta «{name}» e todos os livros que contém deste dispositivo?',
+    localFolderDeleted: 'Pasta eliminada deste dispositivo.',
+    emptyLocalFolder: 'Esta pasta ainda não tem livros.',
+    moveToDeviceFolder: 'Mover «{title}» para outra pasta do dispositivo',
+    moveBook: 'Mover «{title}» para outra pasta', moveHere: 'Mover para aqui',
+    moving: 'A mover «{title}»…', bookMoved: '«{title}» movido.', cancel: 'Cancelar',
+    loadingFolders: 'A carregar pastas…', noSubfolders: 'Sem subpastas.',
+    textSettings: 'Definições de texto', fontFamily: 'Tipo de letra',
+    bookFont: 'A do livro', serifFont: 'Com serifa', sansFont: 'Sem serifa',
+    lineSpacing: 'Entrelinha', bookSpacing: 'A do livro', spacingCompact: 'Compacto',
+    spacingNormal: 'Normal', spacingWide: 'Ampla', spacingWider: 'Muito ampla',
+    hyphenation: 'Dividir palavras', hyphenationAuto: 'Sim, no final da linha',
+    hyphenationBook: 'Como no livro', hyphenationNever: 'Não dividir',
+    textAlignment: 'Alinhamento', bookAlignment: 'O do livro',
+    unjustifiedAlignment: 'Não justificado',
   },
 };
 
@@ -4358,6 +4972,1062 @@ const ayudas = {
     <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
       aria-label="Pribatutasuna" tabindex="0" hidden>
 <div class="tarjeta"><h2>Pribatutasuna</h2><p>Ez dago bitarteko zerbitzaririk: zure nabigatzailea zure hodeira zuzenean konektatzen da. URLa, erabiltzailea eta pasahitza nabigatzaile honetan bakarrik gordetzen dira.</p></div>
+    </div>
+  `,
+
+
+  de: `
+    <div class="pestanas" data-grupo="ayuda" role="tablist"
+      aria-label="Hilfebereiche">
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-empezar" data-panel="empezar"
+        aria-selected="true">Erste Schritte</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+        aria-selected="false" tabindex="-1">Bibliothek</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-lector" data-panel="lector"
+        aria-selected="false" tabindex="-1">Lesegerät</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-nube" data-panel="nube"
+        aria-selected="false" tabindex="-1">Cloud</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+        aria-selected="false" tabindex="-1">Datenschutz</button>
+    </div>
+
+    <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+      aria-label="Erste Schritte" tabindex="0">
+<div class="tarjeta"><h2>Was macht PageKeeper?</h2><p>Es liest PDF- und EPUB-Bücher, einschließlich mathematischer Formeln, auf Handy, Tablet oder Computer und merkt sich deine Leseposition.</p><ul class="lista-ayuda"><li><strong>Ein Buch von deinem Gerät hinzufügen („+“-Schaltfläche):</strong> funktioniert
+        sofort, ohne Konten und ohne Einstellungen. Das Buch wird in der Bibliothek
+        dieses Browsers gespeichert und merkt sich, wo du aufgehört hast. Der einzige
+        Haken: Alles bleibt nur auf diesem Gerät. Du kannst auch ein oder mehrere PDF-
+        oder EPUB-Dateien in den lokalen Bereich ziehen.</li><li><strong>Einen ganzen Ordner hinzufügen:</strong> Die Ordnerschaltfläche mit dem Pfeil (und das Ziehen eines Ordners in den Bereich) kopiert alle darin enthaltenen PDF- und EPUB-Dateien, einschließlich Unterordner, und baut dieselbe Struktur in deiner Bibliothek nach. Bei der Cloud funktioniert es genauso, dort werden die Ordner auf dem Server angelegt.</li><li><strong>Eine Cloud verbinden (WebDAV):</strong> Deine Bücher und deine
+        Leseposition werden zwischen all deinen Geräten synchronisiert. Dafür ist
+        zunächst etwas Einrichtung nötig, weiter unten erklärt.</li></ul></div>
+
+<div class="tarjeta"><h2>Hell, Sepia und Dunkel</h2><p>Die Design-Schaltfläche in der Kopfzeile durchläuft bei jedem Tippen vier Zustände: <strong>Systemvorgabe</strong> (halb helles, halb dunkles Kreis-Symbol), <strong>Hell</strong> (Sonne), <strong>Sepia</strong> (Tasse) und <strong>Dunkel</strong> (Mond). Das Symbol zeigt an, welches gerade aktiv ist, und deine Wahl wird in diesem Browser gemerkt. Es beginnt mit der Systemvorgabe, damit die Anwendung dem Rest des Geräts folgt.</p><p class="ayuda">Das Design ist auch das Papier, auf dem du liest: Hell ist weißes Papier, Sepia der warme Ton von E-Ink-Lesegeräten und Dunkel der Nachtmodus der Seite.</p></div>
+    </div>
+
+    <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+      aria-label="Bibliothek" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Deine Bücher auf einen Blick</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Weiterlesen</summary>
+          <p>
+        deine letzte Lektüre steht ganz oben. Auf einem breiten Bildschirm werden die
+        zuletzt gelesenen Bücher gleichzeitig als Karten mit großem Cover und
+        vollständigem Titel angezeigt; auf einem schmalen Bildschirm klappen sie sich
+        unter „Mehr anzeigen“ auf. Du kannst nicht mehr gewünschte entfernen; unter
+        <em>⚙️ Einstellungen → Bibliothek</em> legst du fest, wie viele angezeigt
+        werden, und kannst das ganze Feld auch ausschalten, wenn du lieber direkt zu
+        deinen Büchern springen willst. Es erscheint nur auf dem Startbildschirm: Beim
+        Betreten eines Ordners wird es beiseitegeräumt, um Platz für dessen Inhalt zu
+        machen. Ein entferntes Buch kehrt zurück, sobald du es erneut öffnest.
+        Beendete Bücher und nicht mehr vorhandene Dateien bleiben außerhalb dieser
+        Liste. Das „⋯“-Menü jeder Karte bietet dieselben Aktionen wie die Bibliothek
+        (umbenennen, verschieben, hochladen oder speichern, offline, löschen…), damit
+        du nie nach unten scrollen musst, um das Buch zu finden, an dem du etwas
+        ändern willst.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Sortierung und Zustände</summary>
+          <p>
+        du kannst nach zuletzt gelesen, Titel, Autor oder Fortschritt sortieren,
+        ausstehende, laufende oder beendete Bücher filtern und jedes davon als
+        beendet markieren. Tippe auf die Markierung „Beendet“ selbst, um sie zu
+        entfernen; sie verschwindet auch von selbst, wenn du das Buch erneut öffnest,
+        ohne den Fortschritt zu verlieren. Ein Buch bei 0 % zählt als ausstehend,
+        selbst wenn es schon geöffnet wurde.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Cover</summary>
+          <p>
+        werden automatisch erstellt (das EPUB-Cover oder die erste PDF-Seite) und
+        zeigen den Lesefortschritt jedes Buches. Das Suchfeld der Bibliothek filtert
+        nach Dateiname, Titel, Autor, Format und weiteren verfügbaren Metadaten. Auf
+        dem Handy zeigt ein langes Antippen eines abgeschnittenen Titels ihn
+        vollständig an.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Buchzusammenfassung</summary>
+          <p>
+        wenn die Datei in ihren Metadaten eine Kurzbeschreibung enthält (die
+        EPUB-Beschreibung oder das PDF-Thema), erscheint sie in einem kleinen Feld
+        beim Überfahren der Karte, sowohl unter „Weiterlesen“ als auch in beiden
+        Bibliotheken, sowie unter dem Titel im „⋯“-Menü, das ist der Weg dazu auf
+        einem Touchscreen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Beispielbuch</summary>
+          <p>
+        wenn die Bibliothek völlig leer ist, kannst du ein Beispielwerk in der
+        Sprache der Oberfläche hinzufügen und öffnen. Danach verhält es sich wie
+        jedes andere lokale Buch.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Ordner</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Ordner auf diesem Gerät</summary>
+          <p>
+        der Bereich „Auf diesem Gerät“ kann auch mit der Schaltfläche „Ordner mit
+        Plus“ in Ordner gegliedert werden. Tippe auf einen Ordner, um ihn zu öffnen
+        (der Pfad erscheint über der Liste, um zurückzugehen), benenne ihn um oder
+        lösche ihn über sein „⋯“-Menü, und verschiebe ein Buch mit der Option „In
+        einen anderen Ordner verschieben“ oder indem du es auf den Ordner ziehst.
+        Ordner lassen sich ebenfalls verschieben: Nutze „Ordner verschieben“ oder
+        ziehe sie auf einen anderen Ordner oder auf eine Station des Pfades, und
+        alles darin reist mit. Ein Buch hier zu verschieben ändert sonst nichts:
+        Seite, Lesezeichen und Anmerkungen bleiben erhalten. Neue Bücher landen im
+        gerade geöffneten Ordner, und das Suchfeld findet sie weiterhin, egal wo sie
+        sind.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ordner in der Cloud</summary>
+          <p>
+        der Bereich „In der Cloud“ zeigt die Unterordner deines Ordners und lässt
+        dich hineingehen (der Pfad erscheint über der Liste, um zurückzugehen). Du
+        kannst neue Ordner erstellen, sie umbenennen oder über ihr „⋯“-Menü löschen
+        (das Löschen entfernt auch ihren Inhalt) und ein Buch von einem Ordner in
+        einen anderen verschieben, mit der Verschieben-Schaltfläche oder indem du es
+        auf einen Ordner in der Liste ziehst (oder auf eine Station des Pfades), wobei
+        Fortschritt und Lesezeichen erhalten bleiben. Ordner lassen sich ebenfalls
+        verschieben: Nutze „Ordner verschieben“ oder ziehe sie auf einen anderen
+        Ordner oder auf eine Station des Pfades, und alles darin reist mit. Weder das
+        Verschieben noch das Umbenennen kostet ihrem Inhalt etwas: Die Bücher darin
+        behalten ihre Seite, ihre Lesezeichen, ihre Anmerkungen und ihre Notiz, und
+        die Unterordner ebenso.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Einen ganzen Ordner herunterladen</summary>
+          <p>
+        das „⋯“-Menü jedes Ordners speichert ihn vollständig, mit seinen
+        Unterordnern und allen enthaltenen Büchern. Auf Chrome, Edge und Opera für
+        Desktop wählst du, wo er hinkommt, und er wird unverändert kopiert; bei
+        anderen Browsern (Firefox, Safari, Mobilgeräte) wird er als einzelne
+        ZIP-Datei heruntergeladen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Zurückgehen</summary>
+          <p>
+        die Zurück-Schaltfläche (oder -Geste) des Browsers geht einen Ordner nach
+        oben, statt PageKeeper zu verlassen: Von einem Unterordner aus geht es zum
+        vorherigen, und von der Wurzel aus verlässt sie die Anwendung tatsächlich.
+        Sie schließt auch das Lesegerät, die Hilfe oder die Einstellungen.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Verschieben, speichern und löschen</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>In die Cloud hochladen</summary>
+          <p>
+        ist eine Cloud eingerichtet, kopiert die Cloud-Schaltfläche jedes lokalen
+        Buches es in deinen entfernten Ordner, wobei die aktuelle Seite erhalten
+        bleibt; du kannst auch eine Datei mit dem „+“ hochladen oder sie in den
+        Bereich „In der Cloud“ ziehen, und du kannst ein Buch von „Auf diesem Gerät“
+        in die Cloud oder in einen ihrer Ordner ziehen. Alles wird in den gerade
+        geöffneten Ordner hochgeladen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Bücher zwischen Bibliotheken verschieben</summary>
+          <p>
+        ein Cloud-Buch kann mit „Auf diesem Gerät speichern“ auf dem Gerät
+        gespeichert werden oder indem du es auf den lokalen Bereich (oder einen
+        seiner Ordner) ziehst; und ein Gerätebuch geht mit seiner eigenen
+        Schaltfläche in die Cloud oder indem du es auf „In der Cloud“ ziehst. In
+        beiden Fällen handelt es sich um eine Kopie: Das Original bleibt an seinem
+        Platz, und jede Bibliothek führt ihre eigene Leseposition.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Offline verfügbar</summary>
+          <p>
+        die Cloud-Schaltfläche mit Pfeil speichert eine verwaltete Kopie des
+        entfernten Buches. Fällt das Netzwerk aus, zeigt PageKeeper sie an und öffnet
+        sie automatisch. Die grüne Schaltfläche entfernt nur diese Kopie, ohne das
+        Buch aus der Cloud zu löschen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Herunterladen</summary>
+          <p>
+        die Download-Schaltfläche speichert eine Kopie der Datei (PDF oder EPUB)
+        auf dem Gerät, egal ob sie aus der Cloud oder aus der lokalen Bibliothek
+        kommt.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Löschen</summary>
+          <p>
+        der Papierkorb jedes Buches entfernt es (vom Server, wenn es ein
+        Cloud-Buch ist, oder von diesem Gerät, wenn es lokal ist).</p>
+        </details>
+        <details class="punto-ayuda">
+            <summary>Lesestatistiken</summary>
+            <p>Die Diagramm-Schaltfläche in der Kopfzeile öffnet die Zeit, die du mit
+          Lesen verbringst: die Gesamtzeit, die von heute und dieser Woche, wie viele
+          Tage in Folge du dranbleibst, einen Balken für jeden der letzten dreißig
+          Tage und die Bücher, denen du am meisten Zeit widmest. Nur die Zeit mit
+          geöffnetem Buch und Umblättern zählt, ein offen gelassener Tab fügt also
+          nichts hinzu.</p>
+            <p>Bei eingerichteter Cloud summieren die Zahlen alle deine Geräte: Die
+          Zeit jedes Buches trägt darunter die Aufteilung („dieses Gerät 2 Std. ·
+          Chrome unter Linux 45 Min.“), sodass du weißt, wie lange du gebraucht hast,
+          auch wenn du es auf jedem Gerät in Etappen gelesen hast, und ein Tag, an
+          dem du auf zweien gelesen hast, zählt als ein einziger Tag der Serie. All
+          das reist mit deiner Leseposition, auf deinem eigenen Server, und wird
+          nirgendwohin sonst gesendet. Du kannst es jederzeit von genau diesem
+          Bildschirm aus löschen — es wird auf allen Geräten gelöscht —, ohne deine
+          Bücher oder deinen Fortschritt zu berühren.</p>
+            <p>Für ein einzelnes Buch ist es noch griffbereiter: Während du liest,
+          beginnt die untere Leiste mit der dafür aufgewendeten Zeit, und ein Tippen
+          darauf öffnet seine Karte, mit dem Gelesenen, den Seiten, dem Tempo, dem,
+          was noch fehlt, und der Aufteilung nach Geräten. Dieselbe Karte findet sich
+          im „⋯“-Menü des Buches in der Bibliothek.</p>
+          </details>
+          <details class="punto-ayuda">
+          <summary>Importieren und exportieren</summary>
+          <p>
+        die Ordnerschaltfläche mit Pfeil in der Kopfzeile öffnet einen Bildschirm,
+        auf dem du Bücher hinzufügen und ZIP-Sicherungen herunterladen oder
+        wiederherstellen kannst. Es gibt eine Sicherung für die Bücher „Auf diesem
+        Gerät“ und eine weitere für die gesamte WebDAV-Bibliothek, einschließlich
+        Unterordner. Beide bewahren Fortschritt, Lesezeichen und Anmerkungen; keine
+        enthält dein Passwort. Um URL, Benutzername und App-Passwort separat zu
+        speichern, nutze <em>Einstellungen → Konfiguration auf ein anderes Gerät
+        übertragen</em>.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+      aria-label="Lesegerät" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Die Seite betrachten</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Lesemodus</summary>
+          <p>
+        Seite für Seite (wie ein Buch) oder fortlaufende Seiten mit vertikalem
+        Scrollen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Umblättern</summary>
+          <p>
+        ziehe zur Seite, und die Seite folgt deinem Finger und zeigt, wohin es geht;
+        überlegst du es dir auf halbem Weg anders, gleitet sie zurück an ihren Platz.
+        Tippen auf den linken oder rechten Rand, oder die Pfeiltasten und die
+        Leertaste, lassen die Seite denselben Weg von selbst zurücklegen, sodass man
+        es auch am Computer sieht. Bei PDFs schaut die Nachbarseite wirklich herein.
+        Bei fortlaufenden Seiten oder beim Zoomen übernimmt das Scrollen, und es gibt
+        keine Animation.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Zwei Seiten nebeneinander</summary>
+          <p>
+        im Modus Seite für Seite zeigt die Zweispalten-Schaltfläche die Seiten
+        paarweise an (ideal für breite Bildschirme); ein weiteres Tippen kehrt zu
+        einer einzelnen Seite zurück.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Seite drehen (nur PDF)</summary>
+          <p>
+        die Dreh-Schaltfläche dreht das Dokument bei jedem Tippen um 90°, praktisch
+        für schiefe oder querformatige Scans. Die Drehung wird pro Buch auf diesem
+        Gerät gemerkt.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Vollbild</summary>
+          <p>
+        ein Tippen in die Seitenmitte blendet die obere Leiste aus, um ohne
+        Ablenkung zu lesen; ein weiteres Tippen holt sie zurück.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Anpassen und zoomen</summary>
+          <p>
+        die drei Zoom-Bedienelemente gehören zusammen: die beiden Lupen, die
+        vergrößern und verkleinern, und dazwischen die Zoomstufe in Prozent. Tippen
+        auf diese Zahl öffnet ein Bedienfeld mit „An Breite anpassen“, „Ganze Seite
+        anpassen“, den am häufigsten genutzten Zoomstufen und einem Feld, in das du
+        jede beliebige eingeben kannst (205 %, falls dir das zusagt). Bei PDFs ist
+        der Prozentsatz der der Seite —100 % ist ihre natürliche Größe, sodass die
+        Anpassung an die Breite jede Zahl ergeben kann— und bei EPUBs der des Textes.
+        Beim Zoomen kannst du die Seite mit Maus oder Finger ziehen, und auf
+        Touchscreens zum Vergrößern zwei Finger auseinanderziehen: Bei PDFs ändert
+        das den Zoom, bei EPUBs die Textgröße.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Verbleibende Zeit</summary>
+          <p>
+        nach ein paar Minuten Lesen erscheint eine Schätzung der Zeit, die noch
+        fehlt, um das Buch zu beenden, berechnet aus deinem tatsächlichen Tempo auf
+        diesem Gerät.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Text und Farbe</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Texteinstellungen (nur EPUB)</summary>
+          <p>
+        die Schriftschaltfläche lässt dich die Schriftart wählen (die des Buches,
+        Serifen- oder serifenlos), die Ausrichtung, den Zeilenabstand, den Rand auf
+        beiden Seiten und ob Wörter am Zeilenende getrennt werden. Dieselben
+        Einstellungen finden sich unter <em>⚙️ Einstellungen → Lesegerät</em>, um sie
+        anzusehen und zu ändern, ohne ein Buch zu öffnen; beide Orte zeigen immer
+        dasselbe. Die Silbentrennung ist standardmäßig aktiviert: Auf einem schmalen
+        Bildschirm, und noch mehr bei Blocksatz, verhindert sie große Lücken
+        zwischen Wörtern. Der Browser übernimmt das je nach Sprache des Buches, es
+        ist also möglicherweise nicht für alle Sprachen verfügbar; man kann es auch
+        so lassen, wie es in jedem Buch vorgesehen ist, oder nie trennen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Papier des Buches</summary>
+          <p>
+        das Papier ist das Design der Anwendung: Es gibt nicht zwei Einstellungen,
+        die aufeinander abgestimmt werden müssen. Die Design-Schaltfläche in der
+        Kopfzeile der Bibliothek durchläuft vier Zustände —Systemvorgabe, Hell,
+        Sepia (warm, entspannter für lange Sitzungen) und Dunkel— und ändert
+        gleichzeitig die Buchseite und alles andere. Bei EPUBs ändern sich die
+        Textfarben, sodass Illustrationen unangetastet bleiben; bei PDFs, die
+        bereits gezeichnete Bilder sind, wird die ganze Seite eingefärbt.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Bilder mit dunklem Design (nur PDF)</summary>
+          <p>
+        beim Invertieren der Seite werden Fotos und Logos zu Negativen. Die
+        Bild-Schaltfläche, die in der Leseleiste erscheint, wenn du ein PDF mit
+        dunklem Design liest, gibt ihnen ihre Farbe zurück. Sie wird von Buch zu
+        Buch gemerkt. Gescannte Seiten bleiben unangetastet: Dort ist das ganze
+        Blatt ein Bild, und ihm die Farbe zurückzugeben würde das Papier weiß
+        lassen, genau das, was man nachts vermeiden möchte.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Sich im Buch bewegen</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Zu einer Stelle springen</summary>
+          <p>
+        tippe auf die Seitenanzeige (oder den Prozentsatz bei EPUBs), um direkt
+        dorthin zu springen.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Inhaltsverzeichnis und Miniaturansichten</summary>
+          <p>
+        die Panel-Schaltfläche öffnet das, was das Buch mitbringt, und ihre
+        Beschriftung sagt, was: das Inhaltsverzeichnis, die Seitenminiaturen oder
+        beides. Beim Öffnen wird das Kapitel, in dem du dich befindest, hervorgehoben
+        und sichtbar angezeigt, ohne dass du danach suchen musst. Auf einem breiten
+        Bildschirm bleibt die Seitenleiste von Buch zu Buch geöffnet, bis du sie
+        selbst schließt.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Lesezeichen</summary>
+          <p>
+        die Lesezeichen-Schaltfläche speichert die aktuelle Position, um jederzeit
+        dorthin zurückzukehren. Du kannst ihr einen Namen geben und ihn später
+        ändern. Bei Cloud-Büchern synchronisieren sich Lesezeichen zusammen mit der
+        Leseposition zwischen Geräten.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Nach einem Sprung zurückkehren</summary>
+          <p>
+        nach der Nutzung des Inhaltsverzeichnisses, der Suche oder des
+        Positionswählers erscheinen Schaltflächen, um zurückzugehen oder wieder
+        vorwärtszugehen. Auf dem Handy sitzen sie zu beiden Seiten der Seiten- oder
+        Prozentanzeige.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Im Buch suchen</summary>
+          <p>
+        die Lupe findet Wörter oder Sätze, bringt dich genau zur richtigen Stelle
+        und lässt sie einige Sekunden lang hervorgehoben, damit du sie auf einen
+        Blick erkennst.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Anmerken und zuhören</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Markierungen und Notizen</summary>
+          <p>
+        wähle Text in einem PDF oder EPUB aus und wähle eine Markierungsfarbe (Gelb,
+        Grün, Blau oder Pink) oder füge eine Notiz hinzu. Die Farbe kann später beim
+        Bearbeiten der Anmerkung geändert werden. Die Textmarker-Schaltfläche zeigt
+        alle Anmerkungen des Buches an. Bei Cloud-Büchern synchronisieren sie sich
+        auch, wenn du offline arbeitest.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Anmerkungen exportieren</summary>
+          <p>
+        die Download-Schaltfläche im Anmerkungsfenster speichert alle Markierungen
+        und Notizen des Buches in einer Markdown-Datei (.md), mit ihrer Seite oder
+        Position, bereit für deine Notizen oder für Anwendungen wie Obsidian.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Vorlesen</summary>
+          <p>
+        die Lautsprecher-Schaltfläche liest das Buch mit der Stimme des Browsers vor
+        und beginnt auf der aktuellen Seite. Der gerade vorgelesene Satz wird
+        fortlaufend hervorgehoben, damit du ihm mit den Augen folgen kannst, und die
+        Seite blättert von selbst weiter, sobald die Stimme das Ende dessen
+        erreicht, was auf dem Bildschirm zu sehen ist, sodass du auch mitlesen
+        kannst. Bei EPUBs, wenn ein Satz auf einer Seite beginnt und auf der
+        nächsten endet, wechselt die Seite mitten im Satz, ungefähr dort, wo sich
+        die Stimme gerade befindet, damit du nicht auf ein Bruchstück starrst,
+        während der Rest vorgelesen wird. Das Fenster tritt beim Beginn des
+        Vorlesens zurück, um den Text nicht zu verdecken: Während es läuft,
+        ermöglicht eine kleine Steuerung unten das Pausieren, Fortsetzen und
+        Anhalten, und auf einem breiten Bildschirm pausiert und setzt die
+        Lautsprecher-Schaltfläche selbst fort. Beim Fortsetzen wird der
+        unterbrochene Satz von vorn erneut vorgelesen. Die Einstellungen (Stimme und
+        Geschwindigkeit) öffnen sich erneut über das „⋯“-Menü. Manuelles Umblättern
+        stoppt das Vorlesen. Bei gescannten PDFs ohne Text funktioniert es nicht.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Über PDFs</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>PDF-Text und -Links</summary>
+          <p>
+        du kannst Text auswählen und kopieren, und die eigenen Links des PDFs
+        funktionieren: interne (Inhaltsverzeichnis, Verweise) springen zu ihrer
+        Seite, und externe öffnen sich in einem anderen Tab.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Geschützte PDFs</summary>
+          <p>
+        ist ein PDF verschlüsselt, fragt PageKeeper nach dem Passwort, um es zu
+        öffnen. Das Passwort wird nicht gespeichert.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+      aria-label="Cloud" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Was ist WebDAV?</h2>
+        <p>Es ist eine standardisierte Möglichkeit, über das Internet auf Dateien
+        zuzugreifen, die auf einem Server gespeichert sind, so als wäre es ein
+        entfernter Ordner. PageKeeper nutzt es, um deine Bücher zu lesen und deine
+        Leseposition in deiner eigenen Cloud zu speichern, damit du von einem
+        anderen Gerät aus weitermachen kannst.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Wichtig: nicht jede Cloud funktioniert</h2>
+        <p>Das Lesegerät läuft im Browser, und aus Sicherheitsgründen erlaubt dieser
+        eine Verbindung zu einem Server nur, wenn dieser Server das ausdrücklich
+        gestattet (eine technische Regel namens <em>CORS</em>). Das schließt fast
+        alle kommerziellen Dienste aus:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> ungeeignet; sie
+          bieten kein so nutzbares WebDAV an.</li>
+          <li><strong>Koofr, pCloud, Yandex und Ähnliche:</strong> sie haben zwar
+          WebDAV, blockieren aber den Zugriff von Webseiten aus, und du kannst
+          das nicht ändern, weil der Server nicht dir gehört.</li>
+          <li><strong>Nextcloud oder ownCloud mit aktivierter Berechtigung:</strong>
+          in der Praxis die einzige Option, die zum Synchronisieren funktioniert.</li>
+        </ul>
+      </div>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Ich habe keinen eigenen Server (der übliche Fall)</summary>
+        <p>Kaum jemand hat einen eigenen Server, und das ist völlig in Ordnung. Du
+        hast zwei Möglichkeiten:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Jemand gibt dir Zugriff auf sein Nextcloud</strong> (ein
+          Verwandter, deine Schule, dein Team bei der Arbeit…). Bitte um drei
+          Dinge: die <em>URL deines WebDAV-Ordners</em>, deinen
+          <em>Benutzernamen</em> und ein <em>App-Passwort</em>. Damit
+          synchronisierst du bereits zwischen Geräten, ohne selbst etwas
+          einzurichten.</li>
+          <li><strong>Niemand gibt dir Zugriff:</strong> Füge deine Bücher mit
+          dem „+“ unter „Auf diesem Gerät“ hinzu. Das Lesen funktioniert genauso
+          gut; du verlierst nur die automatische Synchronisierung zwischen
+          Geräten.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Ich habe oder verwalte Nextcloud / ownCloud</summary>
+        <p>Damit sich PageKeeper verbinden kann:</p>
+        <ul class="lista-ayuda">
+          <li>Installiere die App <strong>WebAppPassword</strong> und füge die
+          Domain dieses Readers (<code id="ayuda-dominio">diese Seite</code>) zu
+          den erlaubten Ursprüngen hinzu.</li>
+          <li>Erstelle ein <strong>App-Passwort</strong> (Einstellungen →
+          Sicherheit). Verwende nicht dein Hauptpasswort.</li>
+          <li>Trage in den <strong>⚙️ Einstellungen</strong> dieses Readers die
+          URL deines Ordners ein (zum Beispiel
+          <code>https://deine-cloud.de/remote.php/dav/files/BENUTZER/Bücher</code>),
+          deinen Benutzernamen und dieses Passwort.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Konfiguration auf ein anderes Gerät übertragen</summary>
+        <p>Sobald deine Cloud eingerichtet ist, gibt dir <strong>⚙️ Einstellungen →
+        „Konfigurationslink kopieren“</strong> einen Link, der alles enthält (URL,
+        Benutzername und Passwort). Öffne ihn auf einem anderen Gerät, und es ist
+        sofort eingerichtet. Teile ihn nur über private Kanäle und lösche ihn nach
+        Gebrauch.</p>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable destacado">
+        <summary>🤖 Kommst du bei der Einrichtung nicht weiter? Frag eine KI</summary>
+        <p>Einen Server einzurichten erfordert etwas Aufwand, aber eine künstliche
+        Intelligenz (ChatGPT, Claude, Gemini…) kann dich Schritt für Schritt
+        anleiten. Kopiere und füge Fragen wie diese ein:</p>
+        <ul class="lista-ayuda">
+          <li>„Ich habe einen Nextcloud-Server. Wie installiere ich die App
+          <em>WebAppPassword</em> und erlaube WebDAV-Zugriff von einer auf
+          <code id="ayuda-dominio-ia">diese Seite</code> gehosteten Website?“</li>
+          <li>„Wie erstelle ich ein App-Passwort in Nextcloud?“</li>
+          <li>„Erlaubt der Cloud-Dienst <em>[Name]</em> WebDAV-Zugriff aus dem
+          Browser (CORS) für eine externe Website?“</li>
+        </ul>
+      </details>
+      </div>
+
+    <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+      aria-label="Datenschutz" tabindex="0" hidden>
+<div class="tarjeta"><h2>Datenschutz</h2><p>Es gibt keinen zwischengeschalteten Server: Dein Browser verbindet sich direkt mit deiner Cloud. URL, Benutzername und Passwort werden nur in diesem Browser gespeichert.</p></div>
+    </div>
+  `,
+
+  pt: `
+    <div class="pestanas" data-grupo="ayuda" role="tablist"
+      aria-label="Secções da ajuda">
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-empezar" data-panel="empezar"
+        aria-selected="true">Primeiros passos</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-biblioteca" data-panel="biblioteca"
+        aria-selected="false" tabindex="-1">Biblioteca</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-lector" data-panel="lector"
+        aria-selected="false" tabindex="-1">Leitor</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-nube" data-panel="nube"
+        aria-selected="false" tabindex="-1">Nuvem</button>
+      <button type="button" class="pestana" role="tab"
+        aria-controls="panel-ayuda-privacidad" data-panel="privacidad"
+        aria-selected="false" tabindex="-1">Privacidade</button>
+    </div>
+
+    <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
+      aria-label="Primeiros passos" tabindex="0">
+<div class="tarjeta"><h2>O que faz o PageKeeper?</h2><p>Lê livros PDF e EPUB, incluindo fórmulas matemáticas, num telemóvel, tablet ou computador, e memoriza a sua posição de leitura.</p><ul class="lista-ayuda"><li><strong>Adicionar um livro a partir do seu dispositivo (botão «+»):</strong> funciona
+        de imediato, sem contas nem configurações. O livro é guardado na biblioteca
+        desse navegador e lembra-se de onde ficou. O único senão: tudo fica apenas
+        nesse dispositivo. Também pode arrastar um ou vários PDF ou EPUB para a
+        secção local.</li><li><strong>Adicionar uma pasta inteira:</strong> o botão de pasta com a seta (e arrastar uma pasta para a secção) copia todos os PDF e EPUB que contém, incluindo subpastas, e recria a mesma estrutura na sua biblioteca. Funciona da mesma forma com a nuvem, onde as pastas são criadas no servidor.</li><li><strong>Ligar a uma nuvem (WebDAV):</strong> os seus livros e a sua
+        posição de leitura sincronizam-se em todos os seus dispositivos. É
+        necessária primeiro alguma configuração, explicada mais abaixo.</li></ul></div>
+
+<div class="tarjeta"><h2>Claro, sépia e escuro</h2><p>O botão de tema no cabeçalho percorre quatro estados sempre que o toca: <strong>o do sistema</strong> (círculo meio claro meio escuro), <strong>claro</strong> (sol), <strong>sépia</strong> (chávena) e <strong>escuro</strong> (lua). O ícone indica em qual está, e a sua escolha é memorizada nesse navegador. Começa no tema do sistema, para que a aplicação siga o resto do dispositivo.</p><p class="ayuda">O tema é também o papel em que lê: o claro é papel branco, o sépia o tom quente dos leitores de tinta eletrónica e o escuro o modo noturno da página.</p></div>
+    </div>
+
+    <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
+      aria-label="Biblioteca" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Os seus livros num relance</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Continuar a ler</summary>
+          <p>
+        a sua leitura mais recente fica no topo. Num ecrã largo, as leituras
+        recentes aparecem todas juntas como cartões com uma capa grande e o título
+        completo; num ecrã estreito, desdobram-se sob «Ver mais». Pode remover as
+        que já não quer ver; em <em>⚙️ Definições → Biblioteca</em> escolhe
+        quantas mostrar e pode desligar a caixa por completo, se preferir ir
+        diretamente aos seus livros. Só aparece no ecrã inicial: entrar numa pasta
+        retira-a para dar lugar ao que contém. Um livro removido volta a aparecer
+        quando o reabre. Os livros concluídos e os ficheiros que já não existem
+        ficam fora desta lista. O menu «⋯» de cada cartão oferece as mesmas ações
+        que a biblioteca (mudar o nome, mover, enviar ou guardar, offline,
+        eliminar…), para nunca ter de percorrer a lista à procura do livro sobre o
+        qual quer agir.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ordem e estados</summary>
+          <p>
+        pode ordenar por leitura recente, título, autor ou progresso, filtrar os
+        livros pendentes, em leitura ou concluídos, e marcar qualquer um deles como
+        concluído. Toque na própria etiqueta «Concluído» para a remover; também
+        desaparece sozinha se reabrir o livro, sem perder o progresso. Um livro a
+        0 % conta como pendente mesmo que já tenha sido aberto.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Capas</summary>
+          <p>
+        são criadas automaticamente (a capa do EPUB ou a primeira página do PDF) e
+        mostram o progresso de leitura de cada livro. A caixa de pesquisa da
+        biblioteca filtra por nome de ficheiro, título, autor, formato e outros
+        metadados disponíveis. No telemóvel, uma pressão longa num título truncado
+        mostra-o por inteiro.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Resumo do livro</summary>
+          <p>
+        se o ficheiro trouxer uma sinopse nos seus metadados (a descrição do EPUB
+        ou o assunto do PDF), aparece numa pequena caixa ao passar o rato por cima
+        do cartão, tanto em «Continuar a ler» como em qualquer das bibliotecas, e
+        também sob o título no menu «⋯», que é como se lê num ecrã tátil.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Livro de exemplo</summary>
+          <p>
+        quando a biblioteca está completamente vazia, pode adicionar e abrir uma
+        obra de exemplo no idioma da interface. Depois comporta-se como qualquer
+        outro livro local.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Pastas</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Pastas neste dispositivo</summary>
+          <p>
+        a secção «Neste dispositivo» também pode ser organizada em pastas com o
+        botão de pasta com mais. Toque numa pasta para a abrir (o caminho aparece
+        acima da lista para poder voltar), mude o nome ou elimine-a a partir do seu
+        menu «⋯», e mova um livro com a opção «Mover para outra pasta» ou
+        arrastando-o para a pasta. As pastas também se movem: use «Mover a pasta»
+        ou arraste-as para outra pasta ou para um ponto do caminho, e tudo o que
+        contêm viaja com elas. Mover um livro aqui não altera mais nada: mantém a
+        sua página, os seus marcadores e as suas anotações. Os livros novos chegam
+        à pasta que tenha aberta, e a caixa de pesquisa continua a encontrá-los
+        onde quer que estejam.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Pastas na nuvem</summary>
+          <p>
+        a secção «Na nuvem» mostra as subpastas da sua pasta e permite entrar
+        nelas (o caminho aparece acima da lista para poder voltar). Pode criar
+        pastas novas, mudar-lhes o nome ou eliminá-las a partir do seu menu «⋯»
+        (eliminar uma também remove o seu conteúdo) e mover um livro de uma pasta
+        para outra com o seu botão de mover ou arrastando-o para uma pasta da
+        lista (ou para um ponto do caminho), mantendo o progresso e os
+        marcadores. As pastas também se movem: use «Mover a pasta» ou arraste-as
+        para outra pasta ou para um ponto do caminho, e tudo o que contêm viaja
+        com elas. Nem mover nem mudar o nome custa nada ao que contêm: os livros
+        lá dentro mantêm a sua página, os seus marcadores, as suas anotações e a
+        sua nota, e as subpastas do mesmo modo.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Transferir uma pasta inteira</summary>
+          <p>
+        o menu «⋯» de cada pasta guarda-a completa, com as suas subpastas e todos
+        os livros que contém. No Chrome, Edge e Opera de computador, escolhe onde
+        a colocar e é copiada tal como está; nos restantes navegadores (Firefox,
+        Safari, telemóvel) é transferida como um único ficheiro ZIP.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Voltar atrás</summary>
+          <p>
+        o botão (ou o gesto) de voltar atrás do navegador sobe uma pasta em vez
+        de sair do PageKeeper: de uma subpasta vai para a anterior, e a partir da
+        raiz sai mesmo. Fecha também o leitor, a ajuda ou as definições.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Mover, guardar e eliminar</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Enviar para a nuvem</summary>
+          <p>
+        com uma nuvem configurada, o botão de nuvem de cada livro local copia-o
+        para a sua pasta remota mantendo a página em que vai; também pode enviar
+        um ficheiro com o «+» ou arrastá-lo para a secção «Na nuvem», e pode
+        arrastar um livro de «Neste dispositivo» para a nuvem ou para uma das
+        suas pastas. Tudo é enviado para a pasta que tenha aberta.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Mover livros entre bibliotecas</summary>
+          <p>
+        um livro da nuvem pode ser guardado no dispositivo com «Guardar neste
+        dispositivo» ou arrastando-o para a secção local (ou uma das suas
+        pastas); e um livro do dispositivo sobe com o seu próprio botão ou
+        arrastando-o para «Na nuvem». Em ambos os casos trata-se de uma cópia: o
+        original fica no seu lugar e cada biblioteca guarda a sua própria posição
+        de leitura.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Disponível offline</summary>
+          <p>
+        o botão de nuvem com seta guarda uma cópia gerida do livro remoto. Se a
+        rede falhar, o PageKeeper mostra-a e abre-a automaticamente. O botão verde
+        remove apenas essa cópia sem eliminar o livro da nuvem.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Transferir</summary>
+          <p>
+        o botão de transferência guarda uma cópia do ficheiro (PDF ou EPUB) no
+        dispositivo, venha ele da nuvem ou da biblioteca local.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Eliminar</summary>
+          <p>
+        o caixote do lixo de cada livro elimina-o (do servidor, se for um livro
+        da nuvem, ou deste dispositivo, se for local).</p>
+        </details>
+        <details class="punto-ayuda">
+            <summary>Estatísticas de leitura</summary>
+            <p>O botão do gráfico no cabeçalho abre o tempo que dedica a ler: o
+          total, o de hoje e o desta semana, quantos dias seguidos leva, uma
+          barra para cada um dos últimos trinta dias e os livros a que dedica
+          mais tempo. Só conta o tempo com um livro aberto e a passar páginas,
+          por isso deixar o separador aberto não soma nada.</p>
+            <p>Com uma nuvem configurada, os números somam todos os seus
+          dispositivos: o tempo de cada livro traz por baixo a repartição
+          («este dispositivo 2 h · Chrome no Linux 45 min»), para saber quanto
+          tempo demorou a lê-lo mesmo que o tenha lido aos poucos em cada
+          aparelho, e um dia em que tenha lido em dois deles conta como um só
+          dia da sequência. Tudo isto viaja com a sua posição de leitura, no seu
+          próprio servidor, e nunca é enviado para mais lado nenhum. Pode
+          eliminá-las quando quiser a partir deste mesmo ecrã — são eliminadas
+          em todos os dispositivos — sem tocar nos seus livros nem no seu
+          progresso.</p>
+            <p>Para um único livro está ainda mais à mão: enquanto lê, a barra
+          inferior começa com o tempo que já lhe dedicou, e ao tocar nela abre-se
+          o seu cartão, com o que já leu, as páginas, o ritmo, o que falta e a
+          repartição por dispositivos. O mesmo cartão está no menu «⋯» do livro,
+          na biblioteca.</p>
+          </details>
+          <details class="punto-ayuda">
+          <summary>Importar e exportar</summary>
+          <p>
+        o botão de pasta com seta no cabeçalho abre um ecrã onde pode adicionar
+        livros e transferir ou restaurar cópias ZIP. Há uma cópia para os livros
+        «Neste dispositivo» e outra para toda a biblioteca WebDAV, incluindo
+        subpastas. Ambas mantêm o progresso, os marcadores e as anotações; nenhuma
+        contém a sua palavra-passe. Para guardar o URL, o utilizador e a
+        palavra-passe de aplicação em separado, use <em>Definições → Levar a
+        configuração para outro dispositivo</em>.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-lector" class="panel-pestana" role="tabpanel"
+      aria-label="Leitor" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>Ver a página</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Modo de leitura</summary>
+          <p>
+        página a página (como um livro) ou páginas contínuas com deslocamento
+        vertical.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Passar de página</summary>
+          <p>
+        arraste para os lados e a página acompanha o dedo, mostrando para onde
+        vai; se mudar de ideias a meio caminho, volta a deslizar para o seu
+        lugar. Tocar nas margens esquerda e direita, ou usar as setas e a barra
+        de espaço, faz a página percorrer sozinha esse mesmo caminho, para se ver
+        também num computador. Nos PDF, a página vizinha espreita mesmo. Com
+        páginas contínuas, ou com zoom, é o deslocamento que manda e não há
+        animação.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Duas páginas juntas</summary>
+          <p>
+        no modo página a página, o botão de duas colunas mostra as páginas aos
+        pares (ideal em ecrãs largos); outro toque volta a uma só página.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Rodar a página (só PDF)</summary>
+          <p>
+        o botão de rodar faz o documento girar 90° a cada toque, útil para
+        digitalizações tortas ou em formato paisagem. A rotação é memorizada por
+        livro neste dispositivo.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ecrã inteiro</summary>
+          <p>
+        um toque no centro da página esconde a barra superior para ler sem
+        distrações; outro toque traz-a de volta.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Ajustar e ampliar</summary>
+          <p>
+        os três controlos de zoom estão juntos: as duas lupas, que ampliam e
+        reduzem, e o nível de zoom em percentagem entre elas. Tocar nesse número
+        abre um painel com «Ajustar à largura», «Ajustar a página inteira», os
+        níveis de zoom mais usados e uma caixa onde escrever qualquer outro
+        (205 %, se for isso que lhe convém). Nos PDF, a percentagem é a da
+        página —100 % é o seu tamanho natural, pelo que ajustá-la à largura pode
+        dar qualquer valor— e nos EPUB é a do texto. Com zoom, pode arrastar a
+        página com o rato ou o dedo, e nos ecrãs táteis fazer o gesto de
+        beliscar para ampliar: nos PDF muda o zoom, nos EPUB o tamanho do
+        texto.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Tempo restante</summary>
+          <p>
+        depois de uns minutos de leitura, aparece uma estimativa do tempo que
+        falta para terminar o livro, calculada a partir do seu ritmo real neste
+        dispositivo.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Texto e cor</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Definições de texto (só EPUB)</summary>
+          <p>
+        o botão da letra permite escolher o tipo de letra (a do livro, com ou
+        sem serifa), o alinhamento, a entrelinha, a margem em ambos os lados e
+        se as palavras se dividem no final da linha. As mesmas definições estão
+        em <em>⚙️ Definições → Leitor</em>, para as ver e alterar sem abrir
+        nenhum livro; os dois locais mostram sempre o mesmo. A divisão de
+        palavras vem ativada por predefinição: num ecrã estreito, e ainda mais
+        com o texto justificado, é o que evita grandes espaços entre palavras.
+        O navegador faz isso segundo o idioma do livro, pelo que pode não estar
+        disponível para todos os idiomas; também pode deixá-la como vier em
+        cada livro, ou nunca dividir.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Papel do livro</summary>
+          <p>
+        o papel é o tema da aplicação: não há dois ajustes para fazer coincidir.
+        O botão de tema, no cabeçalho da biblioteca, percorre quatro estados —o
+        do sistema, claro, sépia (quente, mais repousante em sessões longas) e
+        escuro— e muda ao mesmo tempo a página do livro e tudo o resto. Nos
+        EPUB mudam as cores do texto, para que as ilustrações fiquem intactas;
+        nos PDF, que já são imagens desenhadas, tinge-se a página inteira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Imagens com o tema escuro (só PDF)</summary>
+          <p>
+        ao inverter a página, as fotos e os logótipos ficam em negativo. O
+        botão de imagem, que aparece na barra do leitor ao ler um PDF com o
+        tema escuro, devolve-lhes a cor. É memorizado de um livro para outro.
+        As páginas digitalizadas não são tocadas: aí a folha inteira é uma
+        imagem e devolver-lhe a cor deixaria o papel em branco, que é
+        precisamente o que se quer evitar à noite.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Mover-se pelo livro</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Ir para um ponto</summary>
+          <p>
+        toque no indicador de página (ou na percentagem nos EPUB) para saltar
+        diretamente para lá.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Índice e miniaturas</summary>
+          <p>
+        o botão de painel abre o que o livro trouxer, e a sua etiqueta diz qual
+        é: o índice, as miniaturas das páginas ou ambos. Ao abri-lo, o capítulo
+        em que vai fica realçado e à vista, sem ter de o procurar. Num ecrã
+        largo, o painel lateral fica aberto de um livro para outro até o
+        fechar.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Marcadores</summary>
+          <p>
+        o botão de marcador guarda a posição atual para voltar a ela quando
+        quiser. Pode dar-lhe um nome e alterá-lo mais tarde. Nos livros da
+        nuvem, os marcadores sincronizam-se entre dispositivos juntamente com
+        a posição de leitura.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Voltar após um salto</summary>
+          <p>
+        depois de usar o índice, a pesquisa ou o seletor de posição, aparecem
+        botões para voltar atrás ou avançar de novo. No telemóvel ficam
+        colocados de ambos os lados do indicador de página ou percentagem.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Pesquisar dentro do livro</summary>
+          <p>
+        a lupa encontra palavras ou frases, leva-o ao ponto exato e deixa-o
+        realçado durante alguns segundos para o localizar num relance.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Anotar e ouvir</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Realces e notas</summary>
+          <p>
+        selecione texto num PDF ou EPUB e escolha uma cor de realce (amarelo,
+        verde, azul ou rosa) ou adicione uma nota. A cor pode ser alterada mais
+        tarde ao editar a anotação. O botão do marca-texto mostra todas as
+        anotações do livro. Nos livros da nuvem sincronizam-se mesmo a
+        trabalhar offline.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Exportar anotações</summary>
+          <p>
+        o botão de transferência no painel de anotações guarda todos os
+        realces e notas do livro num ficheiro Markdown (.md), com a sua página
+        ou posição, pronto para os seus apontamentos ou para aplicações como o
+        Obsidian.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Leitura em voz alta</summary>
+          <p>
+        o botão do altifalante lê o livro com a voz do navegador, começando na
+        página atual. A frase que está a soar vai sendo realçada para a poder
+        acompanhar com os olhos, e a página avança sozinha quando a voz chega ao
+        fim do que está no ecrã, para também poder ler ao mesmo tempo. Nos
+        EPUB, quando uma frase começa numa página e termina na seguinte, a
+        página muda a meio da frase, mais ou menos onde vai a voz, para não o
+        deixar a olhar para um fragmento enquanto soa o resto. O painel
+        afasta-se ao começar a leitura para não tapar o texto: enquanto soa,
+        um pequeno controlo em baixo permite pausar, continuar e parar, e num
+        ecrã largo o próprio botão do altifalante pausa e continua. Ao
+        continuar, a frase interrompida é lida novamente desde o início. As
+        definições (voz e velocidade) voltam a abrir-se a partir do menu «⋯».
+        Passar de página à mão para a leitura. Não funciona em PDF
+        digitalizados sem texto.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Sobre os PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Texto e hiperligações do PDF</summary>
+          <p>
+        pode selecionar e copiar texto, e as hiperligações próprias do PDF
+        funcionam: as internas (índice, referências) saltam para a sua página
+        e as externas abrem-se noutro separador.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>PDF protegidos</summary>
+          <p>
+        se um PDF estiver cifrado, o PageKeeper pede a palavra-passe para o
+        abrir. A palavra-passe não é guardada.</p>
+        </details>
+        </div>
+      </div>
+      </div>
+
+    <div id="panel-ayuda-nube" class="panel-pestana" role="tabpanel"
+      aria-label="Nuvem" tabindex="0" hidden>
+      <div class="tarjeta">
+        <h2>O que é o WebDAV?</h2>
+        <p>É uma forma padronizada de aceder a ficheiros guardados num servidor
+        através da internet, como se fosse uma pasta remota. O PageKeeper usa-o
+        para ler os seus livros e para guardar a sua posição de leitura na sua
+        própria nuvem, para poder continuar a partir de outro dispositivo.</p>
+      </div>
+
+      <div class="tarjeta importante">
+        <h2>⚠️ Importante: nem toda a nuvem serve</h2>
+        <p>O leitor é executado dentro do navegador e, por segurança, este só
+        permite uma ligação a um servidor se esse servidor a autorizar
+        expressamente (uma regra técnica chamada <em>CORS</em>). Isso exclui
+        quase todos os serviços comerciais:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Google Drive, Dropbox, OneDrive:</strong> não servem;
+          não oferecem um WebDAV que possa ser usado desta forma.</li>
+          <li><strong>Koofr, pCloud, Yandex e semelhantes:</strong> têm WebDAV,
+          mas bloqueiam o acesso a partir de páginas web, e não pode alterar
+          isso porque o servidor não é seu.</li>
+          <li><strong>Nextcloud ou ownCloud com a permissão ativada:</strong>
+          na prática, é a única opção que funciona para sincronizar.</li>
+        </ul>
+      </div>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Não tenho servidor próprio (o caso mais habitual)</summary>
+        <p>Quase ninguém tem servidor próprio, e não há problema nenhum. Tem
+        duas opções:</p>
+        <ul class="lista-ayuda">
+          <li><strong>Alguém lhe dá acesso ao seu Nextcloud</strong> (um
+          familiar, a sua escola, a sua equipa no trabalho…). Peça-lhe três
+          coisas: o <em>URL da sua pasta WebDAV</em>, o seu <em>utilizador</em>
+          e uma <em>palavra-passe de aplicação</em>. Com isso já sincroniza
+          entre dispositivos, sem configurar nada você mesmo.</li>
+          <li><strong>Ninguém lhe dá acesso:</strong> adicione os seus livros
+          com o «+» em «Neste dispositivo». A leitura funciona igualmente
+          bem; só perde a sincronização automática entre dispositivos.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Tenho ou administro Nextcloud / ownCloud</summary>
+        <p>Para que o PageKeeper se possa ligar:</p>
+        <ul class="lista-ayuda">
+          <li>Instale a aplicação <strong>WebAppPassword</strong> e adicione o
+          domínio deste leitor (<code id="ayuda-dominio">este site</code>) às
+          origens permitidas.</li>
+          <li>Crie uma <strong>palavra-passe de aplicação</strong> (Definições
+          → Segurança). Não use a sua palavra-passe principal.</li>
+          <li>Nas <strong>⚙️ Definições</strong> deste leitor, introduza o URL
+          da sua pasta (por exemplo
+          <code>https://a-sua-nuvem.pt/remote.php/dav/files/UTILIZADOR/Livros</code>),
+          o seu utilizador e essa palavra-passe.</li>
+        </ul>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable">
+        <summary>Levar a configuração para outro dispositivo</summary>
+        <p>Depois de configurar a sua nuvem, <strong>⚙️ Definições → «Copiar
+        hiperligação de configuração»</strong> dá-lhe uma hiperligação que leva
+        tudo (URL, utilizador e palavra-passe). Abra-a noutro dispositivo e
+        ficará configurado de imediato. Partilhe-a apenas por canais privados e
+        elimine-a depois de a usar.</p>
+      </details>
+
+      <details class="tarjeta tarjeta-plegable destacado">
+        <summary>🤖 Bloqueado a configurar? Pergunte a uma IA</summary>
+        <p>Configurar um servidor exige algum esforço, mas uma inteligência
+        artificial (ChatGPT, Claude, Gemini…) pode guiá-lo passo a passo. Copie
+        e cole perguntas como estas:</p>
+        <ul class="lista-ayuda">
+          <li>«Tenho um servidor Nextcloud. Como instalo a aplicação
+          <em>WebAppPassword</em> e permito o acesso WebDAV a partir de um
+          site alojado em <code id="ayuda-dominio-ia">este site</code>?»</li>
+          <li>«Como crio uma palavra-passe de aplicação no Nextcloud?»</li>
+          <li>«O serviço de nuvem <em>[nome]</em> permite o acesso WebDAV a
+          partir do navegador (CORS) para um site externo?»</li>
+        </ul>
+      </details>
+      </div>
+
+    <div id="panel-ayuda-privacidad" class="panel-pestana" role="tabpanel"
+      aria-label="Privacidade" tabindex="0" hidden>
+<div class="tarjeta"><h2>Privacidade</h2><p>Não há nenhum servidor intermediário: o seu navegador liga-se diretamente à sua nuvem. O URL, o utilizador e a palavra-passe são guardados apenas neste navegador.</p></div>
     </div>
   `,
 };
