@@ -25,6 +25,8 @@ import {
 } from './archivos-entrantes.js';
 import * as estadisticas from './estadisticas.js';
 import * as gestos from './gestos.js';
+import * as panelNav from './panel-navegacion.js';
+import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import {
   librosDeCarpetaLocal, librosDeCarpetaRemota, nombreSeguro, puedeGuardarEnDisco,
 } from './descarga-carpeta.js';
@@ -6020,18 +6022,8 @@ function marcarBotonIndice(abierto) {
   etiquetarBotonIndice(abierto);
 }
 
-// El botón no siempre abre lo mismo: hay libros con índice, PDF escaneados
-// que solo traen miniaturas y PDF con las dos cosas. Decirlo evita que las
-// miniaturas queden escondidas detrás de una etiqueta que no las nombra.
-function claveBotonIndice(abierto) {
-  const conIndice = hayIndiceLibro;
-  const conMinis = conMiniaturas();
-  const que = conIndice && conMinis ? 'IndexThumbs' : conIndice ? 'Index' : 'Thumbs';
-  return (abierto ? 'hide' : 'show') + que;
-}
-
 function etiquetarBotonIndice(abierto = $('btn-indice-libro').getAttribute('aria-pressed') === 'true') {
-  const texto = t(claveBotonIndice(abierto));
+  const texto = t(panelNav.claveBotonIndice(abierto, hayIndiceLibro, conMiniaturas()));
   $('btn-indice-libro').title = texto;
   etiquetarPorTitulo($('btn-indice-libro'));
   $('menu-indice').innerHTML = icono('panel-left-text') + `<span>${texto}</span>`;
@@ -6057,36 +6049,26 @@ function restaurarPanelIndice() {
   }
 }
 
-// ── Ancho de la barra lateral ──
-//
-// Se guarda en píxeles porque lo que importa es cuánto sitio le queda a la
-// lectura en esta pantalla, no cuánto mide en función del tamaño de letra.
-const ANCHO_INDICE_MINIMO = 200;
-const ANCHO_INDICE_POR_DEFECTO = 304; // los 19rem del diseño
-
-function anchoIndiceMaximo() {
-  return Math.max(ANCHO_INDICE_MINIMO, Math.round(window.innerWidth * 0.5));
-}
+// ── Ancho de la barra lateral ── (los límites, en panel-navegacion.js)
 
 function aplicarAnchoIndice(ancho) {
-  const limitado = Math.min(anchoIndiceMaximo(), Math.max(ANCHO_INDICE_MINIMO, Math.round(ancho)));
+  const limitado = panelNav.anchoIndiceLimitado(ancho, window.innerWidth);
   document.documentElement.style.setProperty('--ancho-indice', `${limitado}px`);
   const tirador = $('tirador-indice');
   tirador.setAttribute('aria-valuenow', String(limitado));
-  tirador.setAttribute('aria-valuemin', String(ANCHO_INDICE_MINIMO));
-  tirador.setAttribute('aria-valuemax', String(anchoIndiceMaximo()));
+  tirador.setAttribute('aria-valuemin', String(panelNav.ANCHO_INDICE_MINIMO));
+  tirador.setAttribute('aria-valuemax', String(panelNav.anchoIndiceMaximo(window.innerWidth)));
   return limitado;
 }
 
 function guardarAnchoIndice(ancho) {
   localStorage.setItem(CLAVE_ANCHO_INDICE, String(aplicarAnchoIndice(ancho)));
-  // Con otro ancho toca redibujar: una miniatura estirada se ve borrosa.
-  if (Math.abs(medirAnchoMiniatura() - anchoMiniatura) > 24) reiniciarMiniaturas();
+  if (panelNav.tocaRehacerMiniaturas(medirAnchoMiniatura(), anchoMiniatura)) reiniciarMiniaturas();
 }
 
 function anchoIndiceGuardado() {
   const valor = parseInt(localStorage.getItem(CLAVE_ANCHO_INDICE), 10);
-  return Number.isFinite(valor) ? valor : ANCHO_INDICE_POR_DEFECTO;
+  return Number.isFinite(valor) ? valor : panelNav.ANCHO_INDICE_POR_DEFECTO;
 }
 
 aplicarAnchoIndice(anchoIndiceGuardado());
@@ -6118,12 +6100,12 @@ $('tirador-indice').addEventListener('keydown', (evento) => {
   const actual = $('panel-indice-libro').getBoundingClientRect().width;
   if (evento.key === 'ArrowLeft') guardarAnchoIndice(actual - paso);
   else if (evento.key === 'ArrowRight') guardarAnchoIndice(actual + paso);
-  else if (evento.key === 'Home') guardarAnchoIndice(ANCHO_INDICE_POR_DEFECTO);
+  else if (evento.key === 'Home') guardarAnchoIndice(panelNav.ANCHO_INDICE_POR_DEFECTO);
   else return;
   evento.preventDefault();
 });
 
-$('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(ANCHO_INDICE_POR_DEFECTO));
+$('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(panelNav.ANCHO_INDICE_POR_DEFECTO));
 
 // Al estrechar la ventana, el panel no puede quedarse con más de media pantalla.
 window.addEventListener('resize', () => aplicarAnchoIndice(
@@ -6162,14 +6144,10 @@ function mostrarPestanaPanel(cual) {
 $('pestanas-panel-indice').addEventListener('keydown', (evento) => {
   const pestanas = [...$('pestanas-panel-indice').querySelectorAll('.pestana-panel')]
     .filter((pestana) => !pestana.classList.contains('oculto'));
-  const actual = pestanas.indexOf(document.activeElement);
-  if (actual < 0) return;
-  let destino;
-  if (evento.key === 'ArrowRight' || evento.key === 'ArrowDown') destino = (actual + 1) % pestanas.length;
-  else if (evento.key === 'ArrowLeft' || evento.key === 'ArrowUp') destino = (actual - 1 + pestanas.length) % pestanas.length;
-  else if (evento.key === 'Home') destino = 0;
-  else if (evento.key === 'End') destino = pestanas.length - 1;
-  else return;
+  const destino = panelNav.pestanaDestino(
+    evento.key, pestanas.indexOf(document.activeElement), pestanas.length,
+  );
+  if (destino === null) return;
   evento.preventDefault();
   pestanas[destino].click();
   pestanas[destino].focus();
@@ -6179,13 +6157,12 @@ $('pestanas-panel-indice').addEventListener('keydown', (evento) => {
 // se abre. El botón aparece siempre que haya algo que enseñar.
 function prepararPanelNavegacion() {
   reiniciarMiniaturas(); // pertenecían al libro anterior
-  const conIndice = hayIndiceLibro;
-  const conRejilla = conMiniaturas();
-  $('btn-indice-libro').classList.toggle('oculto', !conIndice && !conRejilla);
-  $('pestanas-panel-indice').classList.toggle('oculto', !(conIndice && conRejilla));
-  $('titulo-panel-indice').classList.toggle('oculto', conIndice && conRejilla);
-  $('pestana-indice').classList.toggle('oculto', !conIndice);
-  mostrarPestanaPanel(conIndice ? 'indice' : 'miniaturas');
+  const disposicion = panelNav.disposicionPanel(hayIndiceLibro, conMiniaturas());
+  $('btn-indice-libro').classList.toggle('oculto', !disposicion.hayBoton);
+  $('pestanas-panel-indice').classList.toggle('oculto', !disposicion.hayPestanas);
+  $('titulo-panel-indice').classList.toggle('oculto', !disposicion.hayTitulo);
+  $('pestana-indice').classList.toggle('oculto', !disposicion.hayPestanaIndice);
+  mostrarPestanaPanel(disposicion.pestanaInicial);
   etiquetarBotonIndice();
   restaurarPanelIndice();
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
@@ -6241,18 +6218,11 @@ async function cargarIndiceLibro(lectorActivo, idLibro) {
 //
 // Se crean todos los huecos de golpe (son baratos) y solo se dibujan los que
 // entran en la vista, soltando los que se alejan: un PDF largo no puede tener
-// cientos de miniaturas en memoria.
-const MAXIMO_MINIATURAS = 40;
-// Las miniaturas siguen al ancho del panel, con un tope para no dibujar más
-// píxeles de los que se van a ver.
-const ANCHO_MINIATURA_MINIMO = 140;
-const ANCHO_MINIATURA_MAXIMO = 320;
-let anchoMiniatura = ANCHO_MINIATURA_MINIMO;
+// cientos de miniaturas en memoria. Los límites, en panel-navegacion.js.
+let anchoMiniatura = panelNav.ANCHO_MINIATURA_MINIMO;
 
 function medirAnchoMiniatura() {
-  const disponible = $('rejilla-miniaturas').clientWidth || ANCHO_MINIATURA_MINIMO;
-  return Math.round(Math.min(ANCHO_MINIATURA_MAXIMO,
-    Math.max(ANCHO_MINIATURA_MINIMO, disponible)));
+  return panelNav.anchoDeMiniatura($('rejilla-miniaturas').clientWidth);
 }
 let observadorMiniaturas = null;
 let miniaturasMontadas = 0;
@@ -6325,18 +6295,17 @@ async function pintarMiniatura(boton) {
 }
 
 function podarMiniaturas() {
-  if (miniaturasMontadas <= MAXIMO_MINIATURAS) return;
-  const rejilla = $('rejilla-miniaturas');
+  // Se pregunta con cada miniatura que se dibuja, y medir cajas obliga al
+  // navegador a recomponer: mientras quepan todas, ni se mira.
+  if (miniaturasMontadas <= panelNav.MAXIMO_MINIATURAS) return;
   const marco = $('panel-indice-libro').getBoundingClientRect();
-  const lejanas = [...rejilla.children]
+  const dibujadas = [...$('rejilla-miniaturas').children]
     .filter((boton) => boton.dataset.estado === 'lista')
-    .map((boton) => {
-      const caja = boton.getBoundingClientRect();
-      return { boton, distancia: Math.max(marco.top - caja.bottom, caja.top - marco.bottom, 0) };
-    })
-    .filter((entrada) => entrada.distancia > 0)
-    .sort((a, b) => b.distancia - a.distancia);
-  for (const { boton } of lejanas.slice(0, miniaturasMontadas - MAXIMO_MINIATURAS)) {
+    .map((boton) => ({
+      boton,
+      distancia: panelNav.distanciaFuera(boton.getBoundingClientRect(), marco),
+    }));
+  for (const { boton } of panelNav.miniaturasQuePodar(dibujadas, miniaturasMontadas)) {
     const lienzo = boton.querySelector('canvas');
     if (lienzo) { lienzo.width = 0; lienzo.height = 0; }
     boton.querySelector('.hoja').replaceChildren();
@@ -6345,20 +6314,16 @@ function podarMiniaturas() {
   }
 }
 
-// Señala la página en la que se está leyendo y, si se acaba de abrir el panel,
-// la trae a la vista.
-// Resalta el capítulo por el que se va. El índice da el punto donde empieza
-// cada uno, así que el activo es el último que ya ha quedado atrás: en PDF, el
-// de mayor página que no pase de la actual; en EPUB, lo mismo con la sección.
-// Con `desplazar` se lleva además a la vista, que es lo que se espera al abrir
-// el panel en mitad de un libro largo.
+// Resalta el capítulo por el que se va (cuál es, en panel-navegacion.js). Con
+// `desplazar` se lleva además a la vista, que es lo que se espera al abrir el
+// panel en mitad de un libro largo.
 let entradaIndiceActiva = null;
 
 // ¿Se ve entera dentro del panel?
 function entradaALaVista(entrada) {
-  const caja = entrada.getBoundingClientRect();
-  const panel = $('panel-indice-libro').getBoundingClientRect();
-  return caja.top >= panel.top && caja.bottom <= panel.bottom;
+  return panelNav.estaALaVista(
+    entrada.getBoundingClientRect(), $('panel-indice-libro').getBoundingClientRect(),
+  );
 }
 
 function marcarEntradaIndiceActual(desplazar = false) {
@@ -6370,13 +6335,10 @@ function marcarEntradaIndiceActual(desplazar = false) {
   }
   const campo = epubAbierto() ? 'seccion' : 'pagina';
   const posicion = epubAbierto() ? lectorEpub.seccionActual : lector.pagina;
-  let activa = null;
-  if (Number.isInteger(posicion)) {
-    for (const entrada of entradas) {
-      const valor = Number(entrada.dataset[campo]);
-      if (Number.isFinite(valor) && valor <= posicion) activa = entrada;
-    }
-  }
+  const cual = panelNav.entradaActiva(
+    entradas.map((entrada) => Number(entrada.dataset[campo])), posicion,
+  );
+  const activa = cual < 0 ? null : entradas[cual];
   for (const entrada of entradas) {
     entrada.toggleAttribute('aria-current', entrada === activa);
     if (entrada === activa) entrada.setAttribute('aria-current', 'true');
@@ -6441,17 +6403,12 @@ function detalleMarcador(marcador) {
   return partes.join(' · ');
 }
 
-// Mantiene la lista en el orden del libro. En EPUB compara los CFI con el
-// comparador de epub.js (cargado siempre que hay un EPUB abierto).
-function ordenarMarcadores(marcadores) {
-  if (epubAbierto() && window.ePub?.CFI) {
-    try {
-      const comparador = new window.ePub.CFI();
-      marcadores.sort((a, b) => comparador.compare(a.cfi, b.cfi));
-      return;
-    } catch { /* CFI ilegible: se mantiene el orden por página/creación */ }
-  }
-  marcadores.sort((a, b) => (a.pagina ?? 0) - (b.pagina ?? 0));
+// El comparador de CFI de epub.js, que entiende su gramática (cargado siempre
+// que hay un EPUB abierto). En PDF no hace falta: allí ordena la página.
+function comparadorCfi() {
+  if (!epubAbierto() || !window.ePub?.CFI) return null;
+  const comparador = new window.ePub.CFI();
+  return (a, b) => comparador.compare(a, b);
 }
 
 function pintarMarcadores() {
@@ -6495,9 +6452,7 @@ function pintarMarcadores() {
       const respuesta = prompt(t('bookmarkNamePrompt'), marcador.nombre ?? '');
       if (respuesta === null) return;
       const actuales = progreso.marcadoresDe(libroActual.id);
-      const nombre = respuesta.trim().slice(0, 120);
-      if (nombre) actuales[indice].nombre = nombre;
-      else delete actuales[indice].nombre;
+      actuales[indice] = renombrarMarcador(actuales[indice], respuesta);
       progreso.guardarMarcadores(libroActual.id, actuales);
       planificarSincronizacion();
       pintarMarcadores();
@@ -6527,16 +6482,14 @@ $('form-anadir-marcador').addEventListener('submit', (evento) => {
   if (!libroActual) return;
   const posicion = posicionMarcadorActual();
   if (!posicion) return; // EPUB recién abierto, sin posición todavía
-  const marcadores = progreso.marcadoresDe(libroActual.id);
-  const repetido = marcadores.some((marcador) =>
-    posicion.cfi ? marcador.cfi === posicion.cfi : marcador.pagina === posicion.pagina);
-  if (repetido) {
+  const marcadores = anadirMarcador(
+    progreso.marcadoresDe(libroActual.id), posicion,
+    $('nombre-marcador').value, new Date().toISOString(), comparadorCfi(),
+  );
+  if (!marcadores) {
     avisar(t('bookmarkExists'));
     return;
   }
-  const nombre = $('nombre-marcador').value.trim().slice(0, 120);
-  marcadores.push({ ...posicion, ...(nombre ? { nombre } : {}), creado: new Date().toISOString() });
-  ordenarMarcadores(marcadores);
   progreso.guardarMarcadores(libroActual.id, marcadores);
   planificarSincronizacion();
   pintarMarcadores();
