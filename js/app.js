@@ -7980,6 +7980,12 @@ function manejarTecla(evento) {
   switch (evento.key) {
     case 'ArrowLeft': case 'PageUp': pasarPagina(true); break;
     case 'ArrowRight': case 'PageDown': case ' ': pasarPagina(false); break;
+    // Arriba y abajo hacen lo mismo que el dedo, y con la misma condición: solo
+    // cuando la página entera está a la vista. Si hay algo que desplazar —modo
+    // continuo, zoom, una página más alta que la ventana—, las flechas son del
+    // desplazamiento, que es lo que espera quien las pulsa.
+    case 'ArrowUp': if (gestoVerticalPermitido()) pasarPagina(true); break;
+    case 'ArrowDown': if (gestoVerticalPermitido()) pasarPagina(false); break;
     case 'Home':
       saltarConHistorial(epubAbierto() ? lectorEpub.destinoPorcentaje(0) : 1)
         .catch((error) => avisar(error.message, 5000));
