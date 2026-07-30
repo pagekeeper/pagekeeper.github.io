@@ -561,13 +561,7 @@ export class LectorEpub {
     // Nota: register()/select() de epub.js inyecta los temas como hojas de
     // estilo acumulativas y volver del tema oscuro al claro no funciona.
     // override() aplica estilos en línea que sí se reemplazan al alternar.
-    this.vista.themes.default({
-      'a, a:visited': { color: '#0ea5e9' },
-      // El texto del libro va en un iframe con su propio documento: si ahí no
-      // se corta la propagación, el dedo hacia abajo se le escapa al navegador
-      // y recarga la aplicación en vez de retroceder de página.
-      'html, body': { 'overscroll-behavior-y': 'contain' },
-    });
+    this.vista.themes.default({ 'a, a:visited': { color: '#0ea5e9' } });
     this.aplicarTemaPagina(this.temaPagina);
     this.vista.themes.fontSize(this.tamano + '%');
   }

@@ -109,7 +109,13 @@ html, body { height: 100%; }
    entera. El gesto no llega a tiempo de impedirlo, porque el navegador decide
    de quién es el toque antes del primer movimiento que nosotros vemos.
    «contain» y no «none»: el desplazamiento normal sigue igual, lo único que se
-   corta es que se propague al navegador. */
+   corta es que se propague al navegador.
+
+   Va aquí y en ningún sitio más. Ponerlo también dentro del iframe del EPUB
+   parecía prudente y no lo era: en modo continuo el capítulo se desplaza
+   propagando el movimiento del iframe al contenedor de epub.js, y cortarlo
+   ahí dejaba la rueda del ratón sin efecto. Desde el documento de arriba se
+   corta la propagación al navegador sin estorbar a la de dentro. */
 html, body { overscroll-behavior-y: contain; }
 
 body {

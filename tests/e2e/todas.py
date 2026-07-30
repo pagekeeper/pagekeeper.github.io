@@ -11,8 +11,8 @@ import time
 
 AQUI = pathlib.Path(__file__).resolve().parent
 # En orden de lo más básico a lo más costoso, para que un destrozo salte pronto.
-PRUEBAS = ['seguridad', 'estadisticas', 'ficha_libro', 'barra_pie', 'tiempo_lectura',
-           'apertura_directa', 'ayuda', 'dos_dispositivos']
+PRUEBAS = ['seguridad', 'estadisticas', 'ficha_libro', 'barra_pie', 'pasar_pagina',
+           'tiempo_lectura', 'apertura_directa', 'ayuda', 'dos_dispositivos']
 
 
 def main():
