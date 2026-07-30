@@ -2726,8 +2726,9 @@ const ayudas = {
         te’n penedeixes a mig camí, torna sola al seu lloc. Prement els marges esquerre
         i dret, o amb les fletxes i l’espai, la pàgina fa sola aquest mateix recorregut,
         així que també es veu a l’ordinador. Als PDF s’hi veu de debò la pàgina veïna.
-        Amb les pàgines contínues, o amb zoom, mana el desplaçament i no hi ha
-        animació.</p>
+        També val per dalt i per baix: prémer la part baixa o lliscar el dit cap
+        amunt avança, i la part alta o el dit cap avall retrocedeix. Amb les pàgines
+        contínues, o amb zoom, mana el desplaçament i no hi ha animació.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Dues pàgines juntes</summary>
@@ -3226,8 +3227,9 @@ const ayudas = {
         change your mind halfway and it slides back. Tapping the left and right margins,
         or using the arrow keys and the space bar, makes the page do that same run on
         its own, so you also see it on a computer. In PDFs the neighbouring page really
-        does peek in. With continuous pages, or while zoomed, scrolling takes over and
-        there is no animation.</p>
+        does peek in. Top and bottom work too: tapping the lower part or swiping up
+        goes forward, and the upper part or swiping down goes back. With continuous
+        pages, or while zoomed, scrolling takes over and there is no animation.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Two pages side by side</summary>
@@ -3737,7 +3739,9 @@ const ayudas = {
         dirige ; changez d’avis à mi-chemin et elle revient en glissant. Toucher les
         marges gauche et droite, ou utiliser les flèches et la barre d’espace, fait faire
         à la page ce même mouvement toute seule, pour le voir aussi sur un ordinateur.
-        Dans les PDF, la page voisine apparaît vraiment en partie. Avec les pages
+        Dans les PDF, la page voisine apparaît vraiment en partie. Le haut et le bas
+        marchent aussi : toucher la partie basse ou faire glisser le doigt vers le
+        haut avance, et la partie haute ou le doigt vers le bas recule. Avec les pages
         continues, ou en zoomant, c’est le défilement qui prend le relais et il n’y a
         pas d’animation.</p>
         </details>
@@ -4253,8 +4257,10 @@ const ayudas = {
         dirixe; se te arrepentes a medio camiño, volve deslizando ao seu sitio. Premer
         as marxes esquerda e dereita, ou usar as frechas e a barra espazadora, fai que
         a páxina faga soa ese mesmo percorrido, para velo tamén nun ordenador. Nos PDF a
-        páxina veciña asómase de verdade. Coas páxinas continuas, ou con zoom, é o
-        desprazamento o que manda e non hai animación.</p>
+        páxina veciña asómase de verdade. Tamén vale por arriba e por abaixo: premer a
+        parte baixa ou esvarar o dedo cara arriba avanza, e a parte alta ou o dedo cara
+        abaixo retrocede. Coas páxinas continuas, ou con zoom, é o desprazamento o que
+        manda e non hai animación.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Dúas páxinas xuntas</summary>
@@ -4764,7 +4770,9 @@ const ayudas = {
         doan erakutsiz; erdibidean iritzia aldatzen baduzu, deslizatuz itzultzen da.
         Ezker eta eskuineko marjinak sakatzeak, edo geziak eta zuriune-barra
         erabiltzeak, orrialdeari ibilbide hori bera bakarrik egiten dio, ordenagailu
-        batean ere ikusteko. PDFetan ondoko orrialdea benetan asomatzen da. Etengabeko
+        batean ere ikusteko. PDFetan ondoko orrialdea benetan asomatzen da. Goitik eta
+        behetik ere balio du: beheko aldea sakatzeak edo hatza gorantz arrastatzeak
+        aurrera egiten du, eta goiko aldeak edo hatzak beherantz atzera. Etengabeko
         orrialdeekin, edo zoomarekin, korritzeak agintzen du eta ez dago
         animaziorik.</p>
         </details>
@@ -5295,6 +5303,8 @@ const ayudas = {
         Tippen auf den linken oder rechten Rand, oder die Pfeiltasten und die
         Leertaste, lassen die Seite denselben Weg von selbst zurücklegen, sodass man
         es auch am Computer sieht. Bei PDFs schaut die Nachbarseite wirklich herein.
+        Oben und unten geht es auch: ein Tippen auf den unteren Teil oder ein Wischen
+        nach oben blättert vor, der obere Teil oder ein Wischen nach unten zurück.
         Bei fortlaufenden Seiten oder beim Zoomen übernimmt das Scrollen, und es gibt
         keine Animation.</p>
         </details>
@@ -5827,9 +5837,10 @@ const ayudas = {
         vai; se mudar de ideias a meio caminho, volta a deslizar para o seu
         lugar. Tocar nas margens esquerda e direita, ou usar as setas e a barra
         de espaço, faz a página percorrer sozinha esse mesmo caminho, para se ver
-        também num computador. Nos PDF, a página vizinha espreita mesmo. Com
-        páginas contínuas, ou com zoom, é o deslocamento que manda e não há
-        animação.</p>
+        também num computador. Nos PDF, a página vizinha espreita mesmo. Também
+        serve por cima e por baixo: tocar na parte baixa ou deslizar o dedo para
+        cima avança, e a parte alta ou o dedo para baixo recua. Com páginas
+        contínuas, ou com zoom, é o deslocamento que manda e não há animação.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Duas páginas juntas</summary>

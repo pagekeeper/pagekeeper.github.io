@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   distanciaEntre, factorDePellizco, pellizcoAprovechable, scrollTrasPellizco,
-  decidirArranque, hayPaginaDestino, recorridoDelGesto, pasaDePagina, saltoDeLetra,
+  decidirArranque, hayPaginaDestino, recorridoDelGesto, pasaDePagina,
+  pasaDePaginaVertical, saltoDeLetra,
   ZOOM_MINIMO, ZOOM_MAXIMO, SALTO_LETRA, ESPERA_ENTRE_SALTOS,
   LETRA_MINIMA, LETRA_MAXIMA,
 } from '../js/gestos.js';
@@ -69,18 +70,42 @@ test('el gesto espera a saber si el recorrido es horizontal', () => {
 });
 
 test('un recorrido claramente horizontal arranca el gesto', () => {
-  assert.equal(decidirArranque(30, 5), 'arrancar');
-  assert.equal(decidirArranque(-30, 5), 'arrancar');
+  assert.equal(decidirArranque(30, 5), 'horizontal');
+  assert.equal(decidirArranque(-30, 5), 'horizontal');
 });
 
-test('un recorrido vertical abandona el gesto en vez de arrastrar de refilón', () => {
+test('sin gesto vertical, un recorrido vertical abandona en vez de arrastrar de refilón', () => {
   assert.equal(decidirArranque(5, 40), 'abandonar');
   assert.equal(decidirArranque(5, -40), 'abandonar');
 });
 
+test('con la página entera a la vista, el recorrido vertical también es un gesto', () => {
+  assert.equal(decidirArranque(5, 40, { vertical: true }), 'vertical');
+  assert.equal(decidirArranque(5, -40, { vertical: true }), 'vertical');
+});
+
 test('en diagonal manda el eje que más se ha recorrido', () => {
-  assert.equal(decidirArranque(50, 40), 'arrancar');
+  assert.equal(decidirArranque(50, 40), 'horizontal');
   assert.equal(decidirArranque(40, 50), 'abandonar');
+  assert.equal(decidirArranque(50, 40, { vertical: true }), 'horizontal');
+  assert.equal(decidirArranque(40, 50, { vertical: true }), 'vertical');
+});
+
+test('un deslizamiento vertical corto no pasa de página', () => {
+  // Sin nada que siga al dedo, el roce tiene que quedarse en nada.
+  assert.equal(pasaDePaginaVertical(30, 800), false);
+  assert.equal(pasaDePaginaVertical(-30, 800), false);
+});
+
+test('un deslizamiento vertical largo pasa de página en los dos sentidos', () => {
+  assert.equal(pasaDePaginaVertical(120, 800), true);
+  assert.equal(pasaDePaginaVertical(-120, 800), true);
+});
+
+test('en una pantalla apaisada el umbral vertical no baja del mínimo en píxeles', () => {
+  // El 12 % de 300 son 36 px: demasiado poco para no cambiar de página sin querer.
+  assert.equal(pasaDePaginaVertical(50, 300), false);
+  assert.equal(pasaDePaginaVertical(70, 300), true);
 });
 
 test('en EPUB siempre hay página al otro lado', () => {

@@ -45,13 +45,19 @@ export const HOLGURA_GESTO = 10;   // píxeles antes de decidir si el gesto es n
 // Sin página a la que ir el arrastre se queda corto: se nota el tope.
 export const RESISTENCIA_TOPE = 0.25;
 
-// Qué hacer con un recorrido que aún no ha arrancado: hasta que no es
-// claramente horizontal no se toca nada, porque si no un desplazamiento
-// vertical arrastraría la página de refilón.
-export function decidirArranque(dx, dy, holgura = HOLGURA_GESTO) {
-  if (Math.abs(dy) > holgura && Math.abs(dy) > Math.abs(dx)) return 'abandonar';
+// Qué hacer con un recorrido que aún no ha arrancado: hasta que no se ve por
+// dónde va no se toca nada, porque si no un desplazamiento de refilón
+// arrastraría la página.
+//
+// El eje vertical solo cuenta si el lector lo permite (`vertical`), que es
+// cuando la página cabe entera y no hay nada que desplazar hacia abajo. Si hay,
+// el dedo está haciendo scroll y el gesto se abandona, como antes.
+export function decidirArranque(dx, dy, { holgura = HOLGURA_GESTO, vertical = false } = {}) {
+  if (Math.abs(dy) > holgura && Math.abs(dy) > Math.abs(dx)) {
+    return vertical ? 'vertical' : 'abandonar';
+  }
   if (Math.abs(dx) <= holgura) return 'esperar';
-  return 'arrancar';
+  return 'horizontal';
 }
 
 // ¿Hay página al otro lado? En EPUB siempre: el capítulo siguiente se monta
@@ -75,6 +81,25 @@ export function recorridoDelGesto(dx, { hayDestino, enColumnas, paso }) {
 // un vistazo y arrepentirse.
 export function pasaDePagina(dx, ancho, umbral = UMBRAL_PASO) {
   return Math.abs(dx) > (ancho || 1) * umbral;
+}
+
+// ── Deslizamiento vertical ──
+//
+// Arriba y abajo la página no sigue al dedo: las vecinas están puestas a los
+// lados y la tira de columnas del EPUB también, así que un arrastre vertical
+// solo enseñaría un hueco. Lo que hay es un deslizamiento que se decide al
+// soltar, y entonces la página pasa con la misma animación que si se hubiera
+// pulsado el margen.
+//
+// Sin nada que seguir con la vista, el umbral se mide de otra manera: una
+// parte más corta del recorrido (la pantalla es más alta que ancha y el 22 %
+// del alto sería un barrido incómodo), pero con un mínimo en píxeles para que
+// en una pantalla apaisada un roce no cambie de página.
+export const UMBRAL_PASO_VERTICAL = 0.12;
+export const RECORRIDO_VERTICAL_MINIMO = 60;
+
+export function pasaDePaginaVertical(dy, alto) {
+  return Math.abs(dy) > Math.max(RECORRIDO_VERTICAL_MINIMO, (alto || 0) * UMBRAL_PASO_VERTICAL);
 }
 
 // ── Pellizco para el tamaño de letra del EPUB ──

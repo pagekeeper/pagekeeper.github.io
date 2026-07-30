@@ -7146,8 +7146,13 @@ $('btn-volver').addEventListener('click', () => {
   else cerrarVistaLector();
 });
 
+// Los cuatro márgenes hacen lo mismo por dos caminos: izquierda y arriba
+// atrás, derecha y abajo adelante. Muchos lectores pulsan abajo para seguir
+// —es lo que hacen otras aplicaciones— y hasta ahora no pasaba nada.
 $('zona-anterior').addEventListener('click', () => pasarPagina(true));
 $('zona-siguiente').addEventListener('click', () => pasarPagina(false));
+$('zona-arriba').addEventListener('click', () => pasarPagina(true));
+$('zona-abajo').addEventListener('click', () => pasarPagina(false));
 // Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
 // (con «ajustar al ancho» no es el zoom pedido, sino el que sale del área); en
 // EPUB, donde las lupas mueven la letra, es el tamaño de esta.
@@ -8192,6 +8197,15 @@ function gestoDePaginaPermitido() {
   return Boolean(elementoQueSeMueve());
 }
 
+// ¿Y un deslizamiento vertical? Solo cuando no hay nada que desplazar hacia
+// abajo: con la página más alta que la vista (lo normal ajustando a lo ancho)
+// el dedo está haciendo scroll, y quitárselo sería peor que no tener el gesto.
+function gestoVerticalPermitido() {
+  if (!gestoDePaginaPermitido()) return false;
+  const area = $('area-lectura');
+  return area.scrollHeight <= area.clientHeight + 2;
+}
+
 // ¿Queda página hacia ese lado?
 function hayPaginaDestino(haciaAtras) {
   return gestos.hayPaginaDestino({
@@ -8238,7 +8252,8 @@ function iniciarGesto(x, y, toques) {
   if (gesto && toques > 1) limpiarGesto(); // llega un pellizco
   if (toques !== 1 || !gestoDePaginaPermitido()) return;
   gesto = {
-    x, y, dx: 0, activo: false, terminado: false, vecinas: [], elemento: null,
+    x, y, dx: 0, dy: 0, vertical: false,
+    activo: false, terminado: false, vecinas: [], elemento: null,
     paso: 0, enColumnas: false,
   };
 }
@@ -8251,17 +8266,28 @@ function moverGesto(x, y, toques, evitar) {
   const dx = x - gesto.x;
   const dy = y - gesto.y;
   if (!gesto.activo) {
-    const arranque = gestos.decidirArranque(dx, dy);
+    const arranque = gestos.decidirArranque(dx, dy, { vertical: gestoVerticalPermitido() });
     if (arranque === 'abandonar') { gesto = null; return; }
     if (arranque === 'esperar') return;
     gesto.activo = true;
-    const piezas = piezasDelGesto(dx > 0);
-    gesto.elemento = piezas.elemento;
-    gesto.paso = piezas.paso;
-    gesto.enColumnas = piezas.enColumnas;
-    gesto.elemento?.classList.add('arrastrando-pagina');
-    $('area-lectura').classList.add('gesto-pagina');
-    prepararVecinasDelGesto();
+    gesto.vertical = arranque === 'vertical';
+    if (!gesto.vertical) {
+      const piezas = piezasDelGesto(dx > 0);
+      gesto.elemento = piezas.elemento;
+      gesto.paso = piezas.paso;
+      gesto.enColumnas = piezas.enColumnas;
+      gesto.elemento?.classList.add('arrastrando-pagina');
+      $('area-lectura').classList.add('gesto-pagina');
+      prepararVecinasDelGesto();
+    }
+  }
+  // El deslizamiento vertical no mueve nada mientras dura: solo apunta el
+  // recorrido y al soltar decide. Se queda el toque igualmente, que si no el
+  // navegador lo trata como un rebote del scroll.
+  if (gesto.vertical) {
+    evitar?.();
+    gesto.dy = dy;
+    return;
   }
   if (!gesto.elemento) return;
   evitar?.(); // el gesto es nuestro: ni scroll ni selección
@@ -8285,7 +8311,16 @@ $('area-lectura').addEventListener('touchmove', (evento) => {
 function terminarGestoPagina() {
   if (!gesto) return;
   gesto.terminado = true;
-  const { dx, activo, elemento } = gesto;
+  const { dx, dy, activo, elemento } = gesto;
+  // Deslizamiento vertical: subir el dedo trae la página siguiente (el texto
+  // se va hacia arriba, como al desplazar), bajarlo devuelve la anterior. La
+  // página pasa con la misma animación que pulsando un margen.
+  if (gesto.vertical) {
+    const alto = $('area-lectura').clientHeight;
+    limpiarGesto();
+    if (gestos.pasaDePaginaVertical(dy, alto)) pasarPagina(dy > 0);
+    return;
+  }
   if (!activo || !elemento) { limpiarGesto(); return; }
   const ancho = gesto.paso || $('area-lectura').clientWidth || 1;
   const pasa = gestos.pasaDePagina(dx, ancho);
@@ -8322,7 +8357,8 @@ async function pasarPagina(haciaAtras) {
   if (!piezas.elemento) return void cambiar();
   const elemento = piezas.elemento;
   gesto = {
-    x: 0, y: 0, dx: 0, activo: true, terminado: false, vecinas: [],
+    x: 0, y: 0, dx: 0, dy: 0, vertical: false,
+    activo: true, terminado: false, vecinas: [],
     elemento, paso: piezas.paso, enColumnas: piezas.enColumnas,
   };
   elemento.classList.add('arrastrando-pagina');

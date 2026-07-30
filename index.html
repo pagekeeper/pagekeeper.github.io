@@ -564,6 +564,12 @@
       <div id="contenedor-epub" class="oculto"></div>
       <button id="zona-anterior" class="zona-toque zona-izq" title="Página anterior" data-i18n-title="previous"></button>
       <button id="zona-siguiente" class="zona-toque zona-der" title="Página siguiente" data-i18n-title="next"></button>
+      <!-- Las mismas dos órdenes por arriba y por abajo, que es donde mucha
+           gente pulsa por costumbre de otros lectores. No llevan título ni
+           entran en el tabulador: repetirían lo que ya dicen las laterales, y
+           el tabulador y el lector de pantalla no ganan nada con el doble. -->
+      <button id="zona-arriba" class="zona-toque zona-sup" tabindex="-1" aria-hidden="true"></button>
+      <button id="zona-abajo" class="zona-toque zona-inf" tabindex="-1" aria-hidden="true"></button>
       <div id="barra-seleccion" class="barra-seleccion oculto" role="toolbar"
         aria-label="Acciones para el texto seleccionado" data-i18n-aria-label="selectionActions">
         <div class="colores-seleccion" role="group" aria-label="Color del resaltado"
@@ -1187,8 +1193,10 @@
           si te arrepientes a medio camino, vuelve sola a su sitio. Pulsando los
           márgenes izquierdo y derecho, o con las flechas y el espacio, la página hace
           sola ese mismo recorrido, así que también se ve en el ordenador. En los PDF
-          se ve de verdad la página vecina. Con las páginas continuas, o con zoom,
-          manda el desplazamiento y no hay animación.</p>
+          se ve de verdad la página vecina. También vale por arriba y por abajo:
+          pulsar la parte baja o deslizar el dedo hacia arriba adelanta, y la parte
+          alta o el dedo hacia abajo retrocede. Con las páginas continuas, o con
+          zoom, manda el desplazamiento y no hay animación.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Dos páginas juntas</summary>

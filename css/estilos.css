@@ -1553,6 +1553,10 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
    los clics del índice, de las miniaturas y del tirador. */
 @media (min-width: 64rem) {
   #vista-lector.con-barra-lateral .zona-izq { left: calc(var(--ancho-indice, 19rem) + 0.4rem); }
+  /* Y las de arriba y abajo empiezan donde acaba la lateral ya desplazada. */
+  #vista-lector.con-barra-lateral :is(.zona-sup, .zona-inf) {
+    left: calc(var(--ancho-indice, 19rem) + 0.4rem + 18%);
+  }
 }
 
 /* La cabecera se queda arriba al desplazar la lista: en un libro con muchos
@@ -1923,6 +1927,14 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .zona-izq { left: 0; }
 .zona-der { right: 0; }
+/* Las bandas de arriba y de abajo se quedan en la franja central: a los lados
+   ya mandan las laterales, y solapadas no se sabría cuál se pulsa. La de
+   arriba llega hasta el borde de la ventana porque la barra de herramientas
+   va por encima (z-index mayor) y se queda con su parte; la de abajo se para
+   antes de la barra de estado, que también se pulsa. */
+.zona-sup, .zona-inf { top: auto; bottom: auto; left: 18%; right: 18%; width: auto; height: 20%; }
+.zona-sup { top: 0; }
+.zona-inf { bottom: calc(1.9rem + env(safe-area-inset-bottom)); }
 
 /* ── Toast y carga ── */
 .toast {
