@@ -197,6 +197,8 @@ const textos = {
     statsSummary: 'Tu lectura', statsLastDays: 'Los últimos 30 días',
     actionBookStats: 'Tiempo de lectura',
     statusTimeSpentTitle: 'Tiempo que llevas leyendo este libro. Pulsa para verlo en detalle.',
+    statusPaused: 'En pausa',
+    statusPausedTitle: 'El tiempo dedicado no está sumando: llevas más de cinco minutos en la misma página. Vuelve a contar en cuanto pases de página.',
     statsBookTime: 'Tiempo dedicado', statsBookRead: 'Leído', statsBookPace: 'Ritmo',
     statsPacePerPage: '{time} por página', statsPaceSeconds: '{s} s por página',
     statsBookByDevice: 'En cada dispositivo',
@@ -205,7 +207,7 @@ const textos = {
     statsTopBooks: 'En qué se va el tiempo', statsDataTitle: 'Estos datos',
     statsEmptyTitle: 'Todavía no hay nada que contar',
     statsEmpty: 'En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.',
-    statsPrivacy: 'Con una nube configurada, el tiempo viaja con el progreso de lectura: cada dispositivo apunta el suyo y aquí se enseña la suma, así que sabes cuánto has tardado en leer un libro aunque lo hayas leído a ratos en cada aparato. Van en tu propio servidor WebDAV, con tus libros, y no se envían a ningún otro sitio. Sin nube configurada se quedan en este navegador. Solo cuenta el tiempo con un libro abierto y pasando páginas; las pausas largas y los saltos de posición no se suman.',
+    statsPrivacy: 'Con una nube configurada, el tiempo viaja con el progreso de lectura: cada dispositivo apunta el suyo y aquí se enseña la suma, así que sabes cuánto has tardado en leer un libro aunque lo hayas leído a ratos en cada aparato. Van en tu propio servidor WebDAV, con tus libros, y no se envían a ningún otro sitio. Sin nube configurada se quedan en este navegador. Solo cuenta el tiempo con el libro delante: mientras la aplicación no está a la vista el reloj se para, y los saltos de posición no se suman. De cada página se cuentan como mucho cinco minutos; pasado ese rato la barra del pie avisa de que está en pausa, y vuelve a contar al pasar de página.',
     statsDelete: 'Borrar las estadísticas',
     statsDeleteConfirm: '¿Borrar las estadísticas de lectura? Se borran en todos tus dispositivos: los que estén conectados lo harán en cuanto sincronicen. No afecta a tus libros, a la página por la que vas ni a tus anotaciones.',
     statsDeleted: '✓ Estadísticas borradas. Los demás dispositivos las borrarán al sincronizar.',
@@ -506,6 +508,8 @@ const textos = {
     statsSummary: 'La teva lectura', statsLastDays: 'Els darrers 30 dies',
     actionBookStats: 'Temps de lectura',
     statusTimeSpentTitle: 'Temps que portes llegint aquest llibre. Prem per veure’l en detall.',
+    statusPaused: 'En pausa',
+    statusPausedTitle: 'El temps dedicat no està sumant: fa més de cinc minuts que ets a la mateixa pàgina. Tornarà a comptar tan bon punt canviïs de pàgina.',
     statsBookTime: 'Temps dedicat', statsBookRead: 'Llegit', statsBookPace: 'Ritme',
     statsPacePerPage: '{time} per pàgina', statsPaceSeconds: '{s} s per pàgina',
     statsBookByDevice: 'A cada dispositiu',
@@ -514,7 +518,7 @@ const textos = {
     statsTopBooks: 'On se’n va el temps', statsDataTitle: 'Aquestes dades',
     statsEmptyTitle: 'Encara no hi ha res a explicar',
     statsEmpty: 'Tan bon punt llegeixis uns minuts amb un llibre obert, aquí apareixeran el temps dedicat, els dies seguits que portes llegint i en quins llibres se’t va l’estona.',
-    statsPrivacy: 'Amb un núvol configurat, el temps viatja amb el progrés de lectura: cada dispositiu apunta el seu i aquí se’n mostra la suma, així saps quant has trigat a llegir un llibre encara que l’hagis llegit a estones en cada aparell. Van al teu propi servidor WebDAV, amb els teus llibres, i no s’envien enlloc més. Sense núvol configurat es queden en aquest navegador. Només compta el temps amb un llibre obert i passant pàgines; les pauses llargues i els salts de posició no se sumen.',
+    statsPrivacy: 'Amb un núvol configurat, el temps viatja amb el progrés de lectura: cada dispositiu apunta el seu i aquí se’n mostra la suma, així saps quant has trigat a llegir un llibre encara que l’hagis llegit a estones en cada aparell. Van al teu propi servidor WebDAV, amb els teus llibres, i no s’envien enlloc més. Sense núvol configurat es queden en aquest navegador. Només compta el temps amb el llibre al davant: mentre l’aplicació no és a la vista el rellotge s’atura, i els salts de posició no se sumen. De cada pàgina es compten com a màxim cinc minuts; passada aquesta estona la barra del peu avisa que està en pausa, i torna a comptar quan canvies de pàgina.',
     statsDelete: 'Esborrar les estadístiques',
     statsDeleteConfirm: 'Voleu esborrar les estadístiques de lectura? S’esborren a tots els teus dispositius: els que estiguin connectats ho faran tan bon punt sincronitzin. No afecta els llibres, la pàgina on ets ni les anotacions.',
     statsDeleted: '✓ Estadístiques esborrades. Els altres dispositius les esborraran en sincronitzar.',
@@ -815,6 +819,8 @@ const textos = {
     statsSummary: 'Your reading', statsLastDays: 'The last 30 days',
     actionBookStats: 'Reading time',
     statusTimeSpentTitle: 'How long you have been reading this book. Tap to see the details.',
+    statusPaused: 'Paused',
+    statusPausedTitle: 'Time spent is not adding up: you have been on the same page for over five minutes. It starts counting again as soon as you turn the page.',
     statsBookTime: 'Time spent', statsBookRead: 'Read', statsBookPace: 'Pace',
     statsPacePerPage: '{time} per page', statsPaceSeconds: '{s} s per page',
     statsBookByDevice: 'On each device',
@@ -823,7 +829,7 @@ const textos = {
     statsTopBooks: 'Where the time goes', statsDataTitle: 'About this data',
     statsEmptyTitle: 'Nothing to show yet',
     statsEmpty: 'As soon as you read for a few minutes with a book open, this page will show the time you spent, how many days in a row you have been reading, and which books take up your time.',
-    statsPrivacy: 'With cloud storage set up, reading time travels along with your reading position: each device records its own and the total is shown here, so you know how long a book took you even if you read it in bits on each device. It lives in your own WebDAV server, next to your books, and is never sent anywhere else. Without cloud storage it stays in this browser. Only time spent with a book open and turning pages counts; long pauses and jumps to another position are not added.',
+    statsPrivacy: 'With cloud storage set up, reading time travels along with your reading position: each device records its own and the total is shown here, so you know how long a book took you even if you read it in bits on each device. It lives in your own WebDAV server, next to your books, and is never sent anywhere else. Without cloud storage it stays in this browser. Only time with the book in front of you counts: while the app is out of sight the clock stops, and jumps to another position are not added. Each page counts for at most five minutes; past that the footer bar says it is paused, and it counts again as soon as you turn the page.',
     statsDelete: 'Delete the statistics',
     statsDeleteConfirm: 'Delete the reading statistics? They are deleted on all your devices: any that are connected will do so as soon as they sync. Your books, your reading position and your annotations are not affected.',
     statsDeleted: '✓ Statistics deleted. Your other devices will delete them when they sync.',
@@ -1124,6 +1130,8 @@ const textos = {
     statsSummary: 'Votre lecture', statsLastDays: 'Les 30 derniers jours',
     actionBookStats: 'Temps de lecture',
     statusTimeSpentTitle: 'Depuis combien de temps vous lisez ce livre. Touchez pour voir le détail.',
+    statusPaused: 'En pause',
+    statusPausedTitle: 'Le temps de lecture ne s’accumule plus : vous êtes sur la même page depuis plus de cinq minutes. Il repartira dès que vous tournerez la page.',
     statsBookTime: 'Temps passé', statsBookRead: 'Lu', statsBookPace: 'Rythme',
     statsPacePerPage: '{time} par page', statsPaceSeconds: '{s} s par page',
     statsBookByDevice: 'Sur chaque appareil',
@@ -1132,7 +1140,7 @@ const textos = {
     statsTopBooks: 'Où passe le temps', statsDataTitle: 'À propos de ces données',
     statsEmptyTitle: 'Rien à montrer pour l’instant',
     statsEmpty: 'Dès que vous lirez quelques minutes avec un livre ouvert, cette page affichera le temps consacré, les jours consécutifs de lecture et les livres qui prennent le plus de votre temps.',
-    statsPrivacy: 'Avec un nuage configuré, le temps de lecture voyage avec la position de lecture : chaque appareil enregistre le sien et le total est affiché ici, pour savoir combien de temps un livre vous a pris même en le lisant par bouts sur chaque appareil. Ces données vivent sur votre propre serveur WebDAV, à côté de vos livres, et ne sont jamais envoyées ailleurs. Sans nuage configuré, elles restent dans ce navigateur. Seul le temps passé avec un livre ouvert et en tournant les pages compte ; les longues pauses et les sauts de position ne sont pas comptabilisés.',
+    statsPrivacy: 'Avec un nuage configuré, le temps de lecture voyage avec la position de lecture : chaque appareil enregistre le sien et le total est affiché ici, pour savoir combien de temps un livre vous a pris même en le lisant par bouts sur chaque appareil. Ces données vivent sur votre propre serveur WebDAV, à côté de vos livres, et ne sont jamais envoyées ailleurs. Sans nuage configuré, elles restent dans ce navigateur. Seul le temps passé avec le livre devant vous compte : tant que l’application n’est pas visible, l’horloge s’arrête, et les sauts de position ne sont pas comptabilisés. Chaque page compte au maximum cinq minutes ; au-delà, la barre du bas signale la pause, et le compte reprend dès que vous tournez la page.',
     statsDelete: 'Supprimer les statistiques',
     statsDeleteConfirm: 'Supprimer les statistiques de lecture ? Elles seront supprimées sur tous vos appareils : ceux qui sont connectés le feront dès qu’ils synchroniseront. Vos livres, votre position de lecture et vos annotations ne sont pas affectés.',
     statsDeleted: '✓ Statistiques supprimées. Vos autres appareils les supprimeront lors de la synchronisation.',
@@ -1433,6 +1441,8 @@ const textos = {
     statsSummary: 'A túa lectura', statsLastDays: 'Os últimos 30 días',
     actionBookStats: 'Tempo de lectura',
     statusTimeSpentTitle: 'Tempo que levas lendo este libro. Preme para velo en detalle.',
+    statusPaused: 'En pausa',
+    statusPausedTitle: 'O tempo dedicado non está sumando: levas máis de cinco minutos na mesma páxina. Volverá contar en canto pases de páxina.',
     statsBookTime: 'Tempo dedicado', statsBookRead: 'Lido', statsBookPace: 'Ritmo',
     statsPacePerPage: '{time} por páxina', statsPaceSeconds: '{s} s por páxina',
     statsBookByDevice: 'En cada dispositivo',
@@ -1441,7 +1451,7 @@ const textos = {
     statsTopBooks: 'En que se vai o tempo', statsDataTitle: 'Estes datos',
     statsEmptyTitle: 'Aínda non hai nada que contar',
     statsEmpty: 'En canto leas uns minutos cun libro aberto, aquí aparecerán o tempo dedicado, os días seguidos que levas lendo e en que libros se che vai o tempo.',
-    statsPrivacy: 'Cunha nube configurada, o tempo viaxa co progreso de lectura: cada dispositivo apunta o seu e aquí amósase a suma, así que sabes canto tardaches en ler un libro aínda que o lesses a anacos en cada aparello. Van no teu propio servidor WebDAV, cos teus libros, e non se envían a ningún outro sitio. Sen nube configurada quedan neste navegador. Só conta o tempo cun libro aberto e pasando páxinas; as pausas longas e os saltos de posición non se suman.',
+    statsPrivacy: 'Cunha nube configurada, o tempo viaxa co progreso de lectura: cada dispositivo apunta o seu e aquí amósase a suma, así que sabes canto tardaches en ler un libro aínda que o lesses a anacos en cada aparello. Van no teu propio servidor WebDAV, cos teus libros, e non se envían a ningún outro sitio. Sen nube configurada quedan neste navegador. Só conta o tempo co libro diante: mentres a aplicación non está á vista o reloxo párase, e os saltos de posición non se suman. De cada páxina cóntanse como máximo cinco minutos; pasado ese tempo a barra do pé avisa de que está en pausa, e volve contar ao pasar de páxina.',
     statsDelete: 'Borrar as estatísticas',
     statsDeleteConfirm: 'Borrar as estatísticas de lectura? Bórranse en todos os teus dispositivos: os que estean conectados farano en canto sincronicen. Non afecta os teus libros, á páxina pola que vas nin ás túas anotacións.',
     statsDeleted: '✓ Estatísticas borradas. Os demais dispositivos borraranas ao sincronizar.',
@@ -1742,6 +1752,8 @@ const textos = {
     statsSummary: 'Zure irakurketa', statsLastDays: 'Azken 30 egunak',
     actionBookStats: 'Irakurketa-denbora',
     statusTimeSpentTitle: 'Liburu hau irakurtzen daramazun denbora. Sakatu xehetasunean ikusteko.',
+    statusPaused: 'Etenda',
+    statusPausedTitle: 'Emandako denbora ez da gehitzen ari: bost minutu baino gehiago daramatzazu orrialde berean. Orrialdea aldatu bezain laster berriro kontatzen hasiko da.',
     statsBookTime: 'Emandako denbora', statsBookRead: 'Irakurrita', statsBookPace: 'Erritmoa',
     statsPacePerPage: 'orrialdeko {time}', statsPaceSeconds: 'orrialdeko {s} s',
     statsBookByDevice: 'Gailu bakoitzean',
@@ -1750,7 +1762,7 @@ const textos = {
     statsTopBooks: 'Nora doan denbora', statsDataTitle: 'Datu hauei buruz',
     statsEmptyTitle: 'Oraindik ez dago zer kontatu',
     statsEmpty: 'Liburu bat irekita minutu batzuk irakurri bezain laster, orrialde honetan agertuko dira emandako denbora, jarraian daramatzazun egunak eta denbora gehien hartzen duten liburuak.',
-    statsPrivacy: 'Hodeia konfiguratuta dagoenean, irakurketa-denborak irakurketaren posizioarekin bidaiatzen du: gailu bakoitzak berea apuntatzen du eta hemen batura erakusten da, gailu bakoitzean zatika irakurri arren liburu batek zenbat denbora hartu dizun jakiteko. Zure WebDAV zerbitzari propioan bidaiatzen dute, zure liburuekin batera, eta ez dira inora bidaltzen. Hodeirik konfiguratu gabe, nabigatzaile honetan gelditzen dira. Liburu bat irekita eta orrialdeak pasatzen dituzun denbora bakarrik zenbatzen da; etenaldi luzeak eta posizio-jauziak ez dira batzen.',
+    statsPrivacy: 'Hodeia konfiguratuta dagoenean, irakurketa-denborak irakurketaren posizioarekin bidaiatzen du: gailu bakoitzak berea apuntatzen du eta hemen batura erakusten da, gailu bakoitzean zatika irakurri arren liburu batek zenbat denbora hartu dizun jakiteko. Zure WebDAV zerbitzari propioan bidaiatzen dute, zure liburuekin batera, eta ez dira inora bidaltzen. Hodeirik konfiguratu gabe, nabigatzaile honetan gelditzen dira. Liburua aurrean duzun denbora bakarrik zenbatzen da: aplikazioa bistan ez dagoen bitartean erlojua gelditzen da, eta posizio-jauziak ez dira batzen. Orrialde bakoitzeko bost minutu zenbatzen dira gehienez; hori igarota, oineko barrak etenda dagoela adierazten du, eta orrialdea pasatzean berriro zenbatzen hasten da.',
     statsDelete: 'Ezabatu estatistikak',
     statsDeleteConfirm: 'Irakurketa-estatistikak ezabatu? Zure gailu guztietan ezabatzen dira: konektatuta daudenek sinkronizatzean egingo dute. Ez die eragiten zure liburuei, zauden orrialdeari edo zure oharrei.',
     statsDeleted: '✓ Estatistikak ezabatu dira. Beste gailuek sinkronizatzean ezabatuko dituzte.',
@@ -2051,6 +2063,8 @@ const textos = {
     statsSummary: 'Deine Lektüre', statsLastDays: 'Die letzten 30 Tage',
     actionBookStats: 'Lesezeit',
     statusTimeSpentTitle: 'Wie lange du dieses Buch schon liest. Tippen, um Details zu sehen.',
+    statusPaused: 'Pausiert',
+    statusPausedTitle: 'Die Lesezeit wächst nicht weiter: du bist seit über fünf Minuten auf derselben Seite. Sie zählt wieder, sobald du umblätterst.',
     statsBookTime: 'Verbrachte Zeit', statsBookRead: 'Gelesen', statsBookPace: 'Tempo',
     statsPacePerPage: '{time} pro Seite', statsPaceSeconds: '{s} s pro Seite',
     statsBookByDevice: 'Auf jedem Gerät',
@@ -2059,7 +2073,7 @@ const textos = {
     statsTopBooks: 'Wofür die Zeit draufgeht', statsDataTitle: 'Über diese Daten',
     statsEmptyTitle: 'Noch nichts zu zeigen',
     statsEmpty: 'Sobald du ein paar Minuten mit geöffnetem Buch liest, zeigt diese Seite die verbrachte Zeit, die Tage in Folge und die Bücher, denen du am meisten Zeit widmest.',
-    statsPrivacy: 'Bei eingerichteter Cloud reist die Lesezeit mit der Leseposition: Jedes Gerät erfasst seine eigene, und hier wird die Summe angezeigt, sodass du weißt, wie lange ein Buch gedauert hat, auch wenn du es auf jedem Gerät in Etappen gelesen hast. Sie liegt auf deinem eigenen WebDAV-Server, neben deinen Büchern, und wird nirgendwohin gesendet. Ohne eingerichtete Cloud bleibt sie in diesem Browser. Nur die Zeit mit geöffnetem Buch und Umblättern zählt; lange Pausen und Positionssprünge werden nicht addiert.',
+    statsPrivacy: 'Bei eingerichteter Cloud reist die Lesezeit mit der Leseposition: Jedes Gerät erfasst seine eigene, und hier wird die Summe angezeigt, sodass du weißt, wie lange ein Buch gedauert hat, auch wenn du es auf jedem Gerät in Etappen gelesen hast. Sie liegt auf deinem eigenen WebDAV-Server, neben deinen Büchern, und wird nirgendwohin gesendet. Ohne eingerichtete Cloud bleibt sie in diesem Browser. Nur die Zeit mit dem Buch vor dir zählt: solange die App nicht zu sehen ist, steht die Uhr still, und Positionssprünge werden nicht addiert. Pro Seite werden höchstens fünf Minuten gezählt; danach weist die Fußzeile auf die Pause hin, und beim Umblättern zählt sie wieder.',
     statsDelete: 'Statistiken löschen',
     statsDeleteConfirm: 'Lesestatistiken löschen? Sie werden auf allen deinen Geräten gelöscht: Verbundene Geräte tun dies, sobald sie synchronisieren. Deine Bücher, deine Leseposition und deine Anmerkungen sind nicht betroffen.',
     statsDeleted: '✓ Statistiken gelöscht. Deine anderen Geräte löschen sie beim Synchronisieren.',
@@ -2360,6 +2374,8 @@ const textos = {
     statsSummary: 'A sua leitura', statsLastDays: 'Os últimos 30 dias',
     actionBookStats: 'Tempo de leitura',
     statusTimeSpentTitle: 'Tempo que leva a ler este livro. Toque para ver em detalhe.',
+    statusPaused: 'Em pausa',
+    statusPausedTitle: 'O tempo dedicado não está a somar: está na mesma página há mais de cinco minutos. Volta a contar assim que mudar de página.',
     statsBookTime: 'Tempo dedicado', statsBookRead: 'Lido', statsBookPace: 'Ritmo',
     statsPacePerPage: '{time} por página', statsPaceSeconds: '{s} s por página',
     statsBookByDevice: 'Em cada dispositivo',
@@ -2368,7 +2384,7 @@ const textos = {
     statsTopBooks: 'Onde vai o tempo', statsDataTitle: 'Sobre estes dados',
     statsEmptyTitle: 'Ainda não há nada a mostrar',
     statsEmpty: 'Assim que ler uns minutos com um livro aberto, aqui aparecerão o tempo dedicado, os dias seguidos que leva a ler e os livros a que dedica mais tempo.',
-    statsPrivacy: 'Com uma nuvem configurada, o tempo de leitura viaja com a posição de leitura: cada dispositivo regista o seu e aqui mostra-se a soma, para saber quanto tempo demorou a ler um livro mesmo que o tenha lido aos poucos em cada aparelho. Ficam no seu próprio servidor WebDAV, junto com os seus livros, e nunca são enviados para mais lado nenhum. Sem nuvem configurada, ficam neste navegador. Só conta o tempo com um livro aberto e a passar páginas; pausas longas e saltos de posição não são somados.',
+    statsPrivacy: 'Com uma nuvem configurada, o tempo de leitura viaja com a posição de leitura: cada dispositivo regista o seu e aqui mostra-se a soma, para saber quanto tempo demorou a ler um livro mesmo que o tenha lido aos poucos em cada aparelho. Ficam no seu próprio servidor WebDAV, junto com os seus livros, e nunca são enviados para mais lado nenhum. Sem nuvem configurada, ficam neste navegador. Só conta o tempo com o livro à frente: enquanto a aplicação não está à vista o relógio para, e os saltos de posição não são somados. De cada página contam-se no máximo cinco minutos; passado esse tempo a barra do fundo avisa que está em pausa, e volta a contar ao mudar de página.',
     statsDelete: 'Eliminar as estatísticas',
     statsDeleteConfirm: 'Eliminar as estatísticas de leitura? São eliminadas em todos os seus dispositivos: os que estiverem ligados fá-lo-ão assim que sincronizarem. Não afeta os seus livros, a página em que vai nem as suas anotações.',
     statsDeleted: '✓ Estatísticas eliminadas. Os outros dispositivos eliminam-nas ao sincronizar.',
@@ -2657,9 +2673,12 @@ const ayudas = {
             <p>El botó del gràfic de la capçalera obre el temps que dediques a
           llegir: el total, el d’avui i el de la setmana, els dies seguits que
           portes, una barra per cadascun dels darrers trenta dies i els llibres
-          als quals dediques més estona. Només es compta el temps amb un llibre
-          obert i passant pàgines, així que deixar la pestanya oberta no
-          suma.</p>
+          als quals dediques més estona. Només es compta el temps amb el llibre
+          al davant: mentre l’aplicació no és a la vista —una altra pestanya, una altra
+          aplicació, el mòbil blocat— el rellotge s’atura, així que deixar-la oberta no
+          suma. De cada pàgina es compten com a màxim cinc minuts; si t’hi quedes més
+          estona, la barra del peu avisa amb un «En pausa» i el rellotge torna a córrer
+          tan bon punt canvies de pàgina.</p>
             <p>Amb un núvol configurat, les xifres sumen tots els teus
           dispositius: el temps de cada llibre porta a sota el repartiment
           («aquest dispositiu 2 h · Chrome en Linux 45 min»), de manera que
@@ -3156,8 +3175,11 @@ const ayudas = {
             <p>The chart button in the header opens the time you spend reading:
           the total, today’s and this week’s, how many days in a row you have
           kept it up, one bar for each of the last thirty days, and the books
-          that take the most of your time. Only time with a book open and pages
-          turning is counted, so leaving the tab open adds nothing.</p>
+          that take the most of your time. Only time with the book in front of you
+          is counted: while the app is out of sight —another tab, another app, a locked
+          phone— the clock stops, so leaving it open adds nothing. Each page counts for
+          at most five minutes; stay longer on the same one and the footer bar says
+          “Paused”, with the clock running again as soon as you turn the page.</p>
             <p>With cloud storage set up, the figures add up all your devices:
           each book’s time carries the split underneath (“this device 2 h ·
           Chrome on Linux 45 min”), so you know how long it took you even if you
@@ -3662,8 +3684,12 @@ const ayudas = {
             <p>Le bouton graphique dans l’en-tête ouvre le temps que vous passez à lire :
           le total, celui d’aujourd’hui et de cette semaine, combien de jours d’affilée
           vous avez tenu, une barre pour chacun des trente derniers jours, et les livres
-          qui prennent le plus de votre temps. Seul le temps avec un livre ouvert et les
-          pages qui tournent est compté, donc laisser l’onglet ouvert n’ajoute rien.</p>
+          qui prennent le plus de votre temps. Seul le temps passé avec le livre devant
+          vous est compté : tant que l’application n’est pas visible —un autre onglet, une
+          autre application, le téléphone verrouillé— l’horloge s’arrête, donc la laisser
+          ouverte n’ajoute rien. Chaque page compte au maximum cinq minutes ; si vous
+          restez plus longtemps sur la même, la barre du bas affiche « En pause », et
+          l’horloge repart dès que vous tournez la page.</p>
             <p>Avec un nuage configuré, les chiffres additionnent tous vos appareils :
           le temps de chaque livre porte la répartition en dessous (« cet appareil 2 h ·
           Chrome sur Linux 45 min »), pour savoir combien de temps il vous a pris même en
@@ -4176,8 +4202,11 @@ const ayudas = {
             <p>O botón do gráfico da cabeceira abre o tempo que dedicas a ler:
           o total, o de hoxe e o desta semana, cantos días seguidos levas, unha barra
           para cada un dos últimos trinta días e os libros aos que máis tempo lles
-          dedicas. Só conta o tempo cun libro aberto e pasando páxinas, así que deixar
-          a lapela aberta non suma nada.</p>
+          dedicas. Só conta o tempo co libro diante: mentres a aplicación non está á
+          vista —outra lapela, outra aplicación, o móbil bloqueado— o reloxo párase, así
+          que deixala aberta non suma nada. De cada páxina cóntanse como máximo cinco
+          minutos; se quedas máis tempo na mesma, a barra do pé avisa cun «En pausa» e o
+          reloxo volve correr en canto pasas de páxina.</p>
             <p>Cunha nube configurada, as cifras suman todos os teus dispositivos:
           o tempo de cada libro leva embaixo o reparto («este dispositivo 2 h ·
           Chrome en Linux 45 min»), así que sabes canto tardaches en lelo aínda que o
@@ -4682,9 +4711,12 @@ const ayudas = {
             <p>Goiburuko grafiko-botoiak irakurtzen ematen duzun denbora irekitzen
           du: guztira, gaurkoa eta asteko denbora, zenbat egun jarraian daramatzazun,
           azken hogeita hamar egunetako bakoitzeko barra bat, eta denbora gehien
-          hartzen duten liburuak. Liburu bat irekita eta orrialdeak pasatzen dituzun
-          denbora bakarrik zenbatzen da, beraz fitxa irekita uzteak ez du ezer
-          gehitzen.</p>
+          hartzen duten liburuak. Liburua aurrean duzun denbora bakarrik
+          zenbatzen da: aplikazioa bistan ez dagoen bitartean —beste fitxa bat, beste
+          aplikazio bat, mugikorra blokeatuta— erlojua gelditzen da, beraz irekita
+          uzteak ez du ezer gehitzen. Orrialde bakoitzeko bost minutu zenbatzen dira
+          gehienez; orrialde berean gehiago geratzen bazara, oineko barrak «Etenda»
+          adierazten du, eta erlojua orrialdea pasatzean berriro hasten da.</p>
             <p>Hodei bat konfiguratuta dagoela, zenbakiek zure gailu guztiak batzen
           dituzte: liburu bakoitzaren denborak azpian banaketa darama («gailu hau
           2 o · Chrome Linuxen 45 min»), gailu bakoitzean zatika irakurri arren
@@ -5207,9 +5239,12 @@ const ayudas = {
             <p>Die Diagramm-Schaltfläche in der Kopfzeile öffnet die Zeit, die du mit
           Lesen verbringst: die Gesamtzeit, die von heute und dieser Woche, wie viele
           Tage in Folge du dranbleibst, einen Balken für jeden der letzten dreißig
-          Tage und die Bücher, denen du am meisten Zeit widmest. Nur die Zeit mit
-          geöffnetem Buch und Umblättern zählt, ein offen gelassener Tab fügt also
-          nichts hinzu.</p>
+          Tage und die Bücher, denen du am meisten Zeit widmest. Nur die Zeit mit dem Buch vor dir
+          zählt: solange die App nicht zu sehen ist —ein anderer Tab, eine andere App,
+          das gesperrte Handy— steht die Uhr still, ein offen gelassener Tab fügt also
+          nichts hinzu. Pro Seite werden höchstens fünf Minuten gezählt; bleibst du
+          länger auf derselben, weist die Fußzeile mit „Pausiert“ darauf hin, und beim
+          Umblättern läuft die Uhr wieder.</p>
             <p>Bei eingerichteter Cloud summieren die Zahlen alle deine Geräte: Die
           Zeit jedes Buches trägt darunter die Aufteilung („dieses Gerät 2 Std. ·
           Chrome unter Linux 45 Min.“), sodass du weißt, wie lange du gebraucht hast,
@@ -5737,8 +5772,12 @@ const ayudas = {
             <p>O botão do gráfico no cabeçalho abre o tempo que dedica a ler: o
           total, o de hoje e o desta semana, quantos dias seguidos leva, uma
           barra para cada um dos últimos trinta dias e os livros a que dedica
-          mais tempo. Só conta o tempo com um livro aberto e a passar páginas,
-          por isso deixar o separador aberto não soma nada.</p>
+          mais tempo. Só conta o tempo com o livro à frente: enquanto a
+          aplicação não está à vista —outro separador, outra aplicação, o telemóvel
+          bloqueado— o relógio para, por isso deixá-la aberta não soma nada. De cada
+          página contam-se no máximo cinco minutos; se ficar mais tempo na mesma, a
+          barra do fundo avisa com um «Em pausa» e o relógio volta a correr assim que
+          mudar de página.</p>
             <p>Com uma nuvem configurada, os números somam todos os seus
           dispositivos: o tempo de cada livro traz por baixo a repartição
           («este dispositivo 2 h · Chrome no Linux 45 min»), para saber quanto

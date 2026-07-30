@@ -1096,6 +1096,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .barra-estado-lector::-webkit-scrollbar { display: none; }
 .barra-estado-lector .dato-estado { flex: none; }
+/* El aviso de que el tiempo no está contando. En color de aviso porque dice
+   algo que no se deduce de los demás datos, pero sin gritar: sigue siendo la
+   barra de datos y quien lee está leyendo, no atendiendo a esto. */
+.barra-estado-lector .dato-estado-aviso {
+  display: inline-flex; align-items: center; gap: 0.25rem; color: var(--aviso);
+}
+.barra-estado-lector .dato-estado-aviso .icono { width: 0.85em; height: 0.85em; }
 /* El punto de separación es del CSS: así el JavaScript solo pone los datos
    que tenga, sin preocuparse de cuál es el primero. */
 .barra-estado-lector .dato-estado + .dato-estado::before {

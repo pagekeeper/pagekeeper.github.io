@@ -2,8 +2,8 @@
 //
 // Se apunta el tiempo realmente leído, no el que la aplicación ha estado
 // abierta: las muestras llegan del mismo sitio que alimenta el ritmo (cambiar
-// de página con el libro delante), así que las pausas largas y los saltos de
-// posición no cuentan.
+// de página con el libro delante), así que ni el rato con la aplicación fuera
+// de la vista ni los saltos de posición cuentan.
 //
 // Todo vive en el registro de progreso, que ya sabe sincronizarse, y siempre
 // desglosado por dispositivo:
@@ -40,8 +40,9 @@ function diaAnterior(clave, atras = 1) {
 
 export const DIAS_GUARDADOS = 400; // algo más de un año, para comparar cursos
 // Una muestra más larga que esto no es lectura seguida sino una pestaña
-// olvidada. El emisor ya las descarta (muestraValida), pero el almacén no se
-// fía de quien le escribe: una sola muestra falsa desviaría el total del año.
+// olvidada. El emisor ya acota mucho antes (segundosDeLaMuestra), pero el
+// almacén no se fía de quien le escribe: una sola muestra falsa desviaría el
+// total del año.
 const SEGUNDOS_MAXIMOS = 3600;
 
 function numero(valor) {

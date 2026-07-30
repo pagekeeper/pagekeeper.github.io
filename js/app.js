@@ -17,8 +17,8 @@ import { abrePorRaton } from './menu-contextual.js';
 import { resumenDeMetadatos } from './resumen-libro.js';
 import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
-  muestraValida, acumularRitmo, minutosRestantes,
-  SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
+  segundosDeLaMuestra, acumularRitmo, minutosRestantes,
+  SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE, SEGUNDOS_TOPE,
   UNIDADES_MINIMAS_PAGINAS, UNIDADES_MINIMAS_PORCENTAJE,
 } from './ritmo.js';
 import {
@@ -534,6 +534,9 @@ function cerrarVistaLector() {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  // Antes de soltar el libro: la última página leída también cuenta, y con
+  // «libroActual» ya vacío no habría a quién apuntársela.
+  cerrarMuestraDeRitmo();
   subirPosicionAhora();
   lectorEpub.cerrar();
   libroActual = null;
@@ -5217,13 +5220,21 @@ function planificarSincronizacion() {
 
 // ───────────── Tiempo de lectura restante estimado ─────────────
 // Se mide el ritmo real de lectura en este dispositivo: segundos acumulados
-// por unidad avanzada (páginas en PDF, puntos de porcentaje en EPUB). Las
-// pausas largas y los saltos grandes no cuentan como lectura.
+// por unidad avanzada (páginas en PDF, puntos de porcentaje en EPUB). Los
+// saltos de posición no cuentan como lectura, y de un tramo entre dos cambios
+// de posición se cuenta como mucho el tope (ver «ritmo.js»).
+//
+// El reloj solo corre con el libro a la vista: al perderse de vista (cambiar de
+// pestaña o de aplicación, bloquear el móvil) se cierra el tramo abierto y la
+// marca se retira, y al volver empieza uno nuevo. Así el rato de ausencia no se
+// cuenta sin necesidad de adivinarlo por su duración, que es lo que antes
+// castigaba a quien lee despacio.
 const ritmoSesion = { marca: null, unidad: null };
 
 function reiniciarRitmo() {
   ritmoSesion.marca = null;
   ritmoSesion.unidad = null;
+  vigilarPausaDelRitmo();
 }
 
 function anotarRitmo(unidad) {
@@ -5231,10 +5242,11 @@ function anotarRitmo(unidad) {
   const { marca, unidad: anterior } = ritmoSesion;
   ritmoSesion.marca = ahora;
   ritmoSesion.unidad = unidad;
+  vigilarPausaDelRitmo();
   if (marca === null || !libroActual) return;
-  const segundos = (ahora - marca) / 1000;
   const avance = unidad - anterior;
-  if (!muestraValida(segundos, avance)) return;
+  const segundos = segundosDeLaMuestra((ahora - marca) / 1000, avance);
+  if (segundos === null) return;
   apuntarEstadistica(segundos, avance);
   const mapa = leerMapaLocal(CLAVE_RITMO);
   const semivida = epubAbierto() ? SEMIVIDA_PORCENTAJE : SEMIVIDA_PAGINAS;
@@ -5248,6 +5260,54 @@ function anotarRitmo(unidad) {
     for (const id of ids.slice(0, ids.length - 100)) delete mapa[id];
   }
   localStorage.setItem(CLAVE_RITMO, JSON.stringify(mapa));
+}
+
+// Cierra el tramo abierto sin esperar a que cambie la posición, dándolo por
+// tiempo en la página actual (avance cero, que el ritmo suma sin olvidar nada).
+// Lo que se lee en la última página de una sesión también es lectura, y antes
+// se perdía entero: al cerrar el libro o al irse de la aplicación, el tramo en
+// curso no llegaba a apuntarse nunca.
+function cerrarMuestraDeRitmo() {
+  if (ritmoSesion.marca === null || !libroActual) return;
+  anotarRitmo(ritmoSesion.unidad);
+  ritmoSesion.marca = null; // el reloj se reanuda cuando el libro vuelva a la vista
+  vigilarPausaDelRitmo();
+}
+
+// Perder de vista la página es lo único que de verdad significa «aquí no se
+// está leyendo». No se usa el foco de la ventana: en un escritorio con dos
+// pantallas se lee de sobra sin foco, y el salto al iframe del EPUB ya lo
+// quitaba solo.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    cerrarMuestraDeRitmo();
+  } else if (libroActual && ritmoSesion.marca === null && ritmoSesion.unidad !== null) {
+    ritmoSesion.marca = Date.now();
+    vigilarPausaDelRitmo();
+    pintarBarraEstado(); // retira el aviso de pausa y refresca el tiempo dedicado
+  }
+});
+
+// ── El aviso de que el tiempo no está contando ──
+// Sin esto, la única forma de saber si el rato cuenta era esperar a ver si la
+// cifra subía. Se enseña en la barra del pie mientras el tramo abierto ya ha
+// pasado del tope: a partir de ahí, seguir quieto en la misma página no suma
+// nada, y basta con pasar de página para que vuelva a contar.
+let temporizadorPausaRitmo;
+
+function ritmoEnPausa() {
+  if (!libroActual) return false;
+  if (ritmoSesion.marca === null) return ritmoSesion.unidad !== null;
+  return (Date.now() - ritmoSesion.marca) / 1000 >= SEGUNDOS_TOPE;
+}
+
+function vigilarPausaDelRitmo() {
+  clearTimeout(temporizadorPausaRitmo);
+  if (ritmoSesion.marca === null || !libroActual) return;
+  const falta = SEGUNDOS_TOPE * 1000 - (Date.now() - ritmoSesion.marca);
+  // Al llegar al tope no pasa nada que repinte por sí solo, así que se avisa
+  // en el momento justo en que el aviso se vuelve verdad.
+  if (falta > 0) temporizadorPausaRitmo = setTimeout(pintarBarraEstado, falta);
 }
 
 function tiempoRestanteEstimado() {
@@ -5648,10 +5708,16 @@ function barraEstadoOculta() {
 // <span>. El tiempo dedicado es la excepción: abre la ficha del libro, y para
 // eso tiene que ser un botón de verdad (teclado, lector de pantalla) y
 // parecerlo.
-function datoEstado(texto, titulo, alPulsar = null) {
+function datoEstado(texto, titulo, alPulsar = null, nombreIcono = '') {
   const elemento = document.createElement(alPulsar ? 'button' : 'span');
   elemento.className = alPulsar ? 'dato-estado dato-estado-pulsable' : 'dato-estado';
   elemento.textContent = texto;
+  // El icono va delante del texto, no en su lugar: un símbolo solo no se
+  // entiende, y aquí lo que se anuncia es justo lo que no se ve pasar.
+  if (nombreIcono) {
+    elemento.classList.add('dato-estado-aviso');
+    elemento.insertAdjacentHTML('afterbegin', icono(nombreIcono));
+  }
   if (titulo) elemento.title = titulo;
   if (alPulsar) {
     elemento.type = 'button';
@@ -5673,6 +5739,10 @@ function datosBarraEstado() {
   if (dedicado) {
     datos.push([dedicado, t('statusTimeSpentTitle'),
       () => abrirFichaLibro(libroActual.id, tituloDelLibroActual())]);
+  }
+  // Pegado al tiempo dedicado, que es el dato que ha dejado de moverse.
+  if (ritmoEnPausa()) {
+    datos.push([t('statusPaused'), t('statusPausedTitle'), null, 'pause']);
   }
   if (epubAbierto()) {
     // Un capítulo de una sola pantalla (una portadilla, una dedicatoria) no
@@ -5714,7 +5784,8 @@ function pintarBarraEstado() {
   // de alto a mitad del libro y epub.js repaginaría el capítulo.
   barra.classList.toggle('oculto', !visible);
   const datos = visible ? datosBarraEstado() : [];
-  barra.replaceChildren(...datos.map(([texto, titulo, alPulsar]) => datoEstado(texto, titulo, alPulsar)));
+  barra.replaceChildren(...datos.map(
+    ([texto, titulo, alPulsar, nombreIcono]) => datoEstado(texto, titulo, alPulsar, nombreIcono)));
 }
 
 function sincronizarCasillaBarraEstado() {

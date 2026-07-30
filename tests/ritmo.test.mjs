@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  muestraValida, acumularRitmo, segundosPorUnidad, minutosRestantes,
-  SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
+  segundosDeLaMuestra, acumularRitmo, segundosPorUnidad, minutosRestantes,
+  SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE, SEGUNDOS_TOPE,
   UNIDADES_MINIMAS_PORCENTAJE,
 } from '../js/ritmo.js';
 
@@ -13,16 +13,23 @@ function leer(entrada, paginas, segundos) {
   return entrada;
 }
 
-test('descarta las pausas largas y los vistazos de un segundo', () => {
-  assert.equal(muestraValida(1, 1), false);
-  assert.equal(muestraValida(600, 1), false);
-  assert.equal(muestraValida(30, 1), true);
+test('descarta los vistazos de un segundo', () => {
+  assert.equal(segundosDeLaMuestra(1, 1), null);
+  assert.equal(segundosDeLaMuestra(30, 1), 30);
+});
+
+// Leer despacio ya no cuesta el tramo entero: antes de acotar, una página que
+// llevara más del tope se quedaba en cero segundos leídos.
+test('un tramo largo se acota en vez de perderse', () => {
+  assert.equal(segundosDeLaMuestra(600, 1), SEGUNDOS_TOPE);
+  assert.equal(segundosDeLaMuestra(SEGUNDOS_TOPE, 1), SEGUNDOS_TOPE);
+  assert.equal(segundosDeLaMuestra(SEGUNDOS_TOPE - 1, 1), SEGUNDOS_TOPE - 1);
 });
 
 test('descarta los saltos de posición y el retroceso', () => {
-  assert.equal(muestraValida(30, 12), false);
-  assert.equal(muestraValida(30, -3), false);
-  assert.equal(muestraValida(30, 0), true); // tiempo en la misma página
+  assert.equal(segundosDeLaMuestra(30, 12), null);
+  assert.equal(segundosDeLaMuestra(30, -3), null);
+  assert.equal(segundosDeLaMuestra(30, 0), 30); // tiempo en la misma página
 });
 
 test('no estima nada hasta reunir lectura suficiente', () => {

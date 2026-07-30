@@ -11,10 +11,22 @@
 // páginas son un tramo normal de lectura, pero 40 puntos son medio libro.
 export const SEMIVIDA_PAGINAS = 40;
 export const SEMIVIDA_PORCENTAJE = 8;
-// Muestras improbables: pausas, lecturas de un vistazo y saltos de posición.
+// Muestras improbables: lecturas de un vistazo y saltos de posición.
 const SEGUNDOS_MINIMOS = 3;
-const SEGUNDOS_MAXIMOS = 300;
 const AVANCE_MAXIMO = 4;
+// Lo que como máximo se cuenta de un tramo entre dos cambios de posición.
+//
+// Antes este número descartaba la muestra entera, y con ella el rato de lectura
+// legítimo que llevara dentro: quien se detiene en una página densa, en un
+// poema o en un libro de estudio perdía el tramo completo por pasarse del
+// límite. Ahora acota: cuenta hasta aquí y lo que sobre se da por perdido, que
+// es lo que hace falta para que una aplicación olvidada abierta no invente
+// horas de lectura.
+//
+// El otro trabajo que hacía este número —descubrir que el lector se había ido—
+// ya no le toca: el tiempo con la página fuera de la vista no llega hasta aquí,
+// porque quien mide cierra el tramo al perderse de vista (ver «app.js»).
+export const SEGUNDOS_TOPE = 300;
 // Hasta reunir algo de lectura real la estimación no es fiable. El mínimo de
 // unidades va con la unidad de cada formato, igual que la semivida: tres
 // páginas de PDF son un rato de lectura, pero tres puntos de porcentaje de un
@@ -25,9 +37,13 @@ export const UNIDADES_MINIMAS_PAGINAS = 3;
 export const UNIDADES_MINIMAS_PORCENTAJE = 0.25;
 const SEGUNDOS_ACUMULADOS_MINIMOS = 120;
 
-export function muestraValida(segundos, avance) {
-  return segundos >= SEGUNDOS_MINIMOS && segundos <= SEGUNDOS_MAXIMOS &&
-    avance >= 0 && avance <= AVANCE_MAXIMO;
+// Cuántos segundos de un tramo cuentan como lectura, o null si el tramo no
+// cuenta: un vistazo (demasiado corto) o un salto de posición (ir al índice, a
+// un marcador, o volver atrás), que no dicen nada del ritmo.
+export function segundosDeLaMuestra(segundos, avance) {
+  if (!(avance >= 0 && avance <= AVANCE_MAXIMO)) return null;
+  if (!(segundos >= SEGUNDOS_MINIMOS)) return null;
+  return Math.min(segundos, SEGUNDOS_TOPE);
 }
 
 // Suma la muestra a lo acumulado, olvidando de forma exponencial según lo
