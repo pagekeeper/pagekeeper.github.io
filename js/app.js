@@ -15,6 +15,7 @@ import {
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
 import { resumenDeMetadatos } from './resumen-libro.js';
+import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
   muestraValida, acumularRitmo, minutosRestantes,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE,
@@ -109,6 +110,10 @@ const CLAVE_BARRA_ESTADO_OCULTA = 'lector.barraEstadoOculta';
 // Cuántas lecturas se enseñan. Ausente significa «las que quepan», que depende
 // del ancho, así que es cosa de cada dispositivo y no viaja con la copia.
 const CLAVE_CONTINUAR_MAXIMO = 'lector.continuarMaximo';
+// Ir directamente al libro al abrir la aplicación. Apagado salvo que diga '1',
+// y de cada dispositivo a propósito: el móvil se abre para leer un rato y el
+// ordenador, muchas veces, para ordenar la biblioteca.
+const CLAVE_ABRIR_ULTIMO = 'lector.abrirUltimoAlArrancar'; // solo de este dispositivo
 
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
@@ -1924,6 +1929,28 @@ $('casilla-continuar').addEventListener('change', (evento) => {
   sincronizarSelectRecientes();
   pintarContinuarLeyendo();
 });
+
+// ── Ir directamente al libro al abrir la aplicación ──
+// La casilla está en el propio recuadro, junto a la lectura que se abriría, y
+// repetida en los ajustes para que siga alcanzable con el recuadro apagado.
+
+function abrirUltimoAlArrancar() {
+  return localStorage.getItem(CLAVE_ABRIR_ULTIMO) === '1';
+}
+
+function sincronizarCasillasAbrirUltimo() {
+  const activado = abrirUltimoAlArrancar();
+  $('casilla-abrir-ultimo').checked = activado;
+  $('casilla-abrir-ultimo-ajustes').checked = activado;
+}
+
+for (const id of ['casilla-abrir-ultimo', 'casilla-abrir-ultimo-ajustes']) {
+  $(id).addEventListener('change', (evento) => {
+    if (evento.target.checked) localStorage.setItem(CLAVE_ABRIR_ULTIMO, '1');
+    else localStorage.removeItem(CLAVE_ABRIR_ULTIMO);
+    sincronizarCasillasAbrirUltimo();
+  });
+}
 
 // ── Plegar o quitar «Continuar leyendo» desde la propia biblioteca ──
 // Quitarlo ya se podía en los ajustes, pero es donde nadie lo busca teniendo
@@ -4505,6 +4532,31 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
   } finally {
     ocultarCarga();
   }
+}
+
+// Al arrancar, si se ha pedido, se va derecho al libro en vez de quedarse en la
+// biblioteca. Se espera a que esta se haya cargado, y no por las prisas: hasta
+// que el progreso no se ha sincronizado, la lectura «más reciente» es la de este
+// dispositivo, no la de verdad. De paso, si el libro no se puede abrir —lo
+// borraron, o no hay conexión ni copia—, lo que queda a la vista es la
+// biblioteca, con el aviso encima.
+async function abrirUltimaLecturaSiSePidio() {
+  const elegido = libroQueSeAbreAlArrancar({
+    activado: abrirUltimoAlArrancar(),
+    recientes: progreso.librosRecientes(Infinity),
+    ocultos: librosOcultosDeContinuar(),
+    estaTerminada: lecturaTerminada,
+  });
+  if (!elegido) return;
+  if (elegido.id.startsWith('local:')) {
+    const libros = await almacen.listarLibros().catch(() => []);
+    const libro = libros.find((candidato) => candidato.id === elegido.id);
+    if (libro) await abrirLibroLocal(libro);
+    return;
+  }
+  // Sin nube configurada no hay de dónde traerlo. Con ella, «abrirLibroRemoto»
+  // ya se ocupa de la copia sin conexión y de avisar si el archivo no está.
+  if (cliente) await abrirLibroRemoto(elegido.id);
 }
 
 async function abrirLibroLocal(libro) {
@@ -8352,6 +8404,7 @@ limpiarAjustesGlobalesViejos();
 progreso.migrarEstadisticasAntiguas();
 iniciarTema();
 sincronizarCasillaContinuar();
+sincronizarCasillasAbrirUltimo();
 sincronizarCasillaBarraEstado();
 aplicarPlegadoContinuar();
 sincronizarSelectRecientes();
@@ -8369,9 +8422,15 @@ window.addEventListener('online', () => {
     .catch((error) => actualizarEstadoSincronizacion(error));
 });
 
+// Un enlace de configuración se abre para conectar este dispositivo, no para
+// leer: aunque esté pedida la apertura directa, esta vez se queda la biblioteca.
+const llegaConfigEnLaUrl = location.hash.startsWith('#cfg=');
 importarConfigDeUrl();
 crearCliente();
 history.replaceState(estadoBiblioteca(), '');
 mostrarVista('biblioteca');
-precargarLibrosEjemplo().finally(() => cargarBiblioteca());
+precargarLibrosEjemplo()
+  .finally(() => cargarBiblioteca())
+  .then(() => (llegaConfigEnLaUrl ? null : abrirUltimaLecturaSiSePidio()))
+  .catch(() => null);
 

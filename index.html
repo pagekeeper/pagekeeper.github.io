@@ -129,6 +129,10 @@
           <ul id="libro-continuar" class="lista-libros"></ul>
           <button id="btn-mas-recientes" type="button" class="btn-mas-recientes oculto"
             aria-expanded="false" aria-controls="libro-continuar"></button>
+          <label class="casilla casilla-abrir-ultimo">
+            <input type="checkbox" id="casilla-abrir-ultimo">
+            <span data-i18n="openLastOnStart">Abrir la última lectura al iniciar PageKeeper</span>
+          </label>
         </div></div>
       </section>
 
@@ -721,6 +725,11 @@
           </select>
         </label>
         <p class="ayuda" data-i18n="recentCountHelp">«Las que quepan» enseña tres o cuatro según el ancho de la pantalla. Las demás siguen a un toque, en «Ver más».</p>
+        <label class="casilla">
+          <input type="checkbox" id="casilla-abrir-ultimo-ajustes">
+          <span data-i18n="openLastOnStart">Abrir la última lectura al iniciar PageKeeper</span>
+        </label>
+        <p class="ayuda" data-i18n="openLastOnStartHelp">Al abrir la aplicación se va directamente al libro que estabas leyendo, sin pasar por la biblioteca. Se recuerda solo en este dispositivo: en los demás seguirás llegando a la biblioteca.</p>
       </div>
 
       <div class="tarjeta">
@@ -988,7 +997,10 @@
           libros. Solo aparece en la pantalla inicial: al entrar en una carpeta se
           retira para dejar sitio a lo que hay dentro. Un libro descartado vuelve a
           aparecer cuando lo abres de nuevo. Los terminados y los archivos que ya no
-          existen quedan fuera de esta lista. El menú «⋯» de cada ficha ofrece lo mismo
+          existen quedan fuera de esta lista. La casilla del final del recuadro hace que
+          PageKeeper se abra directamente en tu última lectura, sin pasar por la
+          biblioteca; solo vale para este dispositivo, así que puedes tenerla puesta en
+          el móvil y no en el ordenador. El menú «⋯» de cada ficha ofrece lo mismo
           que en la biblioteca (renombrar, mover, subir o guardar, sin conexión,
           borrar…), así que no hace falta bajar a buscar el libro para hacerle algo.</p>
           </details>

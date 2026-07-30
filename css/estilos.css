@@ -533,6 +533,13 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 .btn-mas-recientes:hover, .btn-mas-recientes:focus-visible {
   background: color-mix(in srgb, var(--acento) 12%, transparent);
 }
+/* La casilla de la apertura directa cierra el recuadro: un ajuste, no una
+   lectura, así que se separa con una línea y se dice en voz baja. */
+.casilla-abrir-ultimo {
+  margin-top: 0.75rem; padding-top: 0.65rem;
+  border-top: 1px solid color-mix(in srgb, var(--acento) 30%, var(--borde));
+  font-size: 0.8rem; color: var(--texto-suave);
+}
 .continuar-leyendo .libro .portada { width: 3.3rem; height: 4.4rem; }
 .continuar-leyendo .libro .nombre { font-size: 1.05rem; }
 .continuar-leyendo li:not(:first-child) .libro { padding: 0.5rem 2.8rem 0.5rem 0.7rem; }

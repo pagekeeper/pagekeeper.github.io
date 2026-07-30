@@ -286,6 +286,8 @@ const textos = {
     imagesInvertedOn: 'Imágenes en su color: activado. Pulsa para invertirlas con la página',
     library: 'Biblioteca', showContinueReading: 'Mostrar «Continuar leyendo»',
     showContinueReadingHelp: 'El recuadro con tus últimas lecturas, encima de la biblioteca. Al ocultarlo, los libros siguen donde estaban y conservan su página.',
+    openLastOnStart: 'Abrir la última lectura al iniciar PageKeeper',
+    openLastOnStartHelp: 'Al abrir la aplicación se va directamente al libro que estabas leyendo, sin pasar por la biblioteca. Se recuerda solo en este dispositivo: en los demás seguirás llegando a la biblioteca.',
     themeAuto: 'El del sistema', themeLight: 'Claro', themeSepia: 'Sepia', themeDark: 'Oscuro',
     themeNowAuto: 'Tema: el del sistema. Pulsa para el claro',
     themeNowLight: 'Tema: claro. Pulsa para el sepia',
@@ -593,6 +595,8 @@ const textos = {
     imagesInvertedOn: 'Imatges amb el seu color: actiu. Prem per invertir-les amb la pàgina',
     library: 'Biblioteca', showContinueReading: 'Mostra «Continua llegint»',
     showContinueReadingHelp: 'El requadre amb les teves últimes lectures, damunt de la biblioteca. Si l’amagues, els llibres es queden on eren i conserven la pàgina.',
+    openLastOnStart: 'Obre l’última lectura en iniciar PageKeeper',
+    openLastOnStartHelp: 'En obrir l’aplicació vas directament al llibre que estaves llegint, sense passar per la biblioteca. Només es recorda en aquest dispositiu: a la resta continuaràs arribant a la biblioteca.',
     themeAuto: 'El del sistema', themeLight: 'Clar', themeSepia: 'Sèpia', themeDark: 'Fosc',
     themeNowAuto: 'Tema: el del sistema. Prem per al clar',
     themeNowLight: 'Tema: clar. Prem per al sèpia',
@@ -900,6 +904,8 @@ const textos = {
     imagesInvertedOn: 'Images in their own colours: on. Tap to invert them with the page',
     library: 'Library', showContinueReading: 'Show “Continue reading”',
     showContinueReadingHelp: 'The box with your latest reads, above the library. Hiding it leaves the books where they were, with their page intact.',
+    openLastOnStart: 'Open my latest read when PageKeeper starts',
+    openLastOnStartHelp: 'Opening the app takes you straight to the book you were reading, skipping the library. It is remembered only on this device: elsewhere you will still land in the library.',
     themeAuto: 'Match the system', themeLight: 'Light', themeSepia: 'Sepia', themeDark: 'Dark',
     themeNowAuto: 'Theme: match the system. Tap for light',
     themeNowLight: 'Theme: light. Tap for sepia',
@@ -1207,6 +1213,8 @@ const textos = {
     imagesInvertedOn: 'Images dans leur couleur : activé. Touchez pour les inverser avec la page',
     library: 'Bibliothèque', showContinueReading: 'Afficher « Continuer la lecture »',
     showContinueReadingHelp: 'L’encadré avec vos dernières lectures, au-dessus de la bibliothèque. Le masquer laisse les livres où ils étaient, avec leur page intacte.',
+    openLastOnStart: 'Ouvrir la dernière lecture au démarrage de PageKeeper',
+    openLastOnStartHelp: 'À l’ouverture de l’application, vous arrivez directement dans le livre que vous étiez en train de lire, sans passer par la bibliothèque. Ce choix ne vaut que pour cet appareil : ailleurs, vous arriverez toujours dans la bibliothèque.',
     themeAuto: 'Celui du système', themeLight: 'Clair', themeSepia: 'Sépia', themeDark: 'Sombre',
     themeNowAuto: 'Thème : celui du système. Touchez pour le clair',
     themeNowLight: 'Thème : clair. Touchez pour le sépia',
@@ -1514,6 +1522,8 @@ const textos = {
     imagesInvertedOn: 'Imaxes na súa cor: activado. Preme para invertelas coa páxina',
     library: 'Biblioteca', showContinueReading: 'Amosar «Continuar lendo»',
     showContinueReadingHelp: 'O recadro coas túas últimas lecturas, enriba da biblioteca. Ao ocultalo, os libros seguen onde estaban e conservan a súa páxina.',
+    openLastOnStart: 'Abrir a última lectura ao iniciar PageKeeper',
+    openLastOnStartHelp: 'Ao abrir a aplicación vaise directamente ao libro que estabas a ler, sen pasar pola biblioteca. Lémbrase só neste dispositivo: nos demais seguirás chegando á biblioteca.',
     themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sepia', themeDark: 'Escuro',
     themeNowAuto: 'Tema: o do sistema. Preme para o claro',
     themeNowLight: 'Tema: claro. Preme para o sepia',
@@ -1821,6 +1831,8 @@ const textos = {
     imagesInvertedOn: 'Irudiak euren kolorean: aktibatuta. Sakatu orrialdearekin batera alderantzikatzeko',
     library: 'Liburutegia', showContinueReading: 'Erakutsi «Jarraitu irakurtzen»',
     showContinueReadingHelp: 'Zure azken irakurketak dituen kutxa, liburutegiaren gainean. Ezkutatzean, liburuak zeuden tokian jarraitzen dute eta euren orrialdea mantentzen dute.',
+    openLastOnStart: 'Ireki azken irakurketa PageKeeper abiaraztean',
+    openLastOnStartHelp: 'Aplikazioa irekitzean, zuzenean irakurtzen ari zinen liburura joango zara, liburutegitik pasatu gabe. Gailu honetan bakarrik gogoratzen da: gainerakoetan liburutegira iristen jarraituko duzu.',
     themeAuto: 'Sistemarena', themeLight: 'Argia', themeSepia: 'Sepia', themeDark: 'Iluna',
     themeNowAuto: 'Gaia: sistemarena. Sakatu argirako',
     themeNowLight: 'Gaia: argia. Sakatu sepiarako',
@@ -2128,6 +2140,8 @@ const textos = {
     imagesInvertedOn: 'Bilder in ihrer Farbe: aktiv. Zum Invertieren mit der Seite tippen',
     library: 'Bibliothek', showContinueReading: '„Weiterlesen“ anzeigen',
     showContinueReadingHelp: 'Der Kasten mit deinen letzten Lektüren über der Bibliothek. Ihn auszublenden lässt die Bücher, wo sie waren, mit ihrer Seite unverändert.',
+    openLastOnStart: 'Beim Start von PageKeeper die letzte Lektüre öffnen',
+    openLastOnStartHelp: 'Beim Öffnen der App landest du direkt in dem Buch, das du gerade liest, ohne Umweg über die Bibliothek. Das gilt nur für dieses Gerät: auf den anderen kommst du weiterhin in der Bibliothek an.',
     themeAuto: 'Systemvorgabe', themeLight: 'Hell', themeSepia: 'Sepia', themeDark: 'Dunkel',
     themeNowAuto: 'Design: Systemvorgabe. Für Hell tippen',
     themeNowLight: 'Design: Hell. Für Sepia tippen',
@@ -2435,6 +2449,8 @@ const textos = {
     imagesInvertedOn: 'Imagens na sua cor: ativado. Toque para as inverter com a página',
     library: 'Biblioteca', showContinueReading: 'Mostrar «Continuar a ler»',
     showContinueReadingHelp: 'O quadro com as suas últimas leituras, por cima da biblioteca. Ao escondê-lo, os livros continuam onde estavam e mantêm a sua página.',
+    openLastOnStart: 'Abrir a última leitura ao iniciar o PageKeeper',
+    openLastOnStartHelp: 'Ao abrir a aplicação vai diretamente para o livro que estava a ler, sem passar pela biblioteca. É lembrado apenas neste dispositivo: nos outros continuará a chegar à biblioteca.',
     themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sépia', themeDark: 'Escuro',
     themeNowAuto: 'Tema: o do sistema. Toque para o claro',
     themeNowLight: 'Tema: claro. Toque para o sépia',
@@ -2507,7 +2523,10 @@ const ayudas = {
         llibres. Només surt a la pantalla inicial: en entrar en una carpeta es retira
         per deixar lloc al que hi ha dins. Un llibre descartat torna a aparèixer quan
         l’obres de nou. Els acabats i els fitxers que ja no existeixen queden fora
-        d’aquesta llista. El menú «⋯» de cada fitxa ofereix el mateix que a la
+        d’aquesta llista. La casella del final del requadre fa que PageKeeper s’obri
+        directament a la teva última lectura, sense passar per la biblioteca; només val
+        per a aquest dispositiu, així que la pots tenir posada al mòbil i no a
+        l’ordinador. El menú «⋯» de cada fitxa ofereix el mateix que a la
         biblioteca (canviar el nom, moure, pujar o desar, sense connexió, esborrar…),
         així que no cal baixar a buscar el llibre per fer-li res.</p>
         </details>
@@ -3003,7 +3022,10 @@ const ayudas = {
         box off, if you would rather go straight to your books. It only appears on the
         opening screen: entering a folder puts it away to make room for what is inside.
         A dismissed book comes back when you open it again. Finished books and files
-        that no longer exist stay out of this list. Each card’s “⋯” menu offers the
+        that no longer exist stay out of this list. The checkbox at the bottom of the box
+        makes PageKeeper open straight into your latest read, skipping the library; it
+        only applies to this device, so you can have it on for your phone and off for
+        your computer. Each card’s “⋯” menu offers the
         same as the library (rename, move, upload or save, offline, delete…), so you
         never have to scroll down to find the book to act on it.</p>
         </details>
@@ -3497,7 +3519,10 @@ const ayudas = {
         désactiver complètement l’encadré, si vous préférez aller droit à vos livres. Il
         n’apparaît que sur l’écran d’accueil : entrer dans un dossier le range pour faire
         de la place à son contenu. Un livre retiré revient dès que vous le rouvrez. Les
-        livres terminés et les fichiers qui n’existent plus restent hors de cette liste.
+        livres terminés et les fichiers qui n’existent plus restent hors de cette liste. La
+        case en bas de l’encadré fait que PageKeeper s’ouvre directement sur votre
+        dernière lecture, sans passer par la bibliothèque ; elle ne vaut que pour cet
+        appareil, vous pouvez donc l’activer sur le téléphone et pas sur l’ordinateur.
         Le menu « ⋯ » de chaque carte propose les mêmes actions que la bibliothèque
         (renommer, déplacer, envoyer ou enregistrer, hors ligne, supprimer…), pour ne
         jamais avoir à faire défiler la page à la recherche du livre sur lequel agir.</p>
@@ -4015,7 +4040,10 @@ const ayudas = {
         mostrar e podes desactivar de todo o recadro, se prefires ir directo aos teus
         libros. Só aparece na pantalla de inicio: entrar nun cartafol retírao para
         deixar sitio ao que contén. Un libro retirado volve cando o abres de novo. Os
-        libros rematados e os arquivos que xa non existen quedan fóra desta lista. O
+        libros rematados e os arquivos que xa non existen quedan fóra desta lista. A caixa
+        do final do recadro fai que PageKeeper se abra directamente na túa última
+        lectura, sen pasar pola biblioteca; só vale para este dispositivo, así que podes
+        tela posta no móbil e non no ordenador. O
         menú «⋯» de cada tarxeta ofrece as mesmas accións que a biblioteca (renomear,
         mover, subir ou gardar, sen conexión, borrar…), para non ter que baixar
         buscando o libro sobre o que actuar.</p>
@@ -4511,7 +4539,10 @@ const ayudas = {
         joatea nahiago baduzu. Hasierako pantailan bakarrik agertzen da: karpeta batean
         sartzeak barruan dagoenari lekua egiteko baztertzen du. Baztertutako liburu bat
         berriro irekitzean itzultzen da. Amaitutako liburuak eta jada existitzen ez
-        diren fitxategiak zerrenda honetatik kanpo geratzen dira. Txartel bakoitzaren
+        diren fitxategiak zerrenda honetatik kanpo geratzen dira. Kutxaren amaierako
+        kontrol-laukiak PageKeeper zure azken irakurketan zuzenean irekitzea eragiten du,
+        liburutegitik pasatu gabe; gailu honetarako bakarrik balio du, beraz mugikorrean
+        piztuta eta ordenagailuan itzalita eduki dezakezu. Txartel bakoitzaren
         «⋯» menuak liburutegiak dituen ekintza berak eskaintzen ditu (izena aldatu,
         eraman, igo edo gorde, lineaz kanpo, ezabatu…), liburua bilatzeko behera
         joan behar izan gabe.</p>
@@ -5027,7 +5058,10 @@ const ayudas = {
         Betreten eines Ordners wird es beiseitegeräumt, um Platz für dessen Inhalt zu
         machen. Ein entferntes Buch kehrt zurück, sobald du es erneut öffnest.
         Beendete Bücher und nicht mehr vorhandene Dateien bleiben außerhalb dieser
-        Liste. Das „⋯“-Menü jeder Karte bietet dieselben Aktionen wie die Bibliothek
+        Liste. Das Kästchen am Ende des Feldes lässt PageKeeper direkt in deiner letzten
+        Lektüre starten, ohne Umweg über die Bibliothek; es gilt nur für dieses Gerät,
+        du kannst es also auf dem Handy anhaben und auf dem Rechner nicht.
+        Das „⋯“-Menü jeder Karte bietet dieselben Aktionen wie die Bibliothek
         (umbenennen, verschieben, hochladen oder speichern, offline, löschen…), damit
         du nie nach unten scrollen musst, um das Buch zu finden, an dem du etwas
         ändern willst.</p>
@@ -5563,7 +5597,10 @@ const ayudas = {
         diretamente aos seus livros. Só aparece no ecrã inicial: entrar numa pasta
         retira-a para dar lugar ao que contém. Um livro removido volta a aparecer
         quando o reabre. Os livros concluídos e os ficheiros que já não existem
-        ficam fora desta lista. O menu «⋯» de cada cartão oferece as mesmas ações
+        ficam fora desta lista. A caixa no final do quadro faz com que o PageKeeper abra
+        diretamente na sua última leitura, sem passar pela biblioteca; só vale para este
+        dispositivo, pelo que a pode ter ligada no telemóvel e desligada no
+        computador. O menu «⋯» de cada cartão oferece as mesmas ações
         que a biblioteca (mudar o nome, mover, enviar ou guardar, offline,
         eliminar…), para nunca ter de percorrer a lista à procura do livro sobre o
         qual quer agir.</p>
