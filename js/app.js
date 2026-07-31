@@ -5105,8 +5105,12 @@ function aplicarAparienciaModo(modo) {
 // número que haya salido, que es lo que se está viendo.
 function aplicarAparienciaDoble(valor = columnasGuardadas()) {
   const boton = $('btn-columnas');
+  // En automático manda lo que haya pintado el lector: la cuenta se hace sobre
+  // el ancho del texto, no sobre el de la ventana, y aquí ni se conocen los
+  // márgenes ni el cuerpo de letra del capítulo. Sin libro delante (o en un
+  // PDF) no hay reparto que consultar y se estima con la ventana.
   const efectivas = valor === 'auto'
-    ? columnasAutomaticas(window.innerWidth, 16)
+    ? (lectorEpub.columnasVisibles || columnasAutomaticas(window.innerWidth, 16))
     : valor;
   boton.innerHTML = icono(aspectoDeLaOpcion(efectivas).icono);
   boton.title = t('columnsSettings');
@@ -6331,12 +6335,18 @@ $('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(panelN
 window.addEventListener('resize', () => aplicarAnchoIndice(
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ancho-indice'))));
 
-// Con las columnas en automático, girar el móvil o estrechar la ventana cambia
-// cuántas caben: el botón enseña el icono del reparto que hay, y se quedaría
-// enseñando el de antes.
-window.addEventListener('resize', () => {
-  if (columnasGuardadas() === 'auto') aplicarAparienciaDoble();
-});
+// Con las columnas en automático, girar el móvil, estrechar la ventana o tocar
+// el tamaño de la letra cambia cuántas caben: el botón enseña el icono del
+// reparto que hay, y se quedaría enseñando el de antes. Se espera a que el
+// lector haya rehecho las columnas, que es a quien se le pregunta.
+let temporizadorIconoColumnas = null;
+function repintarIconoColumnas() {
+  clearTimeout(temporizadorIconoColumnas);
+  temporizadorIconoColumnas = setTimeout(() => {
+    if (columnasGuardadas() === 'auto') aplicarAparienciaDoble();
+  }, 400);
+}
+window.addEventListener('resize', repintarIconoColumnas);
 
 // ── Panel de navegación: índice y miniaturas ──
 //
@@ -7358,6 +7368,7 @@ async function aplicarZoom(porcentaje) {
     const acotado = Math.min(300, Math.max(60, Math.round(porcentaje)));
     lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
     guardarLetraEpub();
+    repintarIconoColumnas();
   } else {
     await lector.fijarPorcentaje(porcentaje);
     guardarZoomPdf();
@@ -7418,6 +7429,7 @@ async function ajustarZoom(direccion) {
   if (epubAbierto()) {
     lectorEpub.cambiarTamano(direccion * 10);
     guardarLetraEpub();
+    repintarIconoColumnas();
   } else {
     await lector.cambiarZoom(direccion > 0 ? 1.2 : 1 / 1.2);
     guardarZoomPdf();

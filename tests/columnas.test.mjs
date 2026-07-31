@@ -5,18 +5,18 @@ import {
   valoresDisponibles, aspectoDeLaOpcion, COLUMNAS_MAXIMAS,
 } from '../js/columnas.js';
 
-test('el automático reparte la pantalla en columnas de unos 35 em', () => {
-  // Con letra de 16 px una columna cómoda ocupa 560 px.
+test('el automático reparte la pantalla en columnas de unos 28 em', () => {
+  // Con letra de 16 px una columna cómoda ocupa 448 px.
   assert.equal(columnasAutomaticas(390, 16), 1);    // móvil
   assert.equal(columnasAutomaticas(800, 16), 1);    // tableta vertical
   assert.equal(columnasAutomaticas(1200, 16), 2);   // portátil
-  assert.equal(columnasAutomaticas(1800, 16), 3);   // pantalla ancha
+  assert.equal(columnasAutomaticas(1400, 16), 3);   // pantalla ancha
   assert.equal(columnasAutomaticas(2400, 16), 4);
 });
 
 test('al agrandar la letra caben menos columnas', () => {
-  assert.equal(columnasAutomaticas(1400, 16), 2);
-  assert.equal(columnasAutomaticas(1400, 24), 1);
+  assert.equal(columnasAutomaticas(1200, 16), 2);
+  assert.equal(columnasAutomaticas(1200, 24), 1);
 });
 
 test('el automático nunca baja de una ni pasa del máximo', () => {

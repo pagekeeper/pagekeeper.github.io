@@ -6,13 +6,18 @@
 // y se añade la opción de que lo decida la aplicación.
 //
 // El automático mide en cuerpos de letra, no en píxeles, que es lo que importa
-// para leer: una columna cómoda tiene entre 60 y 75 caracteres por línea, y eso
-// son unos 35 em pase lo que pase con el tamaño de la letra o la resolución de
-// la pantalla. Así, al agrandar la letra las columnas se reducen solas en vez
-// de quedarse en dos columnas estrechísimas. Es la misma cuenta que usa el
-// visor de Calibre.
-
-export const ANCHO_COLUMNA_EM = 35;
+// para leer: una columna cómoda tiene entre 45 y 75 caracteres por línea pase
+// lo que pase con el tamaño de la letra o la resolución de la pantalla. Así, al
+// agrandar la letra las columnas se reducen solas en vez de quedarse en dos
+// columnas estrechísimas.
+//
+// Cuántos em son esos caracteres depende de la tipografía. Medido con letras
+// de libro, un carácter ocupa unos 0,41 em, así que 28 em salen a unas 68
+// letras por línea, que cae en mitad de la horquilla. Calibre usa 35 em para
+// esto mismo, pero eso da líneas de 85 caracteres: columnas más anchas de lo
+// que hace falta, y entonces las dos columnas no aparecen más que en pantallas
+// enormes o con la letra muy pequeña.
+export const ANCHO_COLUMNA_EM = 28;
 // Más de cuatro columnas solo caben en pantallas muy grandes o con letra muy
 // pequeña, y para entonces cada una tiene tan pocas palabras por línea que se
 // lee peor. El automático nunca pasa de aquí; a mano tampoco se ofrece más.
