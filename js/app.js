@@ -26,6 +26,7 @@ import {
 } from './archivos-entrantes.js';
 import * as estadisticas from './estadisticas.js';
 import * as gestos from './gestos.js';
+import { puntoEnElMarco, clicConPunto } from './zonas-toque.js';
 import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import * as vistaAnotaciones from './vista-anotaciones.js';
@@ -7149,10 +7150,42 @@ $('btn-volver').addEventListener('click', () => {
 // Los cuatro márgenes hacen lo mismo por dos caminos: izquierda y arriba
 // atrás, derecha y abajo adelante. Muchos lectores pulsan abajo para seguir
 // —es lo que hacen otras aplicaciones— y hasta ahora no pasaba nada.
-$('zona-anterior').addEventListener('click', () => pasarPagina(true));
-$('zona-siguiente').addEventListener('click', () => pasarPagina(false));
-$('zona-arriba').addEventListener('click', () => pasarPagina(true));
-$('zona-abajo').addEventListener('click', () => pasarPagina(false));
+$('zona-anterior').addEventListener('click', (evento) => pulsarZona(evento, true));
+$('zona-siguiente').addEventListener('click', (evento) => pulsarZona(evento, false));
+$('zona-arriba').addEventListener('click', (evento) => pulsarZona(evento, true));
+$('zona-abajo').addEventListener('click', (evento) => pulsarZona(evento, false));
+
+// Las zonas van por encima del libro, así que un enlace que caiga debajo
+// —una nota al pie junto al margen, una entrada del índice del propio libro,
+// una dirección web— se veía pero no se podía pulsar. Si hay uno bajo el
+// punto que se ha tocado, manda él; el resto de la banda pasa página.
+function pulsarZona(evento, atras) {
+  const enlace = enlaceBajoElPunto(evento);
+  if (enlace) enlace.click();
+  else pasarPagina(atras);
+}
+
+function enlaceBajoElPunto(evento) {
+  if (!clicConPunto(evento)) return null;
+  const { clientX: x, clientY: y } = evento;
+  // En PDF los enlaces son de este mismo documento, tapados por la zona.
+  const enPagina = document.elementsFromPoint(x, y)
+    .find((elemento) => elemento.matches?.('.capa-enlaces a'));
+  if (enPagina) return enPagina;
+  // En EPUB el capítulo va en un iframe con sus propias coordenadas.
+  for (const marco of $('contenedor-epub').querySelectorAll('iframe')) {
+    const punto = puntoEnElMarco(x, y, marco.getBoundingClientRect());
+    if (!punto) continue;
+    try {
+      const dentro = marco.contentDocument?.elementFromPoint(punto.x, punto.y);
+      const enlace = dentro?.closest('a[href]');
+      if (enlace) return enlace;
+    } catch { /* capítulo a medio montar: la banda pasa página y ya está */ }
+  }
+  return null;
+}
+
+
 // Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
 // (con «ajustar al ancho» no es el zoom pedido, sino el que sale del área); en
 // EPUB, donde las lupas mueven la letra, es el tamaño de esta.
