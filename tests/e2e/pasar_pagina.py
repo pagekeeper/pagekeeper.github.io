@@ -84,6 +84,52 @@ def en_modo_pagina(page, r, etiqueta):
                 f'{etiqueta}: un deslizamiento corto no debería pasar de página')
 
 
+def no_salta_la_ultima_pagina_epub(page, r):
+    """Un píxel de redondeo no convierte la penúltima en la última página."""
+    # Se busca un capítulo de al menos tres páginas para poder colocar el
+    # marco en la penúltima. El desfase reproduce el redondeo que aparece de
+    # forma intermitente con algunos tamaños de pantalla.
+    for _ in range(80):
+        medidas = page.evaluate("""() => {
+          const marco = document.querySelector('#contenedor-epub .epub-container');
+          const vista = document.querySelector('#contenedor-epub .epub-view');
+          return {
+            capitulo: vista?.getAttribute('ref'),
+            ancho: marco?.offsetWidth ?? 0,
+            total: marco?.scrollWidth ?? 0,
+          };
+        }""")
+        if medidas['ancho'] and medidas['total'] >= medidas['ancho'] * 3:
+            break
+        page.click('#zona-siguiente')
+        page.wait_for_timeout(350)
+    else:
+        r.fallo('EPUB: no se encontró un capítulo con tres páginas para probar el borde')
+        return
+
+    page.evaluate("""({ ancho, total }) => {
+      const marco = document.querySelector('#contenedor-epub .epub-container');
+      marco.scrollLeft = total - 2 * ancho;
+    }""", medidas)
+    page.wait_for_timeout(150)
+    page.evaluate("""() => {
+      document.querySelector('#contenedor-epub .epub-container').scrollLeft += 1;
+    }""")
+    page.wait_for_timeout(100)
+    page.click('#zona-siguiente')
+    page.wait_for_timeout(600)
+    despues = page.evaluate("""() => {
+      const marco = document.querySelector('#contenedor-epub .epub-container');
+      const vista = document.querySelector('#contenedor-epub .epub-view');
+      return {
+        capitulo: vista?.getAttribute('ref'),
+        ultima: marco.scrollLeft + marco.offsetWidth >= marco.scrollWidth - 1,
+      };
+    }""")
+    r.comprobar(despues['capitulo'] == medidas['capitulo'] and despues['ultima'],
+                'EPUB: un píxel de desfase se salta la última página del capítulo')
+
+
 def en_modo_continuo(page, r, etiqueta):
     """La rueda y las flechas desplazan, y nada cambia de página."""
     page.evaluate("() => document.getElementById('btn-modo').click()")
@@ -133,6 +179,8 @@ with comun.servidor() as base, sync_playwright() as p:
         page.evaluate("() => document.getElementById('zoom-pagina').click()")
         page.wait_for_timeout(1500)
         en_modo_pagina(page, r, etiqueta)
+        if etiqueta == 'EPUB':
+            no_salta_la_ultima_pagina_epub(page, r)
         en_modo_continuo(page, r, etiqueta)
         page.close()
     nav.close()
