@@ -1225,9 +1225,16 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* El menú de columnas es una lista de opciones, no un formulario: se apoya en
    el panel flotante pero con el relleno justo de los botones, que ya traen el
    suyo. La opción puesta lleva su marca al final, empujada por el nombre. */
+/* El display va con `:not([hidden])` a propósito: un `display` a secas gana al
+   `display: none` que el navegador da a lo oculto, y el menú se quedaba en
+   pantalla —con sus opciones sin repintar— aunque el código lo hubiera
+   cerrado. */
+.panel-columnas:not([hidden]) {
+  display: flex; flex-direction: column; gap: 0.15rem;
+}
 .panel-columnas {
   width: max-content; min-width: 12rem; max-width: calc(100vw - 1rem);
-  padding: 0.35rem; display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.35rem;
 }
 .panel-columnas .item-menu-lector span { flex: 1; }
 .panel-columnas .marca-opcion { color: var(--acento); }
