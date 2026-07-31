@@ -1043,8 +1043,8 @@ export class LectorEpub {
     return Number.isFinite(divisor) && divisor >= 1 ? divisor : 0;
   }
 
-  columnasAhora(ancho = this.contenedor.clientWidth) {
-    return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100));
+  columnasAhora(ancho = this.contenedor.clientWidth, hueco = 0) {
+    return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100), hueco);
   }
 
   // epub.js solo sabe repartir el capítulo en una o dos columnas: su clase
@@ -1063,7 +1063,7 @@ export class LectorEpub {
     reparto.calculoOriginal = original;
     reparto.calculate = (ancho, alto, hueco) => {
       original(ancho, alto, hueco);
-      const columnas = this.columnasAhora(ancho);
+      const columnas = this.columnasAhora(ancho, reparto.gap);
       if (columnas < 2) return; // una columna es justo lo que ya calculó
       const gap = reparto.gap;
       const columnWidth = ancho / columnas - gap;

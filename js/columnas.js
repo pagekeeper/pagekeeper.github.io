@@ -11,13 +11,18 @@
 // agrandar la letra las columnas se reducen solas en vez de quedarse en dos
 // columnas estrechísimas.
 //
-// Cuántos em son esos caracteres depende de la tipografía. Medido con letras
-// de libro, un carácter ocupa unos 0,41 em, así que 28 em salen a unas 68
-// letras por línea, que cae en mitad de la horquilla. Calibre usa 35 em para
-// esto mismo, pero eso da líneas de 85 caracteres: columnas más anchas de lo
-// que hace falta, y entonces las dos columnas no aparecen más que en pantallas
-// enormes o con la letra muy pequeña.
-export const ANCHO_COLUMNA_EM = 28;
+// Cuántos em son esos caracteres depende de la tipografía. Medido con letras de
+// libro, un carácter ocupa unos 0,41 em, así que 18 em salen a unas 44 letras
+// por línea: el mínimo de la horquilla, no el centro. Es a propósito, y es lo
+// que separa un lector de pantalla de un libro de papel: aquí partir en dos
+// columnas de 45 letras se lee mejor que dejar una sola línea de 90 cruzando
+// el monitor, y con la letra grande —que es cuando de verdad hacen falta— dos
+// columnas cómodas no caben si se les exige más.
+//
+// Calibre pide 35 em para esto mismo, que con esta tipografía son 85 letras por
+// línea: columnas tan anchas que las dos columnas no salían más que en
+// pantallas enormes o con el texto diminuto.
+export const ANCHO_COLUMNA_EM = 18;
 // Más de cuatro columnas solo caben en pantallas muy grandes o con letra muy
 // pequeña, y para entonces cada una tiene tan pocas palabras por línea que se
 // lee peor. El automático nunca pasa de aquí; a mano tampoco se ofrece más.
@@ -41,17 +46,22 @@ export function normalizarColumnas(valor) {
 }
 
 // Cuántas columnas caben en 'ancho' píxeles con una letra de 'letraPx'.
-export function columnasAutomaticas(ancho, letraPx) {
+//
+// El hueco entre columnas cuenta: no es adorno, es ancho que no es texto, y
+// olvidarlo salía caro justo donde más columnas hay. Con cuatro columnas en un
+// monitor ancho se comía casi un tercio del sitio, y las líneas quedaban en 38
+// letras cuando la cuenta prometía 44.
+export function columnasAutomaticas(ancho, letraPx, hueco = 0) {
   const anchoColumna = ANCHO_COLUMNA_EM * (letraPx > 0 ? letraPx : 16);
-  const caben = Math.floor((ancho > 0 ? ancho : 0) / anchoColumna);
+  const caben = Math.floor((ancho > 0 ? ancho : 0) / (anchoColumna + Math.max(0, hueco)));
   return Math.min(COLUMNAS_MAXIMAS, Math.max(1, caben));
 }
 
 // Las columnas que toca pintar ahora mismo: el número elegido, o el que salga
 // de la pantalla si se dejó en automático.
-export function columnasEfectivas(valor, ancho, letraPx) {
+export function columnasEfectivas(valor, ancho, letraPx, hueco = 0) {
   const elegido = normalizarColumnas(valor);
-  return elegido === 'auto' ? columnasAutomaticas(ancho, letraPx) : elegido;
+  return elegido === 'auto' ? columnasAutomaticas(ancho, letraPx, hueco) : elegido;
 }
 
 // El PDF llega ya maquetado: sus páginas son las que son y solo caben de una en

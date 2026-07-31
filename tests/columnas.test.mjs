@@ -5,31 +5,40 @@ import {
   valoresDisponibles, aspectoDeLaOpcion, COLUMNAS_MAXIMAS,
 } from '../js/columnas.js';
 
-test('el automático reparte la pantalla en columnas de unos 28 em', () => {
-  // Con letra de 16 px una columna cómoda ocupa 448 px.
-  assert.equal(columnasAutomaticas(390, 16), 1);    // móvil
-  assert.equal(columnasAutomaticas(800, 16), 1);    // tableta vertical
-  assert.equal(columnasAutomaticas(1200, 16), 2);   // portátil
-  assert.equal(columnasAutomaticas(1400, 16), 3);   // pantalla ancha
-  assert.equal(columnasAutomaticas(2400, 16), 4);
+test('el automático reparte la pantalla en columnas de unos 18 em', () => {
+  // Con letra de 16 px una columna ocupa 288 px.
+  assert.equal(columnasAutomaticas(280, 16), 1);    // móvil
+  assert.equal(columnasAutomaticas(560, 16), 1);    // tableta vertical
+  assert.equal(columnasAutomaticas(600, 16), 2);
+  assert.equal(columnasAutomaticas(900, 16), 3);
+  assert.equal(columnasAutomaticas(1500, 16), 4);   // el tope
 });
 
-test('al agrandar la letra caben menos columnas', () => {
-  assert.equal(columnasAutomaticas(1200, 16), 2);
-  assert.equal(columnasAutomaticas(1200, 24), 1);
+test('el hueco entre columnas se descuenta', () => {
+  // 1536 px de texto con letra de 16 px darían cinco columnas de no ser por el
+  // hueco de 128 px que epub.js deja entre ellas.
+  assert.equal(columnasAutomaticas(1536, 16), 4);        // sin contarlo, el tope
+  assert.equal(columnasAutomaticas(1536, 16, 128), 3);   // contándolo
+});
+
+test('con la letra grande, que es cuando hacen falta, siguen saliendo', () => {
+  // El caso que motivó el ajuste: monitor ancho con el texto al 200 %.
+  assert.equal(columnasAutomaticas(1235, 32), 2);
+  assert.equal(columnasAutomaticas(1120, 24), 2);
+  assert.equal(columnasAutomaticas(600, 32), 1);    // ahí ya no cabe la segunda
 });
 
 test('el automático nunca baja de una ni pasa del máximo', () => {
   assert.equal(columnasAutomaticas(0, 16), 1);
   assert.equal(columnasAutomaticas(100, 16), 1);
   assert.equal(columnasAutomaticas(99999, 16), COLUMNAS_MAXIMAS);
-  assert.equal(columnasAutomaticas(1200, 0), 2); // sin letra medida, se supone 16 px
+  assert.equal(columnasAutomaticas(600, 0), 2);  // sin letra medida, se supone 16 px
 });
 
 test('un valor a mano manda sobre el tamaño de la pantalla', () => {
   assert.equal(columnasEfectivas(3, 390, 16), 3);   // aunque sea un móvil
   assert.equal(columnasEfectivas(1, 2400, 16), 1);
-  assert.equal(columnasEfectivas('auto', 1200, 16), 2);
+  assert.equal(columnasEfectivas('auto', 600, 16), 2);
 });
 
 test('lo que no se reconoce vuelve a automático', () => {
