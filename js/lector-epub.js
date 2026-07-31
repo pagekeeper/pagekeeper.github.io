@@ -330,6 +330,9 @@ export class LectorEpub {
         try { this.vista.resize(); } catch { /* vista a medio montar */ }
         if (this.destinoProtegido) this.recuperarDestinoProtegido();
         else this.recolocarTrasReflujo();
+        // Después de que esos dos hayan hecho lo suyo (van a 150 ms), por si
+        // ninguno tuvo que mover nada y la tira quedó a mitad de paso.
+        setTimeout(() => this.enderezarColumnas(), 400);
         this.programarIconosNotas();
         // Otro ancho (girar el móvil, abrir el índice) es otra paginación.
         this.remedirPantallas();
@@ -536,6 +539,33 @@ export class LectorEpub {
     this.tempAnclaReflujo = setTimeout(() => {
       this.anclaReflujo = null;
     }, MS_ANCLA_REFLUJO);
+  }
+
+  // Repaginar deja a veces la tira de columnas a mitad de paso: se ve el final
+  // de una columna por la izquierda y el principio de otra por la derecha, con
+  // el texto cortado a los dos lados. Pasa cuando el ancho cambia sin que
+  // cambie de columna la posición —abrir el índice con dos columnas y la letra
+  // grande es el caso claro—: como el punto de lectura sigue a la vista, nadie
+  // mueve el scroll, que se quedó cuadrado al paso de antes.
+  //
+  // Volver a mostrar la posición es lo que lo endereza: epub.js la deja al
+  // principio de la pantalla y el scroll cae por fuerza en una columna entera.
+  // Si no hubiera posición que mostrar, se recorta hacia atrás, que enseña algo
+  // ya leído en vez de medio renglón.
+  enderezarColumnas() {
+    const marco = this.contenedor.querySelector('.epub-container');
+    const paso = marco?.clientWidth;
+    if (!paso) return;
+    const sobra = Math.round(marco.scrollLeft) % paso;
+    if (!sobra) return;
+    const destino = this.anclaReflujo ?? this.destinoProtegido ?? this.cfi;
+    if (destino) {
+      try {
+        this.vista?.display(destino);
+        return;
+      } catch { /* destino ilegible: se endereza a mano */ }
+    }
+    marco.scrollLeft -= sobra;
   }
 
   recolocarTrasReflujo() {
