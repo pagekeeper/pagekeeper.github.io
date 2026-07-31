@@ -17,6 +17,7 @@
 import { posicionVerticalLibre } from './posicion-notas.js';
 import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
+import { posicionTrasReflujo } from './reflujo-epub.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 const RUTA_CONFIG_MATHJAX = new URL('./mathjax-config.js', import.meta.url).href;
@@ -45,6 +46,11 @@ const CARACTERES_POR_LOCALIZACION = 1000;
 // Cuánto se defiende la posición recién restaurada de los reajustes de tamaño
 // que llegan justo después de abrir (ver «Asentamiento tras abrir»).
 const MS_ASENTAMIENTO = 2000;
+
+// Cuánto manda el punto de lectura guardado antes de un cambio de tamaño
+// sobre lo que diga epub.js (ver «Cambios de tamaño»). Da margen a que se
+// encadenen varios reajustes, como al arrastrar el borde de la ventana.
+const MS_ANCLA_REFLUJO = 1500;
 
 // Los capítulos muy cortos (una portada, una dedicatoria, un título suelto)
 // llenan una pantalla con cuatro palabras: como muestra para medir cuánto
@@ -278,19 +284,27 @@ export class LectorEpub {
     this.cancelarEsperaUbicacion = null;
     this.destinoProtegido = null; // ver protegerDestino()
     this.tempDestinoProtegido = null;
+    this.anclaReflujo = null; // ver «Cambios de tamaño»
+    this.tempAnclaReflujo = null;
 
     // epub.js solo se entera de los cambios de tamaño de la ventana; al abrir
     // o cerrar la barra lateral cambia el contenedor, así que se le avisa.
     let tempResize;
     let medida = '';
     new ResizeObserver(() => {
+      // El punto de lectura se apunta en el primer aviso del cambio, no
+      // cuando vence el retardo: epub.js también escucha el resize de la
+      // ventana por su cuenta y para entonces ya ha repaginado, así que la
+      // posición ya sería la de la paginación nueva (ver anclarReflujo).
+      this.anclarReflujo();
       clearTimeout(tempResize);
       tempResize = setTimeout(() => {
         const nueva = `${this.contenedor.clientWidth}x${this.contenedor.clientHeight}`;
         if (!this.vista || nueva === medida) return;
         medida = nueva;
         try { this.vista.resize(); } catch { /* vista a medio montar */ }
-        this.recuperarDestinoProtegido();
+        if (this.destinoProtegido) this.recuperarDestinoProtegido();
+        else this.recolocarTrasReflujo();
         this.programarIconosNotas();
         // Otro ancho (girar el móvil, abrir el índice) es otra paginación.
         this.remedirPantallas();
@@ -394,7 +408,7 @@ export class LectorEpub {
         completarUbicacion();
         return;
       }
-      if (lugar?.start?.cfi) this.cfi = lugar.start.cfi;
+      if (lugar?.start?.cfi) this.cfi = this.posicionTrasElReflujo(lugar);
       this.notificar();
       completarUbicacion();
       this.ocultarNotaHover();
@@ -454,6 +468,10 @@ export class LectorEpub {
   // ese asentamiento; después manda la posición real, que ya es la del lector.
   protegerDestino(cfi) {
     clearTimeout(this.tempDestinoProtegido);
+    // Moverse por el libro (pasar página, saltar a una nota) deja sin sentido
+    // el ancla del reajuste anterior: la posición nueva la manda quien lee.
+    clearTimeout(this.tempAnclaReflujo);
+    this.anclaReflujo = null;
     this.destinoProtegido = cfi ?? null;
     if (!cfi) return;
     this.tempDestinoProtegido = setTimeout(() => {
@@ -472,6 +490,43 @@ export class LectorEpub {
       if (this.destinoProtegido !== destino || this.cfiVisible(destino)) return;
       try { this.vista?.display(destino); } catch { /* destino ilegible */ }
     }, 150);
+  }
+
+  // ───────────── Cambios de tamaño ─────────────
+  //
+  // Repaginar corta las páginas por otros sitios y la lectura se iba hacia
+  // atrás en cada reajuste; el porqué está en reflujo-epub.js. Aquí se guarda
+  // el punto de lectura antes de tocar nada, para que mande él mientras dura
+  // el cambio de tamaño: si el reflujo lo deja fuera de la página se vuelve a
+  // él, y si sigue viéndose es él quien se apunta como posición.
+  anclarReflujo() {
+    clearTimeout(this.tempAnclaReflujo);
+    this.anclaReflujo ??= this.destinoProtegido ?? this.cfi;
+    // Pasado el reajuste vuelve a mandar la posición real: si no, un ancla
+    // olvidada congelaría el progreso de la lectura que viene después.
+    this.tempAnclaReflujo = setTimeout(() => {
+      this.anclaReflujo = null;
+    }, MS_ANCLA_REFLUJO);
+  }
+
+  recolocarTrasReflujo() {
+    const ancla = this.anclaReflujo;
+    if (!ancla) return;
+    const vista = this.vista;
+    // epub.js recoloca por su cuenta después de repaginar; hay que dejarle
+    // terminar, o esta corrección quedaría pisada por la suya.
+    setTimeout(() => {
+      if (this.vista !== vista || this.destinoProtegido) return;
+      if (this.anclaReflujo !== ancla || this.cfiVisible(ancla)) return;
+      try { vista.display(ancla); } catch { /* destino ilegible */ }
+    }, 150);
+  }
+
+  // El comparador de CFI lo trae epub.js, así que la decisión vive en su
+  // módulo (reflujo-epub.js) y aquí solo se le acerca la herramienta.
+  posicionTrasElReflujo(lugar) {
+    return posicionTrasReflujo(lugar?.start?.cfi, lugar?.end?.cfi,
+      this.anclaReflujo, (a, b) => new window.ePub.CFI().compare(a, b));
   }
 
   // ───────────── Pantallas del dispositivo ─────────────
@@ -1315,6 +1370,9 @@ export class LectorEpub {
 
   cerrar() {
     clearTimeout(this.tempPantallas);
+    // Un ancla del libro anterior no debe decidir nada en el que venga.
+    clearTimeout(this.tempAnclaReflujo);
+    this.anclaReflujo = null;
     this.cancelarEsperaUbicacion?.();
     this.cancelarEsperaUbicacion = null;
     this.pantallaCapitulo = 0;
