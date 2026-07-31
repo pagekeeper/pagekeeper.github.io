@@ -5112,30 +5112,36 @@ function aplicarAparienciaModo(modo) {
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
-// El botón enseña el reparto que hay puesto: quien lo mire de reojo tiene que
-// saber en qué está sin abrir el menú. En automático se pinta el icono del
-// número que haya salido, que es lo que se está viendo.
+// El botón enseña la opción elegida, con el mismo icono con el que aparece en
+// el menú: así se reconoce de un vistazo en cuál está, y automáticas se ve como
+// automáticas en lugar de disfrazarse del número de columnas que haya salido.
+// En el PDF, que no tiene automático, se enseña lo que va a hacer.
 function aplicarAparienciaDoble(valor = columnasGuardadas()) {
   const boton = $('btn-columnas');
-  // En automático manda lo que haya pintado el lector: la cuenta se hace sobre
-  // el ancho del texto, no sobre el de la ventana, y aquí ni se conocen los
-  // márgenes ni el cuerpo de letra del capítulo. Sin libro delante (o en un
-  // PDF) no hay reparto que consultar y se estima con la ventana.
-  const efectivas = valor === 'auto'
-    ? (lectorEpub.columnasVisibles || columnasAutomaticas(window.innerWidth, 16))
-    : valor;
-  boton.innerHTML = icono(aspectoDeLaOpcion(efectivas).icono);
-  boton.title = t('columnsSettings');
+  const esPdf = !epubAbierto();
+  const { clave, icono: nombreIcono } = aspectoDeLaOpcion(opcionEnUso(valor), esPdf);
+  boton.innerHTML = icono(nombreIcono);
+  boton.title = `${t('columnsSettings')}: ${t(clave)}`;
   etiquetarPorTitulo(boton);
   boton.removeAttribute('aria-pressed');
   if (!$('panel-columnas').hidden) pintarMenuColumnas();
+}
+
+// La opción del menú en la que está el libro abierto. El PDF no tiene
+// automáticas, así que un libro que nunca lo ha tocado —y por tanto lo tiene
+// en automático— se enseña en la que le corresponde por el tamaño de la
+// pantalla, que es lo que va a hacer. Si no, ni el botón ni el menú tendrían
+// nada que señalar.
+function opcionEnUso(valor = columnasGuardadas()) {
+  if (valor !== 'auto' || epubAbierto()) return valor;
+  return dobleGuardado() ? 2 : 1;
 }
 
 // El menú de columnas: una opción por reparto posible, con su icono, y una
 // marca en el que está puesto.
 function pintarMenuColumnas() {
   const panel = $('panel-columnas');
-  const puesto = columnasGuardadas();
+  const puesto = opcionEnUso();
   panel.replaceChildren();
   const esPdf = !epubAbierto();
   for (const valor of valoresDisponibles(esPdf)) {
@@ -6347,18 +6353,7 @@ $('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(panelN
 window.addEventListener('resize', () => aplicarAnchoIndice(
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ancho-indice'))));
 
-// Con las columnas en automático, girar el móvil, estrechar la ventana o tocar
-// el tamaño de la letra cambia cuántas caben: el botón enseña el icono del
-// reparto que hay, y se quedaría enseñando el de antes. Se espera a que el
-// lector haya rehecho las columnas, que es a quien se le pregunta.
-let temporizadorIconoColumnas = null;
-function repintarIconoColumnas() {
-  clearTimeout(temporizadorIconoColumnas);
-  temporizadorIconoColumnas = setTimeout(() => {
-    if (columnasGuardadas() === 'auto') aplicarAparienciaDoble();
-  }, 400);
-}
-window.addEventListener('resize', repintarIconoColumnas);
+
 
 // ── Panel de navegación: índice y miniaturas ──
 //
@@ -7380,7 +7375,6 @@ async function aplicarZoom(porcentaje) {
     const acotado = Math.min(300, Math.max(60, Math.round(porcentaje)));
     lectorEpub.cambiarTamano(acotado - lectorEpub.tamano);
     guardarLetraEpub();
-    repintarIconoColumnas();
   } else {
     await lector.fijarPorcentaje(porcentaje);
     guardarZoomPdf();
@@ -7441,7 +7435,6 @@ async function ajustarZoom(direccion) {
   if (epubAbierto()) {
     lectorEpub.cambiarTamano(direccion * 10);
     guardarLetraEpub();
-    repintarIconoColumnas();
   } else {
     await lector.cambiarZoom(direccion > 0 ? 1.2 : 1 / 1.2);
     guardarZoomPdf();
@@ -7592,7 +7585,6 @@ $('letras-linea')?.addEventListener('input', (evento) => {
   else localStorage.setItem(CLAVE_LETRAS_LINEA, String(valor));
   pintarLetrasPorLinea(valor);
   lectorEpub.cambiarLetrasPorLinea(valor);
-  repintarIconoColumnas();
 });
 
 document.addEventListener('click', (evento) => {

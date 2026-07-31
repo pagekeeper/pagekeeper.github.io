@@ -1049,15 +1049,6 @@ export class LectorEpub {
   // consulta al documento: epub.js lo aplica como porcentaje sobre los 16 px
   // de base del navegador, así que sale de la cuenta y evita depender de que
   // haya un capítulo montado.
-  // Las columnas que hay pintadas ahora mismo, que es lo que el botón enseña.
-  // Se pregunta al reparto en vigor en lugar de rehacer la cuenta: el ancho que
-  // cuenta es el del texto, ya descontados los márgenes, y ese solo lo sabe
-  // epub.js.
-  get columnasVisibles() {
-    const divisor = this.vista?.manager?.layout?.divisor;
-    return Number.isFinite(divisor) && divisor >= 1 ? divisor : 0;
-  }
-
   columnasAhora(ancho = this.contenedor.clientWidth, hueco = 0) {
     return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100),
       hueco, this.letrasPorLinea);
