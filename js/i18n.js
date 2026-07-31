@@ -315,6 +315,7 @@ const textos = {
     hyphenationBook: 'Como el libro', hyphenationNever: 'No partir',
     textAlignment: 'Alineación', bookAlignment: 'La del libro',
     unjustifiedAlignment: 'Sin justificar',
+    justifiedAlignment: 'Justificado',
   },
   ca: {
     appTagline: 'Lector de llibres electrònics',
@@ -626,6 +627,7 @@ const textos = {
     hyphenationBook: 'Com el llibre', hyphenationNever: 'No partir',
     textAlignment: 'Alineació', bookAlignment: 'La del llibre',
     unjustifiedAlignment: 'Sense justificar',
+    justifiedAlignment: 'Justificat',
   },
   en: {
     appTagline: 'E-book reader',
@@ -937,6 +939,7 @@ const textos = {
     hyphenationBook: 'As in the book', hyphenationNever: 'Never break',
     textAlignment: 'Alignment', bookAlignment: 'Book alignment',
     unjustifiedAlignment: 'Unjustified',
+    justifiedAlignment: 'Justified',
   },
   fr: {
     appTagline: 'Liseuse de livres électroniques',
@@ -1248,6 +1251,7 @@ const textos = {
     hyphenationBook: 'Comme dans le livre', hyphenationNever: 'Ne jamais couper',
     textAlignment: 'Alignement', bookAlignment: 'Celui du livre',
     unjustifiedAlignment: 'Non justifié',
+    justifiedAlignment: 'Justifié',
   },
   gl: {
     appTagline: 'Lector de libros electrónicos',
@@ -1559,6 +1563,7 @@ const textos = {
     hyphenationBook: 'Como o libro', hyphenationNever: 'Non partir',
     textAlignment: 'Aliñamento', bookAlignment: 'O do libro',
     unjustifiedAlignment: 'Sen xustificar',
+    justifiedAlignment: 'Xustificado',
   },
   eu: {
     appTagline: 'Liburu elektronikoen irakurgailua',
@@ -1870,6 +1875,7 @@ const textos = {
     hyphenationBook: 'Liburuak bezala', hyphenationNever: 'Ez zatitu inoiz',
     textAlignment: 'Lerrokatzea', bookAlignment: 'Liburuarena',
     unjustifiedAlignment: 'Justifikatu gabe',
+    justifiedAlignment: 'Justifikatuta',
   },
   de: {
     appTagline: 'E-Book-Reader',
@@ -2181,6 +2187,7 @@ const textos = {
     hyphenationBook: 'Wie im Buch', hyphenationNever: 'Nie trennen',
     textAlignment: 'Ausrichtung', bookAlignment: 'Die des Buches',
     unjustifiedAlignment: 'Nicht ausgerichtet',
+    justifiedAlignment: 'Blocksatz',
   },
   pt: {
     appTagline: 'Leitor de livros eletrónicos',
@@ -2492,6 +2499,7 @@ const textos = {
     hyphenationBook: 'Como no livro', hyphenationNever: 'Não dividir',
     textAlignment: 'Alinhamento', bookAlignment: 'O do livro',
     unjustifiedAlignment: 'Não justificado',
+    justifiedAlignment: 'Justificado',
   },
 };
 

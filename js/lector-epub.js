@@ -237,6 +237,24 @@ const COLORES_PAGINA = {
   oscuro: { texto: '#e2e8f0', fondo: '#171f2e' },
 };
 
+// Antes de imponer una alineación hay que saber qué partes del capítulo estaban
+// alineadas a un lado a propósito (títulos, versos, pies de imagen, la firma de
+// una carta): esas se dejan como están. No se puede distinguir en CSS, así que
+// se pregunta al navegador por el estilo ya calculado y se marca con un
+// atributo. Se hace una sola vez por capítulo, y antes de escribir nuestra hoja:
+// una segunda pasada leería nuestro propio !important y lo marcaría todo.
+function marcarAlineadosAMano(doc) {
+  const ventana = doc?.defaultView;
+  if (!ventana || !doc.body || doc.body.dataset.pkAlineadosMarcados) return;
+  for (const elemento of doc.body.querySelectorAll('*')) {
+    const alineacion = ventana.getComputedStyle(elemento).textAlign;
+    if (alineacion === 'center' || alineacion === 'right' || alineacion === 'end') {
+      elemento.dataset.pkAlineado = '';
+    }
+  }
+  doc.body.dataset.pkAlineadosMarcados = '1';
+}
+
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
     alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
@@ -265,7 +283,7 @@ export class LectorEpub {
     this.tamano = 100;   // tamaño de letra en %
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
-    this.alineacion = 'libro'; // 'libro' | 'izquierda' (sin justificar)
+    this.alineacion = 'libro'; // 'libro' | 'izquierda' | 'justificada'
     this.guionado = 'auto';    // 'auto' | 'libro' | 'nunca'
     this.temaPagina = 'claro';
     this.cfi = null;
@@ -910,12 +928,16 @@ export class LectorEpub {
       const salvados = 'pre, pre *, code, code *, kbd, samp, var, tt, math, math *';
       reglas.push(`body :not(${salvados}) { hyphens: ${modo} !important; -webkit-hyphens: ${modo} !important; }`);
     }
-    if (this.alineacion === 'izquierda') {
-      // Quita el justificado (evita huecos grandes en pantallas estrechas).
-      // 'start' respeta los idiomas RTL y se dejan en paz los elementos
-      // centrados a propósito (títulos, versos, pies de imagen…).
-      const centrado = ':not([style*="center"], [align="center"], .center, .centered)';
-      reglas.push(`body, p${centrado}, li${centrado}, blockquote${centrado}, dd, dt { text-align: start !important; }`);
+    if (this.alineacion !== 'libro') {
+      // 'start' (en vez de 'left') respeta los idiomas RTL. No basta con p/li:
+      // los EPUB convertidos con Calibre meten el texto en <div> con su
+      // alineación puesta a mano, así que la regla tiene que alcanzar a
+      // cualquier elemento. Lo que el libro alineó a un lado a propósito
+      // —títulos, versos, pies de imagen— se marca antes y queda fuera.
+      const alineado = this.alineacion === 'izquierda' ? 'start' : 'justify';
+      marcarAlineadosAMano(doc);
+      const salvados = '[data-pk-alineado], [data-pk-alineado] *, pre, pre *, code, code *, table, table *, math, math *';
+      reglas.push(`body, body :not(${salvados}) { text-align: ${alineado} !important; }`);
     }
     estilo.textContent = reglas.join('\n');
   }
@@ -956,7 +978,7 @@ export class LectorEpub {
   }
 
   cambiarAlineacion(valor) {
-    this.alineacion = valor === 'izquierda' ? 'izquierda' : 'libro';
+    this.alineacion = ['izquierda', 'justificada'].includes(valor) ? valor : 'libro';
     this.aplicarTipografia();
   }
 

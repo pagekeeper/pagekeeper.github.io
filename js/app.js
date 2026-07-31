@@ -211,9 +211,11 @@ function interlineadoEpubGuardado() {
 }
 
 function alineacionEpubGuardada() {
+  const valida = (valor) => ['libro', 'izquierda', 'justificada'].includes(valor);
   const propia = ajusteDelLibro(CLAVE_ALINEACION_LIBRO);
-  if (propia === 'izquierda' || propia === 'libro') return propia;
-  return localStorage.getItem(CLAVE_ALINEACION_EPUB) === 'izquierda' ? 'izquierda' : 'libro';
+  if (valida(propia)) return propia;
+  const general = localStorage.getItem(CLAVE_ALINEACION_EPUB);
+  return valida(general) ? general : 'libro';
 }
 
 // Partir palabras viene puesto: en pantalla estrecha, y más con el texto
