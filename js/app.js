@@ -18,6 +18,7 @@ import { resumenDeMetadatos } from './resumen-libro.js';
 import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
   normalizarColumnas, columnasAutomaticas, valoresDisponibles, aspectoDeLaOpcion,
+  normalizarLetrasPorLinea, LETRAS_INICIALES,
 } from './columnas.js';
 import {
   segundosDeLaMuestra, acumularRitmo, minutosRestantes,
@@ -98,6 +99,7 @@ const CLAVE_GUIONADO_EPUB = 'lector.guionadoEpub';     // solo de este dispositi
 // Las columnas dependen de la pantalla, así que ni el valor de partida ni el
 // de cada libro salen de este aparato (ver CLAVES_PREFERENCIAS_COPIA).
 const CLAVE_COLUMNAS_EPUB = 'lector.columnasEpub';     // solo de este dispositivo
+const CLAVE_LETRAS_LINEA = 'lector.letrasPorLinea';    // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
 const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
@@ -278,6 +280,15 @@ function columnasGuardadas() {
   const antigua = ajusteDelLibro(CLAVE_DOBLE_LIBRO);
   if (antigua !== undefined) return antigua ? 2 : 1;
   return normalizarColumnas(localStorage.getItem(CLAVE_COLUMNAS_EPUB));
+}
+
+// Cuánto se deja crecer una línea antes de abrir otra columna. Es lo que hace
+// entendible el automático: en vez de hablar de anchos de columna, se dice el
+// largo de línea que se quiere leer. Vale para todos los libros de este
+// dispositivo, porque es la pantalla la que manda en esto.
+function letrasPorLineaGuardadas() {
+  const guardado = localStorage.getItem(CLAVE_LETRAS_LINEA);
+  return guardado === null ? LETRAS_INICIALES : normalizarLetrasPorLinea(guardado);
 }
 
 // El PDF llega maquetado y solo sabe poner sus páginas de una en una o de dos
@@ -4964,6 +4975,7 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.alineacion = alineacionEpubGuardada();
       lectorEpub.guionado = guionadoEpubGuardado();
       lectorEpub.columnas = columnasGuardadas();
+      lectorEpub.letrasPorLinea = letrasPorLineaGuardadas();
       prepararSeguimientoEpub(avance?.cfi ?? null);
       // El reparto del libro en localizaciones se reaprovecha entre sesiones:
       // sin él no hay porcentaje ni salto por porcentaje hasta que termina de
@@ -7498,6 +7510,7 @@ function pintarAjustesTexto() {
     const valor = ajuste.leer();
     for (const mando of mandosDe(ajuste.id)) mando.value = valor;
   }
+  pintarLetrasPorLinea();
 }
 
 for (const ajuste of AJUSTES_TEXTO_EPUB) {
@@ -7550,6 +7563,8 @@ function restablecerAjustesTexto() {
     ajuste.aplicar(ajuste.leer());
   }
   aplicarMargenEpub(MARGEN_EPUB_INICIAL);
+  localStorage.removeItem(CLAVE_LETRAS_LINEA);
+  lectorEpub.cambiarLetrasPorLinea(LETRAS_INICIALES);
   pintarAjustesTexto();
   reflowEpub();
 }
@@ -7557,6 +7572,28 @@ function restablecerAjustesTexto() {
 for (const id of ['btn-restablecer-texto', 'btn-restablecer-texto-ajustes']) {
   $(id)?.addEventListener('click', restablecerAjustesTexto);
 }
+
+// El largo de línea con el que el automático decide abrir otra columna. Se
+// pinta mientras se arrastra, como el margen, para que se vea lo que se elige.
+function pintarLetrasPorLinea(valor = letrasPorLineaGuardadas()) {
+  const mando = $('letras-linea');
+  if (!mando) return;
+  mando.value = String(valor);
+  const etiqueta = t('lineLengthValue', { value: valor });
+  mando.setAttribute('aria-valuetext', etiqueta);
+  $('valor-letras-linea').textContent = etiqueta;
+}
+
+$('letras-linea')?.addEventListener('input', (evento) => {
+  const valor = normalizarLetrasPorLinea(evento.target.value);
+  // Lo que viene de fábrica no se guarda, para que una versión futura pueda
+  // cambiarlo sin arrastrar el número antiguo.
+  if (valor === LETRAS_INICIALES) localStorage.removeItem(CLAVE_LETRAS_LINEA);
+  else localStorage.setItem(CLAVE_LETRAS_LINEA, String(valor));
+  pintarLetrasPorLinea(valor);
+  lectorEpub.cambiarLetrasPorLinea(valor);
+  repintarIconoColumnas();
+});
 
 document.addEventListener('click', (evento) => {
   if (!$('control-texto').contains(evento.target)) cerrarPanelTexto();

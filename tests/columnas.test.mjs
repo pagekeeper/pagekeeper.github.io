@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   columnasAutomaticas, columnasEfectivas, normalizarColumnas,
   valoresDisponibles, aspectoDeLaOpcion, COLUMNAS_MAXIMAS,
+  emPorColumna, normalizarLetrasPorLinea,
 } from '../js/columnas.js';
 
 test('el automático reparte la pantalla en columnas de unos 18 em', () => {
@@ -69,4 +70,24 @@ test('cada opción sabe con qué texto e icono se pinta', () => {
 test('en el PDF las opciones se llaman páginas, no columnas', () => {
   assert.deepEqual(aspectoDeLaOpcion(1, true), { clave: 'onePage', icono: 'square' });
   assert.deepEqual(aspectoDeLaOpcion(2, true), { clave: 'twoPages', icono: 'columns-2' });
+});
+
+test('el ajuste se dice en letras por línea', () => {
+  // Con 45 letras (lo de partida) una columna pide 18,45 em.
+  assert.equal(Math.round(emPorColumna(45) * 100) / 100, 18.45);
+  // Pedir líneas más largas retrasa la aparición de la segunda columna.
+  assert.equal(columnasAutomaticas(1000, 16, 0, 45), 3);
+  assert.equal(columnasAutomaticas(1000, 16, 0, 75), 2);
+  assert.equal(columnasAutomaticas(1000, 16, 0, 90), 1);
+});
+
+test('el ajuste se acota y se redondea a pasos de cinco', () => {
+  assert.equal(normalizarLetrasPorLinea(47), 45);
+  assert.equal(normalizarLetrasPorLinea(48), 50);
+  assert.equal(normalizarLetrasPorLinea(5), 30);      // por debajo del mínimo
+  assert.equal(normalizarLetrasPorLinea(500), 90);    // por encima del máximo
+  assert.equal(normalizarLetrasPorLinea('60'), 60);
+  for (const basura of [null, undefined, '', 'muchas', NaN]) {
+    assert.equal(normalizarLetrasPorLinea(basura), 45);
+  }
 });

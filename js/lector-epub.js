@@ -20,7 +20,9 @@ import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 import { posicionTrasReflujo } from './reflujo-epub.js';
 import { detectarIdioma, idiomaUtil } from './idioma-texto.js';
-import { columnasEfectivas, normalizarColumnas } from './columnas.js';
+import {
+  columnasEfectivas, normalizarColumnas, normalizarLetrasPorLinea, LETRAS_INICIALES,
+} from './columnas.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 const RUTA_CONFIG_MATHJAX = new URL('./mathjax-config.js', import.meta.url).href;
@@ -282,6 +284,7 @@ export class LectorEpub {
     this.vista = null;   // objeto Rendition de epub.js
     this.modo = 'pagina';
     this.columnas = 'auto'; // 'auto' o el número elegido (ver columnas.js)
+    this.letrasPorLinea = LETRAS_INICIALES; // largo máximo de línea en automático
     this.tamano = 100;   // tamaño de letra en %
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
@@ -1019,6 +1022,18 @@ export class LectorEpub {
     await this.montar(this.cfi);
   }
 
+  // El largo de línea solo cambia el reparto cuando las columnas van en
+  // automático; con un número puesto a mano no pinta nada, y rehacer la
+  // paginación para nada movería el punto de lectura.
+  cambiarLetrasPorLinea(valor) {
+    const nuevo = normalizarLetrasPorLinea(valor);
+    if (nuevo === this.letrasPorLinea) return;
+    this.letrasPorLinea = nuevo;
+    if (this.columnas !== 'auto' || this.modo === 'continuo') return;
+    try { this.vista?.manager?.updateLayout(); } catch { /* vista a medio montar */ }
+    this.remedirPantallas();
+  }
+
   async cambiarColumnas(valor) {
     valor = normalizarColumnas(valor);
     if (valor === this.columnas) return;
@@ -1044,7 +1059,8 @@ export class LectorEpub {
   }
 
   columnasAhora(ancho = this.contenedor.clientWidth, hueco = 0) {
-    return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100), hueco);
+    return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100),
+      hueco, this.letrasPorLinea);
   }
 
   // epub.js solo sabe repartir el capítulo en una o dos columnas: su clase

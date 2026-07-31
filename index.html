@@ -784,6 +784,15 @@
             </select>
           </label>
         </div>
+        <div class="cabecera-margenes">
+          <label for="letras-linea" data-i18n="lineLength">Líneas de como mucho</label>
+          <output id="valor-letras-linea" for="letras-linea">45 letras</output>
+        </div>
+        <input id="letras-linea" type="range" min="30" max="90" step="5" value="45">
+        <div class="extremos-margen" aria-hidden="true">
+          <span data-i18n="moreColumns">Más columnas</span><span data-i18n="fewerColumns">Menos columnas</span>
+        </div>
+        <p class="ayuda" data-i18n="lineLengthHelp">Solo cuenta en automático: se abre otra columna en cuanto el texto da para que ninguna pase de ese largo. Con líneas cortas aparecen antes; con líneas largas, más tarde.</p>
       </div>
       <div class="tarjeta">
         <h2 data-i18n="epubTextSettings">Texto de los EPUB</h2>
@@ -1223,7 +1232,7 @@
           <details class="punto-ayuda">
             <summary>Columnas de texto</summary>
             <p>
-          el botón de las columnas abre un menú: automáticas, o de una a cuatro. En automático caben las que quepan sin que las líneas se hagan incómodas de leer, y se rehacen solas al girar el aparato o al cambiar el tamaño de la letra. Lo que elijas es de ese libro y de este dispositivo. En los PDF, que llegan maquetados, solo se puede ver una página o dos juntas.</p>
+          el botón de las columnas abre un menú: automáticas, o de una a cuatro. En automático caben las que quepan sin que las líneas se hagan incómodas de leer, y se rehacen solas al girar el aparato o al cambiar el tamaño de la letra. Lo que elijas es de ese libro y de este dispositivo. En los PDF, que llegan maquetados, solo se puede ver una página o dos juntas. Cuándo aparecen en automático lo decides en <em>⚙️ Ajustes → Lector</em>, diciendo de cuántas letras quieres las líneas.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Girar la página (solo PDF)</summary>
