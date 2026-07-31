@@ -47,6 +47,8 @@ const CLAVE_NOCHE_VIEJA = 'lector.noche';
 const CLAVE_TEMA_PAGINA_VIEJA = 'lector.temaPagina';
 const CLAVE_TEMA_PAGINA_LIBRO_VIEJA = 'lector.temaPaginaLibro';
 const CLAVE_IMAGENES_NATURALES = 'lector.imagenesNaturales'; // solo de este dispositivo
+// El modo y las columnas de antes de que fueran de cada libro. Se conservan
+// como punto de partida de los que todavía no han elegido el suyo.
 const CLAVE_MODO = 'lector.modo';
 const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
 const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
@@ -79,8 +81,11 @@ const CLAVE_ZOOM_LIBRO = 'lector.zoomLibro';   // { zoom, ajuste } de cada PDF
 const CLAVE_LETRA_LIBRO = 'lector.letraLibro'; // cuerpo de letra de cada EPUB
 const CLAVE_MARGEN_LIBRO = 'lector.margenLibro';
 const CLAVE_ALINEACION_LIBRO = 'lector.alineacionLibro';
+const CLAVE_MODO_LIBRO = 'lector.modoLibro';   // por páginas o continuo, de cada libro
+const CLAVE_DOBLE_LIBRO = 'lector.dobleLibro'; // una o dos columnas, de cada libro
 const CLAVES_AJUSTES_POR_LIBRO = [
   CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
+  CLAVE_MODO_LIBRO, CLAVE_DOBLE_LIBRO,
 ];
 const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
 const CLAVE_INDICE_ABIERTO = 'lector.indiceAbierto'; // solo de este dispositivo
@@ -124,6 +129,7 @@ const CLAVES_PREFERENCIAS_COPIA = [
   'lector.idioma', CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
   CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
+  CLAVE_MODO_LIBRO, CLAVE_DOBLE_LIBRO,
   CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_GUIONADO_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA,
@@ -244,7 +250,10 @@ function recorteGuardado() {
   return localStorage.getItem(CLAVE_RECORTE_PDF) === '1';
 }
 
+// Una o dos columnas es cosa de cada libro, como el modo (ver modoActual()).
 function dobleGuardado() {
+  const propio = ajusteDelLibro(CLAVE_DOBLE_LIBRO);
+  if (typeof propio === 'boolean') return propio;
   return localStorage.getItem(CLAVE_DOBLE) === '1';
 }
 
@@ -4898,6 +4907,7 @@ async function abrirEnLector(datos, libro) {
   $('btn-rotar').classList.toggle('oculto', esEpub);
   $('btn-pagina-completa').classList.toggle('oculto', esEpub);
   $('btn-recorte').classList.toggle('oculto', esEpub);
+  aplicarAparienciaModo(modoActual());
   aplicarAparienciaDoble();
   reiniciarRitmo();
   detenerLecturaVoz();
@@ -5035,8 +5045,26 @@ $('btn-subir').addEventListener('click', subirLibroActual);
 
 // ───────────────────────── Modo de lectura ─────────────────────────
 
+// Pasar página o seguir en continuo es de cada libro: un facsímil escaneado
+// se recorre mejor de corrido y una novela por páginas, y no hay razón para
+// que elegirlo en uno se lo lleve por delante a los demás. Quien ya tenía uno
+// puesto lo conserva como punto de partida de los libros que no han elegido.
 function modoActual() {
+  const propio = ajusteDelLibro(CLAVE_MODO_LIBRO);
+  if (propio === 'continuo' || propio === 'pagina') return propio;
   return localStorage.getItem(CLAVE_MODO) === 'continuo' ? 'continuo' : 'pagina';
+}
+
+// Sin libro abierto (al arrancar) no hay a quién guardárselo, así que se
+// queda de punto de partida para el próximo que se abra sin ajuste propio.
+function guardarModo(modo) {
+  if (libroActual) guardarAjusteDelLibro(CLAVE_MODO_LIBRO, modo);
+  else localStorage.setItem(CLAVE_MODO, modo);
+}
+
+function guardarDoble(activo) {
+  if (libroActual) guardarAjusteDelLibro(CLAVE_DOBLE_LIBRO, activo);
+  else localStorage.setItem(CLAVE_DOBLE, activo ? '1' : '0');
 }
 
 function aplicarAparienciaModo(modo) {
@@ -5059,7 +5087,7 @@ function aplicarAparienciaDoble(activo = dobleGuardado()) {
 
 $('btn-modo').addEventListener('click', async () => {
   const nuevo = modoActual() === 'continuo' ? 'pagina' : 'continuo';
-  localStorage.setItem(CLAVE_MODO, nuevo);
+  guardarModo(nuevo);
   aplicarAparienciaModo(nuevo);
   if (epubAbierto()) await lectorEpub.cambiarModo(nuevo);
   else await lector.cambiarModo(nuevo);
@@ -5067,7 +5095,7 @@ $('btn-modo').addEventListener('click', async () => {
 
 $('btn-doble').addEventListener('click', async () => {
   const activo = !dobleGuardado();
-  localStorage.setItem(CLAVE_DOBLE, activo ? '1' : '0');
+  guardarDoble(activo);
   aplicarAparienciaDoble(activo);
   if (epubAbierto()) await lectorEpub.cambiarDoble(activo);
   else await lector.cambiarDoble(activo);
