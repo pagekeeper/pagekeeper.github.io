@@ -19,6 +19,7 @@ import { posicionVerticalLibre } from './posicion-notas.js';
 import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 import { posicionTrasReflujo } from './reflujo-epub.js';
+import { detectarIdioma, idiomaUtil } from './idioma-texto.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 const RUTA_CONFIG_MATHJAX = new URL('./mathjax-config.js', import.meta.url).href;
@@ -285,6 +286,7 @@ export class LectorEpub {
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
     this.alineacion = 'libro'; // 'libro' | 'izquierda' | 'justificada'
     this.guionado = 'auto';    // 'auto' | 'libro' | 'nunca'
+    this.idiomaDeducido = null; // solo si el libro no declara uno que sirva
     this.temaPagina = 'claro';
     this.cfi = null;
     this.porcentaje = 0;
@@ -347,6 +349,7 @@ export class LectorEpub {
     this.cfi = cfiInicial;
     this.porcentaje = 0;
     this.conLocalizaciones = false;
+    this.idiomaDeducido = null;
     this.muestrasPantalla.clear();
     this.pantallaCapitulo = 0;
     this.pantallasCapitulo = 0;
@@ -945,10 +948,22 @@ export class LectorEpub {
   // El guionado automático necesita saber en qué idioma está el texto: sin
   // `lang` el navegador no tiene diccionario y no parte nada. Muchos EPUB no lo
   // ponen en el capítulo, pero sí en sus metadatos, así que se copia de ahí.
+  //
+  // Y hay libros que declaran «UND» (indeterminado) o dejan el campo con
+  // cualquier cosa: eso es peor que no declarar nada, porque el navegador se
+  // queda igual de mudo pero ya no se ve por qué. En esos casos se deduce el
+  // idioma del texto y se pone el que salga, en el capítulo y en los siguientes
+  // —dentro de un libro no cambia, y así se mira una vez.
   asegurarIdioma(doc) {
     const raiz = doc?.documentElement;
-    if (!raiz || raiz.getAttribute('lang') || raiz.getAttribute('xml:lang')) return;
-    const idioma = this.libro?.packaging?.metadata?.language;
+    if (!raiz) return;
+    const puesto = raiz.getAttribute('lang') || raiz.getAttribute('xml:lang');
+    if (idiomaUtil(puesto)) return;
+
+    const declarado = this.libro?.packaging?.metadata?.language;
+    const idioma = idiomaUtil(declarado)
+      ? declarado
+      : (this.idiomaDeducido ??= detectarIdioma(doc.body?.textContent ?? ''));
     if (!idioma) return;
     raiz.setAttribute('lang', idioma);
   }
