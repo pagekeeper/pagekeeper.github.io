@@ -316,6 +316,10 @@ const textos = {
     textAlignment: 'Alineación', bookAlignment: 'La del libro',
     unjustifiedAlignment: 'Sin justificar',
     justifiedAlignment: 'Justificado',
+    columnsSettings: 'Columnas', columnsAuto: 'Automáticas',
+    columnsOne: 'Una columna', columnsTwo: 'Dos columnas',
+    columnsThree: 'Tres columnas', columnsFour: 'Cuatro columnas',
+    columnsSettingsHelp: 'En cuántas columnas se reparte el texto en la pantalla. En automático caben las que quepan sin que las líneas se hagan incómodas, y cambian solas al girar el aparato o al tocar el tamaño de la letra. Con un libro abierto, el botón de las columnas cambia el de ese libro; lo de aquí es con lo que empiezan los demás. Esto no viaja a los otros dispositivos: cada pantalla es un mundo.',
   },
   ca: {
     appTagline: 'Lector de llibres electrònics',
@@ -628,6 +632,10 @@ const textos = {
     textAlignment: 'Alineació', bookAlignment: 'La del llibre',
     unjustifiedAlignment: 'Sense justificar',
     justifiedAlignment: 'Justificat',
+    columnsSettings: 'Columnes', columnsAuto: 'Automàtiques',
+    columnsOne: 'Una columna', columnsTwo: 'Dues columnes',
+    columnsThree: 'Tres columnes', columnsFour: 'Quatre columnes',
+    columnsSettingsHelp: 'En quantes columnes es reparteix el text a la pantalla. En automàtic hi caben les que hi càpiguen sense que les línies es facin incòmodes, i canvien soles en girar l’aparell o en tocar la mida de la lletra. Amb un llibre obert, el botó de les columnes canvia el d’aquell llibre; això d’aquí és amb què comencen els altres. Això no viatja als altres dispositius: cada pantalla és un món.',
   },
   en: {
     appTagline: 'E-book reader',
@@ -940,6 +948,10 @@ const textos = {
     textAlignment: 'Alignment', bookAlignment: 'Book alignment',
     unjustifiedAlignment: 'Unjustified',
     justifiedAlignment: 'Justified',
+    columnsSettings: 'Columns', columnsAuto: 'Automatic',
+    columnsOne: 'One column', columnsTwo: 'Two columns',
+    columnsThree: 'Three columns', columnsFour: 'Four columns',
+    columnsSettingsHelp: 'How many columns the text is split into on screen. On automatic, as many fit as can without the lines becoming awkward, and they change by themselves when you turn the device or resize the text. With a book open, the columns button changes that book alone; this is where every other book starts. It does not travel to your other devices: every screen is its own case.',
   },
   fr: {
     appTagline: 'Liseuse de livres électroniques',
@@ -1252,6 +1264,10 @@ const textos = {
     textAlignment: 'Alignement', bookAlignment: 'Celui du livre',
     unjustifiedAlignment: 'Non justifié',
     justifiedAlignment: 'Justifié',
+    columnsSettings: 'Colonnes', columnsAuto: 'Automatiques',
+    columnsOne: 'Une colonne', columnsTwo: 'Deux colonnes',
+    columnsThree: 'Trois colonnes', columnsFour: 'Quatre colonnes',
+    columnsSettingsHelp: 'En combien de colonnes le texte se répartit à l’écran. En automatique, il en tient autant que possible sans que les lignes deviennent pénibles, et elles changent d’elles-mêmes quand on tourne l’appareil ou qu’on modifie la taille du texte. Avec un livre ouvert, le bouton des colonnes ne change que ce livre ; ici, c’est le point de départ des autres. Cela ne voyage pas vers vos autres appareils : chaque écran est un cas à part.',
   },
   gl: {
     appTagline: 'Lector de libros electrónicos',
@@ -1564,6 +1580,10 @@ const textos = {
     textAlignment: 'Aliñamento', bookAlignment: 'O do libro',
     unjustifiedAlignment: 'Sen xustificar',
     justifiedAlignment: 'Xustificado',
+    columnsSettings: 'Columnas', columnsAuto: 'Automáticas',
+    columnsOne: 'Unha columna', columnsTwo: 'Dúas columnas',
+    columnsThree: 'Tres columnas', columnsFour: 'Catro columnas',
+    columnsSettingsHelp: 'En cantas columnas se reparte o texto na pantalla. En automático caben as que caiban sen que as liñas se fagan incómodas, e cambian soas ao xirar o aparello ou ao tocar o tamaño da letra. Cun libro aberto, o botón das columnas cambia o dese libro; o de aquí é con que comezan os demais. Isto non viaxa aos outros dispositivos: cada pantalla é un mundo.',
   },
   eu: {
     appTagline: 'Liburu elektronikoen irakurgailua',
@@ -1876,6 +1896,10 @@ const textos = {
     textAlignment: 'Lerrokatzea', bookAlignment: 'Liburuarena',
     unjustifiedAlignment: 'Justifikatu gabe',
     justifiedAlignment: 'Justifikatuta',
+    columnsSettings: 'Zutabeak', columnsAuto: 'Automatikoak',
+    columnsOne: 'Zutabe bat', columnsTwo: 'Bi zutabe',
+    columnsThree: 'Hiru zutabe', columnsFour: 'Lau zutabe',
+    columnsSettingsHelp: 'Testua pantailan zenbat zutabetan banatzen den. Automatikoan, lerroak deseroso bihurtu gabe sartzen diren beste sartzen dira, eta berez aldatzen dira gailua biratzean edo letraren tamaina ukitzean. Liburu bat zabalik dagoela, zutabeen botoiak liburu horrena bakarrik aldatzen du; hemengoa gainerakoak hasteko modua da. Hau ez da beste gailuetara bidaltzen: pantaila bakoitza mundu bat da.',
   },
   de: {
     appTagline: 'E-Book-Reader',
@@ -2188,6 +2212,10 @@ const textos = {
     textAlignment: 'Ausrichtung', bookAlignment: 'Die des Buches',
     unjustifiedAlignment: 'Nicht ausgerichtet',
     justifiedAlignment: 'Blocksatz',
+    columnsSettings: 'Spalten', columnsAuto: 'Automatisch',
+    columnsOne: 'Eine Spalte', columnsTwo: 'Zwei Spalten',
+    columnsThree: 'Drei Spalten', columnsFour: 'Vier Spalten',
+    columnsSettingsHelp: 'In wie viele Spalten der Text auf dem Bildschirm aufgeteilt wird. Automatisch passen so viele hinein, wie ohne unbequeme Zeilen möglich sind; sie ändern sich von selbst, wenn Sie das Gerät drehen oder die Schriftgröße ändern. Bei geöffnetem Buch ändert die Spaltenschaltfläche nur dieses Buch; hier steht, womit alle anderen anfangen. Das wandert nicht auf Ihre anderen Geräte: jeder Bildschirm ist ein eigener Fall.',
   },
   pt: {
     appTagline: 'Leitor de livros eletrónicos',
@@ -2500,6 +2528,10 @@ const textos = {
     textAlignment: 'Alinhamento', bookAlignment: 'O do livro',
     unjustifiedAlignment: 'Não justificado',
     justifiedAlignment: 'Justificado',
+    columnsSettings: 'Colunas', columnsAuto: 'Automáticas',
+    columnsOne: 'Uma coluna', columnsTwo: 'Duas colunas',
+    columnsThree: 'Três colunas', columnsFour: 'Quatro colunas',
+    columnsSettingsHelp: 'Em quantas colunas o texto se reparte no ecrã. No automático cabem as que couberem sem que as linhas fiquem incómodas, e mudam sozinhas ao girar o aparelho ou ao mexer no tamanho da letra. Com um livro aberto, o botão das colunas muda o desse livro; o daqui é com que começam os outros. Isto não viaja para os outros dispositivos: cada ecrã é um caso.',
   },
 };
 
@@ -2739,10 +2771,9 @@ const ayudas = {
         contínues, o amb zoom, mana el desplaçament i no hi ha animació.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Dues pàgines juntes</summary>
+          <summary>Columnes de text</summary>
           <p>
-        en mode pàgina a pàgina, el botó de les dues columnes mostra les pàgines de
-        dues en dues (ideal en pantalles amples); un altre toc torna a una sola pàgina.</p>
+        el botó de les columnes obre un menú: automàtiques, o d’una a quatre. En automàtic n’hi caben les que hi càpiguen sense que les línies es facin incòmodes de llegir, i es refan soles en girar l’aparell o en canviar la mida de la lletra. El que triïs és d’aquell llibre i d’aquest dispositiu. En els PDF, que arriben maquetats, només es pot veure una pàgina o dues de juntes.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Gira la pàgina (només PDF)</summary>
@@ -3240,10 +3271,9 @@ const ayudas = {
         pages, or while zoomed, scrolling takes over and there is no animation.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Two pages side by side</summary>
+          <summary>Text columns</summary>
           <p>
-        in page-by-page mode, the two-column button shows pages in pairs (ideal on wide
-        screens); another tap returns to a single page.</p>
+        the columns button opens a menu: automatic, or one to four. On automatic, as many fit as can without the lines becoming awkward to read, and they are redone by themselves when you turn the device or change the text size. Your choice belongs to that book and to this device. PDFs arrive already typeset, so they only offer one page or two side by side.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Rotate the page (PDF only)</summary>
@@ -3754,10 +3784,9 @@ const ayudas = {
         pas d’animation.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Deux pages côte à côte</summary>
+          <summary>Colonnes de texte</summary>
           <p>
-        en mode page par page, le bouton à deux colonnes affiche les pages par paires
-        (idéal sur les grands écrans) ; un autre toucher revient à une seule page.</p>
+        le bouton des colonnes ouvre un menu : automatiques, ou de une à quatre. En automatique, il en tient autant que possible sans que les lignes deviennent pénibles à lire, et elles se refont d’elles-mêmes quand on tourne l’appareil ou qu’on change la taille du texte. Votre choix appartient à ce livre et à cet appareil. Les PDF arrivent déjà mis en page : ils n’offrent qu’une page ou deux côte à côte.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Faire pivoter la page (PDF uniquement)</summary>
@@ -4271,10 +4300,9 @@ const ayudas = {
         manda e non hai animación.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Dúas páxinas xuntas</summary>
+          <summary>Columnas de texto</summary>
           <p>
-        no modo páxina a páxina, o botón de dúas columnas mostra as páxinas por
-        parellas (ideal en pantallas anchas); outro toque volve a unha soa páxina.</p>
+        o botón das columnas abre un menú: automáticas, ou dunha a catro. En automático caben as que caiban sen que as liñas se fagan incómodas de ler, e refanse soas ao xirar o aparello ou ao cambiar o tamaño da letra. O que escollas é dese libro e deste dispositivo. Nos PDF, que chegan maquetados, só se pode ver unha páxina ou dúas xuntas.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Xirar a páxina (só PDF)</summary>
@@ -4785,11 +4813,9 @@ const ayudas = {
         animaziorik.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Bi orrialde elkarrekin</summary>
+          <summary>Testu zutabeak</summary>
           <p>
-        orrialdez orrialdeko moduan, bi zutabeko botoiak orrialdeak bikoteka
-        erakusten ditu (aproposa pantaila zabaletan); beste ukitu batek orrialde
-        bakarrera itzultzen du.</p>
+        zutabeen botoiak menu bat irekitzen du: automatikoak, edo batetik laura. Automatikoan, lerroak irakurtzeko deseroso bihurtu gabe sartzen diren beste sartzen dira, eta berez berregiten dira gailua biratzean edo letraren tamaina aldatzean. Aukeratzen duzuna liburu horrena eta gailu honena da. PDFak maketatuta iristen dira: orrialde bat edo bi elkarrekin baino ez dute eskaintzen.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Biratu orrialdea (PDF bakarrik)</summary>
@@ -5317,11 +5343,9 @@ const ayudas = {
         keine Animation.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Zwei Seiten nebeneinander</summary>
+          <summary>Textspalten</summary>
           <p>
-        im Modus Seite für Seite zeigt die Zweispalten-Schaltfläche die Seiten
-        paarweise an (ideal für breite Bildschirme); ein weiteres Tippen kehrt zu
-        einer einzelnen Seite zurück.</p>
+        die Spaltenschaltfläche öffnet ein Menü: automatisch oder eine bis vier. Automatisch passen so viele hinein, wie ohne unbequem zu lesende Zeilen möglich sind; sie werden von selbst neu berechnet, wenn Sie das Gerät drehen oder die Schriftgröße ändern. Ihre Wahl gilt für dieses Buch und dieses Gerät. PDFs kommen fertig gesetzt an und bieten nur eine Seite oder zwei nebeneinander.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Seite drehen (nur PDF)</summary>
@@ -5851,10 +5875,9 @@ const ayudas = {
         contínuas, ou com zoom, é o deslocamento que manda e não há animação.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Duas páginas juntas</summary>
+          <summary>Colunas de texto</summary>
           <p>
-        no modo página a página, o botão de duas colunas mostra as páginas aos
-        pares (ideal em ecrãs largos); outro toque volta a uma só página.</p>
+        o botão das colunas abre um menu: automáticas, ou de uma a quatro. No automático cabem as que couberem sem que as linhas fiquem incómodas de ler, e refazem-se sozinhas ao girar o aparelho ou ao mudar o tamanho da letra. O que escolher é desse livro e deste dispositivo. Nos PDF, que chegam maquetados, só se pode ver uma página ou duas juntas.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Rodar a página (só PDF)</summary>

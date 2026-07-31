@@ -341,8 +341,13 @@
         </div>
       </div>
       <button id="btn-modo" class="btn-icono" title="Ver páginas continuas"></button>
-      <button id="btn-doble" class="btn-icono" data-icono="columns-2" title="Ver dos páginas juntas"
-        data-i18n-title="twoPages" aria-pressed="false"></button>
+      <div id="control-columnas" class="control-margenes">
+        <button id="btn-columnas" class="btn-icono" data-icono="columns-2" title="Columnas"
+          data-i18n-title="columnsSettings" aria-label="Columnas" data-i18n-aria-label="columnsSettings"
+          aria-haspopup="menu" aria-expanded="false"></button>
+        <div id="panel-columnas" class="panel-margenes panel-columnas" role="menu"
+          aria-label="Columnas" data-i18n-aria-label="columnsSettings" hidden></div>
+      </div>
       <button id="btn-rotar" class="btn-icono oculto" data-icono="rotate-cw" title="Girar la página"
         data-i18n-title="rotatePage"></button>
       <div id="control-texto" class="control-margenes oculto">
@@ -445,7 +450,7 @@
               <span data-icono="volume-2"></span><span data-i18n="readAloud">Lectura en voz alta</span>
             </button></li>
             <li><button type="button" id="menu-modo" class="item-menu-lector"></button></li>
-            <li id="fila-menu-doble"><button type="button" id="menu-doble" class="item-menu-lector"></button></li>
+            <li id="fila-menu-columnas"><button type="button" id="menu-columnas" class="item-menu-lector"></button></li>
             <li id="fila-menu-recorte"><button type="button" id="menu-recorte" class="item-menu-lector">
               <span data-icono="crop"></span><span data-i18n="cropMargins">Recortar los márgenes</span>
             </button></li>
@@ -765,6 +770,21 @@
 
       <div id="panel-ajustes-lector" class="panel-pestana" role="tabpanel"
         aria-labelledby="pestana-ajustes-lector" tabindex="0">
+      <div class="tarjeta">
+        <h2 data-i18n="columnsSettings">Columnas</h2>
+        <p class="ayuda" data-i18n="columnsSettingsHelp">En cuántas columnas se reparte el texto en la pantalla. En automático caben las que quepan sin que las líneas se hagan incómodas, y cambian solas al girar el aparato o al tocar el tamaño de la letra. Con un libro abierto, el botón de las columnas cambia el de ese libro; lo de aquí es con lo que empiezan los demás.</p>
+        <div class="rejilla-ajustes">
+          <label class="campo-ajuste"><span data-i18n="columnsSettings">Columnas</span>
+            <select id="columnas-epub-ajustes">
+              <option value="auto" data-i18n="columnsAuto">Automáticas</option>
+              <option value="1" data-i18n="columnsOne">Una columna</option>
+              <option value="2" data-i18n="columnsTwo">Dos columnas</option>
+              <option value="3" data-i18n="columnsThree">Tres columnas</option>
+              <option value="4" data-i18n="columnsFour">Cuatro columnas</option>
+            </select>
+          </label>
+        </div>
+      </div>
       <div class="tarjeta">
         <h2 data-i18n="epubTextSettings">Texto de los EPUB</h2>
         <p class="ayuda" data-i18n="epubTextSettingsHelp">Cómo se compone el texto de los libros EPUB (los PDF llegan ya maquetados y no admiten estos cambios). Los mismos ajustes están a mano mientras lees, en el botón de la letra.</p>
@@ -1201,10 +1221,9 @@
           zoom, manda el desplazamiento y no hay animación.</p>
           </details>
           <details class="punto-ayuda">
-            <summary>Dos páginas juntas</summary>
+            <summary>Columnas de texto</summary>
             <p>
-          en modo página a página, el botón de las dos columnas muestra las páginas de
-          dos en dos (ideal en pantallas anchas); otro toque vuelve a una sola página.</p>
+          el botón de las columnas abre un menú: automáticas, o de una a cuatro. En automático caben las que quepan sin que las líneas se hagan incómodas de leer, y se rehacen solas al girar el aparato o al cambiar el tamaño de la letra. Lo que elijas es de ese libro y de este dispositivo. En los PDF, que llegan maquetados, solo se puede ver una página o dos juntas.</p>
           </details>
           <details class="punto-ayuda">
             <summary>Girar la página (solo PDF)</summary>

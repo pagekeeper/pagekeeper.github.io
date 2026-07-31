@@ -20,6 +20,7 @@ import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 import { posicionTrasReflujo } from './reflujo-epub.js';
 import { detectarIdioma, idiomaUtil } from './idioma-texto.js';
+import { columnasEfectivas, normalizarColumnas } from './columnas.js';
 
 const RUTA_MATHJAX = new URL('../vendor/mathjax-tex-mml-svg.js', import.meta.url).href;
 const RUTA_CONFIG_MATHJAX = new URL('./mathjax-config.js', import.meta.url).href;
@@ -280,7 +281,7 @@ export class LectorEpub {
     this.libro = null;   // objeto Book de epub.js
     this.vista = null;   // objeto Rendition de epub.js
     this.modo = 'pagina';
-    this.doble = false;  // dos páginas juntas cuando la pantalla es ancha
+    this.columnas = 'auto'; // 'auto' o el número elegido (ver columnas.js)
     this.tamano = 100;   // tamaño de letra en %
     this.fuente = 'libro';     // 'libro' | 'serif' | 'sans'
     this.interlineado = null;  // null = el del libro; número = factor (1.5…)
@@ -406,12 +407,15 @@ export class LectorEpub {
       // contenedor (fullsize:false); el gestor por defecto delega en el
       // scroll de la página, que aquí no existe porque el contenedor es fijo.
       ...(continuo ? { manager: 'continuous', fullsize: false } : {}),
-      // 'auto' reparte el capítulo en dos columnas cuando el área es ancha;
-      // en pantallas estrechas epub.js vuelve solo a una página.
-      spread: this.doble && !continuo ? 'auto' : 'none',
+      // El reparto en columnas lo decide imponerColumnas(), no epub.js: su
+      // 'auto' solo sabe de una o dos, y aquí puede haber más.
+      spread: 'none',
       allowScriptedContent: true,
     });
     this.vista = vista;
+    // El reparto en columnas no existe hasta que epub.js arranca su gestor de
+    // vistas; hasta entonces `vista.layout` es todavía el método que lo crea.
+    if (!continuo) vista.started?.then(() => this.imponerColumnas(vista), () => {});
     vista.hooks.content.register(inyectarMathJax);
     vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
     vista.hooks.content.register((contents) => this.inyectarPapel(contents));
@@ -594,8 +598,12 @@ export class LectorEpub {
     const columnas = inicio?.displayed?.total;
     const columna = inicio?.displayed?.page;
     if (!Number.isFinite(columnas) || !Number.isFinite(columna) || columnas < 1) return false;
-    // Con dos páginas juntas, cada pantalla enseña dos columnas.
-    const porPantalla = lugar.end?.displayed?.page > columna ? 2 : 1;
+    // Cada pantalla enseña tantas columnas como diga el reparto en vigor; el
+    // dato de epub.js solo distingue una de dos, y aquí puede haber más.
+    const divisor = this.vista?.manager?.layout?.divisor;
+    const porPantalla = Number.isFinite(divisor) && divisor >= 1
+      ? divisor
+      : (lugar.end?.displayed?.page > columna ? 2 : 1);
     this.pantallasCapitulo = Math.ceil(columnas / porPantalla);
     this.pantallaCapitulo = Math.min(this.pantallasCapitulo, Math.ceil(columna / porPantalla));
     if (this.muestrasPantalla.has(inicio.index)) return true;
@@ -876,6 +884,12 @@ export class LectorEpub {
   cambiarTamano(delta) {
     this.tamano = Math.min(300, Math.max(60, this.tamano + delta));
     this.vista?.themes.fontSize(this.tamano + '%');
+    // Con las columnas en automático, la letra decide cuántas caben: al
+    // agrandarla hay que rehacer el reparto, que epub.js no revisa por su
+    // cuenta porque para él el ancho de la pantalla no ha cambiado.
+    if (this.columnas === 'auto' && this.modo !== 'continuo') {
+      try { this.vista?.manager?.updateLayout(); } catch { /* vista a medio montar */ }
+    }
     this.reajustarFormulas();
     this.programarIconosNotas();
     this.remedirPantallas();
@@ -1005,14 +1019,54 @@ export class LectorEpub {
     await this.montar(this.cfi);
   }
 
-  async cambiarDoble(activo) {
-    activo = Boolean(activo);
-    if (activo === this.doble) return;
-    this.doble = activo;
+  async cambiarColumnas(valor) {
+    valor = normalizarColumnas(valor);
+    if (valor === this.columnas) return;
+    this.columnas = valor;
     if (!this.libro) return;
+    // Otro reparto es otra paginación: lo medido antes ya no vale.
     this.muestrasPantalla.clear();
     this.desmontarVista();
     await this.montar(this.cfi);
+  }
+
+  // Cuántas columnas caben ahora mismo. El tamaño de letra del capítulo no se
+  // consulta al documento: epub.js lo aplica como porcentaje sobre los 16 px
+  // de base del navegador, así que sale de la cuenta y evita depender de que
+  // haya un capítulo montado.
+  columnasAhora(ancho = this.contenedor.clientWidth) {
+    return columnasEfectivas(this.columnas, ancho, 16 * (this.tamano / 100));
+  }
+
+  // epub.js solo sabe repartir el capítulo en una o dos columnas: su clase
+  // Layout calcula un 'divisor' que vale 1, o 2 si la pantalla es ancha y se
+  // pidió doble página. Todo lo demás —el ancho de columna, el paso al pasar
+  // página, el mapa de posiciones— ya está escrito en función de ese divisor,
+  // así que basta con rehacer la cuenta con el número que toque y avisar del
+  // cambio como hace el original. Se envuelve el método en lugar de tocar la
+  // librería para no salir de vendor/ con un parche que habría que reponer en
+  // cada actualización.
+  imponerColumnas(vista) {
+    if (this.vista !== vista) return; // la vista ya no está en pantalla
+    const reparto = vista?.manager?.layout;
+    if (typeof reparto?.calculate !== 'function' || reparto.calculoOriginal) return;
+    const original = reparto.calculate.bind(reparto);
+    reparto.calculoOriginal = original;
+    reparto.calculate = (ancho, alto, hueco) => {
+      original(ancho, alto, hueco);
+      const columnas = this.columnasAhora(ancho);
+      if (columnas < 2) return; // una columna es justo lo que ya calculó
+      const gap = reparto.gap;
+      const columnWidth = ancho / columnas - gap;
+      const medidas = {
+        width: ancho, height: alto, columnWidth, gap,
+        pageWidth: columnWidth + gap,
+        spreadWidth: columnWidth * columnas + gap,
+        delta: ancho, divisor: columnas,
+      };
+      Object.assign(reparto, medidas);
+      reparto.update(medidas);
+    };
   }
 
   // Separa la vista del lector antes de destruirla: las cargas de capítulos

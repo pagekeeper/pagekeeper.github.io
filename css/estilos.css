@@ -1222,6 +1222,16 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   background: var(--fondo-tarjeta); color: var(--texto);
   box-shadow: 0 10px 32px var(--sombra);
 }
+/* El menú de columnas es una lista de opciones, no un formulario: se apoya en
+   el panel flotante pero con el relleno justo de los botones, que ya traen el
+   suyo. La opción puesta lleva su marca al final, empujada por el nombre. */
+.panel-columnas {
+  width: max-content; min-width: 12rem; max-width: calc(100vw - 1rem);
+  padding: 0.35rem; display: flex; flex-direction: column; gap: 0.15rem;
+}
+.panel-columnas .item-menu-lector span { flex: 1; }
+.panel-columnas .marca-opcion { color: var(--acento); }
+
 /* ── Pestañas (ajustes y ayuda) ──
    Una lista entera obligaba a recorrerlo todo para dar con una casilla o con
    un párrafo. Las pestañas caben en una línea en cualquier pantalla; si no,
@@ -1681,12 +1691,13 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   .barra-lector > #btn-indice-libro,
   .barra-lector > #btn-anotaciones,
   .barra-lector > #btn-modo,
-  .barra-lector > #btn-doble,
   .barra-lector > #btn-rotar,
   .barra-lector > #btn-pagina-completa,
   .barra-lector > .tiempo-restante { display: none !important; }
-  .barra-lector > #control-texto:not(.oculto) { width: 0; overflow: visible; }
-  .barra-lector > #control-texto > #btn-texto { display: none; }
+  .barra-lector > #control-texto:not(.oculto),
+  .barra-lector > #control-columnas:not(.oculto) { width: 0; overflow: visible; }
+  .barra-lector > #control-texto > #btn-texto,
+  .barra-lector > #control-columnas > #btn-columnas { display: none; }
   /* El grupo del zoom se va al menú, pero su contenedor sigue montado: el
      panel se abre desde allí y necesita seguir teniendo sitio en el DOM. */
   .barra-lector > #control-zoom { width: 0; overflow: visible; border: 0; }

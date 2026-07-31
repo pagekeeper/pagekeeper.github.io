@@ -17,6 +17,9 @@ import { abrePorRaton } from './menu-contextual.js';
 import { resumenDeMetadatos } from './resumen-libro.js';
 import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
+  normalizarColumnas, columnasAutomaticas, valoresDisponibles, aspectoDeLaOpcion,
+} from './columnas.js';
+import {
   segundosDeLaMuestra, acumularRitmo, minutosRestantes,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE, SEGUNDOS_TOPE,
   UNIDADES_MINIMAS_PAGINAS, UNIDADES_MINIMAS_PORCENTAJE,
@@ -78,10 +81,11 @@ const CLAVE_LETRA_LIBRO = 'lector.letraLibro'; // cuerpo de letra de cada EPUB
 const CLAVE_MARGEN_LIBRO = 'lector.margenLibro';
 const CLAVE_ALINEACION_LIBRO = 'lector.alineacionLibro';
 const CLAVE_MODO_LIBRO = 'lector.modoLibro';   // por páginas o continuo, de cada libro
-const CLAVE_DOBLE_LIBRO = 'lector.dobleLibro'; // una o dos columnas, de cada libro
+const CLAVE_DOBLE_LIBRO = 'lector.dobleLibro'; // una o dos columnas: sustituida por la de abajo
+const CLAVE_COLUMNAS_LIBRO = 'lector.columnasLibro'; // columnas de cada libro
 const CLAVES_AJUSTES_POR_LIBRO = [
   CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
-  CLAVE_MODO_LIBRO, CLAVE_DOBLE_LIBRO,
+  CLAVE_MODO_LIBRO, CLAVE_DOBLE_LIBRO, CLAVE_COLUMNAS_LIBRO,
 ];
 const CLAVE_RECORTE_PDF = 'lector.recortePdf'; // solo de este dispositivo
 const CLAVE_INDICE_ABIERTO = 'lector.indiceAbierto'; // solo de este dispositivo
@@ -91,6 +95,9 @@ const CLAVE_FUENTE_EPUB = 'lector.fuenteEpub'; // solo de este dispositivo
 const CLAVE_INTERLINEADO_EPUB = 'lector.interlineadoEpub'; // solo de este dispositivo
 const CLAVE_ALINEACION_EPUB = 'lector.alineacionEpub'; // solo de este dispositivo
 const CLAVE_GUIONADO_EPUB = 'lector.guionadoEpub';     // solo de este dispositivo
+// Las columnas dependen de la pantalla, así que ni el valor de partida ni el
+// de cada libro salen de este aparato (ver CLAVES_PREFERENCIAS_COPIA).
+const CLAVE_COLUMNAS_EPUB = 'lector.columnasEpub';     // solo de este dispositivo
 const CLAVE_ORDEN_BIBLIOTECA = 'lector.ordenBiblioteca';
 const CLAVE_FILTRO_BIBLIOTECA = 'lector.filtroBiblioteca';
 const CLAVE_VISTA_BIBLIOTECA = 'lector.vistaBiblioteca'; // solo de este dispositivo
@@ -257,9 +264,29 @@ function recorteGuardado() {
   return localStorage.getItem(CLAVE_RECORTE_PDF) === '1';
 }
 
-// Una o dos columnas es cosa de cada libro, como el modo (ver modoActual()).
+// Las columnas son de cada libro, como el modo (ver modoActual()): una novela
+// en columna ancha y un libro de texto en dos no es capricho, es que se leen
+// distinto. Sin elección propia manda lo que diga Ajustes, que de fábrica es
+// automático.
+//
+// El ajuste anterior solo distinguía una columna de dos y se guardaba aparte;
+// mientras quede alguno por ahí se traduce al llegar, que es más barato que
+// recorrer todos los libros al arrancar.
+function columnasGuardadas() {
+  const propias = ajusteDelLibro(CLAVE_COLUMNAS_LIBRO);
+  if (propias !== undefined) return normalizarColumnas(propias);
+  const antigua = ajusteDelLibro(CLAVE_DOBLE_LIBRO);
+  if (antigua !== undefined) return antigua ? 2 : 1;
+  return normalizarColumnas(localStorage.getItem(CLAVE_COLUMNAS_EPUB));
+}
+
+// El PDF llega maquetado y solo sabe poner sus páginas de una en una o de dos
+// en dos: cualquier otra cosa (automático incluido) se resuelve en dos cuando
+// la pantalla da de sí, que es lo que hacía el botón de antes.
 function dobleGuardado() {
-  return ajusteDelLibro(CLAVE_DOBLE_LIBRO) === true;
+  const columnas = columnasGuardadas();
+  if (columnas === 'auto') return columnasAutomaticas(window.innerWidth, 16) > 1;
+  return columnas > 1;
 }
 
 function leerMapaLocal(clave) {
@@ -418,6 +445,7 @@ const lectorEpub = new LectorEpub({
   // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
   alPulsarContenido: () => {
     cerrarPanelTexto();
+    cerrarPanelColumnas();
     cerrarPanelTts();
     cerrarMenuLector();
     cerrarMenuNota();
@@ -4935,7 +4963,7 @@ async function abrirEnLector(datos, libro) {
       lectorEpub.interlineado = interlineadoEpubGuardado();
       lectorEpub.alineacion = alineacionEpubGuardada();
       lectorEpub.guionado = guionadoEpubGuardado();
-      lectorEpub.doble = dobleGuardado();
+      lectorEpub.columnas = columnasGuardadas();
       prepararSeguimientoEpub(avance?.cfi ?? null);
       // El reparto del libro en localizaciones se reaprovecha entre sesiones:
       // sin él no hay porcentaje ni salto por porcentaje hasta que termina de
@@ -5065,15 +5093,70 @@ function aplicarAparienciaModo(modo) {
     ? t('pageMode')
     : t('scrollMode');
   etiquetarPorTitulo($('btn-modo'));
-  // La vista doble solo actúa pasando página: en continuo se oculta el botón.
-  $('btn-doble').classList.toggle('oculto', modo === 'continuo');
+  // Las columnas solo existen pasando página: en continuo el texto va en una
+  // tira y el botón no tiene nada que ofrecer.
+  $('control-columnas').classList.toggle('oculto', modo === 'continuo');
+  if (modo === 'continuo') cerrarPanelColumnas();
   if (!$('fondo-menu-lector').classList.contains('oculto')) actualizarMenuLector();
 }
 
-function aplicarAparienciaDoble(activo = dobleGuardado()) {
-  $('btn-doble').setAttribute('aria-pressed', String(activo));
-  $('btn-doble').title = t(activo ? 'onePage' : 'twoPages');
-  etiquetarPorTitulo($('btn-doble'));
+// El botón enseña el reparto que hay puesto: quien lo mire de reojo tiene que
+// saber en qué está sin abrir el menú. En automático se pinta el icono del
+// número que haya salido, que es lo que se está viendo.
+function aplicarAparienciaDoble(valor = columnasGuardadas()) {
+  const boton = $('btn-columnas');
+  const efectivas = valor === 'auto'
+    ? columnasAutomaticas(window.innerWidth, 16)
+    : valor;
+  boton.innerHTML = icono(aspectoDeLaOpcion(efectivas).icono);
+  boton.title = t('columnsSettings');
+  etiquetarPorTitulo(boton);
+  boton.removeAttribute('aria-pressed');
+  if (!$('panel-columnas').hidden) pintarMenuColumnas();
+}
+
+// El menú de columnas: una opción por reparto posible, con su icono, y una
+// marca en el que está puesto.
+function pintarMenuColumnas() {
+  const panel = $('panel-columnas');
+  const puesto = columnasGuardadas();
+  panel.replaceChildren();
+  const esPdf = !epubAbierto();
+  for (const valor of valoresDisponibles(esPdf)) {
+    const { clave, icono: nombreIcono } = aspectoDeLaOpcion(valor, esPdf);
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'item-menu-lector';
+    boton.setAttribute('role', 'menuitemradio');
+    boton.setAttribute('aria-checked', String(valor === puesto));
+    boton.innerHTML = `${icono(nombreIcono)}<span>${t(clave)}</span>` +
+      (valor === puesto ? icono('circle-check', 'icono marca-opcion') : '');
+    boton.addEventListener('click', () => elegirColumnas(valor));
+    panel.append(boton);
+  }
+}
+
+function cerrarPanelColumnas() {
+  $('panel-columnas').hidden = true;
+  $('btn-columnas').setAttribute('aria-expanded', 'false');
+}
+
+// Elegir en el menú es lo mismo que elegir en Ajustes con el libro delante:
+// se guarda para este libro y se aplica al lector que esté abierto.
+async function elegirColumnas(valor) {
+  cerrarPanelColumnas();
+  if (libroActual) guardarAjusteDelLibro(CLAVE_COLUMNAS_LIBRO, valor);
+  else if (valor === 'auto') localStorage.removeItem(CLAVE_COLUMNAS_EPUB);
+  else localStorage.setItem(CLAVE_COLUMNAS_EPUB, String(valor));
+  pintarAjustesTexto();
+  await aplicarColumnas(valor);
+}
+
+async function aplicarColumnas(valor) {
+  const columnas = normalizarColumnas(valor);
+  aplicarAparienciaDoble(columnas);
+  if (epubAbierto()) await lectorEpub.cambiarColumnas(columnas);
+  else if (libroActual) await lector.cambiarDoble(dobleGuardado());
 }
 
 $('btn-modo').addEventListener('click', async () => {
@@ -5084,12 +5167,15 @@ $('btn-modo').addEventListener('click', async () => {
   else await lector.cambiarModo(nuevo);
 });
 
-$('btn-doble').addEventListener('click', async () => {
-  const activo = !dobleGuardado();
-  guardarAjusteDelLibro(CLAVE_DOBLE_LIBRO, activo);
-  aplicarAparienciaDoble(activo);
-  if (epubAbierto()) await lectorEpub.cambiarDoble(activo);
-  else await lector.cambiarDoble(activo);
+$('btn-columnas').addEventListener('click', () => {
+  const panel = $('panel-columnas');
+  if (!panel.hidden) return cerrarPanelColumnas();
+  cerrarPanelTexto();
+  cerrarPanelTts();
+  pintarMenuColumnas();
+  panel.hidden = false;
+  $('btn-columnas').setAttribute('aria-expanded', 'true');
+  panel.querySelector('button')?.focus();
 });
 
 $('btn-rotar').addEventListener('click', async () => {
@@ -5945,15 +6031,16 @@ function actualizarMenuLector() {
   $('fila-menu-indice').classList.toggle('oculto', $('btn-indice-libro').classList.contains('oculto'));
   $('fila-menu-texto').classList.toggle('oculto', $('control-texto').classList.contains('oculto'));
   $('fila-menu-rotar').classList.toggle('oculto', $('btn-rotar').classList.contains('oculto'));
-  $('fila-menu-doble').classList.toggle('oculto', $('btn-doble').classList.contains('oculto'));
+  $('fila-menu-columnas').classList.toggle('oculto', $('control-columnas').classList.contains('oculto'));
   $('menu-pagina-completa').classList.toggle('oculto', $('btn-pagina-completa').classList.contains('oculto'));
   $('fila-menu-recorte').classList.toggle('oculto', $('btn-recorte').classList.contains('oculto'));
 
   const modo = modoActual();
   $('menu-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text') +
     `<span>${t(modo === 'continuo' ? 'pageMode' : 'scrollMode')}</span>`;
-  $('menu-doble').innerHTML = icono('columns-2') +
-    `<span>${t(dobleGuardado() ? 'onePage' : 'twoPages')}</span>`;
+  const columnas = columnasGuardadas();
+  $('menu-columnas').innerHTML = icono(aspectoDeLaOpcion(columnas).icono) +
+    `<span>${t('columnsSettings')}</span>`;
   const tiempo = tiempoRestanteEstimado();
   $('fila-menu-tiempo').classList.toggle('oculto', !tiempo);
   $('tiempo-restante-menu').textContent = tiempo ? t('timeLeftMenu', { time: tiempo }) : '';
@@ -6051,7 +6138,7 @@ for (const [idMenu, idOriginal] of [
   ['menu-indice', 'btn-indice-libro'],
   ['menu-anotaciones', 'btn-anotaciones'],
   ['menu-modo', 'btn-modo'],
-  ['menu-doble', 'btn-doble'],
+  ['menu-columnas', 'btn-columnas'],
   ['menu-rotar', 'btn-rotar'],
   ['menu-texto', 'btn-texto'],
   ['menu-zoom-menos', 'btn-zoom-menos'],
@@ -6243,6 +6330,13 @@ $('tirador-indice').addEventListener('dblclick', () => guardarAnchoIndice(panelN
 // Al estrechar la ventana, el panel no puede quedarse con más de media pantalla.
 window.addEventListener('resize', () => aplicarAnchoIndice(
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--ancho-indice'))));
+
+// Con las columnas en automático, girar el móvil o estrechar la ventana cambia
+// cuántas caben: el botón enseña el icono del reparto que hay, y se quedaría
+// enseñando el de antes.
+window.addEventListener('resize', () => {
+  if (columnasGuardadas() === 'auto') aplicarAparienciaDoble();
+});
 
 // ── Panel de navegación: índice y miniaturas ──
 //
@@ -7363,6 +7457,15 @@ const AJUSTES_TEXTO_EPUB = [
     aplicar: (valor) => lectorEpub.cambiarAlineacion(valor),
   },
   {
+    // Las columnas también son de cada libro, pero a diferencia de las demás
+    // no salen de este aparato: lo que se lee en tres columnas en un monitor
+    // ancho es ilegible en el móvil (ver CLAVES_PREFERENCIAS_COPIA).
+    id: 'columnas-epub', clave: CLAVE_COLUMNAS_EPUB, inicial: 'auto',
+    porLibro: CLAVE_COLUMNAS_LIBRO,
+    leer: () => String(columnasGuardadas()),
+    aplicar: (valor) => aplicarColumnas(valor),
+  },
+  {
     id: 'interlineado-epub', clave: CLAVE_INTERLINEADO_EPUB, inicial: 'libro',
     leer: () => {
       const valor = interlineadoEpubGuardado();
@@ -7445,6 +7548,7 @@ for (const id of ['btn-restablecer-texto', 'btn-restablecer-texto-ajustes']) {
 
 document.addEventListener('click', (evento) => {
   if (!$('control-texto').contains(evento.target)) cerrarPanelTexto();
+  if (!$('control-columnas').contains(evento.target)) cerrarPanelColumnas();
 });
 
 // ───────────────────────── Lectura en voz alta ─────────────────────────
@@ -7823,6 +7927,9 @@ document.addEventListener('keydown', (evento) => {
   } else if (!$('panel-zoom').hidden) {
     cerrarPanelZoom();
     $('btn-ancho-auto').focus();
+  } else if (!$('panel-columnas').hidden) {
+    cerrarPanelColumnas();
+    $('btn-columnas').focus();
   } else if (!$('panel-texto').hidden) {
     cerrarPanelTexto();
     $('btn-texto').focus();
