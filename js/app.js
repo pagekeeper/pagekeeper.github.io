@@ -47,10 +47,6 @@ const CLAVE_NOCHE_VIEJA = 'lector.noche';
 const CLAVE_TEMA_PAGINA_VIEJA = 'lector.temaPagina';
 const CLAVE_TEMA_PAGINA_LIBRO_VIEJA = 'lector.temaPaginaLibro';
 const CLAVE_IMAGENES_NATURALES = 'lector.imagenesNaturales'; // solo de este dispositivo
-// El modo y las columnas de antes de que fueran de cada libro. Se conservan
-// como punto de partida de los que todavía no han elegido el suyo.
-const CLAVE_MODO = 'lector.modo';
-const CLAVE_DOBLE = 'lector.doble';         // solo de este dispositivo
 const CLAVE_ROTACION_PDF = 'lector.rotacionPdf'; // por libro, solo de este dispositivo
 const CLAVE_RITMO = 'lector.ritmoLectura';  // por libro, solo de este dispositivo
 const CLAVE_VOZ_TTS = 'lector.vozTts';      // por idioma, solo de este dispositivo
@@ -123,14 +119,23 @@ const CLAVE_ABRIR_ULTIMO = 'lector.abrirUltimoAlArrancar'; // solo de este dispo
 
 // Preferencias inocuas que viajan con la copia. Se excluyen expresamente la
 // configuración y la contraseña WebDAV, así como las colas de sincronización.
+//
+// Y también todo lo que dependa del tamaño de la pantalla: el aumento del
+// PDF, el cuerpo de letra, el margen, las columnas, el modo de lectura y el
+// ancho del panel del índice. Restaurar en el móvil las dos columnas y el
+// margen del ordenador no deja el libro como estaba, lo deja ilegible; cada
+// aparato tiene que decidir eso por su cuenta. Lo que sí viaja del aspecto es
+// lo que se elige por gusto y vale en cualquier pantalla: la letra, el
+// interlineado, la justificación o el partido de palabras.
 const CLAVES_PREFERENCIAS_COPIA = [
   // El tema queda fuera a propósito: es de cada navegador, porque depende de
   // su pantalla y de la luz que haya delante, no del libro.
-  'lector.idioma', CLAVE_IMAGENES_NATURALES, CLAVE_MODO, CLAVE_DOBLE, CLAVE_ROTACION_PDF,
+  'lector.idioma', CLAVE_IMAGENES_NATURALES, CLAVE_ROTACION_PDF,
   CLAVE_RITMO, CLAVE_VOZ_TTS, CLAVE_VELOCIDAD_TTS, CLAVE_COLOR_RESALTADO,
-  CLAVE_ZOOM_LIBRO, CLAVE_LETRA_LIBRO, CLAVE_MARGEN_LIBRO, CLAVE_ALINEACION_LIBRO,
-  CLAVE_MODO_LIBRO, CLAVE_DOBLE_LIBRO,
-  CLAVE_RECORTE_PDF, CLAVE_ANCHO_INDICE, CLAVE_MARGEN_EPUB, CLAVE_FUENTE_EPUB,
+  // La alineación de cada libro sí: que una edición se lea mejor sin
+  // justificar es de la edición, no de la pantalla en la que se abra.
+  CLAVE_ALINEACION_LIBRO,
+  CLAVE_RECORTE_PDF, CLAVE_FUENTE_EPUB,
   CLAVE_INTERLINEADO_EPUB, CLAVE_ALINEACION_EPUB, CLAVE_GUIONADO_EPUB, CLAVE_ORDEN_BIBLIOTECA,
   CLAVE_FILTRO_BIBLIOTECA, CLAVE_VISTA_BIBLIOTECA,
   // Las dos secciones, no solo una: que la copia restaurara el pliegue del
@@ -252,9 +257,7 @@ function recorteGuardado() {
 
 // Una o dos columnas es cosa de cada libro, como el modo (ver modoActual()).
 function dobleGuardado() {
-  const propio = ajusteDelLibro(CLAVE_DOBLE_LIBRO);
-  if (typeof propio === 'boolean') return propio;
-  return localStorage.getItem(CLAVE_DOBLE) === '1';
+  return ajusteDelLibro(CLAVE_DOBLE_LIBRO) === true;
 }
 
 function leerMapaLocal(clave) {
@@ -1095,7 +1098,7 @@ function preferenciasParaCopia(ids) {
   }
   // Estos mapas pueden contener también ids de la nube: la copia local solo
   // debe revelar y restaurar las entradas de los libros incluidos.
-  for (const clave of [CLAVE_ROTACION_PDF, CLAVE_RITMO]) {
+  for (const clave of [CLAVE_ROTACION_PDF, CLAVE_RITMO, CLAVE_ALINEACION_LIBRO]) {
     try {
       const mapa = JSON.parse(preferencias[clave]);
       preferencias[clave] = JSON.stringify(Object.fromEntries(
@@ -5047,24 +5050,10 @@ $('btn-subir').addEventListener('click', subirLibroActual);
 
 // Pasar página o seguir en continuo es de cada libro: un facsímil escaneado
 // se recorre mejor de corrido y una novela por páginas, y no hay razón para
-// que elegirlo en uno se lo lleve por delante a los demás. Quien ya tenía uno
-// puesto lo conserva como punto de partida de los libros que no han elegido.
+// que elegirlo en uno se lo lleve por delante a los demás. El que se abre por
+// primera vez empieza como viene de fábrica, por páginas y a una columna.
 function modoActual() {
-  const propio = ajusteDelLibro(CLAVE_MODO_LIBRO);
-  if (propio === 'continuo' || propio === 'pagina') return propio;
-  return localStorage.getItem(CLAVE_MODO) === 'continuo' ? 'continuo' : 'pagina';
-}
-
-// Sin libro abierto (al arrancar) no hay a quién guardárselo, así que se
-// queda de punto de partida para el próximo que se abra sin ajuste propio.
-function guardarModo(modo) {
-  if (libroActual) guardarAjusteDelLibro(CLAVE_MODO_LIBRO, modo);
-  else localStorage.setItem(CLAVE_MODO, modo);
-}
-
-function guardarDoble(activo) {
-  if (libroActual) guardarAjusteDelLibro(CLAVE_DOBLE_LIBRO, activo);
-  else localStorage.setItem(CLAVE_DOBLE, activo ? '1' : '0');
+  return ajusteDelLibro(CLAVE_MODO_LIBRO) === 'continuo' ? 'continuo' : 'pagina';
 }
 
 function aplicarAparienciaModo(modo) {
@@ -5087,7 +5076,7 @@ function aplicarAparienciaDoble(activo = dobleGuardado()) {
 
 $('btn-modo').addEventListener('click', async () => {
   const nuevo = modoActual() === 'continuo' ? 'pagina' : 'continuo';
-  guardarModo(nuevo);
+  guardarAjusteDelLibro(CLAVE_MODO_LIBRO, nuevo);
   aplicarAparienciaModo(nuevo);
   if (epubAbierto()) await lectorEpub.cambiarModo(nuevo);
   else await lector.cambiarModo(nuevo);
@@ -5095,7 +5084,7 @@ $('btn-modo').addEventListener('click', async () => {
 
 $('btn-doble').addEventListener('click', async () => {
   const activo = !dobleGuardado();
-  guardarDoble(activo);
+  guardarAjusteDelLibro(CLAVE_DOBLE_LIBRO, activo);
   aplicarAparienciaDoble(activo);
   if (epubAbierto()) await lectorEpub.cambiarDoble(activo);
   else await lector.cambiarDoble(activo);
@@ -7957,7 +7946,10 @@ function migrarPapelAlTema() {
 // quedaran de antes ya no los lee nadie, así que se retiran.
 function limpiarAjustesGlobalesViejos() {
   try {
-    for (const clave of ['lector.zoomPdf', 'lector.ajustePdf', 'lector.letraEpub']) {
+    // 'lector.modo' y 'lector.doble' valían para toda la biblioteca; ahora
+    // cada libro lleva el suyo y el que se abre por primera vez va de fábrica.
+    for (const clave of ['lector.zoomPdf', 'lector.ajustePdf', 'lector.letraEpub',
+      'lector.modo', 'lector.doble']) {
       localStorage.removeItem(clave);
     }
   } catch { /* sin almacenamiento no hay nada que limpiar */ }
