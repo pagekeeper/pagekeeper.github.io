@@ -65,7 +65,12 @@
           <option value="es">ES</option><option value="ca">CA</option><option value="gl">GL</option><option value="eu">EU</option><option value="en">EN</option><option value="fr">FR</option><option value="de">DE</option><option value="pt">PT</option>
         </select>
       </label>
-      <button id="btn-tema" class="btn-icono" title="Tema"></button>
+      <div id="control-tema" class="control-margenes">
+        <button id="btn-tema" class="btn-icono" title="Tema" data-i18n-title="theme"
+          aria-haspopup="menu" aria-expanded="false"></button>
+        <div id="panel-tema" class="panel-margenes panel-columnas" role="menu"
+          aria-label="Tema" data-i18n-aria-label="theme" hidden></div>
+      </div>
       <button id="btn-estadisticas" class="btn-icono" data-icono="chart-column"
         title="Estadísticas de lectura" data-i18n-title="stats"></button>
       <button id="btn-archivos" class="btn-icono" data-icono="folder-input"
@@ -1004,17 +1009,20 @@
       </div>
 
 <div class="tarjeta">
-        <h2>Claro, sepia y oscuro</h2>
-        <p>El botón del tema, en la cabecera, va pasando por los cuatro estados
-        cada vez que lo pulsas: <strong>el del sistema</strong> (círculo mitad
-        claro mitad oscuro), <strong>claro</strong> (sol), <strong>sepia</strong>
-        (taza) y <strong>oscuro</strong> (luna). El icono te dice en cuál estás y
-        tu elección se recuerda en ese navegador. De partida se usa el del
-        sistema, así que la aplicación se aclara u oscurece cuando lo hace el
-        resto del dispositivo.</p>
+        <h2>Claro, sepia, oscuro y negro</h2>
+        <p>El botón del tema, en la cabecera, abre un menú con cinco opciones:
+        <strong>el del sistema</strong> (círculo mitad claro mitad oscuro),
+        <strong>claro</strong> (sol), <strong>sepia</strong> (taza),
+        <strong>oscuro</strong> (luna) y <strong>negro</strong> (luna con
+        estrella). El icono del botón te dice en cuál estás y tu elección se
+        recuerda en ese navegador. De partida se usa el del sistema, así que la
+        aplicación se aclara u oscurece cuando lo hace el resto del
+        dispositivo.</p>
         <p class="ayuda">El tema es también el papel con el que se lee: claro es
-        papel blanco, sepia el tostado de los lectores de tinta electrónica y
-        oscuro el modo noche de la página.</p>
+        papel blanco, sepia el tostado de los lectores de tinta electrónica,
+        oscuro el modo noche de la página y negro ese mismo modo noche llevado
+        al negro puro, que en las pantallas OLED apaga el píxel y gasta menos
+        batería.</p>
       </div>
       </div>
 
@@ -1288,18 +1296,19 @@
             <summary>Papel del libro</summary>
             <p>
           el papel es el tema de la aplicación: no hay dos ajustes que cuadrar. El
-          botón del tema, en la cabecera de la biblioteca, recorre cuatro estados —el
-          del sistema, claro, sepia (tostado, más descansado para ratos largos) y
-          oscuro— y cambia a la vez la página del libro y todo lo demás. En EPUB se
+          botón del tema, en la cabecera de la biblioteca, abre un menú con cinco
+          opciones —el del sistema, claro, sepia (tostado, más descansado para ratos
+          largos), oscuro y negro (negro puro, para pantallas OLED)— y cambia a la
+          vez la página del libro y todo lo demás. En EPUB se
           cambian los colores del texto, así que las ilustraciones se ven tal cual; en
           PDF, que es una imagen ya dibujada, se tiñe la página entera.</p>
           </details>
           <details class="punto-ayuda">
-            <summary>Imágenes con el tema oscuro (solo PDF)</summary>
+            <summary>Imágenes con los temas oscuros (solo PDF)</summary>
             <p>
           al invertir la página, las fotos y los logotipos quedan en negativo. El botón
           de la imagen, que aparece en la barra del lector cuando lees un PDF con el
-          tema oscuro, les devuelve su color. Se recuerda de un libro a otro. Las páginas
+          tema oscuro o el negro, les devuelve su color. Se recuerda de un libro a otro. Las páginas
           escaneadas no se tocan: ahí la hoja entera es una imagen y devolverle su
           color dejaría el papel en blanco, que es justo lo que se quiere evitar de
           noche.</p>

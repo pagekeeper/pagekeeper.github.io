@@ -31,6 +31,8 @@ const TRAZADOS = {
   'contrast': '<circle cx="12" cy="12" r="10"/>' +
     ' <path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 1 0 20z"/>',
   'moon': '<path d="M20.985 12.486a9 9 0 1 1-9.473-9.472c.405-.022.617.46.402.803a6 6 0 0 0 8.268 8.268c.344-.215.825-.004.803.401"/>',
+  'moon-star': '<path d="M18 5h4"/> <path d="M20 3v4"/>' +
+    ' <path d="M21.35 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 10.14 9.79"/>',
   'sun': '<circle cx="12" cy="12" r="4"/> <path d="M12 2v2"/> <path d="M12 20v2"/> <path d="m4.93 4.93 1.41 1.41"/> <path d="m17.66 17.66 1.41 1.41"/> <path d="M2 12h2"/> <path d="M20 12h2"/> <path d="m6.34 17.66-1.41 1.41"/> <path d="m19.07 4.93-1.41 1.41"/>',
   'cloud': '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
   'smartphone': '<rect width="14" height="20" x="5" y="2" rx="2" ry="2"/> <path d="M12 18h.01"/>',

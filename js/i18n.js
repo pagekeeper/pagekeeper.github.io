@@ -290,11 +290,8 @@ const textos = {
     showContinueReadingHelp: 'El recuadro con tus últimas lecturas, encima de la biblioteca. Al ocultarlo, los libros siguen donde estaban y conservan su página.',
     openLastOnStart: 'Abrir la última lectura al iniciar PageKeeper',
     openLastOnStartHelp: 'Al abrir la aplicación se va directamente al libro que estabas leyendo, sin pasar por la biblioteca. Se recuerda solo en este dispositivo: en los demás seguirás llegando a la biblioteca.',
-    themeAuto: 'El del sistema', themeLight: 'Claro', themeSepia: 'Sepia', themeDark: 'Oscuro',
-    themeNowAuto: 'Tema: el del sistema. Pulsa para el claro',
-    themeNowLight: 'Tema: claro. Pulsa para el sepia',
-    themeNowSepia: 'Tema: sepia. Pulsa para el oscuro',
-    themeNowDark: 'Tema: oscuro. Pulsa para seguir el del sistema',
+    theme: 'Tema', themeAuto: 'El del sistema', themeLight: 'Claro', themeSepia: 'Sepia',
+    themeDark: 'Oscuro', themeBlack: 'Negro',
     actionMoveFolder: 'Mover la carpeta', moveFolderTo: 'Mover la carpeta «{name}»',
     folderMoved: 'Carpeta «{name}» movida.',
     savedToDevice: '«{title}» guardado en este dispositivo.',
@@ -609,11 +606,8 @@ const textos = {
     showContinueReadingHelp: 'El requadre amb les teves últimes lectures, damunt de la biblioteca. Si l’amagues, els llibres es queden on eren i conserven la pàgina.',
     openLastOnStart: 'Obre l’última lectura en iniciar PageKeeper',
     openLastOnStartHelp: 'En obrir l’aplicació vas directament al llibre que estaves llegint, sense passar per la biblioteca. Només es recorda en aquest dispositiu: a la resta continuaràs arribant a la biblioteca.',
-    themeAuto: 'El del sistema', themeLight: 'Clar', themeSepia: 'Sèpia', themeDark: 'Fosc',
-    themeNowAuto: 'Tema: el del sistema. Prem per al clar',
-    themeNowLight: 'Tema: clar. Prem per al sèpia',
-    themeNowSepia: 'Tema: sèpia. Prem per al fosc',
-    themeNowDark: 'Tema: fosc. Prem per seguir el del sistema',
+    theme: 'Tema', themeAuto: 'El del sistema', themeLight: 'Clar', themeSepia: 'Sèpia',
+    themeDark: 'Fosc', themeBlack: 'Negre',
     actionMoveFolder: 'Mou la carpeta', moveFolderTo: 'Mou la carpeta «{name}»',
     folderMoved: 'S’ha mogut la carpeta «{name}».',
     savedToDevice: 'S’ha desat «{title}» en aquest dispositiu.',
@@ -928,11 +922,8 @@ const textos = {
     showContinueReadingHelp: 'The box with your latest reads, above the library. Hiding it leaves the books where they were, with their page intact.',
     openLastOnStart: 'Open my latest read when PageKeeper starts',
     openLastOnStartHelp: 'Opening the app takes you straight to the book you were reading, skipping the library. It is remembered only on this device: elsewhere you will still land in the library.',
-    themeAuto: 'Match the system', themeLight: 'Light', themeSepia: 'Sepia', themeDark: 'Dark',
-    themeNowAuto: 'Theme: match the system. Tap for light',
-    themeNowLight: 'Theme: light. Tap for sepia',
-    themeNowSepia: 'Theme: sepia. Tap for dark',
-    themeNowDark: 'Theme: dark. Tap to match the system',
+    theme: 'Theme', themeAuto: 'Match the system', themeLight: 'Light', themeSepia: 'Sepia',
+    themeDark: 'Dark', themeBlack: 'Black',
     actionMoveFolder: 'Move folder', moveFolderTo: 'Move the folder “{name}”',
     folderMoved: 'Folder “{name}” moved.',
     savedToDevice: '“{title}” saved to this device.',
@@ -1247,11 +1238,8 @@ const textos = {
     showContinueReadingHelp: 'L’encadré avec vos dernières lectures, au-dessus de la bibliothèque. Le masquer laisse les livres où ils étaient, avec leur page intacte.',
     openLastOnStart: 'Ouvrir la dernière lecture au démarrage de PageKeeper',
     openLastOnStartHelp: 'À l’ouverture de l’application, vous arrivez directement dans le livre que vous étiez en train de lire, sans passer par la bibliothèque. Ce choix ne vaut que pour cet appareil : ailleurs, vous arriverez toujours dans la bibliothèque.',
-    themeAuto: 'Celui du système', themeLight: 'Clair', themeSepia: 'Sépia', themeDark: 'Sombre',
-    themeNowAuto: 'Thème : celui du système. Touchez pour le clair',
-    themeNowLight: 'Thème : clair. Touchez pour le sépia',
-    themeNowSepia: 'Thème : sépia. Touchez pour le sombre',
-    themeNowDark: 'Thème : sombre. Touchez pour suivre le système',
+    theme: 'Thème', themeAuto: 'Celui du système', themeLight: 'Clair', themeSepia: 'Sépia',
+    themeDark: 'Sombre', themeBlack: 'Noir',
     actionMoveFolder: 'Déplacer le dossier', moveFolderTo: 'Déplacer le dossier « {name} »',
     folderMoved: 'Dossier « {name} » déplacé.',
     savedToDevice: '« {title} » enregistré sur cet appareil.',
@@ -1566,11 +1554,8 @@ const textos = {
     showContinueReadingHelp: 'O recadro coas túas últimas lecturas, enriba da biblioteca. Ao ocultalo, os libros seguen onde estaban e conservan a súa páxina.',
     openLastOnStart: 'Abrir a última lectura ao iniciar PageKeeper',
     openLastOnStartHelp: 'Ao abrir a aplicación vaise directamente ao libro que estabas a ler, sen pasar pola biblioteca. Lémbrase só neste dispositivo: nos demais seguirás chegando á biblioteca.',
-    themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sepia', themeDark: 'Escuro',
-    themeNowAuto: 'Tema: o do sistema. Preme para o claro',
-    themeNowLight: 'Tema: claro. Preme para o sepia',
-    themeNowSepia: 'Tema: sepia. Preme para o escuro',
-    themeNowDark: 'Tema: escuro. Preme para seguir o do sistema',
+    theme: 'Tema', themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sepia',
+    themeDark: 'Escuro', themeBlack: 'Negro',
     actionMoveFolder: 'Mover o cartafol', moveFolderTo: 'Mover o cartafol «{name}»',
     folderMoved: 'Cartafol «{name}» movido.',
     savedToDevice: '«{title}» gardado neste dispositivo.',
@@ -1885,11 +1870,8 @@ const textos = {
     showContinueReadingHelp: 'Zure azken irakurketak dituen kutxa, liburutegiaren gainean. Ezkutatzean, liburuak zeuden tokian jarraitzen dute eta euren orrialdea mantentzen dute.',
     openLastOnStart: 'Ireki azken irakurketa PageKeeper abiaraztean',
     openLastOnStartHelp: 'Aplikazioa irekitzean, zuzenean irakurtzen ari zinen liburura joango zara, liburutegitik pasatu gabe. Gailu honetan bakarrik gogoratzen da: gainerakoetan liburutegira iristen jarraituko duzu.',
-    themeAuto: 'Sistemarena', themeLight: 'Argia', themeSepia: 'Sepia', themeDark: 'Iluna',
-    themeNowAuto: 'Gaia: sistemarena. Sakatu argirako',
-    themeNowLight: 'Gaia: argia. Sakatu sepiarako',
-    themeNowSepia: 'Gaia: sepia. Sakatu ilunerako',
-    themeNowDark: 'Gaia: iluna. Sakatu sistemarena jarraitzeko',
+    theme: 'Gaia', themeAuto: 'Sistemarena', themeLight: 'Argia', themeSepia: 'Sepia',
+    themeDark: 'Iluna', themeBlack: 'Beltza',
     actionMoveFolder: 'Eraman karpeta', moveFolderTo: '«{name}» karpeta eraman',
     folderMoved: '«{name}» karpeta eraman da.',
     savedToDevice: '«{title}» gailu honetan gorde da.',
@@ -2204,11 +2186,8 @@ const textos = {
     showContinueReadingHelp: 'Der Kasten mit deinen letzten Lektüren über der Bibliothek. Ihn auszublenden lässt die Bücher, wo sie waren, mit ihrer Seite unverändert.',
     openLastOnStart: 'Beim Start von PageKeeper die letzte Lektüre öffnen',
     openLastOnStartHelp: 'Beim Öffnen der App landest du direkt in dem Buch, das du gerade liest, ohne Umweg über die Bibliothek. Das gilt nur für dieses Gerät: auf den anderen kommst du weiterhin in der Bibliothek an.',
-    themeAuto: 'Systemvorgabe', themeLight: 'Hell', themeSepia: 'Sepia', themeDark: 'Dunkel',
-    themeNowAuto: 'Design: Systemvorgabe. Für Hell tippen',
-    themeNowLight: 'Design: Hell. Für Sepia tippen',
-    themeNowSepia: 'Design: Sepia. Für Dunkel tippen',
-    themeNowDark: 'Design: Dunkel. Für Systemvorgabe tippen',
+    theme: 'Design', themeAuto: 'Systemvorgabe', themeLight: 'Hell', themeSepia: 'Sepia',
+    themeDark: 'Dunkel', themeBlack: 'Schwarz',
     actionMoveFolder: 'Ordner verschieben', moveFolderTo: 'Ordner „{name}“ verschieben',
     folderMoved: 'Ordner „{name}“ verschoben.',
     savedToDevice: '„{title}“ auf diesem Gerät gespeichert.',
@@ -2523,11 +2502,8 @@ const textos = {
     showContinueReadingHelp: 'O quadro com as suas últimas leituras, por cima da biblioteca. Ao escondê-lo, os livros continuam onde estavam e mantêm a sua página.',
     openLastOnStart: 'Abrir a última leitura ao iniciar o PageKeeper',
     openLastOnStartHelp: 'Ao abrir a aplicação vai diretamente para o livro que estava a ler, sem passar pela biblioteca. É lembrado apenas neste dispositivo: nos outros continuará a chegar à biblioteca.',
-    themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sépia', themeDark: 'Escuro',
-    themeNowAuto: 'Tema: o do sistema. Toque para o claro',
-    themeNowLight: 'Tema: claro. Toque para o sépia',
-    themeNowSepia: 'Tema: sépia. Toque para o escuro',
-    themeNowDark: 'Tema: escuro. Toque para seguir o do sistema',
+    theme: 'Tema', themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sépia',
+    themeDark: 'Escuro', themeBlack: 'Preto',
     actionMoveFolder: 'Mover a pasta', moveFolderTo: 'Mover a pasta «{name}»',
     folderMoved: 'Pasta «{name}» movida.',
     savedToDevice: '«{title}» guardado neste dispositivo.',
@@ -2584,7 +2560,7 @@ const ayudas = {
       aria-label="Primers passos" tabindex="0">
 <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Afegeix una carpeta sencera:</strong> el botó de la carpeta amb la fletxa (i el mateix gest d’arrossegar-hi una carpeta) copia tots els PDF i EPUB que hi hagi dins, subcarpetes incloses, i refà aquesta mateixa estructura a la biblioteca. Amb el núvol funciona igual: les carpetes es creen al servidor.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
 
-<div class="tarjeta"><h2>Clar, sèpia i fosc</h2><p>El botó del tema, a la capçalera, va passant pels quatre estats cada cop que el prems: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa) i <strong>fosc</strong> (lluna). La icona et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica i fosc el mode nit de la pàgina.</p></div>
+<div class="tarjeta"><h2>Clar, sèpia, fosc i negre</h2><p>El botó del tema, a la capçalera, obre un menú amb cinc opcions: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa), <strong>fosc</strong> (lluna) i <strong>negre</strong> (lluna amb estrella). La icona del botó et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica, fosc el mode nit de la pàgina i negre aquest mateix mode nit portat al negre pur, que a les pantalles OLED apaga el píxel i gasta menys bateria.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -2853,18 +2829,19 @@ const ayudas = {
           <summary>Paper del llibre</summary>
           <p>
         el paper és el tema de l’aplicació: no hi ha dos ajustos per quadrar. El botó
-        del tema, a la capçalera de la biblioteca, recorre quatre estats —el del
-        sistema, clar, sèpia (torrat, més descansat per a estones llargues) i fosc— i
+        del tema, a la capçalera de la biblioteca, obre un menú amb cinc opcions —el del
+        sistema, clar, sèpia (torrat, més descansat per a estones llargues), fosc i
+        negre (negre pur, per a pantalles OLED)— i
         canvia alhora la pàgina del llibre i tota la resta. Als EPUB es canvien els
         colors del text, així que les il·lustracions es veuen tal qual; als PDF,
         que són una imatge ja dibuixada, es tenyeix la pàgina sencera.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Imatges amb el tema fosc (només PDF)</summary>
+          <summary>Imatges amb els temes foscos (només PDF)</summary>
           <p>
         en invertir la pàgina, les fotos i els logotips queden en negatiu. El botó de
         la imatge, que surt a la barra del lector quan llegeixes un PDF amb el tema
-        fosc, els torna el color. Es recorda d’un llibre a l’altre. Les pàgines escanejades
+        fosc o el negre, els torna el color. Es recorda d’un llibre a l’altre. Les pàgines escanejades
         no es toquen: allà el full sencer és una imatge i tornar-li el color deixaria
         el paper en blanc, que és justament el que es vol evitar de nit.</p>
         </details>
@@ -3087,7 +3064,7 @@ const ayudas = {
         reading position sync across all your devices. It needs some setting up
         first, explained further down.</li></ul></div>
 
-<div class="tarjeta"><h2>Light, sepia and dark</h2><p>The theme button in the header steps through four states each time you press it: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup) and <strong>dark</strong> (moon). The icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers and dark the page’s night mode.</p></div>
+<div class="tarjeta"><h2>Light, sepia, dark and black</h2><p>The theme button in the header opens a menu with five options: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup), <strong>dark</strong> (moon) and <strong>black</strong> (moon with a star). The button icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers, dark the page’s night mode and black that same night mode taken to pure black, which switches the pixel off on OLED screens and uses less battery.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -3351,18 +3328,19 @@ const ayudas = {
           <summary>Book paper</summary>
           <p>
         the paper is the app theme: there are no two settings to keep in step. The
-        theme button, in the library header, cycles through four states —the system
-        one, light, sepia (warm, easier on the eyes for long sessions) and dark— and
+        theme button, in the library header, opens a menu with five options —the system
+        one, light, sepia (warm, easier on the eyes for long sessions), dark and black
+        (pure black, for OLED screens)— and
         changes the book page and everything else at once. In EPUBs the text
         colours change, so illustrations look untouched; in PDFs, which are already
         drawn images, the whole page is tinted.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Images with the dark theme (PDF only)</summary>
+          <summary>Images with the dark themes (PDF only)</summary>
           <p>
         when the page is inverted, photos and logos end up as negatives. The image
-        button, which appears in the reader bar when you read a PDF with the dark
-        theme, gives them their colour back. It is remembered from one book to the next.
+        button, which appears in the reader bar when you read a PDF with the dark or
+        black theme, gives them their colour back. It is remembered from one book to the next.
         Scanned pages are left alone: there the whole sheet is an image and restoring
         its colour would leave the paper white, which is exactly what you are avoiding
         at night.</p>
@@ -3586,7 +3564,7 @@ const ayudas = {
         position de lecture se synchronisent sur tous vos appareils. Cela demande
         d’abord un peu de configuration, expliquée plus bas.</li></ul></div>
 
-<div class="tarjeta"><h2>Clair, sépia et sombre</h2><p>Le bouton de thème dans l’en-tête parcourt quatre états à chaque pression : <strong>celui du système</strong> (cercle mi-clair mi-sombre), <strong>clair</strong> (soleil), <strong>sépia</strong> (tasse) et <strong>sombre</strong> (lune). L’icône indique lequel est actif, et votre choix est mémorisé dans ce navigateur. Il démarre sur le thème du système, pour que l’application suive le reste de l’appareil.</p><p class="ayuda">Le thème, c’est aussi le papier sur lequel vous lisez : le clair est un papier blanc, le sépia le ton chaud des liseuses à encre électronique et le sombre le mode nuit de la page.</p></div>
+<div class="tarjeta"><h2>Clair, sépia, sombre et noir</h2><p>Le bouton de thème dans l’en-tête ouvre un menu à cinq options : <strong>celui du système</strong> (cercle mi-clair mi-sombre), <strong>clair</strong> (soleil), <strong>sépia</strong> (tasse), <strong>sombre</strong> (lune) et <strong>noir</strong> (lune avec une étoile). L’icône du bouton indique lequel est actif, et votre choix est mémorisé dans ce navigateur. Il démarre sur le thème du système, pour que l’application suive le reste de l’appareil.</p><p class="ayuda">Le thème, c’est aussi le papier sur lequel vous lisez : le clair est un papier blanc, le sépia le ton chaud des liseuses à encre électronique, le sombre le mode nuit de la page et le noir ce même mode nuit poussé au noir pur, qui éteint le pixel sur les écrans OLED et consomme moins.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -3869,18 +3847,19 @@ const ayudas = {
           <p>
         le papier, c’est le thème de l’application : il n’y a pas deux réglages à
         synchroniser. Le bouton de thème, dans l’en-tête de la bibliothèque, parcourt
-        quatre états — celui du système, clair, sépia (chaud, plus reposant pour les
-        longues séances) et sombre — et change à la fois la page du livre et tout le
+        un menu à cinq options — celui du système, clair, sépia (chaud, plus reposant pour
+        les longues séances), sombre et noir (noir pur, pour les écrans OLED) — et
+        change à la fois la page du livre et tout le
         reste. Dans les EPUB, les couleurs du texte changent, pour que les illustrations
         restent intactes ; dans les PDF, qui sont déjà des images composées, c’est toute
         la page qui est teintée.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Images avec le thème sombre (PDF uniquement)</summary>
+          <summary>Images avec les thèmes sombres (PDF uniquement)</summary>
           <p>
         quand la page est inversée, les photos et les logos se retrouvent en négatif. Le
         bouton image, qui apparaît dans la barre du lecteur en lisant un PDF avec le
-        thème sombre, leur rend leur couleur. Ce choix est mémorisé d’un livre à l’autre.
+        thème sombre ou le noir, leur rend leur couleur. Ce choix est mémorisé d’un livre à l’autre.
         Les pages numérisées ne sont pas concernées : là, toute la feuille est une image,
         et lui rendre sa couleur laisserait le papier blanc, ce qu’on cherche justement à
         éviter la nuit.</p>
@@ -4113,7 +4092,7 @@ const ayudas = {
         posición de lectura sincronízanse en todos os teus dispositivos. Require
         primeiro algo de configuración, explicada máis abaixo.</li></ul></div>
 
-<div class="tarjeta"><h2>Claro, sepia e escuro</h2><p>O botón de tema da cabeceira percorre catro estados cada vez que o premes: <strong>o do sistema</strong> (círculo medio claro medio escuro), <strong>claro</strong> (sol), <strong>sepia</strong> (cunca) e <strong>escuro</strong> (lúa). A icona indica en cal estás, e a túa escolla lémbrase nese navegador. Comeza no tema do sistema, para que a aplicación siga o resto do dispositivo.</p><p class="ayuda">O tema é tamén o papel no que les: o claro é papel branco, o sepia o ton cálido dos lectores de tinta electrónica e o escuro o modo noite da páxina.</p></div>
+<div class="tarjeta"><h2>Claro, sepia, escuro e negro</h2><p>O botón de tema da cabeceira abre un menú con cinco opcións: <strong>o do sistema</strong> (círculo medio claro medio escuro), <strong>claro</strong> (sol), <strong>sepia</strong> (cunca), <strong>escuro</strong> (lúa) e <strong>negro</strong> (lúa con estrela). A icona do botón indica en cal estás, e a túa escolla lémbrase nese navegador. Comeza no tema do sistema, para que a aplicación siga o resto do dispositivo.</p><p class="ayuda">O tema é tamén o papel no que les: o claro é papel branco, o sepia o ton cálido dos lectores de tinta electrónica, o escuro o modo noite da páxina e o negro ese mesmo modo noite levado ao negro puro, que nas pantallas OLED apaga o píxel e gasta menos batería.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -4381,18 +4360,19 @@ const ayudas = {
           <summary>Papel do libro</summary>
           <p>
         o papel é o tema da aplicación: non hai dous axustes que cadrar. O botón de
-        tema, na cabeceira da biblioteca, percorre catro estados —o do sistema, claro,
-        sepia (cálido, máis descansado en sesións longas) e escuro— e cambia á vez a
+        tema, na cabeceira da biblioteca, abre un menú con cinco opcións —o do sistema,
+        claro, sepia (cálido, máis descansado en sesións longas), escuro e negro (negro
+        puro, para pantallas OLED)— e cambia á vez a
         páxina do libro e todo o demais. Nos EPUB cambian as cores do texto, así que as
         ilustracións se ven intactas; nos PDF, que xa son imaxes debuxadas, tínxese a
         páxina enteira.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Imaxes co tema escuro (só PDF)</summary>
+          <summary>Imaxes cos temas escuros (só PDF)</summary>
           <p>
         cando a páxina se inverte, as fotos e os logotipos quedan en negativo. O botón
-        de imaxe, que aparece na barra do lector ao ler un PDF co tema escuro,
-        devólvelles a súa cor. Lémbrase dun libro a outro. As páxinas escaneadas
+        de imaxe, que aparece na barra do lector ao ler un PDF co tema escuro ou co
+        negro, devólvelles a súa cor. Lémbrase dun libro a outro. As páxinas escaneadas
         déixanse tal cal: alí a folla enteira é unha imaxe e devolverlle a cor deixaría
         o papel en branco, que é xustamente o que se busca evitar pola noite.</p>
         </details>
@@ -4615,7 +4595,7 @@ const ayudas = {
         irakurketa-posizioa zure gailu guztien artean sinkronizatzen dira. Lehenik
         konfigurazio pixka bat behar du, aurrerago azalduta.</li></ul></div>
 
-<div class="tarjeta"><h2>Argia, sepia eta iluna</h2><p>Goiburuko gai-botoiak lau egoera zeharkatzen ditu sakatu bakoitzean: <strong>sistemarena</strong> (erdi argi erdi ilun zirkulua), <strong>argia</strong> (eguzkia), <strong>sepia</strong> (kikara) eta <strong>iluna</strong> (ilargia). Ikonoak zein daukazun esaten dizu, eta zure aukera nabigatzaile horretan gogoratzen da. Sistemaren gaiarekin hasten da, aplikazioak gailuaren gainerakoa jarraitu dezan.</p><p class="ayuda">Gaia irakurtzen duzun papera ere bada: argia paper zuria da, sepia tinta elektronikoko irakurgailuen tono beroa eta iluna orriaren gau-modua.</p></div>
+<div class="tarjeta"><h2>Argia, sepia, iluna eta beltza</h2><p>Goiburuko gai-botoiak bost aukerako menu bat irekitzen du: <strong>sistemarena</strong> (erdi argi erdi ilun zirkulua), <strong>argia</strong> (eguzkia), <strong>sepia</strong> (kikara), <strong>iluna</strong> (ilargia) eta <strong>beltza</strong> (izardun ilargia). Botoiaren ikonoak zein daukazun esaten dizu, eta zure aukera nabigatzaile horretan gogoratzen da. Sistemaren gaiarekin hasten da, aplikazioak gailuaren gainerakoa jarraitu dezan.</p><p class="ayuda">Gaia irakurtzen duzun papera ere bada: argia paper zuria da, sepia tinta elektronikoko irakurgailuen tono beroa, iluna orriaren gau-modua eta beltza gau-modu bera beltz hutsera eramanda, OLED pantailetan pixela itzaltzen duena eta bateria gutxiago gastatzen duena.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -4896,17 +4876,18 @@ const ayudas = {
           <summary>Liburuaren papera</summary>
           <p>
         papera aplikazioaren gaia da: ez dago bi ezarpen bat etortzeko. Liburutegiaren
-        goiburuko gai-botoiak lau egoera zeharkatzen ditu —sistemarena, argia, sepia
-        (beroa, saio luzeetan atsedengarriagoa) eta iluna— eta liburuaren orrialdea eta
+        goiburuko gai-botoiak bost aukerako menu bat irekitzen du —sistemarena, argia,
+        sepia (beroa, saio luzeetan atsedengarriagoa), iluna eta beltza (beltz hutsa,
+        OLED pantailetarako)— eta liburuaren orrialdea eta
         gainerako guztia batera aldatzen ditu. EPUBetan testuaren koloreak aldatzen
         dira, ilustrazioak ukitu gabe geratu daitezen; PDFetan, jada marraztutako
         irudiak direnez, orrialde osoa tindatzen da.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Irudiak gai ilunarekin (PDF bakarrik)</summary>
+          <summary>Irudiak gai ilunekin (PDF bakarrik)</summary>
           <p>
         orrialdea alderantzikatzean, argazkiak eta logotipoak negatibo gisa geratzen
-        dira. Gai ilunarekin PDF bat irakurtzean irakurgailuaren barran agertzen den
+        dira. Gai ilunarekin edo beltzarekin PDF bat irakurtzean irakurgailuaren barran agertzen den
         irudi-botoiak beren kolorea itzultzen die. Liburu batetik bestera gogoratzen
         da. Eskaneatutako orrialdeak ukitu gabe geratzen dira: han orri osoa irudi bat
         da eta kolorea itzultzeak papera zuri utziko luke, gauean saihestu nahi den
@@ -5135,7 +5116,7 @@ const ayudas = {
         Leseposition werden zwischen all deinen Geräten synchronisiert. Dafür ist
         zunächst etwas Einrichtung nötig, weiter unten erklärt.</li></ul></div>
 
-<div class="tarjeta"><h2>Hell, Sepia und Dunkel</h2><p>Die Design-Schaltfläche in der Kopfzeile durchläuft bei jedem Tippen vier Zustände: <strong>Systemvorgabe</strong> (halb helles, halb dunkles Kreis-Symbol), <strong>Hell</strong> (Sonne), <strong>Sepia</strong> (Tasse) und <strong>Dunkel</strong> (Mond). Das Symbol zeigt an, welches gerade aktiv ist, und deine Wahl wird in diesem Browser gemerkt. Es beginnt mit der Systemvorgabe, damit die Anwendung dem Rest des Geräts folgt.</p><p class="ayuda">Das Design ist auch das Papier, auf dem du liest: Hell ist weißes Papier, Sepia der warme Ton von E-Ink-Lesegeräten und Dunkel der Nachtmodus der Seite.</p></div>
+<div class="tarjeta"><h2>Hell, Sepia, Dunkel und Schwarz</h2><p>Die Design-Schaltfläche in der Kopfzeile öffnet ein Menü mit fünf Optionen: <strong>Systemvorgabe</strong> (halb helles, halb dunkles Kreis-Symbol), <strong>Hell</strong> (Sonne), <strong>Sepia</strong> (Tasse), <strong>Dunkel</strong> (Mond) und <strong>Schwarz</strong> (Mond mit Stern). Das Symbol der Schaltfläche zeigt an, welches gerade aktiv ist, und deine Wahl wird in diesem Browser gemerkt. Es beginnt mit der Systemvorgabe, damit die Anwendung dem Rest des Geräts folgt.</p><p class="ayuda">Das Design ist auch das Papier, auf dem du liest: Hell ist weißes Papier, Sepia der warme Ton von E-Ink-Lesegeräten, Dunkel der Nachtmodus der Seite und Schwarz derselbe Nachtmodus in reinem Schwarz, das auf OLED-Bildschirmen das Pixel abschaltet und weniger Akku verbraucht.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -5430,18 +5411,19 @@ const ayudas = {
           <p>
         das Papier ist das Design der Anwendung: Es gibt nicht zwei Einstellungen,
         die aufeinander abgestimmt werden müssen. Die Design-Schaltfläche in der
-        Kopfzeile der Bibliothek durchläuft vier Zustände —Systemvorgabe, Hell,
-        Sepia (warm, entspannter für lange Sitzungen) und Dunkel— und ändert
+        Kopfzeile der Bibliothek öffnet ein Menü mit fünf Optionen —Systemvorgabe, Hell,
+        Sepia (warm, entspannter für lange Sitzungen), Dunkel und Schwarz (reines
+        Schwarz, für OLED-Bildschirme)— und ändert
         gleichzeitig die Buchseite und alles andere. Bei EPUBs ändern sich die
         Textfarben, sodass Illustrationen unangetastet bleiben; bei PDFs, die
         bereits gezeichnete Bilder sind, wird die ganze Seite eingefärbt.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Bilder mit dunklem Design (nur PDF)</summary>
+          <summary>Bilder mit den dunklen Designs (nur PDF)</summary>
           <p>
         beim Invertieren der Seite werden Fotos und Logos zu Negativen. Die
         Bild-Schaltfläche, die in der Leseleiste erscheint, wenn du ein PDF mit
-        dunklem Design liest, gibt ihnen ihre Farbe zurück. Sie wird von Buch zu
+        dunklem oder schwarzem Design liest, gibt ihnen ihre Farbe zurück. Sie wird von Buch zu
         Buch gemerkt. Gescannte Seiten bleiben unangetastet: Dort ist das ganze
         Blatt ein Bild, und ihm die Farbe zurückzugeben würde das Papier weiß
         lassen, genau das, was man nachts vermeiden möchte.</p>
@@ -5679,7 +5661,7 @@ const ayudas = {
         posição de leitura sincronizam-se em todos os seus dispositivos. É
         necessária primeiro alguma configuração, explicada mais abaixo.</li></ul></div>
 
-<div class="tarjeta"><h2>Claro, sépia e escuro</h2><p>O botão de tema no cabeçalho percorre quatro estados sempre que o toca: <strong>o do sistema</strong> (círculo meio claro meio escuro), <strong>claro</strong> (sol), <strong>sépia</strong> (chávena) e <strong>escuro</strong> (lua). O ícone indica em qual está, e a sua escolha é memorizada nesse navegador. Começa no tema do sistema, para que a aplicação siga o resto do dispositivo.</p><p class="ayuda">O tema é também o papel em que lê: o claro é papel branco, o sépia o tom quente dos leitores de tinta eletrónica e o escuro o modo noturno da página.</p></div>
+<div class="tarjeta"><h2>Claro, sépia, escuro e preto</h2><p>O botão de tema no cabeçalho abre um menu com cinco opções: <strong>o do sistema</strong> (círculo meio claro meio escuro), <strong>claro</strong> (sol), <strong>sépia</strong> (chávena), <strong>escuro</strong> (lua) e <strong>preto</strong> (lua com estrela). O ícone do botão indica em qual está, e a sua escolha é memorizada nesse navegador. Começa no tema do sistema, para que a aplicação siga o resto do dispositivo.</p><p class="ayuda">O tema é também o papel em que lê: o claro é papel branco, o sépia o tom quente dos leitores de tinta eletrónica, o escuro o modo noturno da página e o preto esse mesmo modo noturno levado ao preto puro, que nos ecrãs OLED apaga o píxel e gasta menos bateria.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -5961,18 +5943,19 @@ const ayudas = {
           <summary>Papel do livro</summary>
           <p>
         o papel é o tema da aplicação: não há dois ajustes para fazer coincidir.
-        O botão de tema, no cabeçalho da biblioteca, percorre quatro estados —o
-        do sistema, claro, sépia (quente, mais repousante em sessões longas) e
-        escuro— e muda ao mesmo tempo a página do livro e tudo o resto. Nos
+        O botão de tema, no cabeçalho da biblioteca, abre um menu com cinco
+        opções —o do sistema, claro, sépia (quente, mais repousante em sessões
+        longas), escuro e preto (preto puro, para ecrãs OLED)— e muda ao mesmo
+        tempo a página do livro e tudo o resto. Nos
         EPUB mudam as cores do texto, para que as ilustrações fiquem intactas;
         nos PDF, que já são imagens desenhadas, tinge-se a página inteira.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Imagens com o tema escuro (só PDF)</summary>
+          <summary>Imagens com os temas escuros (só PDF)</summary>
           <p>
         ao inverter a página, as fotos e os logótipos ficam em negativo. O
         botão de imagem, que aparece na barra do leitor ao ler um PDF com o
-        tema escuro, devolve-lhes a cor. É memorizado de um livro para outro.
+        tema escuro ou o preto, devolve-lhes a cor. É memorizado de um livro para outro.
         As páginas digitalizadas não são tocadas: aí a folha inteira é uma
         imagem e devolver-lhe a cor deixaria o papel em branco, que é
         precisamente o que se quer evitar à noite.</p>

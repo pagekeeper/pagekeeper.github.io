@@ -10,7 +10,7 @@ import { icono, pintarIconos } from './iconos.js';
 import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } from './i18n.js';
 import { LectorVoz } from './tts.js';
 import {
-  iniciarTema, temaElegido, temaEfectivo, pasarAlSiguienteTema, guardarTema,
+  iniciarTema, temaElegido, temaEfectivo, esTemaOscuro, guardarTema, TEMAS,
 } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
@@ -7916,6 +7916,13 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  // El menú del tema va primero: es de la cabecera de la biblioteca, así que
+  // se abre por encima de todo lo demás y nunca coincide con un diálogo.
+  if (!$('panel-tema').hidden) {
+    cerrarPanelTema();
+    $('btn-tema').focus();
+    return;
+  }
   if (fichaAbiertaDe) {
     cerrarFichaLibro();
     return;
@@ -8039,32 +8046,74 @@ function pedirPosicionLibro() {
 
 $('btn-indicador').addEventListener('click', pedirPosicionLibro);
 
-// ── Tema: claro, sepia, oscuro o el del sistema ──
-// Un único botón, en la cabecera de la biblioteca, con los cuatro estados en
-// rueda. El icono enseña el estado puesto (no a dónde lleva el botón, que con
-// cuatro opciones no se adivina) y el título dice en voz alta cuál es y qué
-// pasa al pulsarlo.
+// ── Tema: el del sistema, claro, sepia, oscuro o negro ──
+// Un botón en la cabecera de la biblioteca que abre un menú, como el de las
+// columnas del lector. Antes recorría los estados en rueda, y con cinco había
+// que pasar por los que no querías para llegar al que sí. El icono enseña el
+// estado puesto —no a dónde lleva el botón— y el menú marca cuál es.
 
-const ICONO_TEMA = { auto: 'contrast', claro: 'sun', sepia: 'coffee', oscuro: 'moon' };
-const NOMBRE_TEMA = {
-  auto: 'themeAuto', claro: 'themeLight', sepia: 'themeSepia', oscuro: 'themeDark',
+const ICONO_TEMA = {
+  auto: 'contrast', claro: 'sun', sepia: 'coffee', oscuro: 'moon', negro: 'moon-star',
 };
-const TITULO_TEMA = {
-  auto: 'themeNowAuto', claro: 'themeNowLight', sepia: 'themeNowSepia', oscuro: 'themeNowDark',
+const NOMBRE_TEMA = {
+  auto: 'themeAuto', claro: 'themeLight', sepia: 'themeSepia',
+  oscuro: 'themeDark', negro: 'themeBlack',
 };
 
 function pintarControlesTema() {
   const elegido = temaElegido();
   $('btn-tema').innerHTML = icono(ICONO_TEMA[elegido]);
-  $('btn-tema').title = t(TITULO_TEMA[elegido]);
+  $('btn-tema').title = `${t('theme')}: ${t(NOMBRE_TEMA[elegido])}`;
   etiquetarPorTitulo($('btn-tema'));
+  if (!$('panel-tema').hidden) pintarMenuTema();
+}
+
+// Una opción por tema, con su icono y una marca en el que está puesto. «El del
+// sistema» va primero porque es de donde se parte y a donde se vuelve.
+function pintarMenuTema() {
+  const panel = $('panel-tema');
+  const puesto = temaElegido();
+  panel.replaceChildren();
+  for (const tema of TEMAS) {
+    const boton = document.createElement('button');
+    boton.type = 'button';
+    boton.className = 'item-menu-lector';
+    boton.setAttribute('role', 'menuitemradio');
+    boton.setAttribute('aria-checked', String(tema === puesto));
+    boton.innerHTML = `${icono(ICONO_TEMA[tema])}<span>${t(NOMBRE_TEMA[tema])}</span>` +
+      (tema === puesto ? icono('circle-check', 'icono marca-opcion') : '');
+    boton.addEventListener('click', () => elegirTema(tema));
+    panel.append(boton);
+  }
+}
+
+function cerrarPanelTema() {
+  $('panel-tema').hidden = true;
+  $('btn-tema').setAttribute('aria-expanded', 'false');
+}
+
+function elegirTema(tema) {
+  cerrarPanelTema();
+  $('btn-tema').focus();
+  guardarTema(tema);
+  // El aviso confirma el estado nuevo: entre «claro» y «el del sistema» en un
+  // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
+  avisar(t(NOMBRE_TEMA[tema]), 1600);
 }
 
 $('btn-tema').addEventListener('click', () => {
-  // El aviso confirma el estado nuevo: entre «claro» y «el del sistema» en un
-  // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
-  avisar(t(NOMBRE_TEMA[pasarAlSiguienteTema()]), 1600);
+  const panel = $('panel-tema');
+  if (!panel.hidden) return cerrarPanelTema();
+  pintarMenuTema();
+  panel.hidden = false;
+  $('btn-tema').setAttribute('aria-expanded', 'true');
+  panel.querySelector('button')?.focus();
 });
+
+document.addEventListener('click', (evento) => {
+  if (!$('control-tema').contains(evento.target)) cerrarPanelTema();
+});
+
 document.addEventListener('tema-cambiado', pintarControlesTema);
 document.addEventListener('idioma-cambiado', pintarControlesTema);
 // Su texto depende de lo que traiga el libro, así que no lo cubre el paso
@@ -8120,7 +8169,7 @@ function imagenesNaturalesActivo() {
 // invertida. En EPUB no hace falta (allí no se filtra nada) y con el tema
 // claro o el sepia no hay negativo que deshacer.
 function aplicarImagenesNaturales() {
-  const procede = Boolean(libroActual) && !epubAbierto() && temaEfectivo() === 'oscuro';
+  const procede = Boolean(libroActual) && !epubAbierto() && esTemaOscuro();
   const activo = procede && imagenesNaturalesActivo();
   $('btn-imagenes-noche').classList.toggle('oculto', !procede);
   $('btn-imagenes-noche').setAttribute('aria-pressed', String(activo));

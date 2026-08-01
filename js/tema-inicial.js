@@ -9,7 +9,9 @@
 (() => {
   let guardado = null;
   try { guardado = localStorage.getItem('lector.tema'); } catch { /* sin almacenamiento */ }
-  const colores = { claro: '#f8fafc', sepia: '#efe4cf', oscuro: '#0f172a' };
+  const colores = {
+    claro: '#f8fafc', sepia: '#efe4cf', oscuro: '#0f172a', negro: '#000000',
+  };
   const tema = colores[guardado] ? guardado
     : (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'oscuro' : 'claro');
   document.documentElement.dataset.tema = tema;
