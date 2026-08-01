@@ -247,6 +247,19 @@ test('la ficha reúne el tiempo, el avance y el ritmo de un libro', () => {
   assert.deepEqual(ficha.porDispositivo.map((p) => p.dispositivo), ['movil', 'portatil']);
 });
 
+// El id de un libro del dispositivo lleva el tamaño detrás del nombre, así que
+// la extensión no está al final: mirando el id entero, un EPUB del dispositivo
+// pasaba por PDF y su ficha se inventaba un ritmo por página.
+test('un EPUB del dispositivo no pasa por PDF', () => {
+  const datos = { libros: { 'local:novela.epub:12345': { tiempos: { a: { s: 600, p: 4 } } } } };
+  assert.equal(estadisticasDeLibro(datos, 'local:novela.epub:12345').formato, 'epub');
+  assert.equal(estadisticasDeLibro(datos, 'local:novela.epub:12345').ritmo, null);
+  assert.equal(librosLeidos(datos.libros)[0].formato, 'epub');
+  // Y un PDF del dispositivo sigue siendo un PDF.
+  const pdf = { libros: { 'local:apuntes.pdf:99': { tiempos: { a: { s: 600, p: 4 } } } } };
+  assert.equal(librosLeidos(pdf.libros)[0].formato, 'pdf');
+});
+
 test('en EPUB no se calcula ritmo por página, porque no hay páginas fijas', () => {
   const ficha = estadisticasDeLibro(
     { libros: { 'novela.epub': { tiempos: { a: { s: 3600, p: 0 } } } } }, 'novela.epub');

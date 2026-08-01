@@ -5604,12 +5604,21 @@ function pintarLibrosLeidos(resumen) {
   const mayor = libros[0]?.segundos ?? 0;
   const nombres = nombresDeDispositivos();
   for (const libro of libros) {
-    const elemento = document.createElement('li');
+    const fila = document.createElement('li');
+    // La fila entera abre la ficha de ese libro, que es donde están su reparto
+    // por aparato, su ritmo y lo que lleva leído. Es un botón de verdad, y no
+    // un oyente sobre el <li>, para que también se llegue con el tabulador.
+    const elemento = document.createElement('button');
+    elemento.type = 'button';
     elemento.className = 'libro-estadistica';
+    const nombreLibro = nombreVisibleDeId(libro.id);
+    elemento.title = t('statsBookCard', { title: nombreLibro });
+    elemento.setAttribute('aria-label', elemento.title);
+    elemento.addEventListener('click', () => abrirFichaLibro(libro.id, nombreLibro));
 
     const titulo = document.createElement('span');
     titulo.className = 'titulo-estadistica';
-    titulo.textContent = nombreVisibleDeId(libro.id);
+    titulo.textContent = nombreLibro;
 
     const formato = document.createElement('span');
     formato.className = 'formato-estadistica';
@@ -5644,7 +5653,8 @@ function pintarLibrosLeidos(resumen) {
         .join(' · ');
       elemento.append(reparto);
     }
-    lista.append(elemento);
+    fila.append(elemento);
+    lista.append(fila);
   }
 }
 
@@ -5767,9 +5777,14 @@ function pintarFichaLibro(id) {
 }
 
 let fichaAbiertaDe = null;
+// Quién la abrió, para devolverle el foco al cerrar: desde la lista de
+// estadísticas se van mirando varios libros seguidos, y sin esto el tabulador
+// volvía a empezar por la cabecera cada vez.
+let abrioLaFicha = null;
 
 function abrirFichaLibro(id, titulo) {
   if (!id) return;
+  abrioLaFicha = document.activeElement;
   fichaAbiertaDe = id;
   $('titulo-ficha-libro').textContent = titulo || nombreVisibleDeId(id);
   pintarFichaLibro(id);
@@ -5781,6 +5796,8 @@ function cerrarFichaLibro() {
   if (!fichaAbiertaDe) return;
   fichaAbiertaDe = null;
   $('ficha-libro').classList.add('oculto');
+  if (abrioLaFicha?.isConnected) abrioLaFicha.focus();
+  abrioLaFicha = null;
 }
 
 $('cerrar-ficha-libro').addEventListener('click', cerrarFichaLibro);

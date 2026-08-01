@@ -2285,6 +2285,26 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   padding: 0.5rem 0;
 }
 .libro-estadistica + .libro-estadistica { border-top: 1px solid var(--borde); }
+/* En «En qué se va el tiempo» cada fila es un botón que abre la ficha de ese
+   libro, así que el separador ya no cae entre hermanos: los botones van uno
+   por <li>. Va por el id y no por la clase de la lista porque el reparto por
+   aparato de la propia ficha comparte esa clase y allí las filas no se pulsan.
+   Se le quitan al botón sus colores y su borde, que aquí lo único que hace de
+   aviso es el resaltado al pasar por encima. */
+#libros-estadisticas li + li { border-top: 1px solid var(--borde); }
+#libros-estadisticas .libro-estadistica {
+  /* El resaltado se sale un poco a los lados para no pegarse al texto; el
+     ancho lo compensa para que la fila no desborde la tarjeta. */
+  width: calc(100% + 0.8rem); margin: 0 -0.4rem; padding: 0.5rem 0.4rem;
+  font: inherit; color: inherit; text-align: left;
+  background: none; border: none; border-radius: 0.5rem; cursor: pointer;
+}
+#libros-estadisticas .libro-estadistica:hover {
+  background: color-mix(in srgb, var(--acento) 10%, transparent);
+}
+#libros-estadisticas .libro-estadistica:focus-visible {
+  outline: 2px solid var(--acento); outline-offset: -2px;
+}
 .titulo-estadistica {
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }

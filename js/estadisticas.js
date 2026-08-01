@@ -225,8 +225,14 @@ export function serie(dias, hoy, cuantos = 30) {
   return puntos;
 }
 
+// Los libros de la nube se identifican por su ruta, que acaba en la extensión,
+// pero los del dispositivo van como 'local:<nombre>:<tamaño>': mirar el id
+// entero los daba a todos por PDF, y con eso la ficha de un EPUB del
+// dispositivo enseñaba un ritmo en minutos por página que allí no existe.
 function formatoDe(id) {
-  return /\.epub$/i.test(String(id)) ? 'epub' : 'pdf';
+  const texto = String(id);
+  const nombre = texto.startsWith('local:') ? texto.split(':').slice(1, -1).join(':') : texto;
+  return /\.epub$/i.test(nombre) ? 'epub' : 'pdf';
 }
 
 // Libros con tiempo apuntado, del más leído al que menos, con el desglose por
