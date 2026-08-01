@@ -1950,6 +1950,24 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 .dialogo-contrasena-pdf input:focus { outline: 2px solid var(--acento); border-color: transparent; }
 .botones-dialogo { justify-content: flex-end; }
 
+/* Ilustración a pantalla completa. El fondo va oscuro en los dos temas: aquí
+   manda la imagen, y el velo claro de los demás diálogos la deslavaba. */
+.visor-imagen { background: rgba(0, 0, 0, 0.88); padding: 0; cursor: zoom-out; }
+/* Ocupa toda la pantalla, no el tamaño que tuviera en la página: con
+   `max-width` la ilustración se abría igual de pequeña que en el libro, que es
+   justo lo que se venía a resolver. `contain` conserva la proporción. */
+.visor-imagen img {
+  width: 100%; height: 100dvh; object-fit: contain;
+}
+.btn-cerrar-imagen {
+  position: absolute; top: max(0.5rem, env(safe-area-inset-top)); right: 0.5rem;
+  width: 2.5rem; height: 2.5rem; padding: 0; display: inline-flex;
+  align-items: center; justify-content: center; border: none; border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5); color: #fff; cursor: pointer;
+}
+.btn-cerrar-imagen:hover, .btn-cerrar-imagen:focus-visible { background: rgba(0, 0, 0, 0.75); }
+.btn-cerrar-imagen .icono { width: 1.4rem; height: 1.4rem; }
+
 /* ── Menú de acciones de un libro o carpeta ── */
 /* Se despliega junto al botón «⋯»; la capa transparente solo captura el
    toque fuera del menú para cerrarlo. */

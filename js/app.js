@@ -32,6 +32,7 @@ import {
 import * as estadisticas from './estadisticas.js';
 import * as gestos from './gestos.js';
 import { puntoEnElMarco, clicConPunto } from './zonas-toque.js';
+import { imagenAmpliable, descripcionImagen } from './imagen-ampliada.js';
 import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import * as vistaAnotaciones from './vista-anotaciones.js';
@@ -456,12 +457,16 @@ const lectorEpub = new LectorEpub({
   alPulsarEnlaceInterno: apuntarEnHistorial,
   // Los clics sobre el texto del libro ocurren dentro del iframe del
   // capítulo y no llegan al documento: cierran aquí los paneles flotantes.
-  alPulsarContenido: () => {
+  alPulsarContenido: (evento) => {
     cerrarPanelTexto();
     cerrarPanelColumnas();
     cerrarPanelTts();
     cerrarMenuLector();
     cerrarMenuNota();
+    // Fuera de las bandas no hay nada que estorbar, así que aquí se amplía
+    // cualquier ilustración, incluidas las que ocupan la página entera.
+    const imagen = imagenBajoElElemento(evento?.target, false);
+    if (imagen) abrirVisorImagen(imagen);
   },
   alSeleccionarTexto: manejarSeleccionTexto,
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
@@ -584,6 +589,7 @@ function cerrarVistaLector() {
   cerrarMenuNota();
   cerrarEditorNota();
   cerrarAvisoPdfSinTexto();
+  cerrarVisorImagen();
   ocultarNotaEmergente();
   cerrarPanelAnotaciones();
   cancelarSeleccion();
@@ -664,7 +670,8 @@ function ocultarCarga() {
 // aria-modal ya prometía) y al cerrarse el foco vuelve a donde estaba.
 
 const CAPAS_MODALES = ['dialogo-mover', 'dialogo-editar-nota', 'dialogo-contrasena-pdf',
-  'dialogo-pdf-sin-texto', 'menu-libro', 'fondo-menu-lector', 'menu-nota-contextual'];
+  'dialogo-pdf-sin-texto', 'menu-libro', 'fondo-menu-lector', 'menu-nota-contextual',
+  'visor-imagen'];
 
 // Los avisos y el indicador de carga viven fuera de las vistas y tienen que
 // seguir anunciándose aunque haya un diálogo delante.
@@ -7522,19 +7529,25 @@ $('zona-abajo').addEventListener('click', (evento) => pulsarZona(evento, false))
 // —una nota al pie junto al margen, una entrada del índice del propio libro,
 // una dirección web— se veía pero no se podía pulsar. Si hay uno bajo el
 // punto que se ha tocado, manda él; el resto de la banda pasa página.
+//
+// Con las ilustraciones pasa lo mismo, y por eso se resuelven aquí: pulsarlas
+// las abre ampliadas. El enlace va primero porque una imagen enlazada —una
+// portada que lleva al índice— se pulsa para seguir el enlace, no para verla.
 function pulsarZona(evento, atras) {
-  const enlace = enlaceBajoElPunto(evento);
-  if (enlace) enlace.click();
+  const objetivo = bajoElPunto(evento);
+  if (objetivo?.enlace) objetivo.enlace.click();
+  else if (objetivo?.imagen) abrirVisorImagen(objetivo.imagen);
   else pasarPagina(atras);
 }
 
-function enlaceBajoElPunto(evento) {
+function bajoElPunto(evento) {
   if (!clicConPunto(evento)) return null;
   const { clientX: x, clientY: y } = evento;
-  // En PDF los enlaces son de este mismo documento, tapados por la zona.
+  // En PDF los enlaces son de este mismo documento, tapados por la zona. Las
+  // ilustraciones de un PDF no están aquí: la página es un lienzo dibujado.
   const enPagina = document.elementsFromPoint(x, y)
     .find((elemento) => elemento.matches?.('.capa-enlaces a'));
-  if (enPagina) return enPagina;
+  if (enPagina) return { enlace: enPagina };
   // En EPUB el capítulo va en un iframe con sus propias coordenadas.
   for (const marco of $('contenedor-epub').querySelectorAll('iframe')) {
     const punto = puntoEnElMarco(x, y, marco.getBoundingClientRect());
@@ -7542,11 +7555,66 @@ function enlaceBajoElPunto(evento) {
     try {
       const dentro = marco.contentDocument?.elementFromPoint(punto.x, punto.y);
       const enlace = dentro?.closest('a[href]');
-      if (enlace) return enlace;
+      if (enlace) return { enlace };
+      const imagen = imagenBajoElElemento(dentro, true);
+      if (imagen) return { imagen };
     } catch { /* capítulo a medio montar: la banda pasa página y ya está */ }
   }
   return null;
 }
+
+// Muchos EPUB envuelven la ilustración en un <svg> con <image> dentro (es lo
+// que genera Calibre para las páginas de portada), así que no basta con mirar
+// las etiquetas <img>.
+function imagenBajoElElemento(elemento, desdeZona) {
+  const imagen = elemento?.closest?.('img, svg image, image');
+  if (!imagen) return null;
+  // El <img> ya resuelve su URL; el <image> del SVG da lo que ponga el
+  // atributo, y ahí una ruta relativa al capítulo no significa nada fuera del
+  // iframe: se resuelve contra la base del propio capítulo.
+  const declarada = imagen.currentSrc || imagen.src
+    || imagen.href?.baseVal || imagen.getAttribute('xlink:href') || '';
+  let fuente = '';
+  try {
+    fuente = declarada ? new URL(declarada, imagen.ownerDocument?.baseURI).href : '';
+  } catch { fuente = ''; }
+  const caja = imagen.getBoundingClientRect();
+  const datos = { fuente, ancho: caja.width, alto: caja.height };
+  const vista = { ancho: window.innerWidth, alto: window.innerHeight };
+  if (!imagenAmpliable(datos, vista, { desdeZona })) return null;
+  return {
+    fuente,
+    descripcion: descripcionImagen(
+      imagen.getAttribute('alt'), imagen.getAttribute('title'), t('zoomedImage'),
+    ),
+  };
+}
+
+// El visor tapa el libro entero: mientras está abierto no hay que pasar
+// página ni cerrar paneles por debajo.
+function abrirVisorImagen({ fuente, descripcion }) {
+  $('imagen-ampliada').src = fuente;
+  $('imagen-ampliada').alt = descripcion;
+  $('visor-imagen').classList.remove('oculto');
+  $('btn-cerrar-imagen').focus();
+}
+
+function cerrarVisorImagen() {
+  if ($('visor-imagen').classList.contains('oculto')) return;
+  $('visor-imagen').classList.add('oculto');
+  // La imagen se suelta al cerrar: en un libro con láminas grandes, dejarla
+  // cargada mantiene viva su descodificación sin que nadie la mire.
+  $('imagen-ampliada').removeAttribute('src');
+}
+
+function visorImagenAbierto() {
+  return !$('visor-imagen').classList.contains('oculto');
+}
+
+// Tocar en cualquier parte cierra, que es lo que se espera de una imagen
+// abierta a pantalla completa; el botón está para el teclado y para quien
+// busque la salida a la vista.
+$('visor-imagen').addEventListener('click', cerrarVisorImagen);
 
 
 // Con cuánto aumento se está leyendo. En PDF es el de la página, ya resuelto
@@ -8149,6 +8217,12 @@ document.addEventListener('click', (evento) => {
 
 document.addEventListener('keydown', (evento) => {
   if (evento.key !== 'Escape') return;
+  // La imagen ampliada tapa el libro entero: es siempre lo último que se ha
+  // abierto y lo primero que se cierra.
+  if (visorImagenAbierto()) {
+    cerrarVisorImagen();
+    return;
+  }
   // El menú del tema va primero: es de la cabecera de la biblioteca, así que
   // se abre por encima de todo lo demás y nunca coincide con un diálogo.
   if (!$('panel-tema').hidden) {
@@ -8478,7 +8552,7 @@ const ETIQUETAS_CON_TECLADO_PROPIO = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'OP
 // las teclas son suyas aunque el foco no haya llegado a caer dentro.
 const CAPAS_SOBRE_EL_LIBRO = ['dialogo-mover', 'dialogo-editar-nota',
   'dialogo-contrasena-pdf', 'dialogo-pdf-sin-texto', 'menu-libro',
-  'fondo-menu-lector', 'menu-nota-contextual'];
+  'fondo-menu-lector', 'menu-nota-contextual', 'visor-imagen'];
 
 // Decide si otra parte de la interfaz tiene preferencia sobre estas teclas.
 // Sin esta comprobación, elegir el interlineado con las flechas o escribir un

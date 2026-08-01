@@ -1738,6 +1738,16 @@
     </div>
   </div>
 
+  <!-- Ilustración del libro abierta a pantalla completa. En EPUB, subir el
+       tamaño de la letra no agranda las imágenes: para verlas de cerca se
+       pulsan. Se cierra tocando en cualquier parte. -->
+  <div id="visor-imagen" class="dialogo-fondo visor-imagen oculto" role="dialog" aria-modal="true"
+    aria-label="Imagen ampliada" data-i18n-aria-label="zoomedImage">
+    <img id="imagen-ampliada" alt="">
+    <button type="button" id="btn-cerrar-imagen" class="btn-cerrar-imagen" data-icono="x"
+      title="Cerrar" data-i18n-title="close" aria-label="Cerrar" data-i18n-aria-label="close"></button>
+  </div>
+
   <!-- Menú de acciones de un libro o una carpeta: se despliega junto al botón «⋯» -->
   <div id="menu-libro" class="fondo-menu-libro oculto">
     <div class="menu-libro" role="menu" aria-labelledby="titulo-menu-libro">
