@@ -469,6 +469,7 @@ const lectorEpub = new LectorEpub({
     if (imagen) abrirVisorImagen(imagen);
   },
   alSeleccionarTexto: manejarSeleccionTexto,
+  alCambiarSeleccion: () => revisarSeleccion(),
   alPulsarAnotacion: (id) => abrirPanelAnotaciones(id),
   alGestionarAnotacion: abrirMenuNota,
   alMostrarNota: mostrarNotaEmergente,
@@ -7106,6 +7107,46 @@ function manejarSeleccionTexto(seleccion) {
   seleccionPendiente = seleccion;
   $('barra-seleccion').classList.remove('oculto');
 }
+
+// Tanto el PDF como epub.js avisan de que se ha seleccionado texto, pero
+// ninguno de los dos avisa de lo contrario: la barra se quedaba flotando sobre
+// un texto que ya nadie tenía marcado. Se vigila la selección del documento (y
+// la de los iframes de los capítulos, que llegan desde el lector de EPUB).
+// Al pulsar un botón de la barra el navegador recoge la selección antes de que
+// el clic llegue a su destino: sin una tregua la barra se escondía en el
+// `pointerdown` y el resaltado no se llegaba a crear nunca. Se apunta el
+// momento en vez de un interruptor porque un `pointerup` perdido —el dedo que
+// sale de la pantalla, un menú del sistema— dejaría la barra clavada para
+// siempre; así la tregua caduca sola.
+let pulsadaBarraSeleccion = 0;
+const TREGUA_BARRA = 500;
+
+function ocultarBarraSiNoHaySeleccion() {
+  if (!seleccionPendiente || haySeleccionActiva()) return;
+  if (performance.now() - pulsadaBarraSeleccion < TREGUA_BARRA) return;
+  seleccionPendiente = null;
+  $('barra-seleccion').classList.add('oculto');
+}
+
+// El navegador no siempre avisa: al pulsar sobre las bandas de paso de página,
+// que se quedan el evento, la selección se deshace sin `selectionchange`. Por
+// eso se mira también al levantar el dedo, ya con el navegador al día.
+function revisarSeleccion() {
+  requestAnimationFrame(ocultarBarraSiNoHaySeleccion);
+}
+
+$('barra-seleccion').addEventListener('pointerdown', () => {
+  pulsadaBarraSeleccion = performance.now();
+});
+for (const evento of ['pointerup', 'pointercancel']) {
+  // El clic se despacha justo detrás del `pointerup`, así que el temporizador
+  // levanta la tregua cuando el botón ya ha hecho su trabajo.
+  document.addEventListener(evento, () => setTimeout(() => {
+    pulsadaBarraSeleccion = 0;
+    ocultarBarraSiNoHaySeleccion();
+  }));
+}
+document.addEventListener('selectionchange', ocultarBarraSiNoHaySeleccion);
 
 function limpiarSeleccionNativa() {
   window.getSelection()?.removeAllRanges();

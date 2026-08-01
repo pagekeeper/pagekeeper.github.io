@@ -265,7 +265,8 @@ function marcarAlineadosAMano(doc) {
 
 export class LectorEpub {
   constructor({ contenedor, alCambiarPosicion, alTeclear, alPulsarEnlaceInterno, alPulsarContenido,
-    alSeleccionarTexto, alPulsarAnotacion, alGestionarAnotacion, alMostrarNota, alOcultarNota,
+    alSeleccionarTexto, alCambiarSeleccion, alPulsarAnotacion, alGestionarAnotacion,
+    alMostrarNota, alOcultarNota,
     alPartirFrase,
     etiquetaOpcionesNota, alTocar, alMenuContextual, alCambiarPantallas }) {
     this.contenedor = contenedor;
@@ -275,6 +276,7 @@ export class LectorEpub {
     this.alPulsarEnlaceInterno = alPulsarEnlaceInterno;
     this.alPulsarContenido = alPulsarContenido;
     this.alSeleccionarTexto = alSeleccionarTexto;
+    this.alCambiarSeleccion = alCambiarSeleccion;
     this.alPulsarAnotacion = alPulsarAnotacion;
     this.alGestionarAnotacion = alGestionarAnotacion;
     this.alMostrarNota = alMostrarNota;
@@ -807,6 +809,12 @@ export class LectorEpub {
       this.ocultarNotaHover();
       this.programarIconosNotas();
     }, { passive: true });
+    // epub.js avisa de la selección con `selected`, pero no de que se deshaga,
+    // y la selección vive dentro del iframe: el documento de fuera no se entera.
+    doc.addEventListener('selectionchange', () => this.alCambiarSeleccion?.());
+    // Y el `pointerup` porque hay toques que deshacen la selección sin que el
+    // navegador llegue a emitir `selectionchange`.
+    doc.addEventListener('pointerup', () => this.alCambiarSeleccion?.());
     // El botón derecho sobre el texto del capítulo se queda dentro del iframe:
     // se reenvía con las coordenadas ya trasladadas al documento de fuera.
     doc.addEventListener('contextmenu', (evento) => {
