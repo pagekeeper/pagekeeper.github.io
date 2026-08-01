@@ -1953,6 +1953,23 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* Ilustración a pantalla completa. El fondo va oscuro en los dos temas: aquí
    manda la imagen, y el velo claro de los demás diálogos la deslavaba. */
 .visor-imagen { background: rgba(0, 0, 0, 0.88); padding: 0; cursor: zoom-out; }
+/* Aparecer y desaparecer de golpe, tapando la página entera, se lee como un
+   salto: por un momento no se sabe si se ha cambiado de sitio. El velo se
+   funde y la imagen crece un pelo desde donde estaba.
+   El visor se esconde con «display: none», que no se puede interpolar, así que
+   la salida necesita `allow-discrete`: sin eso la entrada se vería y la
+   salida no. Donde el navegador no lo entienda, aparece y desaparece sin más,
+   que es como estaba. */
+.visor-imagen, .visor-imagen img {
+  transition: opacity 180ms ease, transform 180ms ease,
+              display 180ms allow-discrete;
+}
+.visor-imagen.oculto { opacity: 0; }
+.visor-imagen.oculto img { transform: scale(0.96); }
+@starting-style {
+  .visor-imagen:not(.oculto) { opacity: 0; }
+  .visor-imagen:not(.oculto) img { transform: scale(0.96); }
+}
 /* Ocupa toda la pantalla, no el tamaño que tuviera en la página: con
    `max-width` la ilustración se abría igual de pequeña que en el libro, que es
    justo lo que se venía a resolver. `contain` conserva la proporción. */

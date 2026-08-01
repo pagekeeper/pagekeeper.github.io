@@ -7592,7 +7592,13 @@ function imagenBajoElElemento(elemento, desdeZona) {
 
 // El visor tapa el libro entero: mientras está abierto no hay que pasar
 // página ni cerrar paneles por debajo.
+// Lo que tarda el visor en fundirse (css/estilos.css). Soltar la imagen antes
+// de tiempo la borraría a mitad de la salida y se vería desaparecer de golpe.
+const SALIDA_VISOR_IMAGEN = 200;
+let sueltaImagenAmpliada = null;
+
 function abrirVisorImagen({ fuente, descripcion }) {
+  clearTimeout(sueltaImagenAmpliada);
   $('imagen-ampliada').src = fuente;
   $('imagen-ampliada').alt = descripcion;
   $('visor-imagen').classList.remove('oculto');
@@ -7604,7 +7610,9 @@ function cerrarVisorImagen() {
   $('visor-imagen').classList.add('oculto');
   // La imagen se suelta al cerrar: en un libro con láminas grandes, dejarla
   // cargada mantiene viva su descodificación sin que nadie la mire.
-  $('imagen-ampliada').removeAttribute('src');
+  sueltaImagenAmpliada = setTimeout(() => {
+    if (!visorImagenAbierto()) $('imagen-ampliada').removeAttribute('src');
+  }, SALIDA_VISOR_IMAGEN);
 }
 
 function visorImagenAbierto() {
