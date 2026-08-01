@@ -110,21 +110,30 @@ export const claveMes = (dia) => String(dia).slice(0, 7);
 // ellas comparar un año con el anterior sería imposible en cuanto el día más
 // viejo se cae del registro.
 //
-// A quien ya tenía días apuntados y ningún mes se le reconstruyen de una vez a
-// partir de ellos. El mes al que pertenece el día más antiguo se deja fuera si
-// ese día no es el 1: está cortado por la poda, y darlo por bueno lo dejaría
-// para siempre como un mes flojísimo que en realidad no lo fue.
-function mesesDesdeDias(dias) {
-  const claves = Object.keys(dias).sort();
-  if (!claves.length) return {};
-  const incompleto = claves[0].endsWith('-01') ? null : claveMes(claves[0]);
-  const meses = {};
-  for (const dia of claves) {
+// El contador mensual nunca puede quedar por debajo de lo que suman los días
+// de ese mes que todavía se guardan: un mes solo puede haber tenido más
+// lectura de la que queda a la vista, nunca menos. Así se rellenan los meses
+// de quien ya venía usando la aplicación antes de que existiera este contador,
+// y se repara cualquiera que se quedara corto.
+//
+// Antes esto descartaba el mes del día más antiguo cuando no empezaba en día
+// 1, dándolo por cortado por la poda. Pero un registro recién empezado también
+// arranca a mitad de mes, y ahí no se estaba podando nada: a quien llevaba
+// unos días leyendo se le tiraba su primer mes entero, y el total por meses no
+// cuadraba con el de por semanas. Quedarse con el mayor de los dos no puede
+// equivocarse en esa dirección; a cambio, un mes de verdad cortado por la poda
+// se queda subestimado, que es el error que sí se puede permitir.
+function completarMeses(dias, meses) {
+  const derivados = {};
+  for (const [dia, valor] of Object.entries(dias)) {
     const mes = claveMes(dia);
-    if (mes === incompleto) continue;
-    meses[mes] = suma(meses[mes], dias[dia]);
+    derivados[mes] = suma(derivados[mes], valor);
   }
-  return meses;
+  const completos = { ...meses };
+  for (const [mes, valor] of Object.entries(derivados)) {
+    if (!completos[mes] || valor.s > completos[mes].s) completos[mes] = valor;
+  }
+  return completos;
 }
 
 export function normalizarEstadisticas(estadisticas) {
@@ -143,7 +152,7 @@ export function normalizarEstadisticas(estadisticas) {
       const limpio = par(valor);
       if (limpio.s > 0) meses[mes] = limpio;
     }
-    const conMeses = Object.keys(meses).length ? meses : mesesDesdeDias(dias);
+    const conMeses = completarMeses(dias, meses);
     if (Object.keys(dias).length || Object.keys(conMeses).length) {
       limpias[dispositivo] = { dias, meses: conMeses };
     }

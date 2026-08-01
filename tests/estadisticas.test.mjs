@@ -342,12 +342,36 @@ test('a quien no tenía meses se le reconstruyen desde sus días', () => {
   assert.deepEqual(mesesCombinados(viejo), { '2026-07': { s: 900, p: 0 }, '2026-08': { s: 120, p: 0 } });
 });
 
-// El mes más antiguo suele estar cortado por la poda: darlo por bueno lo
-// dejaría para siempre como un mes flojísimo que en realidad no lo fue.
-test('el mes cortado por la poda no se reconstruye a medias', () => {
-  const viejo = { a: { dias: {
-    '2025-06-27': { s: 3000, p: 0 },  // el día más antiguo no es un día 1
-    '2025-07-02': { s: 600, p: 0 },
+// El caso que rompía las cuentas: quien lleva unos días leyendo empieza a
+// mitad de mes sin que se le haya podado nada, y su primer mes se descartaba
+// entero. El total por meses no cuadraba con el de por semanas.
+test('un historial que empieza a mitad de mes cuenta ese mes entero', () => {
+  const recien = { a: { dias: {
+    '2026-07-28': { s: 3600, p: 0 },
+    '2026-07-31': { s: 3600, p: 0 },
+    '2026-08-01': { s: 4560, p: 0 },
   } } };
-  assert.deepEqual(mesesCombinados(viejo), { '2025-07': { s: 600, p: 0 } });
+  assert.deepEqual(mesesCombinados(recien),
+    { '2026-07': { s: 7200, p: 0 }, '2026-08': { s: 4560, p: 0 } });
+});
+
+// El contador mensual manda mientras diga más que los días: un mes cortado por
+// la poda ya solo conserva un trozo de sus días, y rehacerlo con ellos lo
+// dejaría por debajo de lo que de verdad se leyó.
+test('los días no rebajan un mes que ya contaba más', () => {
+  const podado = { a: {
+    dias: { '2025-06-27': { s: 600, p: 0 } },
+    meses: { '2025-06': { s: 36000, p: 0 } },
+  } };
+  assert.deepEqual(mesesCombinados(podado), { '2025-06': { s: 36000, p: 0 } });
+});
+
+// Y al revés: un mes que se quedó corto se repara solo con lo que se sabe de
+// sus días, sin esperar a que nadie lo arregle a mano.
+test('un mes que se quedó corto se completa con sus días', () => {
+  const corto = { a: {
+    dias: { '2026-07-28': { s: 3600, p: 2 }, '2026-07-31': { s: 3600, p: 3 } },
+    meses: { '2026-07': { s: 1200, p: 1 } },
+  } };
+  assert.deepEqual(mesesCombinados(corto), { '2026-07': { s: 7200, p: 5 } });
 });

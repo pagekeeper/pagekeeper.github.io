@@ -370,6 +370,22 @@ export function migrarEstadisticasAntiguas() {
   return true;
 }
 
+// Deja escrito el contador mensual que se deduce de los días guardados. Al
+// pintar ya se completa al vuelo (ver normalizarEstadisticas), pero mientras no
+// se guarde no viaja a la nube ni llega a los demás dispositivos, y el mes
+// corto seguiría en el archivo compartido. Se hace al arrancar, una vez: en
+// cuanto está escrito, la comparación no encuentra nada que cambiar.
+export function completarMesesGuardados() {
+  const datos = cargarLocal();
+  if (!datos.estadisticas) return false;
+  const completadas = normalizarEstadisticas(datos.estadisticas);
+  if (JSON.stringify(completadas) === JSON.stringify(datos.estadisticas)) return false;
+  datos.estadisticas = completadas;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return true;
+}
+
 export function marcadoresDe(idLibro) {
   const marcadores = normalizarEntrada(progresoDe(idLibro)).marcadores;
   return Array.isArray(marcadores)

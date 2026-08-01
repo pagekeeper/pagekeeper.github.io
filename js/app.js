@@ -8993,6 +8993,9 @@ limpiarAjustesGlobalesViejos();
 // registro, bajo el identificador de este dispositivo, para que sumen con las
 // de los demás en lugar de perderse.
 progreso.migrarEstadisticasAntiguas();
+// El total de cada mes se deduce de los días que aún se guardan; dejarlo
+// escrito es lo que hace que viaje a la nube y llegue a los demás aparatos.
+progreso.completarMesesGuardados();
 iniciarTema(); // deja pintados también los dos selectores del tema automático
 sincronizarCasillaContinuar();
 sincronizarCasillasEstadisticas();
