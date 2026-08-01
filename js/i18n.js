@@ -219,6 +219,22 @@ const textos = {
     statsDays: '{count} días', statsDaysOne: '{count} día', statsHours: '{h} h',
     statsChartLabel: 'Gráfico del tiempo leído cada uno de los últimos {days} días.',
     statsChartSummary: 'Has leído {days} de los últimos 30, {total} en total.',
+    statsGroupBy: 'Agrupar por',
+    statsByDay: 'Días', statsByWeek: 'Semanas', statsByMonth: 'Meses', statsByYear: 'Años',
+    statsLastWeeks: 'Las últimas 12 semanas', statsLastMonths: 'Los últimos 12 meses',
+    statsLastYears: 'Los últimos 5 años',
+    statsCount_semana: '{count} semanas', statsCount_semanaOne: '{count} semana',
+    statsCount_mes: '{count} meses', statsCount_mesOne: '{count} mes',
+    statsCount_anno: '{count} años', statsCount_annoOne: '{count} año',
+    statsChartSummaryPeriod: 'Has leído en {count}, {total} en total.',
+    statsWeekOf: 'Semana del {date}',
+    statsThisWeek: 'Esta semana', statsThisMonth: 'Este mes', statsThisYear: 'Este año',
+    statsThisDay: 'Hoy',
+    statsPrevWeek: 'La semana anterior', statsPrevMonth: 'El mes anterior',
+    statsPrevYear: 'El año anterior', statsPrevDay: 'Ayer',
+    statsMoreThanBefore: '{percent} % más', statsLessThanBefore: '{percent} % menos',
+    statsSame: 'Igual', statsFirstTime: 'Empiezas', statsNoTime: 'Nada',
+    statsHistoryFrom: 'El detalle por días llega hasta el {date}.',
     statsChartEmpty: 'Aún no has leído nada en estos 30 días.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sin lectura',
     statsBooksTracked: 'De los {count} más recientes.',
@@ -542,6 +558,22 @@ const textos = {
     statsDays: '{count} dies', statsDaysOne: '{count} dia', statsHours: '{h} h',
     statsChartLabel: 'Gràfic del temps llegit cadascun dels darrers {days} dies.',
     statsChartSummary: 'Has llegit {days} dels darrers 30, {total} en total.',
+    statsGroupBy: 'Agrupa per',
+    statsByDay: 'Dies', statsByWeek: 'Setmanes', statsByMonth: 'Mesos', statsByYear: 'Anys',
+    statsLastWeeks: 'Les darreres 12 setmanes', statsLastMonths: 'Els darrers 12 mesos',
+    statsLastYears: 'Els darrers 5 anys',
+    statsCount_semana: '{count} setmanes', statsCount_semanaOne: '{count} setmana',
+    statsCount_mes: '{count} mesos', statsCount_mesOne: '{count} mes',
+    statsCount_anno: '{count} anys', statsCount_annoOne: '{count} any',
+    statsChartSummaryPeriod: 'Has llegit en {count}, {total} en total.',
+    statsWeekOf: 'Setmana del {date}',
+    statsThisWeek: 'Aquesta setmana', statsThisMonth: 'Aquest mes', statsThisYear: 'Enguany',
+    statsThisDay: 'Avui',
+    statsPrevWeek: 'La setmana anterior', statsPrevMonth: 'El mes anterior',
+    statsPrevYear: 'L’any anterior', statsPrevDay: 'Ahir',
+    statsMoreThanBefore: '{percent} % més', statsLessThanBefore: '{percent} % menys',
+    statsSame: 'Igual', statsFirstTime: 'Comences', statsNoTime: 'Res',
+    statsHistoryFrom: 'El detall per dies arriba fins al {date}.',
     statsChartEmpty: 'Encara no has llegit res en aquests 30 dies.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sense lectura',
     statsBooksTracked: 'Dels {count} més recents.',
@@ -865,6 +897,22 @@ const textos = {
     statsDays: '{count} days', statsDaysOne: '{count} day', statsHours: '{h} h',
     statsChartLabel: 'Chart of the time read on each of the last {days} days.',
     statsChartSummary: 'You read on {days} of the last 30, {total} in total.',
+    statsGroupBy: 'Group by',
+    statsByDay: 'Days', statsByWeek: 'Weeks', statsByMonth: 'Months', statsByYear: 'Years',
+    statsLastWeeks: 'The last 12 weeks', statsLastMonths: 'The last 12 months',
+    statsLastYears: 'The last 5 years',
+    statsCount_semana: '{count} weeks', statsCount_semanaOne: '{count} week',
+    statsCount_mes: '{count} months', statsCount_mesOne: '{count} month',
+    statsCount_anno: '{count} years', statsCount_annoOne: '{count} year',
+    statsChartSummaryPeriod: 'You read in {count}, {total} in total.',
+    statsWeekOf: 'Week of {date}',
+    statsThisWeek: 'This week', statsThisMonth: 'This month', statsThisYear: 'This year',
+    statsThisDay: 'Today',
+    statsPrevWeek: 'Previous week', statsPrevMonth: 'Previous month',
+    statsPrevYear: 'Previous year', statsPrevDay: 'Yesterday',
+    statsMoreThanBefore: '{percent}% more', statsLessThanBefore: '{percent}% less',
+    statsSame: 'The same', statsFirstTime: 'Just started', statsNoTime: 'Nothing',
+    statsHistoryFrom: 'The day-by-day detail goes back to {date}.',
     statsChartEmpty: 'You have not read anything in these 30 days yet.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: no reading',
     statsBooksTracked: 'Of the {count} most recent ones.',
@@ -1188,6 +1236,22 @@ const textos = {
     statsDays: '{count} jours', statsDaysOne: '{count} jour', statsHours: '{h} h',
     statsChartLabel: 'Graphique du temps de lecture pour chacun des {days} derniers jours.',
     statsChartSummary: 'Vous avez lu {days} des 30 derniers jours, {total} au total.',
+    statsGroupBy: 'Grouper par',
+    statsByDay: 'Jours', statsByWeek: 'Semaines', statsByMonth: 'Mois', statsByYear: 'Années',
+    statsLastWeeks: 'Les 12 dernières semaines', statsLastMonths: 'Les 12 derniers mois',
+    statsLastYears: 'Les 5 dernières années',
+    statsCount_semana: '{count} semaines', statsCount_semanaOne: '{count} semaine',
+    statsCount_mes: '{count} mois', statsCount_mesOne: '{count} mois',
+    statsCount_anno: '{count} années', statsCount_annoOne: '{count} année',
+    statsChartSummaryPeriod: 'Vous avez lu sur {count}, {total} au total.',
+    statsWeekOf: 'Semaine du {date}',
+    statsThisWeek: 'Cette semaine', statsThisMonth: 'Ce mois-ci', statsThisYear: 'Cette année',
+    statsThisDay: 'Aujourd’hui',
+    statsPrevWeek: 'La semaine précédente', statsPrevMonth: 'Le mois précédent',
+    statsPrevYear: 'L’année précédente', statsPrevDay: 'Hier',
+    statsMoreThanBefore: '{percent} % de plus', statsLessThanBefore: '{percent} % de moins',
+    statsSame: 'Identique', statsFirstTime: 'Vous démarrez', statsNoTime: 'Rien',
+    statsHistoryFrom: 'Le détail par jour remonte jusqu’au {date}.',
     statsChartEmpty: 'Vous n’avez encore rien lu pendant ces 30 jours.',
     statsChartDay: '{date} : {time}', statsChartDayNone: '{date} : aucune lecture',
     statsBooksTracked: 'Sur les {count} plus récents.',
@@ -1511,6 +1575,22 @@ const textos = {
     statsDays: '{count} días', statsDaysOne: '{count} día', statsHours: '{h} h',
     statsChartLabel: 'Gráfico do tempo lido cada un dos últimos {days} días.',
     statsChartSummary: 'Lixeches {days} dos últimos 30, {total} en total.',
+    statsGroupBy: 'Agrupar por',
+    statsByDay: 'Días', statsByWeek: 'Semanas', statsByMonth: 'Meses', statsByYear: 'Anos',
+    statsLastWeeks: 'As últimas 12 semanas', statsLastMonths: 'Os últimos 12 meses',
+    statsLastYears: 'Os últimos 5 anos',
+    statsCount_semana: '{count} semanas', statsCount_semanaOne: '{count} semana',
+    statsCount_mes: '{count} meses', statsCount_mesOne: '{count} mes',
+    statsCount_anno: '{count} anos', statsCount_annoOne: '{count} ano',
+    statsChartSummaryPeriod: 'Lixeches en {count}, {total} en total.',
+    statsWeekOf: 'Semana do {date}',
+    statsThisWeek: 'Esta semana', statsThisMonth: 'Este mes', statsThisYear: 'Este ano',
+    statsThisDay: 'Hoxe',
+    statsPrevWeek: 'A semana anterior', statsPrevMonth: 'O mes anterior',
+    statsPrevYear: 'O ano anterior', statsPrevDay: 'Onte',
+    statsMoreThanBefore: '{percent} % máis', statsLessThanBefore: '{percent} % menos',
+    statsSame: 'Igual', statsFirstTime: 'Comezas', statsNoTime: 'Nada',
+    statsHistoryFrom: 'O detalle por días chega ata o {date}.',
     statsChartEmpty: 'Aínda non liches nada nestes 30 días.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sen lectura',
     statsBooksTracked: 'Dos {count} máis recentes.',
@@ -1834,6 +1914,22 @@ const textos = {
     statsDays: '{count} egun', statsDaysOne: '{count} egun', statsHours: '{h} h',
     statsChartLabel: 'Azken {days} egunetako bakoitzean irakurritako denboraren grafikoa.',
     statsChartSummary: 'Azken 30etatik {days}etan irakurri duzu, {total} guztira.',
+    statsGroupBy: 'Taldekatu honela',
+    statsByDay: 'Egunak', statsByWeek: 'Asteak', statsByMonth: 'Hilabeteak', statsByYear: 'Urteak',
+    statsLastWeeks: 'Azken 12 asteak', statsLastMonths: 'Azken 12 hilabeteak',
+    statsLastYears: 'Azken 5 urteak',
+    statsCount_semana: '{count} astetan', statsCount_semanaOne: 'aste {count}ean',
+    statsCount_mes: '{count} hilabetetan', statsCount_mesOne: 'hilabete {count}ean',
+    statsCount_anno: '{count} urtetan', statsCount_annoOne: 'urte {count}ean',
+    statsChartSummaryPeriod: '{count} irakurri duzu, {total} guztira.',
+    statsWeekOf: '{date}(e)ko astea',
+    statsThisWeek: 'Aste honetan', statsThisMonth: 'Hilabete honetan', statsThisYear: 'Aurten',
+    statsThisDay: 'Gaur',
+    statsPrevWeek: 'Aurreko astea', statsPrevMonth: 'Aurreko hilabetea',
+    statsPrevYear: 'Aurreko urtea', statsPrevDay: 'Atzo',
+    statsMoreThanBefore: '% {percent} gehiago', statsLessThanBefore: '% {percent} gutxiago',
+    statsSame: 'Berdin', statsFirstTime: 'Hasi zara', statsNoTime: 'Ezer ez',
+    statsHistoryFrom: 'Eguneko xehetasuna {date} arte iristen da.',
     statsChartEmpty: 'Ez duzu ezer irakurri azken 30 egunotan.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: irakurketarik ez',
     statsBooksTracked: 'Azken {count}en artean.',
@@ -2157,6 +2253,22 @@ const textos = {
     statsDays: '{count} Tage', statsDaysOne: '{count} Tag', statsHours: '{h} Std.',
     statsChartLabel: 'Diagramm der gelesenen Zeit an jedem der letzten {days} Tage.',
     statsChartSummary: 'Du hast an {days} der letzten 30 Tage gelesen, {total} insgesamt.',
+    statsGroupBy: 'Gruppieren nach',
+    statsByDay: 'Tage', statsByWeek: 'Wochen', statsByMonth: 'Monate', statsByYear: 'Jahre',
+    statsLastWeeks: 'Die letzten 12 Wochen', statsLastMonths: 'Die letzten 12 Monate',
+    statsLastYears: 'Die letzten 5 Jahre',
+    statsCount_semana: '{count} Wochen', statsCount_semanaOne: '{count} Woche',
+    statsCount_mes: '{count} Monaten', statsCount_mesOne: '{count} Monat',
+    statsCount_anno: '{count} Jahren', statsCount_annoOne: '{count} Jahr',
+    statsChartSummaryPeriod: 'Du hast in {count} gelesen, {total} insgesamt.',
+    statsWeekOf: 'Woche ab {date}',
+    statsThisWeek: 'Diese Woche', statsThisMonth: 'Dieser Monat', statsThisYear: 'Dieses Jahr',
+    statsThisDay: 'Heute',
+    statsPrevWeek: 'Vorige Woche', statsPrevMonth: 'Voriger Monat',
+    statsPrevYear: 'Voriges Jahr', statsPrevDay: 'Gestern',
+    statsMoreThanBefore: '{percent} % mehr', statsLessThanBefore: '{percent} % weniger',
+    statsSame: 'Gleich', statsFirstTime: 'Du fängst an', statsNoTime: 'Nichts',
+    statsHistoryFrom: 'Die Tagesansicht reicht bis zum {date} zurück.',
     statsChartEmpty: 'Du hast in diesen 30 Tagen noch nichts gelesen.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: keine Lektüre',
     statsBooksTracked: 'Von den {count} zuletzt gelesenen.',
@@ -2480,6 +2592,22 @@ const textos = {
     statsDays: '{count} dias', statsDaysOne: '{count} dia', statsHours: '{h} h',
     statsChartLabel: 'Gráfico do tempo lido em cada um dos últimos {days} dias.',
     statsChartSummary: 'Leu em {days} dos últimos 30, {total} no total.',
+    statsGroupBy: 'Agrupar por',
+    statsByDay: 'Dias', statsByWeek: 'Semanas', statsByMonth: 'Meses', statsByYear: 'Anos',
+    statsLastWeeks: 'As últimas 12 semanas', statsLastMonths: 'Os últimos 12 meses',
+    statsLastYears: 'Os últimos 5 anos',
+    statsCount_semana: '{count} semanas', statsCount_semanaOne: '{count} semana',
+    statsCount_mes: '{count} meses', statsCount_mesOne: '{count} mês',
+    statsCount_anno: '{count} anos', statsCount_annoOne: '{count} ano',
+    statsChartSummaryPeriod: 'Leu em {count}, {total} no total.',
+    statsWeekOf: 'Semana de {date}',
+    statsThisWeek: 'Esta semana', statsThisMonth: 'Este mês', statsThisYear: 'Este ano',
+    statsThisDay: 'Hoje',
+    statsPrevWeek: 'A semana anterior', statsPrevMonth: 'O mês anterior',
+    statsPrevYear: 'O ano anterior', statsPrevDay: 'Ontem',
+    statsMoreThanBefore: '{percent} % mais', statsLessThanBefore: '{percent} % menos',
+    statsSame: 'Igual', statsFirstTime: 'Está a começar', statsNoTime: 'Nada',
+    statsHistoryFrom: 'O detalhe por dias chega até {date}.',
     statsChartEmpty: 'Ainda não leu nada nestes 30 dias.',
     statsChartDay: '{date}: {time}', statsChartDayNone: '{date}: sem leitura',
     statsBooksTracked: 'Dos {count} mais recentes.',
@@ -2768,8 +2896,13 @@ const ayudas = {
             <summary>Estadístiques de lectura</summary>
             <p>El botó del gràfic de la capçalera obre el temps que dediques a
           llegir: el total, el d’avui i el de la setmana, els dies seguits que
-          portes, una barra per cadascun dels darrers trenta dies i els llibres
-          als quals dediques més estona. Només es compta el temps amb el llibre
+          portes, un gràfic de barres i els llibres
+          als quals dediques més estona. El gràfic s’agrupa per <strong>dies, setmanes,
+          mesos o anys</strong>, i a sota compara el tram en curs amb l’anterior: quant
+          portes aquest mes respecte del passat, o enguany respecte de l’any passat. La
+          barra ratllada és la del tram que encara va a mitges. El detall per dies arriba
+          fins a uns tretze mesos enrere; el total de cada mes es guarda per sempre, així
+          que els mesos i els anys es poden comparar encara que siguin vells. Només es compta el temps amb el llibre
           al davant: mentre l’aplicació no és a la vista —una altra pestanya, una altra
           aplicació, el mòbil blocat— el rellotge s’atura, així que deixar-la oberta no
           suma. De cada pàgina es compten com a màxim cinc minuts; si t’hi quedes més
@@ -3271,8 +3404,13 @@ const ayudas = {
             <summary>Reading statistics</summary>
             <p>The chart button in the header opens the time you spend reading:
           the total, today’s and this week’s, how many days in a row you have
-          kept it up, one bar for each of the last thirty days, and the books
-          that take the most of your time. Only time with the book in front of you
+          kept it up, a bar chart, and the books
+          that take the most of your time. The chart groups by <strong>days, weeks,
+          months or years</strong>, and below it compares the current stretch with the
+          previous one: how much you have read this month against last month, or this
+          year against last year. The striped bar is the stretch still under way. The
+          day-by-day detail goes back about thirteen months; each month’s total is kept
+          for good, so months and years can be compared however old they are. Only time with the book in front of you
           is counted: while the app is out of sight —another tab, another app, a locked
           phone— the clock stops, so leaving it open adds nothing. Each page counts for
           at most five minutes; stay longer on the same one and the footer bar says
@@ -3781,8 +3919,14 @@ const ayudas = {
             <summary>Statistiques de lecture</summary>
             <p>Le bouton graphique dans l’en-tête ouvre le temps que vous passez à lire :
           le total, celui d’aujourd’hui et de cette semaine, combien de jours d’affilée
-          vous avez tenu, une barre pour chacun des trente derniers jours, et les livres
-          qui prennent le plus de votre temps. Seul le temps passé avec le livre devant
+          vous avez tenu, un graphique à barres, et les livres
+          qui prennent le plus de votre temps. Le graphique se groupe par <strong>jours,
+          semaines, mois ou années</strong>, et en dessous il compare la période en cours
+          avec la précédente : ce que vous avez lu ce mois-ci face au mois dernier, ou
+          cette année face à l’an dernier. La barre hachurée est celle de la période
+          encore en cours. Le détail par jour remonte à environ treize mois ; le total de
+          chaque mois est conservé pour toujours, de sorte que les mois et les années
+          restent comparables même anciens. Seul le temps passé avec le livre devant
           vous est compté : tant que l’application n’est pas visible —un autre onglet, une
           autre application, le téléphone verrouillé— l’horloge s’arrête, donc la laisser
           ouverte n’ajoute rien. Chaque page compte au maximum cinq minutes ; si vous
@@ -4300,9 +4444,14 @@ const ayudas = {
         <details class="punto-ayuda">
             <summary>Estatísticas de lectura</summary>
             <p>O botón do gráfico da cabeceira abre o tempo que dedicas a ler:
-          o total, o de hoxe e o desta semana, cantos días seguidos levas, unha barra
-          para cada un dos últimos trinta días e os libros aos que máis tempo lles
-          dedicas. Só conta o tempo co libro diante: mentres a aplicación non está á
+          o total, o de hoxe e o desta semana, cantos días seguidos levas, un gráfico
+          de barras e os libros aos que máis tempo lles
+          dedicas. O gráfico agrúpase por <strong>días, semanas, meses ou anos</strong>,
+          e debaixo compara o tramo en curso co anterior: canto levas este mes fronte ao
+          pasado, ou este ano fronte ao outro. A barra raiada é a do tramo que aínda vai
+          a medias. O detalle por días chega ata uns trece meses atrás; o total de cada
+          mes gárdase para sempre, así que os meses e os anos pódense comparar aínda que
+          sexan vellos. Só conta o tempo co libro diante: mentres a aplicación non está á
           vista —outra lapela, outra aplicación, o móbil bloqueado— o reloxo párase, así
           que deixala aberta non suma nada. De cada páxina cóntanse como máximo cinco
           minutos; se quedas máis tempo na mesma, a barra do pé avisa cun «En pausa» e o
@@ -4812,8 +4961,14 @@ const ayudas = {
             <summary>Irakurketa-estatistikak</summary>
             <p>Goiburuko grafiko-botoiak irakurtzen ematen duzun denbora irekitzen
           du: guztira, gaurkoa eta asteko denbora, zenbat egun jarraian daramatzazun,
-          azken hogeita hamar egunetako bakoitzeko barra bat, eta denbora gehien
-          hartzen duten liburuak. Liburua aurrean duzun denbora bakarrik
+          barra-grafiko bat, eta denbora gehien
+          hartzen duten liburuak. Grafikoa <strong>egunka, astez aste, hilabetez edo
+          urtez</strong> taldeka daiteke, eta azpian uneko tartea aurrekoarekin
+          alderatzen du: hilabete honetan zenbat daramazun aurrekoaren aldean, edo
+          aurten iaz baino gehiago ala gutxiago. Marradun barra oraindik erdibidean
+          dagoen tartearena da. Eguneko xehetasuna hamahiru hilabete ingurura arte
+          iristen da; hilabete bakoitzaren guztizkoa betiko gordetzen da, beraz
+          hilabeteak eta urteak zaharrak izanda ere aldera daitezke. Liburua aurrean duzun denbora bakarrik
           zenbatzen da: aplikazioa bistan ez dagoen bitartean —beste fitxa bat, beste
           aplikazio bat, mugikorra blokeatuta— erlojua gelditzen da, beraz irekita
           uzteak ez du ezer gehitzen. Orrialde bakoitzeko bost minutu zenbatzen dira
@@ -5341,8 +5496,14 @@ const ayudas = {
             <summary>Lesestatistiken</summary>
             <p>Die Diagramm-Schaltfläche in der Kopfzeile öffnet die Zeit, die du mit
           Lesen verbringst: die Gesamtzeit, die von heute und dieser Woche, wie viele
-          Tage in Folge du dranbleibst, einen Balken für jeden der letzten dreißig
-          Tage und die Bücher, denen du am meisten Zeit widmest. Nur die Zeit mit dem Buch vor dir
+          Tage in Folge du dranbleibst, ein Balkendiagramm
+          und die Bücher, denen du am meisten Zeit widmest. Das Diagramm gruppiert nach
+          <strong>Tagen, Wochen, Monaten oder Jahren</strong>, und darunter vergleicht es
+          den laufenden Abschnitt mit dem vorigen: wie viel du diesen Monat gegenüber dem
+          letzten gelesen hast, oder dieses Jahr gegenüber dem vorigen. Der schraffierte
+          Balken ist der noch laufende Abschnitt. Die Tagesansicht reicht etwa dreizehn
+          Monate zurück; die Summe jedes Monats bleibt für immer erhalten, sodass Monate
+          und Jahre auch alt noch vergleichbar sind. Nur die Zeit mit dem Buch vor dir
           zählt: solange die App nicht zu sehen ist —ein anderer Tab, eine andere App,
           das gesperrte Handy— steht die Uhr still, ein offen gelassener Tab fügt also
           nichts hinzu. Pro Seite werden höchstens fünf Minuten gezählt; bleibst du
@@ -5874,9 +6035,14 @@ const ayudas = {
         <details class="punto-ayuda">
             <summary>Estatísticas de leitura</summary>
             <p>O botão do gráfico no cabeçalho abre o tempo que dedica a ler: o
-          total, o de hoje e o desta semana, quantos dias seguidos leva, uma
-          barra para cada um dos últimos trinta dias e os livros a que dedica
-          mais tempo. Só conta o tempo com o livro à frente: enquanto a
+          total, o de hoje e o desta semana, quantos dias seguidos leva, um
+          gráfico de barras e os livros a que dedica
+          mais tempo. O gráfico agrupa-se por <strong>dias, semanas, meses ou
+          anos</strong>, e por baixo compara o troço em curso com o anterior: quanto leva
+          este mês face ao passado, ou este ano face ao outro. A barra às riscas é a do
+          troço que ainda vai a meio. O detalhe por dias chega até cerca de treze meses
+          atrás; o total de cada mês guarda-se para sempre, por isso os meses e os anos
+          podem comparar-se por mais antigos que sejam. Só conta o tempo com o livro à frente: enquanto a
           aplicação não está à vista —outro separador, outra aplicação, o telemóvel
           bloqueado— o relógio para, por isso deixá-la aberta não soma nada. De cada
           página contam-se no máximo cinco minutos; se ficar mais tempo na mesma, a

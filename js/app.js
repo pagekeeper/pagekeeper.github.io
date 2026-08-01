@@ -36,6 +36,7 @@ import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import * as vistaAnotaciones from './vista-anotaciones.js';
 import * as vistaEstadisticas from './vista-estadisticas.js';
+import * as periodos from './periodos.js';
 import {
   librosDeCarpetaLocal, librosDeCarpetaRemota, nombreSeguro, puedeGuardarEnDisco,
 } from './descarga-carpeta.js';
@@ -5539,40 +5540,157 @@ function pintarCifras(resumen) {
 }
 
 // «Has leído X días, en total Y», o nada si no se ha leído ningún día.
-function resumenDeLaSerie(serie) {
-  const { diasLeidos, segundos } = vistaEstadisticas.totalesDeSerie(serie);
-  if (!diasLeidos) return null;
-  return t('statsChartSummary', {
-    days: diasEnPalabras(diasLeidos), total: duracionLegible(segundos),
+// ── El gráfico: por días, semanas, meses o años ──
+//
+// Los días y las semanas salen de los días guardados; los meses y los años,
+// del contador mensual, que no se poda (ver periodos.js). El periodo elegido
+// se recuerda en este aparato: quien mira su año no quiere volver a los días
+// cada vez que entra.
+
+const CLAVE_PERIODO = 'lector.periodoEstadisticas';
+
+function periodoElegido() {
+  const guardado = localStorage.getItem(CLAVE_PERIODO);
+  return periodos.PERIODOS.includes(guardado) ? guardado : 'dia';
+}
+
+const TITULO_PERIODO = {
+  dia: 'statsLastDays', semana: 'statsLastWeeks',
+  mes: 'statsLastMonths', anno: 'statsLastYears',
+};
+const NOMBRE_TRAMO = {
+  dia: 'statsThisDay', semana: 'statsThisWeek',
+  mes: 'statsThisMonth', anno: 'statsThisYear',
+};
+const NOMBRE_TRAMO_ANTERIOR = {
+  dia: 'statsPrevDay', semana: 'statsPrevWeek',
+  mes: 'statsPrevMonth', anno: 'statsPrevYear',
+};
+
+// Cómo se llama un tramo en la etiqueta de su barra. La semana se nombra por
+// el lunes en que empieza porque decir «semana 31» no le dice nada a nadie.
+function nombreDelTramo(punto) {
+  const idioma = idiomaActual();
+  if (punto.periodo === 'anno') return String(punto.inicio.getFullYear());
+  if (punto.periodo === 'mes') {
+    return punto.inicio.toLocaleDateString(idioma, { month: 'long', year: 'numeric' });
+  }
+  if (punto.periodo === 'semana') {
+    return t('statsWeekOf', { date: fechaCorta(periodos.claveDeFecha(punto.inicio)) });
+  }
+  return fechaCorta(punto.clave);
+}
+
+function resumenDeLaSerie(serie, periodo) {
+  const { tramosConLectura, segundos } = periodos.totalesDePeriodos(serie);
+  if (!tramosConLectura) return null;
+  if (periodo === 'dia') {
+    return t('statsChartSummary', {
+      days: diasEnPalabras(tramosConLectura), total: duracionLegible(segundos),
+    });
+  }
+  return t('statsChartSummaryPeriod', {
+    count: tContado(`statsCount_${periodo}`, tramosConLectura),
+    total: duracionLegible(segundos),
   });
 }
 
-// Barras de altura proporcional al día que más se leyó. Los días en blanco
+// Barras de altura proporcional al tramo que más se leyó. Los tramos en blanco
 // dejan una raya tenue: el hueco es justamente lo que hay que ver.
-function pintarGrafico(resumen) {
+function pintarGrafico(datos) {
+  const periodo = periodoElegido();
   const grafico = $('grafico-estadisticas');
+  const serie = periodos.seriePeriodos(datos, periodo);
   grafico.replaceChildren();
-  const maximo = vistaEstadisticas.mayorDeLaSerie(resumen.serie);
-  for (const punto of resumen.serie) {
+  const maximo = serie.reduce((mayor, punto) => Math.max(mayor, punto.segundos), 0);
+  for (const punto of serie) {
     const columna = document.createElement('div');
     columna.className = 'columna-dia';
     columna.setAttribute('aria-hidden', 'true');
     const barra = document.createElement('div');
-    barra.className = punto.segundos ? 'barra-dia' : 'barra-dia sin-lectura';
+    // El último tramo va a medias todavía: se raya para que su barra corta no
+    // se lea como un bajón de lectura.
+    const enCurso = punto === serie[serie.length - 1] && periodo !== 'dia';
+    barra.className = 'barra-dia';
+    if (!punto.segundos) barra.classList.add('sin-lectura');
+    else if (enCurso) barra.classList.add('en-curso');
     barra.style.height = `${vistaEstadisticas.alturaBarra(punto.segundos, maximo)}%`;
+    const nombre = nombreDelTramo(punto);
     columna.title = punto.segundos
-      ? t('statsChartDay', { date: fechaCorta(punto.dia), time: duracionLegible(punto.segundos) })
-      : t('statsChartDayNone', { date: fechaCorta(punto.dia) });
+      ? t('statsChartDay', { date: nombre, time: duracionLegible(punto.segundos) })
+      : t('statsChartDayNone', { date: nombre });
     columna.append(barra);
     grafico.append(columna);
   }
 
-  const detalle = resumenDeLaSerie(resumen.serie) ?? t('statsChartEmpty');
+  const detalle = resumenDeLaSerie(serie, periodo) ?? t('statsChartEmpty');
   // El gráfico se anuncia como una sola imagen con su resumen: treinta barras
   // leídas una a una no dicen nada y se tardan siglos en pasar.
-  grafico.setAttribute('aria-label',
-    `${t('statsChartLabel', { days: resumen.serie.length })} ${detalle}`);
+  grafico.setAttribute('aria-label', `${t(TITULO_PERIODO[periodo])}. ${detalle}`);
   $('pie-grafico').textContent = detalle;
+  $('titulo-grafico').textContent = t(TITULO_PERIODO[periodo]);
+  pintarComparacion(serie, periodo, datos);
+}
+
+// El tramo en curso frente al anterior. Con los días no se enseña: comparar
+// hoy con ayer no dice nada de cómo va la lectura, y encima hoy casi siempre
+// va por la mitad.
+function pintarComparacion(serie, periodo, datos) {
+  const caja = $('comparacion-periodos');
+  const { actual, anterior, variacion, sentido } = periodos.comparar(serie);
+  const procede = periodo !== 'dia' && actual && (actual.segundos > 0 || anterior?.segundos > 0);
+  caja.classList.toggle('oculto', !procede);
+  if (!procede) return;
+
+  // Un tramo a cero se dice «Nada» y no «< 1 m»: al lado de un «100 % menos»,
+  // el «menos de un minuto» se lee como que algo se leyó.
+  const cifra = (segundos) => (segundos > 0 ? duracionLegible(segundos) : t('statsNoTime'));
+  $('etiqueta-periodo-actual').textContent = t(NOMBRE_TRAMO[periodo]);
+  $('valor-periodo-actual').textContent = cifra(actual.segundos);
+  $('etiqueta-periodo-anterior').textContent = t(NOMBRE_TRAMO_ANTERIOR[periodo]);
+  $('valor-periodo-anterior').textContent = cifra(anterior?.segundos ?? 0);
+
+  const marca = $('variacion-periodos');
+  marca.classList.remove('mas', 'menos');
+  if (sentido !== 'igual') marca.classList.add(sentido);
+  // Sin nada en el tramo anterior no hay porcentaje que dar: se dice que se
+  // empieza, en vez de un «+∞ %» que no significa nada.
+  if (variacion === null) marca.textContent = sentido === 'mas' ? t('statsFirstTime') : '';
+  else if (variacion === 0) marca.textContent = t('statsSame');
+  else {
+    marca.textContent = t(variacion > 0 ? 'statsMoreThanBefore' : 'statsLessThanBefore',
+      { percent: Math.abs(variacion) });
+  }
+
+  // Los días se podan a los 400: en semanas, las barras más viejas pueden
+  // estar vacías porque ya no se guarda ese día, no porque no se leyera.
+  const desde = periodos.desdeCuandoHayDatos(datos, periodo);
+  const primera = serie[0];
+  const recortado = periodo === 'semana' && desde
+    && desde > periodos.claveDeFecha(primera.inicio);
+  $('pie-grafico').textContent += recortado
+    ? ` ${t('statsHistoryFrom', { date: fechaCorta(desde, true) })}` : '';
+}
+
+// Los cuatro botones de agrupar. Cambiar de periodo no vuelve a leer el
+// registro entero: se repinta solo el gráfico, que es lo único que cambia.
+for (const boton of document.querySelectorAll('#grupo-periodos button')) {
+  boton.addEventListener('click', () => {
+    localStorage.setItem(CLAVE_PERIODO, boton.dataset.periodo);
+    pintarBotonesPeriodo();
+    const datos = progreso.cargarLocal();
+    pintarGrafico({
+      dias: estadisticas.diasCombinados(datos.estadisticas),
+      meses: estadisticas.mesesCombinados(datos.estadisticas),
+    });
+  });
+}
+
+function pintarBotonesPeriodo() {
+  const puesto = periodoElegido();
+  for (const boton of document.querySelectorAll('#grupo-periodos button')) {
+    boton.setAttribute('aria-pressed', String(boton.dataset.periodo === puesto));
+  }
 }
 
 // Nombre con el que llamar a cada dispositivo en el desglose. Es el mismo que
@@ -5659,7 +5777,8 @@ function pintarLibrosLeidos(resumen) {
 }
 
 function pintarEstadisticas() {
-  const resumen = estadisticas.resumen(progreso.cargarLocal());
+  const datos = progreso.cargarLocal();
+  const resumen = estadisticas.resumen(datos);
   $('estadisticas-vacio').classList.toggle('oculto', resumen.hay);
   // Con varios aparatos, lo que se enseña es la suma de todos: conviene
   // decirlo, porque las cifras no cuadran con las de ninguno por separado.
@@ -5667,7 +5786,11 @@ function pintarEstadisticas() {
   $('estadisticas-contenido').classList.toggle('oculto', !resumen.hay);
   if (!resumen.hay) return;
   pintarCifras(resumen);
-  pintarGrafico(resumen);
+  pintarBotonesPeriodo();
+  pintarGrafico({
+    dias: estadisticas.diasCombinados(datos.estadisticas),
+    meses: estadisticas.mesesCombinados(datos.estadisticas),
+  });
   pintarLibrosLeidos(resumen);
 }
 
@@ -5676,7 +5799,9 @@ function pintarEstadisticas() {
 function pintarResumenEstadisticas() {
   const resumen = estadisticas.resumen(progreso.cargarLocal());
   $('resumen-estadisticas').textContent =
-    (resumen.hay && resumenDeLaSerie(resumen.serie)) || t('statsEmptyTitle');
+    // Siempre en días: es una línea suelta en los ajustes, sin sitio para
+    // elegir periodo ni para explicar cuál se está enseñando.
+    (resumen.hay && resumenDeLaSerie(resumen.serie, 'dia')) || t('statsEmptyTitle');
 }
 
 // ───────────── Ficha de un libro ─────────────

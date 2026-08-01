@@ -5,6 +5,7 @@ import {
   apuntarTiempo, fusionarTiempos, totalTiempo, normalizarTiempos,
   apuntarDia, fusionarEstadisticas, diasCombinados, normalizarEstadisticas,
   racha, rachaMaxima, serie, librosLeidos, resumen, estadisticasDeLibro,
+  mesesCombinados,
   claveDia, DIAS_GUARDADOS,
 } from '../js/estadisticas.js';
 
@@ -284,4 +285,69 @@ test('el porcentaje se queda dentro de sus límites aunque el registro venga rar
   const sinTotal = estadisticasDeLibro(
     { libros: { 'b.pdf': { pagina: 5, paginas: 0, tiempos: { d: { s: 60, p: 1 } } } } }, 'b.pdf');
   assert.equal(sinTotal.porcentaje, null);
+});
+
+
+// ── El contador mensual, que no se poda ──
+
+test('apuntar un rato lo suma al día y a su mes', () => {
+  let est;
+  est = apuntarDia(est, 'a', { segundos: 600, paginas: 5, ahora: dia(2026, 7, 30) });
+  est = apuntarDia(est, 'a', { segundos: 300, paginas: 2, ahora: dia(2026, 8, 1) });
+  assert.deepEqual(est.a.meses, { '2026-07': { s: 600, p: 5 }, '2026-08': { s: 300, p: 2 } });
+  assert.deepEqual(mesesCombinados(est), { '2026-07': { s: 600, p: 5 }, '2026-08': { s: 300, p: 2 } });
+});
+
+// Los días viejos se caen a los 400; el mes al que pertenecían se queda, que
+// es lo que permite comparar un año con el anterior.
+test('el mes sobrevive a la poda de sus días', () => {
+  let est;
+  est = apuntarDia(est, 'a', { segundos: 900, ahora: dia(2025, 1, 15) });
+  est = apuntarDia(est, 'a', { segundos: 600, ahora: dia(2026, 8, 1) });
+  assert.ok(!est.a.dias['2025-01-15'], 'el día de hace año y medio ya no está');
+  assert.equal(est.a.meses['2025-01'].s, 900);
+});
+
+test('los meses de cada aparato se suman, como los días', () => {
+  let est;
+  est = apuntarDia(est, 'movil', { segundos: 600, ahora: dia(2026, 8, 1) });
+  est = apuntarDia(est, 'portatil', { segundos: 900, ahora: dia(2026, 8, 1) });
+  assert.deepEqual(mesesCombinados(est), { '2026-08': { s: 1500, p: 0 } });
+});
+
+// Al fusionar, cada aparato solo escribe su casilla y dentro de un mes el
+// contador solo crece: gana el mayor, nunca se suman dos versiones del mismo.
+test('fusionar meses del mismo aparato se queda con la cifra mayor', () => {
+  const local = { a: { dias: {}, meses: { '2026-08': { s: 600, p: 0 } } } };
+  const remoto = { a: { dias: {}, meses: { '2026-08': { s: 900, p: 0 } } } };
+  assert.equal(fusionarEstadisticas(local, remoto).a.meses['2026-08'].s, 900);
+});
+
+// Un aparato al que ya se le podaron los días conserva sus meses, y traerlos
+// no puede rehacerlos a partir de los días que hayan sobrevivido.
+test('fusionar respeta los meses que llegan más atrás que los días', () => {
+  const remoto = { a: { dias: {}, meses: { '2024-03': { s: 7200, p: 0 } } } };
+  const fusion = fusionarEstadisticas({}, remoto);
+  assert.equal(fusion.a.meses['2024-03'].s, 7200);
+});
+
+// Quien ya venía usando la aplicación tiene días pero ningún mes: se rehacen
+// una vez a partir de lo que hay.
+test('a quien no tenía meses se le reconstruyen desde sus días', () => {
+  const viejo = { a: { dias: {
+    '2026-07-01': { s: 600, p: 0 },
+    '2026-07-15': { s: 300, p: 0 },
+    '2026-08-01': { s: 120, p: 0 },
+  } } };
+  assert.deepEqual(mesesCombinados(viejo), { '2026-07': { s: 900, p: 0 }, '2026-08': { s: 120, p: 0 } });
+});
+
+// El mes más antiguo suele estar cortado por la poda: darlo por bueno lo
+// dejaría para siempre como un mes flojísimo que en realidad no lo fue.
+test('el mes cortado por la poda no se reconstruye a medias', () => {
+  const viejo = { a: { dias: {
+    '2025-06-27': { s: 3000, p: 0 },  // el día más antiguo no es un día 1
+    '2025-07-02': { s: 600, p: 0 },
+  } } };
+  assert.deepEqual(mesesCombinados(viejo), { '2025-07': { s: 600, p: 0 } });
 });

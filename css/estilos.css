@@ -2277,6 +2277,48 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 /* Los días en blanco dejan una raya, no un hueco: el vacío también es dato y
    sin la raya no se distingue de un borde de la tarjeta. */
 .barra-dia.sin-lectura { background: var(--borde); }
+/* El tramo en curso va aún a medias, así que no compite en igualdad con los
+   cerrados: se distingue para que su barra corta no se lea como un bajón. */
+.barra-dia.en-curso {
+  background: repeating-linear-gradient(135deg,
+    var(--acento) 0 3px, color-mix(in srgb, var(--acento) 45%, transparent) 3px 6px);
+}
+
+/* ── Agrupar por días, semanas, meses o años ── */
+.cabecera-periodos {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem; flex-wrap: wrap; margin-bottom: 0.6rem;
+}
+.grupo-periodos button { font: inherit; font-size: 0.85rem; padding: 0.35rem 0.6rem; }
+
+/* Con pocas barras (años, semanas) estirarlas a todo lo ancho las convierte en
+   manchas: se les pone un tope y el grupo se queda a la izquierda. */
+.grafico-dias .columna-dia { max-width: 3.5rem; }
+
+.comparacion-periodos {
+  display: flex; align-items: baseline; gap: 0.5rem 1.5rem; flex-wrap: wrap;
+  margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--borde);
+}
+.lado-comparacion { display: flex; flex-direction: column; gap: 0.1rem; }
+.etiqueta-comparacion { font-size: 0.8rem; color: var(--texto-suave); }
+.valor-comparacion { font-size: 1.05rem; color: var(--acento); }
+.valor-comparacion.suave { color: var(--texto-suave); }
+/* La variación se va al otro extremo: es la conclusión, no un dato más. */
+.variacion-periodos {
+  margin-left: auto; font-size: 0.9rem; font-weight: 650;
+  border-radius: 999px; padding: 0.2rem 0.6rem;
+  background: color-mix(in srgb, var(--texto-suave) 15%, transparent);
+  color: var(--texto-suave);
+}
+.variacion-periodos.mas {
+  background: color-mix(in srgb, var(--exito) 16%, transparent); color: var(--exito);
+}
+/* Leer menos que el mes pasado no es un error: va en el gris de siempre y no
+   en el rojo de peligro, que aquí regañaría. */
+.variacion-periodos.menos {
+  background: color-mix(in srgb, var(--texto-suave) 15%, transparent);
+  color: var(--texto-suave);
+}
 
 .lista-estadisticas-libros { list-style: none; margin: 0; padding: 0; }
 .libro-estadistica {

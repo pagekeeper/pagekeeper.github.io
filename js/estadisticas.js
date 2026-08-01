@@ -103,6 +103,30 @@ export function totalTiempo(tiempos) {
 
 // ───────────── Días de lectura ─────────────
 
+export const claveMes = (dia) => String(dia).slice(0, 7);
+
+// Los días se podan a los 400, pero el total de cada mes se queda para
+// siempre: son doce entradas al año, unos cientos de bytes por década, y sin
+// ellas comparar un año con el anterior sería imposible en cuanto el día más
+// viejo se cae del registro.
+//
+// A quien ya tenía días apuntados y ningún mes se le reconstruyen de una vez a
+// partir de ellos. El mes al que pertenece el día más antiguo se deja fuera si
+// ese día no es el 1: está cortado por la poda, y darlo por bueno lo dejaría
+// para siempre como un mes flojísimo que en realidad no lo fue.
+function mesesDesdeDias(dias) {
+  const claves = Object.keys(dias).sort();
+  if (!claves.length) return {};
+  const incompleto = claves[0].endsWith('-01') ? null : claveMes(claves[0]);
+  const meses = {};
+  for (const dia of claves) {
+    const mes = claveMes(dia);
+    if (mes === incompleto) continue;
+    meses[mes] = suma(meses[mes], dias[dia]);
+  }
+  return meses;
+}
+
 export function normalizarEstadisticas(estadisticas) {
   const limpias = {};
   if (!estadisticas || typeof estadisticas !== 'object') return limpias;
@@ -113,7 +137,16 @@ export function normalizarEstadisticas(estadisticas) {
       const limpio = par(valor);
       if (limpio.s > 0) dias[dia] = limpio;
     }
-    if (Object.keys(dias).length) limpias[dispositivo] = { dias };
+    const meses = {};
+    for (const [mes, valor] of Object.entries(entrada?.meses ?? {})) {
+      if (!/^\d{4}-\d{2}$/.test(mes)) continue;
+      const limpio = par(valor);
+      if (limpio.s > 0) meses[mes] = limpio;
+    }
+    const conMeses = Object.keys(meses).length ? meses : mesesDesdeDias(dias);
+    if (Object.keys(dias).length || Object.keys(conMeses).length) {
+      limpias[dispositivo] = { dias, meses: conMeses };
+    }
   }
   return limpias;
 }
@@ -135,30 +168,46 @@ export function apuntarDia(estadisticas, dispositivo, {
   const s = Number(segundos);
   if (!dispositivo || !Number.isFinite(s) || s <= 0 || s > SEGUNDOS_MAXIMOS) return nuevas;
   const dia = claveDia(ahora);
+  const p = numero(paginas);
   const dias = nuevas[dispositivo]?.dias ?? {};
   const anterior = dias[dia] ?? { s: 0, p: 0 };
-  dias[dia] = par({ s: anterior.s + s, p: anterior.p + numero(paginas) });
-  nuevas[dispositivo] = { dias: podarDias(dias, dia) };
+  dias[dia] = par({ s: anterior.s + s, p: anterior.p + p });
+  // El mes lleva su propio contador en vez de recalcularse de los días: así
+  // sigue siendo cierto cuando esos días ya se hayan podado.
+  const meses = nuevas[dispositivo]?.meses ?? {};
+  const mes = claveMes(dia);
+  const anteriorMes = meses[mes] ?? { s: 0, p: 0 };
+  meses[mes] = par({ s: anteriorMes.s + s, p: anteriorMes.p + p });
+  nuevas[dispositivo] = { dias: podarDias(dias, dia), meses };
   return nuevas;
 }
 
-// Como con los tiempos: dentro de un mismo día y dispositivo el contador solo
-// crece, así que la cifra mayor es la buena.
+// Como con los tiempos: dentro de un mismo tramo y dispositivo el contador
+// solo crece, así que la cifra mayor es la buena.
+function fusionarTramos(mios, suyos) {
+  const fusionados = {};
+  for (const clave of new Set([...Object.keys(mios), ...Object.keys(suyos)])) {
+    const mio = mios[clave];
+    const suyo = suyos[clave];
+    if (!mio || !suyo) fusionados[clave] = mio ?? suyo;
+    else fusionados[clave] = mio.s >= suyo.s ? mio : suyo;
+  }
+  return fusionados;
+}
+
 export function fusionarEstadisticas(local, remoto) {
   const mias = normalizarEstadisticas(local);
   const suyas = normalizarEstadisticas(remoto);
   const fusionadas = {};
   for (const dispositivo of new Set([...Object.keys(mias), ...Object.keys(suyas)])) {
-    const mios = mias[dispositivo]?.dias ?? {};
-    const suyos = suyas[dispositivo]?.dias ?? {};
-    const dias = {};
-    for (const dia of new Set([...Object.keys(mios), ...Object.keys(suyos)])) {
-      const mio = mios[dia];
-      const suyo = suyos[dia];
-      if (!mio || !suyo) dias[dia] = mio ?? suyo;
-      else dias[dia] = mio.s >= suyo.s ? mio : suyo;
+    const dias = fusionarTramos(mias[dispositivo]?.dias ?? {}, suyas[dispositivo]?.dias ?? {});
+    // Los meses del otro aparato pueden llegar de más atrás que sus días, que
+    // ya se le podaron: por eso se fusionan por separado y no se rehacen a
+    // partir de los días que hayan sobrevivido.
+    const meses = fusionarTramos(mias[dispositivo]?.meses ?? {}, suyas[dispositivo]?.meses ?? {});
+    if (Object.keys(dias).length || Object.keys(meses).length) {
+      fusionadas[dispositivo] = { dias, meses };
     }
-    if (Object.keys(dias).length) fusionadas[dispositivo] = { dias };
   }
   return fusionadas;
 }
@@ -171,6 +220,18 @@ export function diasCombinados(estadisticas) {
   for (const { dias } of Object.values(normalizarEstadisticas(estadisticas))) {
     for (const [dia, valor] of Object.entries(dias)) {
       combinados[dia] = suma(combinados[dia], valor);
+    }
+  }
+  return combinados;
+}
+
+// Lo mismo con los meses, que es de donde salen las vistas por mes y por año:
+// llegan más atrás que los días, porque a ellos no les alcanza la poda.
+export function mesesCombinados(estadisticas) {
+  const combinados = {};
+  for (const { meses } of Object.values(normalizarEstadisticas(estadisticas))) {
+    for (const [mes, valor] of Object.entries(meses)) {
+      combinados[mes] = suma(combinados[mes], valor);
     }
   }
   return combinados;

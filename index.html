@@ -968,9 +968,36 @@
         </div>
 
         <div class="tarjeta">
-          <h2 data-i18n="statsLastDays">Los últimos 30 días</h2>
+          <div class="cabecera-periodos">
+            <h2 id="titulo-grafico" data-i18n="statsLastDays">Los últimos 30 días</h2>
+            <div id="grupo-periodos" class="grupo-vista grupo-periodos" role="group"
+              aria-label="Agrupar por" data-i18n-aria-label="statsGroupBy">
+              <button type="button" data-periodo="dia" aria-pressed="true"
+                data-i18n="statsByDay">Días</button>
+              <button type="button" data-periodo="semana" aria-pressed="false"
+                data-i18n="statsByWeek">Semanas</button>
+              <button type="button" data-periodo="mes" aria-pressed="false"
+                data-i18n="statsByMonth">Meses</button>
+              <button type="button" data-periodo="anno" aria-pressed="false"
+                data-i18n="statsByYear">Años</button>
+            </div>
+          </div>
           <div id="grafico-estadisticas" class="grafico-dias" role="img"></div>
           <p id="pie-grafico" class="ayuda"></p>
+          <!-- El tramo en curso frente al anterior: es la comparación que se
+               busca al mirar estas cifras, y con las barras solas hay que
+               adivinarla a ojo. -->
+          <div id="comparacion-periodos" class="comparacion-periodos oculto">
+            <div class="lado-comparacion">
+              <span id="etiqueta-periodo-actual" class="etiqueta-comparacion"></span>
+              <strong id="valor-periodo-actual" class="valor-comparacion"></strong>
+            </div>
+            <div class="lado-comparacion">
+              <span id="etiqueta-periodo-anterior" class="etiqueta-comparacion"></span>
+              <span id="valor-periodo-anterior" class="valor-comparacion suave"></span>
+            </div>
+            <span id="variacion-periodos" class="variacion-periodos"></span>
+          </div>
         </div>
 
         <div id="tarjeta-libros-estadisticas" class="tarjeta">
@@ -1215,8 +1242,14 @@
             <summary>Estadísticas de lectura</summary>
             <p>El botón del gráfico de la cabecera abre el tiempo que dedicas a
           leer: el total, el de hoy y el de la semana, los días seguidos que
-          llevas, una barra por cada uno de los últimos treinta días y los
-          libros a los que más rato les echas. Solo se cuenta el tiempo con el
+          llevas, un gráfico de barras y los
+          libros a los que más rato les echas. El gráfico se agrupa por
+          <strong>días, semanas, meses o años</strong>, y debajo compara el tramo en
+          curso con el anterior: cuánto llevas este mes frente al pasado, o este año
+          frente al otro. La barra rayada es la del tramo que aún va a medias. El
+          detalle por días llega hasta unos trece meses atrás; el total de cada mes
+          se guarda para siempre, así que los meses y los años se pueden comparar
+          aunque sean viejos. Solo se cuenta el tiempo con el
           libro delante: mientras la aplicación no está a la vista —otra pestaña, otra
           aplicación, el móvil bloqueado— el reloj se para, así que dejarla abierta no
           suma. De cada página se cuentan como mucho cinco minutos; si te quedas más
