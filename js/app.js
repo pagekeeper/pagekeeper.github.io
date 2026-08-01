@@ -11,6 +11,7 @@ import { t, iniciarIdioma, aplicarIdioma, idiomaActual, etiquetarPorTitulo } fro
 import { LectorVoz } from './tts.js';
 import {
   iniciarTema, temaElegido, temaEfectivo, esTemaOscuro, guardarTema, TEMAS,
+  LADOS_AUTO, varianteAuto, guardarVarianteAuto,
 } from './tema.js';
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
@@ -8066,6 +8067,7 @@ function pintarControlesTema() {
   $('btn-tema').title = `${t('theme')}: ${t(NOMBRE_TEMA[elegido])}`;
   etiquetarPorTitulo($('btn-tema'));
   if (!$('panel-tema').hidden) pintarMenuTema();
+  pintarVariantesAuto();
 }
 
 // Una opción por tema, con su icono y una marca en el que está puesto. «El del
@@ -8100,6 +8102,41 @@ function elegirTema(tema) {
   // equipo con tema claro no hay diferencia visible, y sin él no se sabría.
   avisar(t(NOMBRE_TEMA[tema]), 1600);
 }
+
+// ── Qué tema usa «el del sistema» a cada lado (Ajustes → Biblioteca) ──
+// Los dos selectores y sus muestras. La muestra lleva el data-tema de lo
+// elegido, así que se pinta con esa paleta aunque la aplicación esté en otra:
+// se ve el lado que el sistema no está pidiendo ahora sin tener que cambiar el
+// tema del dispositivo para comprobarlo.
+
+const MANDO_VARIANTE = { claro: 'tema-auto-claro', oscuro: 'tema-auto-oscuro' };
+const MUESTRA_VARIANTE = { claro: 'muestra-tema-claro', oscuro: 'muestra-tema-oscuro' };
+
+function pintarVariantesAuto() {
+  for (const lado of LADOS_AUTO) {
+    const tema = varianteAuto(lado);
+    $(MANDO_VARIANTE[lado]).value = tema;
+    const muestra = $(MUESTRA_VARIANTE[lado]);
+    muestra.dataset.tema = tema;
+    muestra.querySelector('.muestra-titulo').textContent = t(NOMBRE_TEMA[tema]);
+  }
+  // Con el tema puesto a mano, estos ajustes no cambian nada de lo que se ve:
+  // decirlo evita que alguien toque los selectores esperando que la aplicación
+  // se transforme y crea que están rotos.
+  const enAuto = temaElegido() === 'auto';
+  $('estado-tema-auto').textContent = enAuto
+    ? t('autoThemeNow', { theme: t(NOMBRE_TEMA[temaEfectivo()]) })
+    : t('autoThemeIdle', { theme: t(NOMBRE_TEMA[temaElegido()]) });
+}
+
+for (const lado of LADOS_AUTO) {
+  $(MANDO_VARIANTE[lado]).addEventListener('change', (evento) => {
+    guardarVarianteAuto(lado, evento.target.value);
+    pintarVariantesAuto();
+  });
+}
+
+document.addEventListener('idioma-cambiado', pintarVariantesAuto);
 
 $('btn-tema').addEventListener('click', () => {
   const panel = $('panel-tema');
@@ -8767,7 +8804,7 @@ limpiarAjustesGlobalesViejos();
 // registro, bajo el identificador de este dispositivo, para que sumen con las
 // de los demás en lugar de perderse.
 progreso.migrarEstadisticasAntiguas();
-iniciarTema();
+iniciarTema(); // deja pintados también los dos selectores del tema automático
 sincronizarCasillaContinuar();
 sincronizarCasillasAbrirUltimo();
 sincronizarCasillaBarraEstado();

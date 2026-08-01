@@ -750,6 +750,39 @@
       </div>
 
       <div class="tarjeta">
+        <h2 data-i18n="autoTheme">El tema del sistema</h2>
+        <p class="ayuda" data-i18n="autoThemeHelp">Cuando el tema está en «el del sistema», la aplicación se aclara u oscurece con el resto del dispositivo. Aquí eliges con qué tema lo hace a cada lado. Los cinco temas siguen estando a mano en el botón de la cabecera; esto solo decide a cuál va «el del sistema».</p>
+        <div class="rejilla-ajustes">
+          <label class="campo-ajuste"><span data-i18n="autoThemeLight">Cuando el sistema va en claro</span>
+            <select id="tema-auto-claro">
+              <option value="claro" data-i18n="themeLight">Claro</option>
+              <option value="sepia" data-i18n="themeSepia">Sepia</option>
+            </select>
+          </label>
+          <label class="campo-ajuste"><span data-i18n="autoThemeDark">Cuando el sistema va en oscuro</span>
+            <select id="tema-auto-oscuro">
+              <option value="oscuro" data-i18n="themeDark">Oscuro</option>
+              <option value="negro" data-i18n="themeBlack">Negro</option>
+            </select>
+          </label>
+        </div>
+        <!-- Las muestras enseñan cada tema aquí mismo: si no, la única forma de
+             ver cómo queda el lado que ahora no toca sería cambiar el tema del
+             propio sistema operativo. -->
+        <div class="muestras-tema" aria-hidden="true">
+          <div class="muestra-tema" id="muestra-tema-claro" data-tema="claro">
+            <div class="muestra-cabecera"><span class="muestra-titulo"></span><span class="muestra-punto"></span></div>
+            <div class="muestra-pagina"><span></span><span></span><span></span></div>
+          </div>
+          <div class="muestra-tema" id="muestra-tema-oscuro" data-tema="oscuro">
+            <div class="muestra-cabecera"><span class="muestra-titulo"></span><span class="muestra-punto"></span></div>
+            <div class="muestra-pagina"><span></span><span></span><span></span></div>
+          </div>
+        </div>
+        <p id="estado-tema-auto" class="ayuda" role="status"></p>
+      </div>
+
+      <div class="tarjeta">
         <h2 data-i18n="cleanup">Libros que ya no están</h2>
         <p class="ayuda" data-i18n="cleanupHelp">Cuando un libro desaparece de la nube, su marca de lectura, sus marcadores y sus notas se quedan aquí. Primero se echa en falta y solo después se borran, por si el libro estaba fuera de alcance un rato.</p>
         <label class="campo-ajuste"><span data-i18n="cleanupDays">Cuánto se espera antes de borrarlos</span>
@@ -1023,6 +1056,10 @@
         oscuro el modo noche de la página y negro ese mismo modo noche llevado
         al negro puro, que en las pantallas OLED apaga el píxel y gasta menos
         batería.</p>
+        <p class="ayuda">Con «el del sistema» puedes decidir a qué tema va cada
+        lado: sepia en vez de claro de día, o negro en vez de oscuro de noche.
+        Se elige en <em>⚙️ Ajustes → Biblioteca</em>, con una muestra de cada
+        uno para verlos sin cambiar el tema del dispositivo.</p>
       </div>
       </div>
 

@@ -7,8 +7,11 @@
    El tema es también el papel del libro: --papel es el fondo de la página en
    EPUB y --filtro-pagina el tinte con que se pinta la del PDF, que al ser una
    imagen ya dibujada no se puede recolorear de otro modo.
-   Todos los colores de texto llegan al menos a 4.5:1 sobre su fondo. */
-:root {
+   Todos los colores de texto llegan al menos a 4.5:1 sobre su fondo.
+   Las paletas no se atan a :root: cualquier elemento con data-tema se lleva
+   la suya, y de ahí viven las muestras de Ajustes, que enseñan cómo queda un
+   tema sin tener que ponérselo a la aplicación entera. */
+:root, [data-tema="claro"] {
   color-scheme: light;
   --fondo: #f8fafc;
   --fondo-tarjeta: #ffffff;
@@ -44,7 +47,7 @@
 /* El tostado clásico de los lectores de tinta electrónica, llevado a toda la
    aplicación: quien lee así un rato largo no quiere que la biblioteca le
    devuelva un blanco de golpe al salir del libro. */
-:root[data-tema="sepia"] {
+[data-tema="sepia"] {
   color-scheme: light;
   --fondo: #efe4cf;
   --fondo-tarjeta: #f8f1e0;
@@ -73,7 +76,7 @@
   --filtro-pagina: sepia(0.55) saturate(0.85) brightness(0.97);
 }
 
-:root[data-tema="oscuro"] {
+[data-tema="oscuro"] {
   color-scheme: dark;
   --fondo: #0f172a;
   --fondo-tarjeta: #1e293b;
@@ -105,7 +108,7 @@
    tema oscuro. El texto no va en blanco puro a propósito —sobre negro
    deslumbra y deja estela al desplazar—, sino en el gris claro de siempre,
    que aun así queda en 12:1. */
-:root[data-tema="negro"] {
+[data-tema="negro"] {
   color-scheme: dark;
   --fondo: #000000;
   --fondo-tarjeta: #101014;
@@ -1318,6 +1321,42 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   padding: 0.35rem 0.5rem; font: inherit; cursor: pointer;
 }
 .campo-ajuste select:focus-visible { outline: 2px solid var(--acento); }
+/* ── Muestras del tema automático (Ajustes → Biblioteca) ──
+   Cada muestra lleva su data-tema, así que se pinta con la paleta de ese tema
+   aunque la aplicación esté en otro: es la única forma de ver el lado que el
+   sistema no está pidiendo ahora mismo sin cambiar el tema del dispositivo.
+   Dentro va lo que de verdad cambia: la barra de la aplicación arriba y el
+   papel del libro debajo, que no son el mismo color. */
+.muestras-tema {
+  display: grid; gap: 0.75rem; margin-top: 0.9rem;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+}
+.muestra-tema {
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: 0.6rem;
+  overflow: hidden;
+}
+.muestra-cabecera {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.45rem 0.6rem; border-bottom: 1px solid var(--borde);
+  color: var(--texto); font-size: 0.85rem; font-weight: 650;
+}
+.muestra-punto {
+  width: 0.7rem; height: 0.7rem; flex: none;
+  border-radius: 50%; background: var(--acento);
+}
+.muestra-pagina {
+  display: flex; flex-direction: column; gap: 0.4rem;
+  padding: 0.7rem 0.6rem; background: var(--papel);
+}
+/* Las rayas hacen de texto: con el color real del cuerpo, para que se vea el
+   contraste que va a tener la lectura y no solo el color del papel. */
+.muestra-pagina span {
+  height: 0.35rem; border-radius: 0.2rem; background: var(--texto); opacity: 0.75;
+}
+.muestra-pagina span:last-child { width: 60%; }
+
+#estado-tema-auto { margin-top: 0.7rem; }
+
 #margen-epub-ajustes { width: 100%; accent-color: var(--acento-oscuro); cursor: pointer; }
 #valor-margen-ajustes { color: var(--acento); font-size: 0.9rem; white-space: nowrap; }
 

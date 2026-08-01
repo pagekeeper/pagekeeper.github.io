@@ -292,6 +292,12 @@ const textos = {
     openLastOnStartHelp: 'Al abrir la aplicación se va directamente al libro que estabas leyendo, sin pasar por la biblioteca. Se recuerda solo en este dispositivo: en los demás seguirás llegando a la biblioteca.',
     theme: 'Tema', themeAuto: 'El del sistema', themeLight: 'Claro', themeSepia: 'Sepia',
     themeDark: 'Oscuro', themeBlack: 'Negro',
+    autoTheme: 'El tema del sistema',
+    autoThemeHelp: 'Cuando el tema está en «el del sistema», la aplicación se aclara u oscurece con el resto del dispositivo. Aquí eliges con qué tema lo hace a cada lado. Los cinco temas siguen estando a mano en el botón de la cabecera; esto solo decide a cuál va «el del sistema».',
+    autoThemeLight: 'Cuando el sistema va en claro',
+    autoThemeDark: 'Cuando el sistema va en oscuro',
+    autoThemeNow: 'Ahora mismo tu sistema pide el tema {theme}, que es lo que estás viendo.',
+    autoThemeIdle: 'Tienes el tema puesto a mano en {theme}, así que esto no cambia nada de momento. Vuelve a «el del sistema» en el botón de la cabecera para que valga.',
     actionMoveFolder: 'Mover la carpeta', moveFolderTo: 'Mover la carpeta «{name}»',
     folderMoved: 'Carpeta «{name}» movida.',
     savedToDevice: '«{title}» guardado en este dispositivo.',
@@ -608,6 +614,12 @@ const textos = {
     openLastOnStartHelp: 'En obrir l’aplicació vas directament al llibre que estaves llegint, sense passar per la biblioteca. Només es recorda en aquest dispositiu: a la resta continuaràs arribant a la biblioteca.',
     theme: 'Tema', themeAuto: 'El del sistema', themeLight: 'Clar', themeSepia: 'Sèpia',
     themeDark: 'Fosc', themeBlack: 'Negre',
+    autoTheme: 'El tema del sistema',
+    autoThemeHelp: 'Quan el tema és «el del sistema», l’aplicació s’aclareix o s’enfosqueix amb la resta del dispositiu. Aquí tries amb quin tema ho fa a cada costat. Els cinc temes segueixen a mà al botó de la capçalera; això només decideix a quin va «el del sistema».',
+    autoThemeLight: 'Quan el sistema va en clar',
+    autoThemeDark: 'Quan el sistema va en fosc',
+    autoThemeNow: 'Ara mateix el teu sistema demana el tema {theme}, que és el que estàs veient.',
+    autoThemeIdle: 'Tens el tema posat a mà en {theme}, així que això no canvia res de moment. Torna a «el del sistema» al botó de la capçalera perquè valgui.',
     actionMoveFolder: 'Mou la carpeta', moveFolderTo: 'Mou la carpeta «{name}»',
     folderMoved: 'S’ha mogut la carpeta «{name}».',
     savedToDevice: 'S’ha desat «{title}» en aquest dispositiu.',
@@ -924,6 +936,12 @@ const textos = {
     openLastOnStartHelp: 'Opening the app takes you straight to the book you were reading, skipping the library. It is remembered only on this device: elsewhere you will still land in the library.',
     theme: 'Theme', themeAuto: 'Match the system', themeLight: 'Light', themeSepia: 'Sepia',
     themeDark: 'Dark', themeBlack: 'Black',
+    autoTheme: 'The system theme',
+    autoThemeHelp: 'When the theme is set to match the system, the app lightens or darkens along with the rest of the device. Here you choose which theme it uses on each side. All five themes stay one tap away in the header button; this only decides where “match the system” lands.',
+    autoThemeLight: 'When the system is light',
+    autoThemeDark: 'When the system is dark',
+    autoThemeNow: 'Right now your system asks for the {theme} theme, which is what you are seeing.',
+    autoThemeIdle: 'You have the theme set by hand to {theme}, so this changes nothing for now. Go back to “match the system” in the header button for it to take effect.',
     actionMoveFolder: 'Move folder', moveFolderTo: 'Move the folder “{name}”',
     folderMoved: 'Folder “{name}” moved.',
     savedToDevice: '“{title}” saved to this device.',
@@ -1240,6 +1258,12 @@ const textos = {
     openLastOnStartHelp: 'À l’ouverture de l’application, vous arrivez directement dans le livre que vous étiez en train de lire, sans passer par la bibliothèque. Ce choix ne vaut que pour cet appareil : ailleurs, vous arriverez toujours dans la bibliothèque.',
     theme: 'Thème', themeAuto: 'Celui du système', themeLight: 'Clair', themeSepia: 'Sépia',
     themeDark: 'Sombre', themeBlack: 'Noir',
+    autoTheme: 'Le thème du système',
+    autoThemeHelp: 'Quand le thème est réglé sur celui du système, l’application s’éclaircit ou s’assombrit avec le reste de l’appareil. Vous choisissez ici quel thème elle utilise de chaque côté. Les cinq thèmes restent à portée dans le bouton de l’en-tête ; ceci décide seulement où mène « celui du système ».',
+    autoThemeLight: 'Quand le système est en clair',
+    autoThemeDark: 'Quand le système est en sombre',
+    autoThemeNow: 'Pour l’instant votre système demande le thème {theme}, c’est ce que vous voyez.',
+    autoThemeIdle: 'Vous avez réglé le thème à la main sur {theme}, donc ceci ne change rien pour le moment. Revenez à « celui du système » dans le bouton de l’en-tête pour que cela s’applique.',
     actionMoveFolder: 'Déplacer le dossier', moveFolderTo: 'Déplacer le dossier « {name} »',
     folderMoved: 'Dossier « {name} » déplacé.',
     savedToDevice: '« {title} » enregistré sur cet appareil.',
@@ -1556,6 +1580,12 @@ const textos = {
     openLastOnStartHelp: 'Ao abrir a aplicación vaise directamente ao libro que estabas a ler, sen pasar pola biblioteca. Lémbrase só neste dispositivo: nos demais seguirás chegando á biblioteca.',
     theme: 'Tema', themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sepia',
     themeDark: 'Escuro', themeBlack: 'Negro',
+    autoTheme: 'O tema do sistema',
+    autoThemeHelp: 'Cando o tema está en «o do sistema», a aplicación clarea ou escurece co resto do dispositivo. Aquí escolles con que tema o fai a cada lado. Os cinco temas seguen a man no botón da cabeceira; isto só decide a cal vai «o do sistema».',
+    autoThemeLight: 'Cando o sistema vai en claro',
+    autoThemeDark: 'Cando o sistema vai en escuro',
+    autoThemeNow: 'Agora mesmo o teu sistema pide o tema {theme}, que é o que estás vendo.',
+    autoThemeIdle: 'Tes o tema posto a man en {theme}, así que isto non cambia nada polo momento. Volve a «o do sistema» no botón da cabeceira para que valla.',
     actionMoveFolder: 'Mover o cartafol', moveFolderTo: 'Mover o cartafol «{name}»',
     folderMoved: 'Cartafol «{name}» movido.',
     savedToDevice: '«{title}» gardado neste dispositivo.',
@@ -1872,6 +1902,12 @@ const textos = {
     openLastOnStartHelp: 'Aplikazioa irekitzean, zuzenean irakurtzen ari zinen liburura joango zara, liburutegitik pasatu gabe. Gailu honetan bakarrik gogoratzen da: gainerakoetan liburutegira iristen jarraituko duzu.',
     theme: 'Gaia', themeAuto: 'Sistemarena', themeLight: 'Argia', themeSepia: 'Sepia',
     themeDark: 'Iluna', themeBlack: 'Beltza',
+    autoTheme: 'Sistemaren gaia',
+    autoThemeHelp: 'Gaia «sistemarena» dagoenean, aplikazioa gailuaren gainerakoarekin batera argitzen edo iluntzen da. Hemen aukeratzen duzu alde bakoitzean zein gairekin egiten duen. Bost gaiak goiburuko botoian eskura jarraitzen dute; honek «sistemarena» nora doan bakarrik erabakitzen du.',
+    autoThemeLight: 'Sistema argi dagoenean',
+    autoThemeDark: 'Sistema ilun dagoenean',
+    autoThemeNow: 'Oraintxe zure sistemak {theme} gaia eskatzen du, eta hori ari zara ikusten.',
+    autoThemeIdle: 'Gaia eskuz {theme} jarrita duzu, beraz honek ez du ezer aldatzen oraingoz. Itzuli goiburuko botoian «sistemarena» aukerara balio izan dezan.',
     actionMoveFolder: 'Eraman karpeta', moveFolderTo: '«{name}» karpeta eraman',
     folderMoved: '«{name}» karpeta eraman da.',
     savedToDevice: '«{title}» gailu honetan gorde da.',
@@ -2188,6 +2224,12 @@ const textos = {
     openLastOnStartHelp: 'Beim Öffnen der App landest du direkt in dem Buch, das du gerade liest, ohne Umweg über die Bibliothek. Das gilt nur für dieses Gerät: auf den anderen kommst du weiterhin in der Bibliothek an.',
     theme: 'Design', themeAuto: 'Systemvorgabe', themeLight: 'Hell', themeSepia: 'Sepia',
     themeDark: 'Dunkel', themeBlack: 'Schwarz',
+    autoTheme: 'Das Design des Systems',
+    autoThemeHelp: 'Wenn das Design auf die Systemvorgabe steht, wird die Anwendung zusammen mit dem Rest des Geräts heller oder dunkler. Hier wählst du, mit welchem Design das auf jeder Seite geschieht. Alle fünf Designs bleiben in der Schaltfläche der Kopfzeile griffbereit; dies legt nur fest, wohin die Systemvorgabe führt.',
+    autoThemeLight: 'Wenn das System hell ist',
+    autoThemeDark: 'Wenn das System dunkel ist',
+    autoThemeNow: 'Gerade verlangt dein System das Design {theme}, und genau das siehst du.',
+    autoThemeIdle: 'Du hast das Design von Hand auf {theme} gestellt, daher ändert dies vorerst nichts. Stelle es in der Kopfzeile wieder auf die Systemvorgabe, damit es greift.',
     actionMoveFolder: 'Ordner verschieben', moveFolderTo: 'Ordner „{name}“ verschieben',
     folderMoved: 'Ordner „{name}“ verschoben.',
     savedToDevice: '„{title}“ auf diesem Gerät gespeichert.',
@@ -2504,6 +2546,12 @@ const textos = {
     openLastOnStartHelp: 'Ao abrir a aplicação vai diretamente para o livro que estava a ler, sem passar pela biblioteca. É lembrado apenas neste dispositivo: nos outros continuará a chegar à biblioteca.',
     theme: 'Tema', themeAuto: 'O do sistema', themeLight: 'Claro', themeSepia: 'Sépia',
     themeDark: 'Escuro', themeBlack: 'Preto',
+    autoTheme: 'O tema do sistema',
+    autoThemeHelp: 'Quando o tema está em «o do sistema», a aplicação clareia ou escurece com o resto do dispositivo. Aqui escolhe com que tema o faz de cada lado. Os cinco temas continuam à mão no botão do cabeçalho; isto só decide para qual vai «o do sistema».',
+    autoThemeLight: 'Quando o sistema está claro',
+    autoThemeDark: 'Quando o sistema está escuro',
+    autoThemeNow: 'Neste momento o seu sistema pede o tema {theme}, que é o que está a ver.',
+    autoThemeIdle: 'Tem o tema definido à mão em {theme}, por isso isto não muda nada para já. Volte a «o do sistema» no botão do cabeçalho para que tenha efeito.',
     actionMoveFolder: 'Mover a pasta', moveFolderTo: 'Mover a pasta «{name}»',
     folderMoved: 'Pasta «{name}» movida.',
     savedToDevice: '«{title}» guardado neste dispositivo.',
@@ -2560,7 +2608,7 @@ const ayudas = {
       aria-label="Primers passos" tabindex="0">
 <div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Afegeix una carpeta sencera:</strong> el botó de la carpeta amb la fletxa (i el mateix gest d’arrossegar-hi una carpeta) copia tots els PDF i EPUB que hi hagi dins, subcarpetes incloses, i refà aquesta mateixa estructura a la biblioteca. Amb el núvol funciona igual: les carpetes es creen al servidor.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
 
-<div class="tarjeta"><h2>Clar, sèpia, fosc i negre</h2><p>El botó del tema, a la capçalera, obre un menú amb cinc opcions: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa), <strong>fosc</strong> (lluna) i <strong>negre</strong> (lluna amb estrella). La icona del botó et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica, fosc el mode nit de la pàgina i negre aquest mateix mode nit portat al negre pur, que a les pantalles OLED apaga el píxel i gasta menys bateria.</p></div>
+<div class="tarjeta"><h2>Clar, sèpia, fosc i negre</h2><p>El botó del tema, a la capçalera, obre un menú amb cinc opcions: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa), <strong>fosc</strong> (lluna) i <strong>negre</strong> (lluna amb estrella). La icona del botó et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica, fosc el mode nit de la pàgina i negre aquest mateix mode nit portat al negre pur, que a les pantalles OLED apaga el píxel i gasta menys bateria.</p><p class="ayuda">Amb «el del sistema» pots decidir a quin tema va cada costat: sèpia en lloc de clar de dia, o negre en lloc de fosc de nit. Es tria a <em>⚙️ Configuració → Biblioteca</em>, amb una mostra de cadascun per veure’ls sense canviar el tema del dispositiu.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -3064,7 +3112,7 @@ const ayudas = {
         reading position sync across all your devices. It needs some setting up
         first, explained further down.</li></ul></div>
 
-<div class="tarjeta"><h2>Light, sepia, dark and black</h2><p>The theme button in the header opens a menu with five options: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup), <strong>dark</strong> (moon) and <strong>black</strong> (moon with a star). The button icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers, dark the page’s night mode and black that same night mode taken to pure black, which switches the pixel off on OLED screens and uses less battery.</p></div>
+<div class="tarjeta"><h2>Light, sepia, dark and black</h2><p>The theme button in the header opens a menu with five options: <strong>match the system</strong> (half-light, half-dark circle), <strong>light</strong> (sun), <strong>sepia</strong> (cup), <strong>dark</strong> (moon) and <strong>black</strong> (moon with a star). The button icon tells you which one you are on, and your choice is remembered in that browser. It starts on the system theme, so the app follows the rest of the device.</p><p class="ayuda">The theme is also the paper you read on: light is white paper, sepia the warm tone of e-ink readers, dark the page’s night mode and black that same night mode taken to pure black, which switches the pixel off on OLED screens and uses less battery.</p><p class="ayuda">With “match the system” you can decide where each side lands: sepia instead of light by day, or black instead of dark at night. You choose in <em>⚙️ Settings → Library</em>, with a sample of each so you can see them without changing the device theme.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -3564,7 +3612,7 @@ const ayudas = {
         position de lecture se synchronisent sur tous vos appareils. Cela demande
         d’abord un peu de configuration, expliquée plus bas.</li></ul></div>
 
-<div class="tarjeta"><h2>Clair, sépia, sombre et noir</h2><p>Le bouton de thème dans l’en-tête ouvre un menu à cinq options : <strong>celui du système</strong> (cercle mi-clair mi-sombre), <strong>clair</strong> (soleil), <strong>sépia</strong> (tasse), <strong>sombre</strong> (lune) et <strong>noir</strong> (lune avec une étoile). L’icône du bouton indique lequel est actif, et votre choix est mémorisé dans ce navigateur. Il démarre sur le thème du système, pour que l’application suive le reste de l’appareil.</p><p class="ayuda">Le thème, c’est aussi le papier sur lequel vous lisez : le clair est un papier blanc, le sépia le ton chaud des liseuses à encre électronique, le sombre le mode nuit de la page et le noir ce même mode nuit poussé au noir pur, qui éteint le pixel sur les écrans OLED et consomme moins.</p></div>
+<div class="tarjeta"><h2>Clair, sépia, sombre et noir</h2><p>Le bouton de thème dans l’en-tête ouvre un menu à cinq options : <strong>celui du système</strong> (cercle mi-clair mi-sombre), <strong>clair</strong> (soleil), <strong>sépia</strong> (tasse), <strong>sombre</strong> (lune) et <strong>noir</strong> (lune avec une étoile). L’icône du bouton indique lequel est actif, et votre choix est mémorisé dans ce navigateur. Il démarre sur le thème du système, pour que l’application suive le reste de l’appareil.</p><p class="ayuda">Le thème, c’est aussi le papier sur lequel vous lisez : le clair est un papier blanc, le sépia le ton chaud des liseuses à encre électronique, le sombre le mode nuit de la page et le noir ce même mode nuit poussé au noir pur, qui éteint le pixel sur les écrans OLED et consomme moins.</p><p class="ayuda">Avec « celui du système », vous pouvez décider où mène chaque côté : le sépia plutôt que le clair le jour, ou le noir plutôt que le sombre la nuit. Cela se choisit dans <em>⚙️ Réglages → Bibliothèque</em>, avec un aperçu de chacun pour les voir sans changer le thème de l’appareil.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -4092,7 +4140,7 @@ const ayudas = {
         posición de lectura sincronízanse en todos os teus dispositivos. Require
         primeiro algo de configuración, explicada máis abaixo.</li></ul></div>
 
-<div class="tarjeta"><h2>Claro, sepia, escuro e negro</h2><p>O botón de tema da cabeceira abre un menú con cinco opcións: <strong>o do sistema</strong> (círculo medio claro medio escuro), <strong>claro</strong> (sol), <strong>sepia</strong> (cunca), <strong>escuro</strong> (lúa) e <strong>negro</strong> (lúa con estrela). A icona do botón indica en cal estás, e a túa escolla lémbrase nese navegador. Comeza no tema do sistema, para que a aplicación siga o resto do dispositivo.</p><p class="ayuda">O tema é tamén o papel no que les: o claro é papel branco, o sepia o ton cálido dos lectores de tinta electrónica, o escuro o modo noite da páxina e o negro ese mesmo modo noite levado ao negro puro, que nas pantallas OLED apaga o píxel e gasta menos batería.</p></div>
+<div class="tarjeta"><h2>Claro, sepia, escuro e negro</h2><p>O botón de tema da cabeceira abre un menú con cinco opcións: <strong>o do sistema</strong> (círculo medio claro medio escuro), <strong>claro</strong> (sol), <strong>sepia</strong> (cunca), <strong>escuro</strong> (lúa) e <strong>negro</strong> (lúa con estrela). A icona do botón indica en cal estás, e a túa escolla lémbrase nese navegador. Comeza no tema do sistema, para que a aplicación siga o resto do dispositivo.</p><p class="ayuda">O tema é tamén o papel no que les: o claro é papel branco, o sepia o ton cálido dos lectores de tinta electrónica, o escuro o modo noite da páxina e o negro ese mesmo modo noite levado ao negro puro, que nas pantallas OLED apaga o píxel e gasta menos batería.</p><p class="ayuda">Con «o do sistema» podes decidir a que tema vai cada lado: sepia en vez de claro de día, ou negro en vez de escuro de noite. Escóllese en <em>⚙️ Axustes → Biblioteca</em>, cunha mostra de cada un para velos sen cambiar o tema do dispositivo.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -4595,7 +4643,7 @@ const ayudas = {
         irakurketa-posizioa zure gailu guztien artean sinkronizatzen dira. Lehenik
         konfigurazio pixka bat behar du, aurrerago azalduta.</li></ul></div>
 
-<div class="tarjeta"><h2>Argia, sepia, iluna eta beltza</h2><p>Goiburuko gai-botoiak bost aukerako menu bat irekitzen du: <strong>sistemarena</strong> (erdi argi erdi ilun zirkulua), <strong>argia</strong> (eguzkia), <strong>sepia</strong> (kikara), <strong>iluna</strong> (ilargia) eta <strong>beltza</strong> (izardun ilargia). Botoiaren ikonoak zein daukazun esaten dizu, eta zure aukera nabigatzaile horretan gogoratzen da. Sistemaren gaiarekin hasten da, aplikazioak gailuaren gainerakoa jarraitu dezan.</p><p class="ayuda">Gaia irakurtzen duzun papera ere bada: argia paper zuria da, sepia tinta elektronikoko irakurgailuen tono beroa, iluna orriaren gau-modua eta beltza gau-modu bera beltz hutsera eramanda, OLED pantailetan pixela itzaltzen duena eta bateria gutxiago gastatzen duena.</p></div>
+<div class="tarjeta"><h2>Argia, sepia, iluna eta beltza</h2><p>Goiburuko gai-botoiak bost aukerako menu bat irekitzen du: <strong>sistemarena</strong> (erdi argi erdi ilun zirkulua), <strong>argia</strong> (eguzkia), <strong>sepia</strong> (kikara), <strong>iluna</strong> (ilargia) eta <strong>beltza</strong> (izardun ilargia). Botoiaren ikonoak zein daukazun esaten dizu, eta zure aukera nabigatzaile horretan gogoratzen da. Sistemaren gaiarekin hasten da, aplikazioak gailuaren gainerakoa jarraitu dezan.</p><p class="ayuda">Gaia irakurtzen duzun papera ere bada: argia paper zuria da, sepia tinta elektronikoko irakurgailuen tono beroa, iluna orriaren gau-modua eta beltza gau-modu bera beltz hutsera eramanda, OLED pantailetan pixela itzaltzen duena eta bateria gutxiago gastatzen duena.</p><p class="ayuda">«Sistemarena» aukerarekin alde bakoitza zein gaitara doan erabaki dezakezu: sepia argiaren ordez egunez, edo beltza ilunaren ordez gauez. <em>⚙️ Ezarpenak → Liburutegia</em> atalean aukeratzen da, bakoitzaren lagin batekin, gailuaren gaia aldatu gabe ikusteko.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -5116,7 +5164,7 @@ const ayudas = {
         Leseposition werden zwischen all deinen Geräten synchronisiert. Dafür ist
         zunächst etwas Einrichtung nötig, weiter unten erklärt.</li></ul></div>
 
-<div class="tarjeta"><h2>Hell, Sepia, Dunkel und Schwarz</h2><p>Die Design-Schaltfläche in der Kopfzeile öffnet ein Menü mit fünf Optionen: <strong>Systemvorgabe</strong> (halb helles, halb dunkles Kreis-Symbol), <strong>Hell</strong> (Sonne), <strong>Sepia</strong> (Tasse), <strong>Dunkel</strong> (Mond) und <strong>Schwarz</strong> (Mond mit Stern). Das Symbol der Schaltfläche zeigt an, welches gerade aktiv ist, und deine Wahl wird in diesem Browser gemerkt. Es beginnt mit der Systemvorgabe, damit die Anwendung dem Rest des Geräts folgt.</p><p class="ayuda">Das Design ist auch das Papier, auf dem du liest: Hell ist weißes Papier, Sepia der warme Ton von E-Ink-Lesegeräten, Dunkel der Nachtmodus der Seite und Schwarz derselbe Nachtmodus in reinem Schwarz, das auf OLED-Bildschirmen das Pixel abschaltet und weniger Akku verbraucht.</p></div>
+<div class="tarjeta"><h2>Hell, Sepia, Dunkel und Schwarz</h2><p>Die Design-Schaltfläche in der Kopfzeile öffnet ein Menü mit fünf Optionen: <strong>Systemvorgabe</strong> (halb helles, halb dunkles Kreis-Symbol), <strong>Hell</strong> (Sonne), <strong>Sepia</strong> (Tasse), <strong>Dunkel</strong> (Mond) und <strong>Schwarz</strong> (Mond mit Stern). Das Symbol der Schaltfläche zeigt an, welches gerade aktiv ist, und deine Wahl wird in diesem Browser gemerkt. Es beginnt mit der Systemvorgabe, damit die Anwendung dem Rest des Geräts folgt.</p><p class="ayuda">Das Design ist auch das Papier, auf dem du liest: Hell ist weißes Papier, Sepia der warme Ton von E-Ink-Lesegeräten, Dunkel der Nachtmodus der Seite und Schwarz derselbe Nachtmodus in reinem Schwarz, das auf OLED-Bildschirmen das Pixel abschaltet und weniger Akku verbraucht.</p><p class="ayuda">Mit der Systemvorgabe kannst du festlegen, wohin jede Seite führt: Sepia statt Hell am Tag oder Schwarz statt Dunkel in der Nacht. Das wählst du unter <em>⚙️ Einstellungen → Bibliothek</em>, mit einer Vorschau von beiden, um sie ohne Wechsel des Gerätedesigns zu sehen.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
@@ -5661,7 +5709,7 @@ const ayudas = {
         posição de leitura sincronizam-se em todos os seus dispositivos. É
         necessária primeiro alguma configuração, explicada mais abaixo.</li></ul></div>
 
-<div class="tarjeta"><h2>Claro, sépia, escuro e preto</h2><p>O botão de tema no cabeçalho abre um menu com cinco opções: <strong>o do sistema</strong> (círculo meio claro meio escuro), <strong>claro</strong> (sol), <strong>sépia</strong> (chávena), <strong>escuro</strong> (lua) e <strong>preto</strong> (lua com estrela). O ícone do botão indica em qual está, e a sua escolha é memorizada nesse navegador. Começa no tema do sistema, para que a aplicação siga o resto do dispositivo.</p><p class="ayuda">O tema é também o papel em que lê: o claro é papel branco, o sépia o tom quente dos leitores de tinta eletrónica, o escuro o modo noturno da página e o preto esse mesmo modo noturno levado ao preto puro, que nos ecrãs OLED apaga o píxel e gasta menos bateria.</p></div>
+<div class="tarjeta"><h2>Claro, sépia, escuro e preto</h2><p>O botão de tema no cabeçalho abre um menu com cinco opções: <strong>o do sistema</strong> (círculo meio claro meio escuro), <strong>claro</strong> (sol), <strong>sépia</strong> (chávena), <strong>escuro</strong> (lua) e <strong>preto</strong> (lua com estrela). O ícone do botão indica em qual está, e a sua escolha é memorizada nesse navegador. Começa no tema do sistema, para que a aplicação siga o resto do dispositivo.</p><p class="ayuda">O tema é também o papel em que lê: o claro é papel branco, o sépia o tom quente dos leitores de tinta eletrónica, o escuro o modo noturno da página e o preto esse mesmo modo noturno levado ao preto puro, que nos ecrãs OLED apaga o píxel e gasta menos bateria.</p><p class="ayuda">Com «o do sistema» pode decidir para que tema vai cada lado: sépia em vez de claro de dia, ou preto em vez de escuro à noite. Escolhe-se em <em>⚙️ Definições → Biblioteca</em>, com uma amostra de cada um para os ver sem mudar o tema do dispositivo.</p></div>
     </div>
 
     <div id="panel-ayuda-biblioteca" class="panel-pestana" role="tabpanel"
