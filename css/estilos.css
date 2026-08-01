@@ -407,7 +407,9 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 .btn-primario:hover { background: var(--acento); color: var(--sobre-acento); }
 .btn-secundario { background: none; border-color: var(--borde); color: var(--texto); }
 .btn-secundario:hover { border-color: var(--acento); }
-.btn-secundario:disabled, .accion-deshabilitada {
+/* El de peligro también: sin medir nada no queda nada que borrar, y el botón
+   se apaga en lugar de desaparecer para que se entienda por qué. */
+.btn-secundario:disabled, .btn-peligro:disabled, .accion-deshabilitada {
   opacity: 0.45; cursor: not-allowed; pointer-events: none;
 }
 .btn-peligro { background: none; border-color: var(--borde); color: var(--peligro); }

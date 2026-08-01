@@ -1663,6 +1663,9 @@ async function cargarBiblioteca() {
       ? ''
       : t(rutaNube ? 'emptyFolder' : 'noCloudBooks');
     pintarListaRemota(carpetas, libros, copias);
+    // Puede haber llegado de otro dispositivo la decisión de no medir el
+    // tiempo: las casillas la enseñan sin esperar a que se abra la pantalla.
+    sincronizarCasillasEstadisticas();
     const cantidadLocales = await promesaLocales;
     mostrarLibroEjemplo(!rutaNube && cantidadLocales === 0 && carpetas.length === 0 && libros.length === 0);
     await pintarContinuarLeyendo({
@@ -5779,12 +5782,15 @@ function pintarLibrosLeidos(resumen) {
 function pintarEstadisticas() {
   const datos = progreso.cargarLocal();
   const resumen = estadisticas.resumen(datos);
-  $('estadisticas-vacio').classList.toggle('oculto', resumen.hay);
+  sincronizarCasillasEstadisticas();
+  const apagadas = progreso.estadisticasApagadas();
+  $('estadisticas-apagadas').classList.toggle('oculto', !apagadas);
+  $('estadisticas-vacio').classList.toggle('oculto', resumen.hay || apagadas);
   // Con varios aparatos, lo que se enseña es la suma de todos: conviene
   // decirlo, porque las cifras no cuadran con las de ninguno por separado.
   $('nota-varios-dispositivos').classList.toggle('oculto', resumen.dispositivos < 2);
-  $('estadisticas-contenido').classList.toggle('oculto', !resumen.hay);
-  if (!resumen.hay) return;
+  $('estadisticas-contenido').classList.toggle('oculto', !resumen.hay || apagadas);
+  if (!resumen.hay || apagadas) return;
   pintarCifras(resumen);
   pintarBotonesPeriodo();
   pintarGrafico({
@@ -5797,6 +5803,10 @@ function pintarEstadisticas() {
 // Línea de la pestaña «Datos» de los ajustes, para no obligar a entrar en la
 // pantalla entera solo por ver si hay algo apuntado.
 function pintarResumenEstadisticas() {
+  if (progreso.estadisticasApagadas()) {
+    $('resumen-estadisticas').textContent = t('statsOffTitle');
+    return;
+  }
   const resumen = estadisticas.resumen(progreso.cargarLocal());
   $('resumen-estadisticas').textContent =
     // Siempre en días: es una línea suelta en los ajustes, sin sitio para
@@ -5945,16 +5955,53 @@ $('btn-cerrar-estadisticas').addEventListener('click', () => {
   else volverALaBiblioteca();
 });
 
-$('btn-borrar-estadisticas').addEventListener('click', () => {
-  if (!confirm(t('statsDeleteConfirm'))) return;
+function borrarEstadisticasYAvisar(mensaje) {
   progreso.borrarEstadisticas();
   pintarEstadisticas();
   pintarResumenEstadisticas();
-  $('resultado-estadisticas').textContent = t('statsDeleted');
+  $('resultado-estadisticas').textContent = mensaje;
   // El borrado viaja con la sincronización: los demás dispositivos lo acatan
   // la próxima vez que se conecten.
   if (cliente) progreso.sincronizar(cliente).catch(() => null);
+}
+
+$('btn-borrar-estadisticas').addEventListener('click', () => {
+  if (!confirm(t('statsDeleteConfirm'))) return;
+  borrarEstadisticasYAvisar(t('statsDeleted'));
 });
+
+// ── No medir nada ──
+//
+// Apagarlo se lleva por delante lo apuntado hasta ahora: dejar las cifras
+// viejas a la vista de quien acaba de decir que no quiere que se le mida sería
+// justo lo contrario de lo que ha pedido. Por eso se avisa antes, con el mismo
+// aviso del borrado, y se puede echar atrás sin que se borre nada.
+
+function sincronizarCasillasEstadisticas() {
+  const apagadas = progreso.estadisticasApagadas();
+  for (const casilla of ['casilla-sin-estadisticas', 'casilla-sin-estadisticas-ajustes']) {
+    $(casilla).checked = apagadas;
+  }
+  $('btn-borrar-estadisticas').disabled = apagadas;
+}
+
+for (const casilla of ['casilla-sin-estadisticas', 'casilla-sin-estadisticas-ajustes']) {
+  $(casilla).addEventListener('change', (evento) => {
+    const apagar = evento.target.checked;
+    if (apagar && !confirm(t('statsOptOutConfirm'))) {
+      evento.target.checked = false; // se echó atrás: no se toca nada
+      return;
+    }
+    progreso.apagarEstadisticas(apagar);
+    sincronizarCasillasEstadisticas();
+    if (apagar) borrarEstadisticasYAvisar(t('statsOffDone'));
+    else {
+      pintarEstadisticas();
+      pintarResumenEstadisticas();
+      $('resultado-estadisticas').textContent = t('statsOnAgain');
+    }
+  });
+}
 
 // Al cambiar de idioma se rehacen las cifras: llevan fechas y palabras
 // («2 días», «1 h 20 min») que el recorrido de data-i18n no alcanza.
@@ -8948,6 +8995,7 @@ limpiarAjustesGlobalesViejos();
 progreso.migrarEstadisticasAntiguas();
 iniciarTema(); // deja pintados también los dos selectores del tema automático
 sincronizarCasillaContinuar();
+sincronizarCasillasEstadisticas();
 sincronizarCasillasAbrirUltimo();
 sincronizarCasillaBarraEstado();
 aplicarPlegadoContinuar();

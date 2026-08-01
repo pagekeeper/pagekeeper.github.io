@@ -16,6 +16,9 @@ import comun
 
 r = comun.Resultado('dos dispositivos')
 
+APAGADAS = """() => JSON.parse(localStorage.getItem('lector.progreso') || '{}')
+  .sinEstadisticas?.activo === true"""
+
 
 def configurar_nube(page, url):
     page.click('#btn-ajustes')
@@ -115,6 +118,25 @@ with comun.nube_webdav() as (url, carpeta):
           return Object.values(datos.libros || {}).map((e) => e.pagina ?? e.cfi ?? null);
         }""")
         r.comprobar(any(posiciones), 'el borrado se ha llevado por delante la posición de lectura')
+
+        # ── «No medir» decidido en A alcanza a B
+        a.once('dialog', lambda d: d.accept())
+        a.click('#casilla-sin-estadisticas')
+        a.wait_for_timeout(3000)
+        r.comprobar(a.evaluate(APAGADAS), 'A no ha registrado que no quiere que se le mida')
+
+        b.reload()
+        b.wait_for_selector('#lista-libros li[data-id-libro]', timeout=20000)
+        b.wait_for_timeout(3500)
+        r.comprobar(b.evaluate(APAGADAS), 'la decisión de no medir no ha llegado al otro dispositivo')
+        r.comprobar(b.is_checked('#casilla-sin-estadisticas-ajustes'),
+                    'B ha recibido la decisión pero su casilla no la enseña')
+
+        # Y B, aunque lea, no apunta nada.
+        leer_de_la_nube(b, vueltas=2)
+        despues = registro(b)
+        r.comprobar(not despues['libros'] and not despues['estadisticas'],
+                    'B ha seguido midiendo con las estadísticas apagadas')
 
         nav.close()
 

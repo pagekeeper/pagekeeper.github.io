@@ -264,9 +264,37 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
 // Al ir dentro de la entrada del libro, el tiempo hereda gratis todo lo demás:
 // mover el libro de carpeta se lo lleva consigo y borrarlo se lo lleva por
 // delante, igual que a los marcadores.
+// Quien no quiere que se le mida nada. El corte va aquí y no en quien llama:
+// así ninguna vía —el lector, la voz, un futuro lo que sea— puede apuntar
+// tiempo por su cuenta sin pasar por esta puerta.
+//
+// La elección vive en el registro, no en este navegador: quien dice que no
+// quiere que se le mida no lo dice de un aparato, lo dice de su lectura, así
+// que viaja con todo lo demás y los otros dispositivos la acatan al
+// sincronizar. Lleva su sello para poder resolver el desacuerdo —dos aparatos
+// desconectados pueden decir cosas distintas— y gana el más reciente.
+export function estadisticasApagadas(datos = cargarLocal()) {
+  return datos?.sinEstadisticas?.activo === true;
+}
+
+export function apagarEstadisticas(apagar) {
+  const datos = cargarLocal();
+  datos.sinEstadisticas = {
+    activo: Boolean(apagar),
+    // Estrictamente posterior a la decisión anterior, no la hora a secas:
+    // cambiar de idea y volver a cambiarla dentro del mismo milisegundo daba
+    // dos sellos iguales, y entonces mandaba la regla del empate en vez de lo
+    // último que pidió quien lee.
+    sello: fechaPosterior(datos.sinEstadisticas?.sello, new Date().toISOString()),
+  };
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+}
+
 export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date.now()) {
   const dispositivo = idDispositivo();
   const datos = cargarLocal();
+  if (estadisticasApagadas(datos)) return null;
   const entrada = normalizarEntrada(datos.libros[idLibro] ?? {});
   const tiempos = apuntarTiempo(entrada.tiempos, dispositivo, { segundos, paginas });
   if (!Object.keys(tiempos).length) return null;
@@ -763,6 +791,18 @@ function fusionarAjustes(local, remoto) {
   return local.ajustesActualizados >= remoto.ajustesActualizados ? local : remoto;
 }
 
+// Querer o no que se mida el tiempo. Gana el sello más reciente; si dos
+// aparatos desconectados eligieron a la vez, gana el «no medir»: lo que no se
+// apuntó no se puede recuperar después, y lo apuntado de más sí se borra.
+export function fusionarSinEstadisticas(local, remoto) {
+  const valida = (eleccion) => typeof eleccion?.sello === 'string'
+    && typeof eleccion?.activo === 'boolean';
+  if (!valida(local)) return valida(remoto) ? remoto : null;
+  if (!valida(remoto)) return local;
+  if (local.sello === remoto.sello) return local.activo ? local : remoto;
+  return local.sello > remoto.sello ? local : remoto;
+}
+
 // Entradas que este dispositivo echa en falta, con el día en que caerán.
 // Es lo que enseña el informe de los ajustes.
 export function ausentes(datos = cargarLocal()) {
@@ -822,6 +862,14 @@ async function sincronizarAhora(cliente) {
       // sello, el borrado ya está hecho y lo que haya es lectura posterior.
       if (selloLocal < selloBorrado) vaciarEstadisticas(local);
       if (selloRemoto < selloBorrado) vaciarEstadisticas(remoto);
+    }
+    // Querer o no que se mida es de quien lee, no de un aparato: gana lo más
+    // reciente, y en un empate exacto gana el «no medir», que es el que no
+    // puede repararse después —lo que no se apuntó no vuelve—.
+    const eleccion = fusionarSinEstadisticas(local.sinEstadisticas, remoto.sinEstadisticas);
+    if (eleccion) {
+      local.sinEstadisticas = eleccion;
+      remoto.sinEstadisticas = eleccion;
     }
     // Los días de lectura son de la biblioteca entera, no de un libro: como
     // los ajustes y el registro de dispositivos, se resuelven aparte y quedan

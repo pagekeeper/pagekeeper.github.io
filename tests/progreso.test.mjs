@@ -5,6 +5,9 @@ import {
   anotarPagina,
   anotarTiempoLectura,
   borrarEstadisticas,
+  apagarEstadisticas,
+  estadisticasApagadas,
+  fusionarSinEstadisticas,
   migrarEstadisticasAntiguas,
   acatarRevocacion,
   anotarDispositivo,
@@ -791,6 +794,101 @@ test('un libro que solo guarda tiempo se conserva; uno sin nada, no', async () =
   await sincronizar(nube.cliente);
   assert.ok(nube.ver().libros['solo-tiempo.pdf']);
   assert.equal(nube.ver().libros['vacio.pdf'], undefined);
+});
+
+// ── No querer que se mida nada ──
+
+test('con las estadísticas apagadas no se apunta ningún tiempo', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  anotarPagina('libro.pdf', 5, 100);
+  apagarEstadisticas(true);
+  assert.equal(anotarTiempoLectura('libro.pdf', 600, 20), null);
+  assert.equal(progresoDe('libro.pdf').tiempos, undefined);
+  assert.equal(cargarLocal().estadisticas, undefined);
+  // La página por la que se iba no tiene nada que ver con esto.
+  assert.equal(progresoDe('libro.pdf').pagina, 5);
+  // Y al volver a activarlo se cuenta otra vez, desde cero.
+  apagarEstadisticas(false);
+  assert.ok(anotarTiempoLectura('libro.pdf', 600, 20));
+  assert.ok(cargarLocal().estadisticas);
+});
+
+// Quien dice que no quiere que se le mida no lo dice de un aparato, lo dice de
+// su lectura: la decisión viaja con el registro.
+test('no medir se transmite a los demás dispositivos', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+
+  comoDispositivo('movil');
+  anotarPagina('libro.pdf', 5, 100);
+  anotarTiempoLectura('libro.pdf', 600, 20);
+  await sincronizar(nube.cliente);
+
+  // Desde el portátil se decide que no se mida, y se borra lo que había.
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  apagarEstadisticas(true);
+  borrarEstadisticas();
+  await sincronizar(nube.cliente);
+  assert.equal(nube.ver().sinEstadisticas.activo, true);
+
+  // El móvil lo acata al sincronizar y deja de apuntar por su cuenta.
+  comoDispositivo('movil');
+  await sincronizar(nube.cliente);
+  assert.equal(estadisticasApagadas(), true);
+  assert.equal(anotarTiempoLectura('libro.pdf', 300, 10), null);
+  assert.equal(cargarLocal().estadisticas, undefined);
+
+  // Y volver a activarlo desde el móvil llega igualmente al portátil.
+  apagarEstadisticas(false);
+  await sincronizar(nube.cliente);
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  assert.equal(estadisticasApagadas(), false);
+  assert.ok(anotarTiempoLectura('libro.pdf', 120, 4));
+});
+
+// Sin esto la prueba de arriba fallaba una de cada tres veces: los dos
+// cambios caían en el mismo milisegundo, los sellos empataban y mandaba la
+// regla del empate en lugar de lo último que se pidió.
+test('cambiar de idea dos veces seguidas respeta la última', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  apagarEstadisticas(true);
+  const primera = cargarLocal().sinEstadisticas;
+  apagarEstadisticas(false);
+  const segunda = cargarLocal().sinEstadisticas;
+  assert.ok(segunda.sello > primera.sello, 'la segunda decisión no queda por delante');
+  assert.deepEqual(fusionarSinEstadisticas(segunda, primera), segunda);
+  assert.equal(estadisticasApagadas(), false);
+});
+
+test('entre dos decisiones manda la más reciente', () => {
+  const antes = { activo: false, sello: '2026-07-01T10:00:00.000Z' };
+  const despues = { activo: true, sello: '2026-08-01T10:00:00.000Z' };
+  assert.deepEqual(fusionarSinEstadisticas(antes, despues), despues);
+  assert.deepEqual(fusionarSinEstadisticas(despues, antes), despues);
+  // Con un solo lado, ese manda; sin ninguno, no hay nada que guardar.
+  assert.deepEqual(fusionarSinEstadisticas(null, antes), antes);
+  assert.deepEqual(fusionarSinEstadisticas(antes, undefined), antes);
+  assert.equal(fusionarSinEstadisticas(null, null), null);
+  assert.equal(fusionarSinEstadisticas({ activo: true }, null), null); // sin sello no vale
+});
+
+// Lo que no se apuntó no se recupera; lo apuntado de más sí se borra.
+test('en un empate exacto gana el no medir', () => {
+  const sello = '2026-08-01T10:00:00.000Z';
+  assert.equal(fusionarSinEstadisticas({ activo: false, sello }, { activo: true, sello }).activo, true);
+  assert.equal(fusionarSinEstadisticas({ activo: true, sello }, { activo: false, sello }).activo, true);
 });
 
 test('borrar las estadísticas las borra también en los demás dispositivos', async () => {

@@ -211,6 +211,13 @@ const textos = {
     statsDelete: 'Borrar las estadísticas',
     statsDeleteConfirm: '¿Borrar las estadísticas de lectura? Se borran en todos tus dispositivos: los que estén conectados lo harán en cuanto sincronicen. No afecta a tus libros, a la página por la que vas ni a tus anotaciones.',
     statsDeleted: '✓ Estadísticas borradas. Los demás dispositivos las borrarán al sincronizar.',
+    statsOptOut: 'No medir el tiempo de lectura',
+    statsOptOutHelp: 'Deja de contar el tiempo, los días seguidos y el rato dedicado a cada libro. Al activarlo se borra lo que haya apuntado hasta ahora, que no se puede recuperar. Con la nube configurada, la decisión llega también a tus otros dispositivos: dejan de medir en cuanto sincronizan.',
+    statsOptOutConfirm: '¿Dejar de medir el tiempo de lectura?\n\nSe borrará todo lo apuntado hasta ahora —el tiempo, los días seguidos y el rato de cada libro— y no se podrá recuperar. Con la nube configurada, tanto el borrado como la decisión de no medir llegarán a tus otros dispositivos.',
+    statsOffTitle: 'No se está midiendo nada',
+    statsOff: 'Tienes desactivado el recuento del tiempo de lectura. Puedes volver a activarlo aquí abajo, en «Estos datos»; se empezará a contar de nuevo desde cero.',
+    statsOffDone: '✓ Se ha dejado de medir y se ha borrado lo que había.',
+    statsOnAgain: '✓ Se vuelve a medir, empezando desde cero.',
     statsTotal: 'Tiempo total', statsToday: 'Hoy', statsWeek: 'Últimos 7 días',
     statsStreak: 'Días seguidos', statsAverage: 'Media por día leído',
     statsActiveDays: 'Días con lectura', statsBestDay: 'Mejor día', statsPdfPages: 'Páginas de PDF',
@@ -550,6 +557,13 @@ const textos = {
     statsDelete: 'Esborrar les estadístiques',
     statsDeleteConfirm: 'Voleu esborrar les estadístiques de lectura? S’esborren a tots els teus dispositius: els que estiguin connectats ho faran tan bon punt sincronitzin. No afecta els llibres, la pàgina on ets ni les anotacions.',
     statsDeleted: '✓ Estadístiques esborrades. Els altres dispositius les esborraran en sincronitzar.',
+    statsOptOut: 'No mesurar el temps de lectura',
+    statsOptOutHelp: 'Deixa de comptar el temps, els dies seguits i l’estona dedicada a cada llibre. En activar-ho s’esborra el que hi hagi apuntat fins ara, que no es pot recuperar. Amb el núvol configurat, la decisió arriba també als altres dispositius: deixen de mesurar tan bon punt sincronitzen.',
+    statsOptOutConfirm: 'Vols deixar de mesurar el temps de lectura?\n\nS’esborrarà tot el que s’ha apuntat fins ara —el temps, els dies seguits i l’estona de cada llibre— i no es podrà recuperar. Amb el núvol configurat, tant l’esborrat com la decisió de no mesurar arribaran als altres dispositius.',
+    statsOffTitle: 'No s’està mesurant res',
+    statsOff: 'Tens desactivat el recompte del temps de lectura. Pots tornar a activar-lo aquí sota, a «Aquestes dades»; es començarà a comptar de nou des de zero.',
+    statsOffDone: '✓ S’ha deixat de mesurar i s’ha esborrat el que hi havia.',
+    statsOnAgain: '✓ Es torna a mesurar, començant des de zero.',
     statsTotal: 'Temps total', statsToday: 'Avui', statsWeek: 'Darrers 7 dies',
     statsStreak: 'Dies seguits', statsAverage: 'Mitjana per dia llegit',
     statsActiveDays: 'Dies amb lectura', statsBestDay: 'Millor dia', statsPdfPages: 'Pàgines de PDF',
@@ -889,6 +903,13 @@ const textos = {
     statsDelete: 'Delete the statistics',
     statsDeleteConfirm: 'Delete the reading statistics? They are deleted on all your devices: any that are connected will do so as soon as they sync. Your books, your reading position and your annotations are not affected.',
     statsDeleted: '✓ Statistics deleted. Your other devices will delete them when they sync.',
+    statsOptOut: 'Do not measure reading time',
+    statsOptOutHelp: 'Stops counting time, streaks and how long you spend on each book. Turning it on deletes whatever has been recorded so far, and that cannot be undone. With cloud storage set up, the decision reaches your other devices too: they stop measuring as soon as they sync.',
+    statsOptOutConfirm: 'Stop measuring reading time?\n\nEverything recorded so far —time, streaks and the time spent on each book— will be deleted and cannot be recovered. With the cloud set up, both the deletion and the decision to stop measuring will reach your other devices.',
+    statsOffTitle: 'Nothing is being measured',
+    statsOff: 'Reading-time tracking is turned off. You can turn it back on below, under “This data”; counting will start again from zero.',
+    statsOffDone: '✓ Tracking stopped and the existing data deleted.',
+    statsOnAgain: '✓ Tracking is on again, starting from zero.',
     statsTotal: 'Total time', statsToday: 'Today', statsWeek: 'Last 7 days',
     statsStreak: 'Days in a row', statsAverage: 'Average per day read',
     statsActiveDays: 'Days with reading', statsBestDay: 'Best day', statsPdfPages: 'PDF pages',
@@ -1228,6 +1249,13 @@ const textos = {
     statsDelete: 'Supprimer les statistiques',
     statsDeleteConfirm: 'Supprimer les statistiques de lecture ? Elles seront supprimées sur tous vos appareils : ceux qui sont connectés le feront dès qu’ils synchroniseront. Vos livres, votre position de lecture et vos annotations ne sont pas affectés.',
     statsDeleted: '✓ Statistiques supprimées. Vos autres appareils les supprimeront lors de la synchronisation.',
+    statsOptOut: 'Ne pas mesurer le temps de lecture',
+    statsOptOutHelp: 'Arrête de compter le temps, les jours d’affilée et le temps passé sur chaque livre. En l’activant, tout ce qui a été enregistré jusqu’ici est supprimé et ne peut pas être récupéré. Avec le nuage configuré, la décision atteint aussi vos autres appareils : ils cessent de mesurer dès la synchronisation.',
+    statsOptOutConfirm: 'Arrêter de mesurer le temps de lecture ?\n\nTout ce qui a été enregistré jusqu’ici —le temps, les jours d’affilée et le temps de chaque livre— sera supprimé sans possibilité de récupération. Avec le nuage configuré, la suppression et la décision de ne plus mesurer atteindront vos autres appareils.',
+    statsOffTitle: 'Rien n’est mesuré',
+    statsOff: 'Le comptage du temps de lecture est désactivé. Vous pouvez le réactiver ci-dessous, dans « Ces données » ; le comptage repartira de zéro.',
+    statsOffDone: '✓ Mesure arrêtée et données existantes supprimées.',
+    statsOnAgain: '✓ La mesure reprend, à partir de zéro.',
     statsTotal: 'Temps total', statsToday: 'Aujourd’hui', statsWeek: '7 derniers jours',
     statsStreak: 'Jours consécutifs', statsAverage: 'Moyenne par jour lu',
     statsActiveDays: 'Jours avec lecture', statsBestDay: 'Meilleur jour', statsPdfPages: 'Pages de PDF',
@@ -1567,6 +1595,13 @@ const textos = {
     statsDelete: 'Borrar as estatísticas',
     statsDeleteConfirm: 'Borrar as estatísticas de lectura? Bórranse en todos os teus dispositivos: os que estean conectados farano en canto sincronicen. Non afecta os teus libros, á páxina pola que vas nin ás túas anotacións.',
     statsDeleted: '✓ Estatísticas borradas. Os demais dispositivos borraranas ao sincronizar.',
+    statsOptOut: 'Non medir o tempo de lectura',
+    statsOptOutHelp: 'Deixa de contar o tempo, os días seguidos e o rato dedicado a cada libro. Ao activalo bórrase o que haxa apuntado ata agora, que non se pode recuperar. Coa nube configurada, a decisión chega tamén aos teus outros dispositivos: deixan de medir en canto sincronizan.',
+    statsOptOutConfirm: 'Deixar de medir o tempo de lectura?\n\nBorrarase todo o apuntado ata agora —o tempo, os días seguidos e o rato de cada libro— e non se poderá recuperar. Coa nube configurada, tanto o borrado como a decisión de non medir chegarán aos teus outros dispositivos.',
+    statsOffTitle: 'Non se está medindo nada',
+    statsOff: 'Tes desactivado o reconto do tempo de lectura. Podes volver activalo aquí abaixo, en «Estes datos»; comezarase a contar de novo desde cero.',
+    statsOffDone: '✓ Deixouse de medir e borrouse o que había.',
+    statsOnAgain: '✓ Vólvese medir, comezando desde cero.',
     statsTotal: 'Tempo total', statsToday: 'Hoxe', statsWeek: 'Últimos 7 días',
     statsStreak: 'Días seguidos', statsAverage: 'Media por día lido',
     statsActiveDays: 'Días con lectura', statsBestDay: 'Mellor día', statsPdfPages: 'Páxinas de PDF',
@@ -1906,6 +1941,13 @@ const textos = {
     statsDelete: 'Ezabatu estatistikak',
     statsDeleteConfirm: 'Irakurketa-estatistikak ezabatu? Zure gailu guztietan ezabatzen dira: konektatuta daudenek sinkronizatzean egingo dute. Ez die eragiten zure liburuei, zauden orrialdeari edo zure oharrei.',
     statsDeleted: '✓ Estatistikak ezabatu dira. Beste gailuek sinkronizatzean ezabatuko dituzte.',
+    statsOptOut: 'Ez neurtu irakurketa-denbora',
+    statsOptOutHelp: 'Denbora, egun jarraituak eta liburu bakoitzari eskainitako tartea zenbatzeari uzten dio. Aktibatzean orain arte apuntatutakoa ezabatzen da, eta ezin da berreskuratu. Hodeia konfiguratuta, erabakia zure beste gailuetara ere iristen da: sinkronizatu bezain laster neurtzeari uzten diote.',
+    statsOptOutConfirm: 'Irakurketa-denbora neurtzeari utzi?\n\nOrain arte apuntatutako guztia —denbora, egun jarraituak eta liburu bakoitzaren tartea— ezabatuko da, eta ezin izango da berreskuratu. Hodeia konfiguratuta baduzu, ezabatzea zein ez neurtzeko erabakia zure beste gailuetara iritsiko dira.',
+    statsOffTitle: 'Ez da ezer neurtzen ari',
+    statsOff: 'Irakurketa-denboraren zenbaketa desaktibatuta duzu. Hemen behean, «Datu hauek» atalean, berriz aktiba dezakezu; zerotik hasiko da zenbatzen.',
+    statsOffDone: '✓ Neurtzeari utzi zaio eta zegoena ezabatu da.',
+    statsOnAgain: '✓ Berriro neurtzen da, zerotik hasita.',
     statsTotal: 'Denbora osoa', statsToday: 'Gaur', statsWeek: 'Azken 7 egunak',
     statsStreak: 'Jarraian dauden egunak', statsAverage: 'Irakurritako eguneko batez bestekoa',
     statsActiveDays: 'Irakurketa-egunak', statsBestDay: 'Egunik onena', statsPdfPages: 'PDF orrialdeak',
@@ -2245,6 +2287,13 @@ const textos = {
     statsDelete: 'Statistiken löschen',
     statsDeleteConfirm: 'Lesestatistiken löschen? Sie werden auf allen deinen Geräten gelöscht: Verbundene Geräte tun dies, sobald sie synchronisieren. Deine Bücher, deine Leseposition und deine Anmerkungen sind nicht betroffen.',
     statsDeleted: '✓ Statistiken gelöscht. Deine anderen Geräte löschen sie beim Synchronisieren.',
+    statsOptOut: 'Lesezeit nicht messen',
+    statsOptOutHelp: 'Beendet das Zählen von Zeit, Tagen in Folge und der Zeit pro Buch. Beim Einschalten wird alles bisher Erfasste gelöscht und lässt sich nicht wiederherstellen. Bei eingerichteter Cloud erreicht die Entscheidung auch deine anderen Geräte: Sie hören beim Synchronisieren auf zu messen.',
+    statsOptOutConfirm: 'Die Lesezeit nicht mehr messen?\n\nAlles bisher Erfasste —Zeit, Tage in Folge und die Zeit pro Buch— wird gelöscht und kann nicht wiederhergestellt werden. Mit eingerichteter Cloud erreichen sowohl die Löschung als auch die Entscheidung, nicht zu messen, deine anderen Geräte.',
+    statsOffTitle: 'Es wird nichts gemessen',
+    statsOff: 'Die Erfassung der Lesezeit ist ausgeschaltet. Du kannst sie unten unter „Diese Daten“ wieder einschalten; gezählt wird dann wieder bei null begonnen.',
+    statsOffDone: '✓ Messung beendet und vorhandene Daten gelöscht.',
+    statsOnAgain: '✓ Es wird wieder gemessen, ab null.',
     statsTotal: 'Gesamtzeit', statsToday: 'Heute', statsWeek: 'Letzte 7 Tage',
     statsStreak: 'Tage in Folge', statsAverage: 'Durchschnitt pro Lesetag',
     statsActiveDays: 'Tage mit Lektüre', statsBestDay: 'Bester Tag', statsPdfPages: 'PDF-Seiten',
@@ -2584,6 +2633,13 @@ const textos = {
     statsDelete: 'Eliminar as estatísticas',
     statsDeleteConfirm: 'Eliminar as estatísticas de leitura? São eliminadas em todos os seus dispositivos: os que estiverem ligados fá-lo-ão assim que sincronizarem. Não afeta os seus livros, a página em que vai nem as suas anotações.',
     statsDeleted: '✓ Estatísticas eliminadas. Os outros dispositivos eliminam-nas ao sincronizar.',
+    statsOptOut: 'Não medir o tempo de leitura',
+    statsOptOutHelp: 'Deixa de contar o tempo, os dias seguidos e o tempo dedicado a cada livro. Ao ativar, é eliminado o que estiver registado até agora, sem possibilidade de recuperação. Com a nuvem configurada, a decisão chega também aos seus outros dispositivos: deixam de medir assim que sincronizam.',
+    statsOptOutConfirm: 'Deixar de medir o tempo de leitura?\n\nSerá eliminado tudo o que foi registado até agora —o tempo, os dias seguidos e o tempo de cada livro— e não poderá ser recuperado. Com a nuvem configurada, tanto a eliminação como a decisão de não medir chegarão aos seus outros dispositivos.',
+    statsOffTitle: 'Não se está a medir nada',
+    statsOff: 'Tem desativada a contagem do tempo de leitura. Pode voltar a ativá-la aqui em baixo, em «Estes dados»; a contagem recomeça do zero.',
+    statsOffDone: '✓ Deixou de medir-se e o que havia foi eliminado.',
+    statsOnAgain: '✓ Volta a medir-se, começando do zero.',
     statsTotal: 'Tempo total', statsToday: 'Hoje', statsWeek: 'Últimos 7 dias',
     statsStreak: 'Dias seguidos', statsAverage: 'Média por dia lido',
     statsActiveDays: 'Dias com leitura', statsBestDay: 'Melhor dia', statsPdfPages: 'Páginas de PDF',
@@ -2908,6 +2964,11 @@ const ayudas = {
           suma. De cada pàgina es compten com a màxim cinc minuts; si t’hi quedes més
           estona, la barra del peu avisa amb un «En pausa» i el rellotge torna a córrer
           tan bon punt canvies de pàgina.</p>
+            <p>Si prefereixes que no es mesuri res, hi ha una casella —«No mesurar el
+          temps de lectura»— a <em>⚙️ Configuració → Dades</em> i al peu de la mateixa
+          pantalla d’estadístiques. En marcar-la s’avisa que s’esborrarà el que s’hagi
+          apuntat fins aleshores. Es pot tornar a activar quan vulguis: llavors es
+          comença a comptar des de zero. La decisió viatja amb la resta de les teves dades: si uses el núvol, els altres dispositius deixen de mesurar tan bon punt sincronitzen.</p>
             <p>Amb un núvol configurat, les xifres sumen tots els teus
           dispositius: el temps de cada llibre porta a sota el repartiment
           («aquest dispositiu 2 h · Chrome en Linux 45 min»), de manera que
@@ -3415,6 +3476,11 @@ const ayudas = {
           phone— the clock stops, so leaving it open adds nothing. Each page counts for
           at most five minutes; stay longer on the same one and the footer bar says
           “Paused”, with the clock running again as soon as you turn the page.</p>
+            <p>If you would rather nothing was measured, there is a tick box —“Do not
+          measure reading time”— in <em>⚙️ Settings → Data</em> and at the foot of the
+          statistics screen itself. Ticking it warns you that whatever has been recorded
+          until then will be deleted. You can turn it back on whenever you like:
+          counting then starts from zero. The decision travels with the rest of your data: if you use the cloud, your other devices stop measuring as soon as they sync.</p>
             <p>With cloud storage set up, the figures add up all your devices:
           each book’s time carries the split underneath (“this device 2 h ·
           Chrome on Linux 45 min”), so you know how long it took you even if you
@@ -3932,6 +3998,11 @@ const ayudas = {
           ouverte n’ajoute rien. Chaque page compte au maximum cinq minutes ; si vous
           restez plus longtemps sur la même, la barre du bas affiche « En pause », et
           l’horloge repart dès que vous tournez la page.</p>
+            <p>Si vous préférez que rien ne soit mesuré, une case —« Ne pas mesurer le
+          temps de lecture »— se trouve dans <em>⚙️ Réglages → Données</em> et au bas de
+          l’écran des statistiques. En la cochant, un avertissement précise que tout ce
+          qui a été enregistré jusque-là sera supprimé. Vous pouvez la réactiver quand
+          vous voulez : le comptage repart alors de zéro. La décision voyage avec le reste de vos données : si vous utilisez le nuage, vos autres appareils cessent de mesurer dès la synchronisation.</p>
             <p>Avec un nuage configuré, les chiffres additionnent tous vos appareils :
           le temps de chaque livre porte la répartition en dessous (« cet appareil 2 h ·
           Chrome sur Linux 45 min »), pour savoir combien de temps il vous a pris même en
@@ -4456,6 +4527,10 @@ const ayudas = {
           que deixala aberta non suma nada. De cada páxina cóntanse como máximo cinco
           minutos; se quedas máis tempo na mesma, a barra do pé avisa cun «En pausa» e o
           reloxo volve correr en canto pasas de páxina.</p>
+            <p>Se prefires que non se mida nada, hai unha caixa —«Non medir o tempo de
+          lectura»— en <em>⚙️ Axustes → Datos</em> e ao pé da propia pantalla de
+          estatísticas. Ao marcala avísase de que se borrará o apuntado ata entón.
+          Pódese volver activar cando queiras: entón cóntase desde cero. A decisión viaxa co resto dos teus datos: se usas a nube, os teus outros dispositivos deixan de medir en canto sincronizan.</p>
             <p>Cunha nube configurada, as cifras suman todos os teus dispositivos:
           o tempo de cada libro leva embaixo o reparto («este dispositivo 2 h ·
           Chrome en Linux 45 min»), así que sabes canto tardaches en lelo aínda que o
@@ -4974,6 +5049,10 @@ const ayudas = {
           uzteak ez du ezer gehitzen. Orrialde bakoitzeko bost minutu zenbatzen dira
           gehienez; orrialde berean gehiago geratzen bazara, oineko barrak «Etenda»
           adierazten du, eta erlojua orrialdea pasatzean berriro hasten da.</p>
+            <p>Ezer neurtzerik nahi ez baduzu, lauki bat dago —«Ez neurtu irakurketa-
+          denbora»— <em>⚙️ Ezarpenak → Datuak</em> atalean eta estatistiken pantailaren
+          behealdean. Markatzean, ordura arte apuntatutakoa ezabatuko dela abisatzen du.
+          Nahi duzunean berriz aktiba daiteke: orduan zerotik hasten da zenbatzen. Erabakia gainerako datuekin batera bidaiatzen du: hodeia erabiltzen baduzu, zure beste gailuek neurtzeari uzten diote sinkronizatu bezain laster.</p>
             <p>Hodei bat konfiguratuta dagoela, zenbakiek zure gailu guztiak batzen
           dituzte: liburu bakoitzaren denborak azpian banaketa darama («gailu hau
           2 o · Chrome Linuxen 45 min»), gailu bakoitzean zatika irakurri arren
@@ -5509,6 +5588,11 @@ const ayudas = {
           nichts hinzu. Pro Seite werden höchstens fünf Minuten gezählt; bleibst du
           länger auf derselben, weist die Fußzeile mit „Pausiert“ darauf hin, und beim
           Umblättern läuft die Uhr wieder.</p>
+            <p>Wenn dir lieber wäre, dass nichts gemessen wird, gibt es ein Kästchen
+          —„Lesezeit nicht messen“— unter <em>⚙️ Einstellungen → Daten</em> und am Fuß
+          der Statistikseite selbst. Beim Ankreuzen wird gewarnt, dass alles bis dahin
+          Erfasste gelöscht wird. Du kannst es jederzeit wieder einschalten: dann wird
+          ab null gezählt. Die Entscheidung reist mit deinen übrigen Daten: bei Nutzung der Cloud hören deine anderen Geräte beim Synchronisieren auf zu messen.</p>
             <p>Bei eingerichteter Cloud summieren die Zahlen alle deine Geräte: Die
           Zeit jedes Buches trägt darunter die Aufteilung („dieses Gerät 2 Std. ·
           Chrome unter Linux 45 Min.“), sodass du weißt, wie lange du gebraucht hast,
@@ -6048,6 +6132,11 @@ const ayudas = {
           página contam-se no máximo cinco minutos; se ficar mais tempo na mesma, a
           barra do fundo avisa com um «Em pausa» e o relógio volta a correr assim que
           mudar de página.</p>
+            <p>Se prefere que nada seja medido, há uma caixa —«Não medir o tempo de
+          leitura»— em <em>⚙️ Definições → Dados</em> e no fim do próprio ecrã de
+          estatísticas. Ao marcá-la avisa-se de que será eliminado o que estiver
+          registado até então. Pode voltar a ativá-la quando quiser: a contagem
+          recomeça do zero. A decisão viaja com o resto dos seus dados: se usa a nuvem, os seus outros dispositivos deixam de medir assim que sincronizam.</p>
             <p>Com uma nuvem configurada, os números somam todos os seus
           dispositivos: o tempo de cada livro traz por baixo a repartição
           («este dispositivo 2 h · Chrome no Linux 45 min»), para saber quanto

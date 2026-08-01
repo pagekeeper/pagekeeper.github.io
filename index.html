@@ -705,6 +705,11 @@
       <div class="tarjeta">
         <h2 data-i18n="stats">Estadísticas de lectura</h2>
         <p class="ayuda" data-i18n="statsSettingsHelp">El tiempo que dedicas a leer, los días seguidos que llevas y los libros a los que más rato les echas. Se miden en este dispositivo y no salen de él.</p>
+        <label class="casilla">
+          <input type="checkbox" id="casilla-sin-estadisticas-ajustes">
+          <span data-i18n="statsOptOut">No medir el tiempo de lectura</span>
+        </label>
+        <p class="ayuda" data-i18n="statsOptOutHelp">Deja de contar el tiempo, los días seguidos y el rato dedicado a cada libro. Al activarlo se borra lo que haya apuntado hasta ahora, que no se puede recuperar. Con la nube configurada, la decisión llega también a tus otros dispositivos: dejan de medir en cuanto sincronizan.</p>
         <div class="fila-botones">
           <button type="button" id="btn-ver-estadisticas" class="btn-secundario"
             data-i18n="statsView">Ver las estadísticas</button>
@@ -960,6 +965,13 @@
         <p class="ayuda" data-i18n="statsEmpty">En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.</p>
       </div>
 
+      <!-- Apagadas a propósito: si no se dijera, esta pantalla se leería como
+           «no has leído nada» en lugar de «no se está midiendo». -->
+      <div id="estadisticas-apagadas" class="tarjeta oculto">
+        <h2 data-i18n="statsOffTitle">No se está midiendo nada</h2>
+        <p class="ayuda" data-i18n="statsOff">Tienes desactivado el recuento del tiempo de lectura. Puedes volver a activarlo aquí abajo, en «Estos datos»; se empezará a contar de nuevo desde cero.</p>
+      </div>
+
       <div id="estadisticas-contenido">
         <div class="tarjeta">
           <h2 data-i18n="statsSummary">Tu lectura</h2>
@@ -1009,6 +1021,11 @@
       <div class="tarjeta">
         <h2 data-i18n="statsDataTitle">Estos datos</h2>
         <p class="ayuda" data-i18n="statsPrivacy">Se miden y se guardan solo en este navegador: no se sincronizan con la nube ni se envían a ninguna parte, así que cada dispositivo lleva su propia cuenta. Solo cuenta el tiempo con el libro delante: mientras la aplicación no está a la vista el reloj se para, y los saltos de posición no se suman. De cada página se cuentan como mucho cinco minutos; pasado ese rato la barra del pie avisa de que está en pausa, y vuelve a contar al pasar de página.</p>
+        <label class="casilla">
+          <input type="checkbox" id="casilla-sin-estadisticas">
+          <span data-i18n="statsOptOut">No medir el tiempo de lectura</span>
+        </label>
+        <p class="ayuda" data-i18n="statsOptOutHelp">Deja de contar el tiempo, los días seguidos y el rato dedicado a cada libro. Al activarlo se borra lo que haya apuntado hasta ahora, que no se puede recuperar. Con la nube configurada, la decisión llega también a tus otros dispositivos: dejan de medir en cuanto sincronizan.</p>
         <div class="fila-botones">
           <button type="button" id="btn-borrar-estadisticas" class="btn-peligro"
             data-i18n="statsDelete">Borrar las estadísticas</button>
@@ -1255,6 +1272,14 @@
           suma. De cada página se cuentan como mucho cinco minutos; si te quedas más
           rato en la misma, la barra del pie avisa con un «En pausa» y el reloj vuelve a
           correr en cuanto pasas de página.</p>
+            <p>Si prefieres que no se mida nada, hay una casilla —«No medir el tiempo
+          de lectura»— en <em>⚙️ Ajustes → Datos</em> y al pie de la propia pantalla de
+          estadísticas. Al marcarla se avisa de que se borrará lo apuntado hasta
+          entonces, porque dejar las cifras viejas a la vista de quien acaba de pedir
+          que no se le mida sería lo contrario de lo que ha pedido. Se puede volver a
+          activar cuando quieras: entonces se empieza a contar desde cero. La decisión
+          viaja con el resto de tus datos: si usas la nube, tus otros dispositivos
+          dejan de medir en cuanto sincronizan.</p>
             <p>Con una nube configurada, las cifras suman todos tus
           dispositivos: el tiempo de cada libro lleva debajo el reparto («este
           dispositivo 2 h · Chrome en Linux 45 min»), de modo que sabes cuánto
