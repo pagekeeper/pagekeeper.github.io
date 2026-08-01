@@ -95,15 +95,36 @@ with comun.nube_webdav() as (url, carpeta):
         dias = registro(a)['estadisticas']
         r.comprobar(len(dias) == 2, f'los días deberían venir de dos aparatos, vienen de {len(dias)}')
 
+        # El reparto se mira en la ficha del libro y no en «En qué se va el
+        # tiempo»: esa lista deja fuera los libros de menos de cinco minutos, y
+        # una prueba no puede leer tanto rato de verdad.
         a.click('#btn-estadisticas')
         a.wait_for_selector('#vista-estadisticas:not(.oculto)')
         a.wait_for_timeout(400)
-        desglose = [t for t in a.locator('.libro-estadistica').all_inner_texts() if '·' in t]
-        print('desglose:', desglose[0].replace('\n', ' | ') if desglose else '—')
-        r.comprobar(bool(desglose), 'la lista de libros no enseña el reparto por dispositivo')
         a.screenshot(path=str(comun.SALIDA / 'dos-dispositivos.png'), full_page=True)
+        a.click('#btn-cerrar-estadisticas')
+        a.wait_for_selector('#vista-biblioteca:not(.oculto)')
+        a.locator('#lista-libros li[data-id-libro]').first.click()
+        a.wait_for_selector('#vista-lector:not(.oculto)', timeout=30000)
+        a.wait_for_timeout(1500)
+        pulsable = a.locator('.dato-estado-pulsable')   # el tiempo de la barra del pie
+        if r.comprobar(pulsable.count() == 1, 'la barra del pie no ofrece el tiempo dedicado'):
+            pulsable.click()
+            a.wait_for_selector('#ficha-libro:not(.oculto)')
+            a.wait_for_timeout(400)
+            reparto = a.locator('#lista-reparto-ficha li').all_inner_texts()
+            print('desglose:', ' | '.join(t.replace('\n', ' ') for t in reparto) or '—')
+            r.comprobar(len(reparto) == 2,
+                        f'la ficha debería repartir el tiempo entre dos aparatos, enseña {len(reparto)}')
+            a.keyboard.press('Escape')
+            a.wait_for_function("() => document.getElementById('ficha-libro').classList.contains('oculto')")
+        a.click('#btn-volver')
+        a.wait_for_selector('#vista-biblioteca:not(.oculto)')
 
         # ── Borrar desde A alcanza a B
+        a.click('#btn-estadisticas')      # se salió de aquí para ver la ficha
+        a.wait_for_selector('#vista-estadisticas:not(.oculto)')
+        a.wait_for_timeout(400)
         a.once('dialog', lambda d: d.accept())
         a.click('#btn-borrar-estadisticas')
         a.wait_for_timeout(3000)

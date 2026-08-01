@@ -1013,7 +1013,17 @@
         </div>
 
         <div id="tarjeta-libros-estadisticas" class="tarjeta">
-          <h2 data-i18n="statsTopBooks">En qué se va el tiempo</h2>
+          <div class="cabecera-periodos">
+            <h2 data-i18n="statsTopBooks">En qué se va el tiempo</h2>
+            <label class="campo-ajuste campo-orden-libros">
+              <span data-i18n="statsSortBy">Ordenar por</span>
+              <select id="orden-libros-estadisticas">
+                <option value="tiempo" data-i18n="statsSortTime">Tiempo dedicado</option>
+                <option value="reciente" data-i18n="statsSortRecent">Última lectura</option>
+                <option value="titulo" data-i18n="statsSortTitle">Título</option>
+              </select>
+            </label>
+          </div>
           <ul id="libros-estadisticas" class="lista-estadisticas-libros"></ul>
         </div>
       </div>
@@ -1260,7 +1270,11 @@
             <p>El botón del gráfico de la cabecera abre el tiempo que dedicas a
           leer: el total, el de hoy y el de la semana, los días seguidos que
           llevas, un gráfico de barras y los
-          libros a los que más rato les echas. El gráfico se agrupa por
+          libros a los que más rato les echas —los de menos de cinco minutos no salen
+          en esa lista, para que no la llenen los que solo abriste para ver de qué
+          iban; su tiempo sigue contando en los totales y en la ficha del libro—. Esa
+          lista se puede ordenar por tiempo dedicado, por última lectura o por título,
+          y cada libro abre su ficha. El gráfico se agrupa por
           <strong>días, semanas, meses o años</strong>, y debajo compara el tramo en
           curso con el anterior: cuánto llevas este mes frente al pasado, o este año
           frente al otro. La barra rayada es la del tramo que aún va a medias. El

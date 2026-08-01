@@ -6,6 +6,48 @@
 // son los ratos sueltos de libros que apenas se abrieron.
 export const LIBROS_EN_LISTA = 10;
 
+// Y por debajo de este rato tampoco entran, aunque sobre sitio: un libro que se
+// abrió para mirar de qué iba no es «en qué se va el tiempo», y con tres o
+// cuatro así la lista contaba más de lo que se hojeó que de lo que se leyó. El
+// tiempo de esos libros no se pierde: sigue en su ficha y en los totales.
+export const SEGUNDOS_MINIMOS_EN_LISTA = 5 * 60;
+
+// Por qué se ordena la lista. El tiempo es lo de siempre —«en qué se va el
+// tiempo» es la pregunta de la tarjeta—, pero para volver sobre lo que se está
+// leyendo estos días hace falta la fecha, y para buscar un libro concreto en
+// una lista larga, el título.
+export const ORDENES_LIBROS = ['tiempo', 'reciente', 'titulo'];
+
+export function ordenLibrosValido(orden) {
+  return ORDENES_LIBROS.includes(orden) ? orden : 'tiempo';
+}
+
+// El filtro y el recorte van antes de ordenar y después, en este orden:
+// primero se quitan los libros que solo se hojearon, luego se ordena y al
+// final se corta. Cortar antes de ordenar dejaría «por última lectura»
+// enseñando los diez de más tiempo puestos por fecha, que no es lo que se pide.
+export function librosParaLaLista(libros, {
+  orden = 'tiempo',
+  nombreDe = (libro) => libro.id,
+  compararTextos = (uno, otro) => uno.localeCompare(otro),
+  minimo = SEGUNDOS_MINIMOS_EN_LISTA,
+} = {}) {
+  const porTiempo = (uno, otro) => otro.segundos - uno.segundos;
+  const criterios = {
+    // Sin fecha, al final: es un libro del que no se sabe cuándo se leyó, y
+    // colarlo entre los recientes sería inventárselo.
+    reciente: (uno, otro) =>
+      (otro.ultimaLectura || '').localeCompare(uno.ultimaLectura || '') || porTiempo(uno, otro),
+    titulo: (uno, otro) =>
+      compararTextos(nombreDe(uno), nombreDe(otro)) || porTiempo(uno, otro),
+    tiempo: porTiempo,
+  };
+  return (libros ?? [])
+    .filter((libro) => libro.segundos > minimo)
+    .sort(criterios[ordenLibrosValido(orden)])
+    .slice(0, LIBROS_EN_LISTA);
+}
+
 // Duración en palabras, con las mismas fórmulas que el tiempo restante.
 // Devuelve la clave de traducción y sus valores, que es lo que decide de
 // verdad: por debajo del minuto no se dan cifras, y las horas redondas se

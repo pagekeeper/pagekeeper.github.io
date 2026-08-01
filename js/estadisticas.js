@@ -317,6 +317,10 @@ export function librosLeidos(libros) {
     lista.push({
       id,
       titulo: typeof entrada?.titulo === 'string' && entrada.titulo.trim() ? entrada.titulo.trim() : '',
+      // La última vez que la lectura se movió de sitio, que es lo más cerca
+      // que hay de «cuándo lo leí por última vez»: el tiempo por libro no
+      // lleva fecha, porque cada aparato solo suma en su casilla.
+      ultimaLectura: entrada?.posicionActualizada ?? entrada?.actualizado ?? '',
       formato: formatoDe(id),
       enLaNube: !String(id).startsWith('local:'),
       segundos: total.s,

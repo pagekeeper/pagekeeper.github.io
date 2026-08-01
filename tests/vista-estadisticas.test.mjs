@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 
 import {
   duracionEnPalabras, fechaDeClave, alturaBarra, mayorDeLaSerie,
-  totalesDeSerie, nombreVisibleDeId,
+  totalesDeSerie, nombreVisibleDeId, librosParaLaLista, ordenLibrosValido,
+  LIBROS_EN_LISTA, SEGUNDOS_MINIMOS_EN_LISTA, ORDENES_LIBROS,
 } from '../js/vista-estadisticas.js';
 
 // ── Tiempos en palabras ──
@@ -116,4 +117,79 @@ test('un nombre con dos puntos dentro se conserva entero', () => {
 test('un id que no se deja descomponer se enseña tal cual', () => {
   assert.equal(nombreVisibleDeId('local:'), 'local:');
   assert.equal(nombreVisibleDeId('suelto.pdf'), 'suelto.pdf');
+});
+
+
+// ── Qué libros entran en «En qué se va el tiempo» ──
+
+const libro = (id, segundos, ultimaLectura = '') => ({ id, segundos, ultimaLectura });
+
+test('los libros de menos de cinco minutos no entran en la lista', () => {
+  const libros = [libro('novela.epub', 7200), libro('ojeado.pdf', 120), libro('otro.pdf', 299)];
+  assert.deepEqual(librosParaLaLista(libros).map((l) => l.id), ['novela.epub']);
+  assert.equal(SEGUNDOS_MINIMOS_EN_LISTA, 300);
+});
+
+// «Más de cinco minutos»: los cinco justos se quedan fuera, como el resto de
+// los libros que solo se abrieron para mirar de qué iban.
+test('cinco minutos clavados todavía no cuentan', () => {
+  assert.deepEqual(librosParaLaLista([libro('justo.pdf', 300)]), []);
+  assert.deepEqual(librosParaLaLista([libro('justo.pdf', 301)]).map((l) => l.id), ['justo.pdf']);
+});
+
+test('la lista sigue teniendo su tope de libros', () => {
+  const muchos = Array.from({ length: 20 }, (_, i) => libro(`libro-${i}.pdf`, 3600));
+  assert.equal(librosParaLaLista(muchos).length, LIBROS_EN_LISTA);
+});
+
+test('sin libros que enseñar la lista sale vacía, no rota', () => {
+  assert.deepEqual(librosParaLaLista([]), []);
+  assert.deepEqual(librosParaLaLista(undefined), []);
+});
+
+
+// ── Cómo se ordena la lista ──
+
+const CATALOGO = [
+  libro('mucho.epub', 36000, '2026-05-01T10:00:00.000Z'),
+  libro('ayer.pdf', 1200, '2026-08-01T10:00:00.000Z'),
+  libro('medio.epub', 7200, '2026-07-01T10:00:00.000Z'),
+];
+
+test('de partida manda el tiempo, que es lo que pregunta la tarjeta', () => {
+  assert.deepEqual(librosParaLaLista(CATALOGO).map((l) => l.id),
+    ['mucho.epub', 'medio.epub', 'ayer.pdf']);
+});
+
+test('por última lectura salen primero los de estos días', () => {
+  assert.deepEqual(librosParaLaLista(CATALOGO, { orden: 'reciente' }).map((l) => l.id),
+    ['ayer.pdf', 'medio.epub', 'mucho.epub']);
+});
+
+test('por título se ordena por el nombre que se ve, no por el id', () => {
+  const nombreDe = (l) => ({ 'mucho.epub': 'Zorro', 'ayer.pdf': 'Alba', 'medio.epub': 'Mar' }[l.id]);
+  assert.deepEqual(librosParaLaLista(CATALOGO, { orden: 'titulo', nombreDe }).map((l) => l.id),
+    ['ayer.pdf', 'medio.epub', 'mucho.epub']);
+});
+
+// Un libro sin fecha no se cuela entre los recientes: no se sabe cuándo se
+// leyó, y ponerlo el primero sería inventárselo.
+test('los libros sin fecha se van al final del orden por lectura', () => {
+  const conHuerfano = [...CATALOGO, libro('sinfecha.pdf', 5000)];
+  assert.equal(librosParaLaLista(conHuerfano, { orden: 'reciente' }).at(-1).id, 'sinfecha.pdf');
+});
+
+// Cortar antes de ordenar enseñaría los diez de más tiempo puestos por fecha.
+test('el recorte se aplica después de ordenar', () => {
+  const muchos = Array.from({ length: 15 }, (_, i) =>
+    libro(`libro-${i}.pdf`, 3600 + i, `2026-01-${String(i + 1).padStart(2, '0')}T10:00:00.000Z`));
+  const recientes = librosParaLaLista(muchos, { orden: 'reciente' });
+  assert.equal(recientes.length, LIBROS_EN_LISTA);
+  assert.equal(recientes[0].id, 'libro-14.pdf'); // el último leído, aunque no sea el de más tiempo
+});
+
+test('un orden que no existe cae en el del tiempo', () => {
+  assert.equal(ordenLibrosValido('inventado'), 'tiempo');
+  assert.equal(ordenLibrosValido('reciente'), 'reciente');
+  assert.deepEqual(ORDENES_LIBROS, ['tiempo', 'reciente', 'titulo']);
 });

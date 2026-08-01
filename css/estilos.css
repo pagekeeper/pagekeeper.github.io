@@ -2293,6 +2293,12 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
 }
 .grupo-periodos button { font: inherit; font-size: 0.85rem; padding: 0.35rem 0.6rem; }
 
+/* El selector de orden vive en la cabecera de su tarjeta, junto al título: no
+   crece hasta llenar el hueco, se queda del ancho de lo que dice. */
+.campo-orden-libros { flex: none; font-size: 0.85rem; }
+.campo-orden-libros > span { color: var(--texto-suave); font-weight: 400; }
+.campo-orden-libros select { font-size: 0.85rem; padding: 0.3rem 0.4rem; }
+
 /* Con pocas barras (años, semanas) estirarlas a todo lo ancho las convierte en
    manchas: se les pone un tope y el grupo se queda a la izquierda. */
 .grafico-dias .columna-dia { max-width: 3.5rem; }

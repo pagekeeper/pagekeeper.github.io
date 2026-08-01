@@ -204,7 +204,10 @@ const textos = {
     statsBookByDevice: 'En cada dispositivo',
     statsBookEmpty: 'Todavía no hay tiempo apuntado de este libro. En cuanto leas unos minutos con él abierto, aquí aparecerá cuánto le has dedicado.',
     statsShared: 'Suma de todos tus dispositivos: lo leído en el móvil y en el ordenador cuenta junto, y un día en el que hayas leído en los dos es un solo día.',
-    statsTopBooks: 'En qué se va el tiempo', statsDataTitle: 'Estos datos',
+    statsTopBooks: 'En qué se va el tiempo',
+    statsSortBy: 'Ordenar por', statsSortTime: 'Tiempo dedicado',
+    statsSortRecent: 'Última lectura', statsSortTitle: 'Título',
+    statsLastRead: 'leído el {date}', statsDataTitle: 'Estos datos',
     statsEmptyTitle: 'Todavía no hay nada que contar',
     statsEmpty: 'En cuanto leas unos minutos con un libro abierto, aquí aparecerán el tiempo dedicado, los días seguidos que llevas leyendo y en qué libros se te va el rato.',
     statsPrivacy: 'Con una nube configurada, el tiempo viaja con el progreso de lectura: cada dispositivo apunta el suyo y aquí se enseña la suma, así que sabes cuánto has tardado en leer un libro aunque lo hayas leído a ratos en cada aparato. Van en tu propio servidor WebDAV, con tus libros, y no se envían a ningún otro sitio. Sin nube configurada se quedan en este navegador. Solo cuenta el tiempo con el libro delante: mientras la aplicación no está a la vista el reloj se para, y los saltos de posición no se suman. De cada página se cuentan como mucho cinco minutos; pasado ese rato la barra del pie avisa de que está en pausa, y vuelve a contar al pasar de página.',
@@ -550,7 +553,10 @@ const textos = {
     statsBookByDevice: 'A cada dispositiu',
     statsBookEmpty: 'Encara no hi ha temps apuntat d’aquest llibre. Tan bon punt llegeixis uns minuts amb ell obert, aquí apareixerà quant li has dedicat.',
     statsShared: 'Suma de tots els teus dispositius: el que has llegit al mòbil i a l’ordinador compta junt, i un dia en què hagis llegit als dos és un sol dia.',
-    statsTopBooks: 'On se’n va el temps', statsDataTitle: 'Aquestes dades',
+    statsTopBooks: 'On se’n va el temps',
+    statsSortBy: 'Ordena per', statsSortTime: 'Temps dedicat',
+    statsSortRecent: 'Última lectura', statsSortTitle: 'Títol',
+    statsLastRead: 'llegit el {date}', statsDataTitle: 'Aquestes dades',
     statsEmptyTitle: 'Encara no hi ha res a explicar',
     statsEmpty: 'Tan bon punt llegeixis uns minuts amb un llibre obert, aquí apareixeran el temps dedicat, els dies seguits que portes llegint i en quins llibres se’t va l’estona.',
     statsPrivacy: 'Amb un núvol configurat, el temps viatja amb el progrés de lectura: cada dispositiu apunta el seu i aquí se’n mostra la suma, així saps quant has trigat a llegir un llibre encara que l’hagis llegit a estones en cada aparell. Van al teu propi servidor WebDAV, amb els teus llibres, i no s’envien enlloc més. Sense núvol configurat es queden en aquest navegador. Només compta el temps amb el llibre al davant: mentre l’aplicació no és a la vista el rellotge s’atura, i els salts de posició no se sumen. De cada pàgina es compten com a màxim cinc minuts; passada aquesta estona la barra del peu avisa que està en pausa, i torna a comptar quan canvies de pàgina.',
@@ -896,7 +902,10 @@ const textos = {
     statsBookByDevice: 'On each device',
     statsBookEmpty: 'No time recorded for this book yet. As soon as you read for a few minutes with it open, this is where you will see how long you have spent on it.',
     statsShared: 'Adding up all your devices: what you read on the phone and on the computer counts together, and a day you read on both is a single day.',
-    statsTopBooks: 'Where the time goes', statsDataTitle: 'About this data',
+    statsTopBooks: 'Where the time goes',
+    statsSortBy: 'Sort by', statsSortTime: 'Time spent',
+    statsSortRecent: 'Last read', statsSortTitle: 'Title',
+    statsLastRead: 'read on {date}', statsDataTitle: 'About this data',
     statsEmptyTitle: 'Nothing to show yet',
     statsEmpty: 'As soon as you read for a few minutes with a book open, this page will show the time you spent, how many days in a row you have been reading, and which books take up your time.',
     statsPrivacy: 'With cloud storage set up, reading time travels along with your reading position: each device records its own and the total is shown here, so you know how long a book took you even if you read it in bits on each device. It lives in your own WebDAV server, next to your books, and is never sent anywhere else. Without cloud storage it stays in this browser. Only time with the book in front of you counts: while the app is out of sight the clock stops, and jumps to another position are not added. Each page counts for at most five minutes; past that the footer bar says it is paused, and it counts again as soon as you turn the page.',
@@ -1242,7 +1251,10 @@ const textos = {
     statsBookByDevice: 'Sur chaque appareil',
     statsBookEmpty: 'Aucun temps enregistré pour ce livre pour l’instant. Dès que vous lirez quelques minutes avec ce livre ouvert, vous verrez ici le temps que vous y avez consacré.',
     statsShared: 'En additionnant tous vos appareils : ce que vous lisez sur le téléphone et sur l’ordinateur compte ensemble, et un jour où vous avez lu sur les deux ne compte que pour un jour.',
-    statsTopBooks: 'Où passe le temps', statsDataTitle: 'À propos de ces données',
+    statsTopBooks: 'Où passe le temps',
+    statsSortBy: 'Trier par', statsSortTime: 'Temps passé',
+    statsSortRecent: 'Dernière lecture', statsSortTitle: 'Titre',
+    statsLastRead: 'lu le {date}', statsDataTitle: 'À propos de ces données',
     statsEmptyTitle: 'Rien à montrer pour l’instant',
     statsEmpty: 'Dès que vous lirez quelques minutes avec un livre ouvert, cette page affichera le temps consacré, les jours consécutifs de lecture et les livres qui prennent le plus de votre temps.',
     statsPrivacy: 'Avec un nuage configuré, le temps de lecture voyage avec la position de lecture : chaque appareil enregistre le sien et le total est affiché ici, pour savoir combien de temps un livre vous a pris même en le lisant par bouts sur chaque appareil. Ces données vivent sur votre propre serveur WebDAV, à côté de vos livres, et ne sont jamais envoyées ailleurs. Sans nuage configuré, elles restent dans ce navigateur. Seul le temps passé avec le livre devant vous compte : tant que l’application n’est pas visible, l’horloge s’arrête, et les sauts de position ne sont pas comptabilisés. Chaque page compte au maximum cinq minutes ; au-delà, la barre du bas signale la pause, et le compte reprend dès que vous tournez la page.',
@@ -1588,7 +1600,10 @@ const textos = {
     statsBookByDevice: 'En cada dispositivo',
     statsBookEmpty: 'Aínda non hai tempo apuntado deste libro. En canto leas uns minutos con el aberto, aquí aparecerá canto lle dedicaches.',
     statsShared: 'Suma de todos os teus dispositivos: o lido no móbil e no ordenador conta xunto, e un día no que lixeses nos dous é un só día.',
-    statsTopBooks: 'En que se vai o tempo', statsDataTitle: 'Estes datos',
+    statsTopBooks: 'En que se vai o tempo',
+    statsSortBy: 'Ordenar por', statsSortTime: 'Tempo dedicado',
+    statsSortRecent: 'Última lectura', statsSortTitle: 'Título',
+    statsLastRead: 'lido o {date}', statsDataTitle: 'Estes datos',
     statsEmptyTitle: 'Aínda non hai nada que contar',
     statsEmpty: 'En canto leas uns minutos cun libro aberto, aquí aparecerán o tempo dedicado, os días seguidos que levas lendo e en que libros se che vai o tempo.',
     statsPrivacy: 'Cunha nube configurada, o tempo viaxa co progreso de lectura: cada dispositivo apunta o seu e aquí amósase a suma, así que sabes canto tardaches en ler un libro aínda que o lesses a anacos en cada aparello. Van no teu propio servidor WebDAV, cos teus libros, e non se envían a ningún outro sitio. Sen nube configurada quedan neste navegador. Só conta o tempo co libro diante: mentres a aplicación non está á vista o reloxo párase, e os saltos de posición non se suman. De cada páxina cóntanse como máximo cinco minutos; pasado ese tempo a barra do pé avisa de que está en pausa, e volve contar ao pasar de páxina.',
@@ -1934,7 +1949,10 @@ const textos = {
     statsBookByDevice: 'Gailu bakoitzean',
     statsBookEmpty: 'Oraindik ez dago liburu honetako denborarik apuntatuta. Liburua irekita minutu batzuk irakurri bezain laster, hemen agertuko da zenbat denbora eman diozun.',
     statsShared: 'Zure gailu guztien batura: mugikorrean eta ordenagailuan irakurritakoa batera zenbatzen da, eta bietan irakurri duzun egun bat serie bereko egun bakar gisa zenbatzen da.',
-    statsTopBooks: 'Nora doan denbora', statsDataTitle: 'Datu hauei buruz',
+    statsTopBooks: 'Nora doan denbora',
+    statsSortBy: 'Ordenatu honela', statsSortTime: 'Emandako denbora',
+    statsSortRecent: 'Azken irakurraldia', statsSortTitle: 'Izenburua',
+    statsLastRead: '{date}(e)an irakurria', statsDataTitle: 'Datu hauei buruz',
     statsEmptyTitle: 'Oraindik ez dago zer kontatu',
     statsEmpty: 'Liburu bat irekita minutu batzuk irakurri bezain laster, orrialde honetan agertuko dira emandako denbora, jarraian daramatzazun egunak eta denbora gehien hartzen duten liburuak.',
     statsPrivacy: 'Hodeia konfiguratuta dagoenean, irakurketa-denborak irakurketaren posizioarekin bidaiatzen du: gailu bakoitzak berea apuntatzen du eta hemen batura erakusten da, gailu bakoitzean zatika irakurri arren liburu batek zenbat denbora hartu dizun jakiteko. Zure WebDAV zerbitzari propioan bidaiatzen dute, zure liburuekin batera, eta ez dira inora bidaltzen. Hodeirik konfiguratu gabe, nabigatzaile honetan gelditzen dira. Liburua aurrean duzun denbora bakarrik zenbatzen da: aplikazioa bistan ez dagoen bitartean erlojua gelditzen da, eta posizio-jauziak ez dira batzen. Orrialde bakoitzeko bost minutu zenbatzen dira gehienez; hori igarota, oineko barrak etenda dagoela adierazten du, eta orrialdea pasatzean berriro zenbatzen hasten da.',
@@ -2280,7 +2298,10 @@ const textos = {
     statsBookByDevice: 'Auf jedem Gerät',
     statsBookEmpty: 'Für dieses Buch ist noch keine Zeit erfasst. Sobald du ein paar Minuten mit geöffnetem Buch liest, erscheint hier, wie viel Zeit du ihm gewidmet hast.',
     statsShared: 'Über alle deine Geräte summiert: Was du auf dem Handy und dem Computer liest, zählt zusammen, und ein Tag, an dem du auf beiden gelesen hast, zählt als ein Tag.',
-    statsTopBooks: 'Wofür die Zeit draufgeht', statsDataTitle: 'Über diese Daten',
+    statsTopBooks: 'Wofür die Zeit draufgeht',
+    statsSortBy: 'Sortieren nach', statsSortTime: 'Aufgewendete Zeit',
+    statsSortRecent: 'Zuletzt gelesen', statsSortTitle: 'Titel',
+    statsLastRead: 'gelesen am {date}', statsDataTitle: 'Über diese Daten',
     statsEmptyTitle: 'Noch nichts zu zeigen',
     statsEmpty: 'Sobald du ein paar Minuten mit geöffnetem Buch liest, zeigt diese Seite die verbrachte Zeit, die Tage in Folge und die Bücher, denen du am meisten Zeit widmest.',
     statsPrivacy: 'Bei eingerichteter Cloud reist die Lesezeit mit der Leseposition: Jedes Gerät erfasst seine eigene, und hier wird die Summe angezeigt, sodass du weißt, wie lange ein Buch gedauert hat, auch wenn du es auf jedem Gerät in Etappen gelesen hast. Sie liegt auf deinem eigenen WebDAV-Server, neben deinen Büchern, und wird nirgendwohin gesendet. Ohne eingerichtete Cloud bleibt sie in diesem Browser. Nur die Zeit mit dem Buch vor dir zählt: solange die App nicht zu sehen ist, steht die Uhr still, und Positionssprünge werden nicht addiert. Pro Seite werden höchstens fünf Minuten gezählt; danach weist die Fußzeile auf die Pause hin, und beim Umblättern zählt sie wieder.',
@@ -2626,7 +2647,10 @@ const textos = {
     statsBookByDevice: 'Em cada dispositivo',
     statsBookEmpty: 'Ainda não há tempo registado para este livro. Assim que ler uns minutos com ele aberto, aqui aparecerá quanto tempo lhe dedicou.',
     statsShared: 'Soma de todos os seus dispositivos: o que leu no telemóvel e no computador conta em conjunto, e um dia em que tenha lido em ambos conta como um só dia.',
-    statsTopBooks: 'Onde vai o tempo', statsDataTitle: 'Sobre estes dados',
+    statsTopBooks: 'Onde vai o tempo',
+    statsSortBy: 'Ordenar por', statsSortTime: 'Tempo dedicado',
+    statsSortRecent: 'Última leitura', statsSortTitle: 'Título',
+    statsLastRead: 'lido a {date}', statsDataTitle: 'Sobre estes dados',
     statsEmptyTitle: 'Ainda não há nada a mostrar',
     statsEmpty: 'Assim que ler uns minutos com um livro aberto, aqui aparecerão o tempo dedicado, os dias seguidos que leva a ler e os livros a que dedica mais tempo.',
     statsPrivacy: 'Com uma nuvem configurada, o tempo de leitura viaja com a posição de leitura: cada dispositivo regista o seu e aqui mostra-se a soma, para saber quanto tempo demorou a ler um livro mesmo que o tenha lido aos poucos em cada aparelho. Ficam no seu próprio servidor WebDAV, junto com os seus livros, e nunca são enviados para mais lado nenhum. Sem nuvem configurada, ficam neste navegador. Só conta o tempo com o livro à frente: enquanto a aplicação não está à vista o relógio para, e os saltos de posição não são somados. De cada página contam-se no máximo cinco minutos; passado esse tempo a barra do fundo avisa que está em pausa, e volta a contar ao mudar de página.',
@@ -2953,7 +2977,7 @@ const ayudas = {
             <p>El botó del gràfic de la capçalera obre el temps que dediques a
           llegir: el total, el d’avui i el de la setmana, els dies seguits que
           portes, un gràfic de barres i els llibres
-          als quals dediques més estona. El gràfic s’agrupa per <strong>dies, setmanes,
+          als quals dediques més estona —els de menys de cinc minuts no surten en aquesta llista, perquè no l’omplin els que només vas obrir per veure de què anaven; el seu temps continua comptant als totals i a la fitxa del llibre—. Aquesta llista es pot ordenar per temps dedicat, per última lectura o per títol, i cada llibre obre la seva fitxa. El gràfic s’agrupa per <strong>dies, setmanes,
           mesos o anys</strong>, i a sota compara el tram en curs amb l’anterior: quant
           portes aquest mes respecte del passat, o enguany respecte de l’any passat. La
           barra ratllada és la del tram que encara va a mitges. El detall per dies arriba
@@ -3466,7 +3490,7 @@ const ayudas = {
             <p>The chart button in the header opens the time you spend reading:
           the total, today’s and this week’s, how many days in a row you have
           kept it up, a bar chart, and the books
-          that take the most of your time. The chart groups by <strong>days, weeks,
+          that take the most of your time —books under five minutes stay out of that list, so it is not filled by the ones you only opened to see what they were; their time still counts in the totals and in the book’s own card—. That list can be sorted by time spent, by last read or by title, and each book opens its own card. The chart groups by <strong>days, weeks,
           months or years</strong>, and below it compares the current stretch with the
           previous one: how much you have read this month against last month, or this
           year against last year. The striped bar is the stretch still under way. The
@@ -3986,7 +4010,10 @@ const ayudas = {
             <p>Le bouton graphique dans l’en-tête ouvre le temps que vous passez à lire :
           le total, celui d’aujourd’hui et de cette semaine, combien de jours d’affilée
           vous avez tenu, un graphique à barres, et les livres
-          qui prennent le plus de votre temps. Le graphique se groupe par <strong>jours,
+          qui prennent le plus de votre temps —ceux de moins de cinq minutes ne figurent
+          pas dans cette liste, pour qu’elle ne soit pas remplie par ceux que vous avez
+          seulement ouverts pour voir ce que c’était ; leur temps compte toujours dans
+          les totaux et dans la fiche du livre—. Cette liste peut être triée par temps passé, par dernière lecture ou par titre, et chaque livre ouvre sa fiche. Le graphique se groupe par <strong>jours,
           semaines, mois ou années</strong>, et en dessous il compare la période en cours
           avec la précédente : ce que vous avez lu ce mois-ci face au mois dernier, ou
           cette année face à l’an dernier. La barre hachurée est celle de la période
@@ -4517,7 +4544,7 @@ const ayudas = {
             <p>O botón do gráfico da cabeceira abre o tempo que dedicas a ler:
           o total, o de hoxe e o desta semana, cantos días seguidos levas, un gráfico
           de barras e os libros aos que máis tempo lles
-          dedicas. O gráfico agrúpase por <strong>días, semanas, meses ou anos</strong>,
+          dedicas —os de menos de cinco minutos non saen nesa lista, para que non a enchan os que só abriches para ver de que ían; o seu tempo segue contando nos totais e na ficha do libro—. Esa lista pódese ordenar por tempo dedicado, por última lectura ou por título, e cada libro abre a súa ficha. O gráfico agrúpase por <strong>días, semanas, meses ou anos</strong>,
           e debaixo compara o tramo en curso co anterior: canto levas este mes fronte ao
           pasado, ou este ano fronte ao outro. A barra raiada é a do tramo que aínda vai
           a medias. O detalle por días chega ata uns trece meses atrás; o total de cada
@@ -5037,7 +5064,7 @@ const ayudas = {
             <p>Goiburuko grafiko-botoiak irakurtzen ematen duzun denbora irekitzen
           du: guztira, gaurkoa eta asteko denbora, zenbat egun jarraian daramatzazun,
           barra-grafiko bat, eta denbora gehien
-          hartzen duten liburuak. Grafikoa <strong>egunka, astez aste, hilabetez edo
+          hartzen duten liburuak —bost minutu baino gutxiagokoak ez dira zerrenda horretan agertzen, zertaz zihoazen ikusteko soilik ireki zenituenek bete ez dezaten; haien denborak guztizkoetan eta liburuaren fitxan zenbatzen jarraitzen du—. Zerrenda hori emandako denboraren, azken irakurraldiaren edo izenburuaren arabera ordena daiteke, eta liburu bakoitzak bere fitxa irekitzen du. Grafikoa <strong>egunka, astez aste, hilabetez edo
           urtez</strong> taldeka daiteke, eta azpian uneko tartea aurrekoarekin
           alderatzen du: hilabete honetan zenbat daramazun aurrekoaren aldean, edo
           aurten iaz baino gehiago ala gutxiago. Marradun barra oraindik erdibidean
@@ -5576,7 +5603,10 @@ const ayudas = {
             <p>Die Diagramm-Schaltfläche in der Kopfzeile öffnet die Zeit, die du mit
           Lesen verbringst: die Gesamtzeit, die von heute und dieser Woche, wie viele
           Tage in Folge du dranbleibst, ein Balkendiagramm
-          und die Bücher, denen du am meisten Zeit widmest. Das Diagramm gruppiert nach
+          und die Bücher, denen du am meisten Zeit widmest —Bücher unter fünf Minuten
+          erscheinen nicht in dieser Liste, damit sie nicht von denen gefüllt wird, die
+          du nur geöffnet hast, um zu sehen, worum es geht; ihre Zeit zählt weiterhin in
+          den Summen und in der Karte des Buches—. Diese Liste lässt sich nach aufgewendeter Zeit, nach zuletzt gelesen oder nach Titel sortieren, und jedes Buch öffnet seine Karte. Das Diagramm gruppiert nach
           <strong>Tagen, Wochen, Monaten oder Jahren</strong>, und darunter vergleicht es
           den laufenden Abschnitt mit dem vorigen: wie viel du diesen Monat gegenüber dem
           letzten gelesen hast, oder dieses Jahr gegenüber dem vorigen. Der schraffierte
@@ -6121,7 +6151,7 @@ const ayudas = {
             <p>O botão do gráfico no cabeçalho abre o tempo que dedica a ler: o
           total, o de hoje e o desta semana, quantos dias seguidos leva, um
           gráfico de barras e os livros a que dedica
-          mais tempo. O gráfico agrupa-se por <strong>dias, semanas, meses ou
+          mais tempo —os de menos de cinco minutos não aparecem nessa lista, para que não seja preenchida pelos que abriu só para ver do que se tratava; o seu tempo continua a contar nos totais e na ficha do livro—. Essa lista pode ordenar-se por tempo dedicado, por última leitura ou por título, e cada livro abre a sua ficha. O gráfico agrupa-se por <strong>dias, semanas, meses ou
           anos</strong>, e por baixo compara o troço em curso com o anterior: quanto leva
           este mês face ao passado, ou este ano face ao outro. A barra às riscas é a do
           troço que ainda vai a meio. O detalhe por dias chega até cerca de treze meses

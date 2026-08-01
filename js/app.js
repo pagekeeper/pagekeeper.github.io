@@ -5717,12 +5717,29 @@ function nombreVisibleDeId(id) {
   return vistaEstadisticas.nombreVisibleDeId(id, progreso.tituloDe(id));
 }
 
+const CLAVE_ORDEN_LIBROS = 'lector.ordenLibrosEstadisticas';
+
+function ordenLibrosElegido() {
+  return vistaEstadisticas.ordenLibrosValido(localStorage.getItem(CLAVE_ORDEN_LIBROS));
+}
+
 function pintarLibrosLeidos(resumen) {
   const lista = $('libros-estadisticas');
   lista.replaceChildren();
-  const libros = resumen.libros.slice(0, vistaEstadisticas.LIBROS_EN_LISTA);
+  const orden = ordenLibrosElegido();
+  $('orden-libros-estadisticas').value = orden;
+  const libros = vistaEstadisticas.librosParaLaLista(resumen.libros, {
+    orden,
+    nombreDe: (libro) => nombreVisibleDeId(libro.id),
+    // El orden alfabético es el del idioma en uso: en español la eñe va entre
+    // la n y la o, y ordenar por código de carácter la mandaría al final.
+    compararTextos: (uno, otro) => uno.localeCompare(otro, idiomaActual()),
+  });
   $('tarjeta-libros-estadisticas').classList.toggle('oculto', !libros.length);
-  const mayor = libros[0]?.segundos ?? 0;
+  // El mayor de todos, no el primero: ordenados por título o por fecha, el de
+  // arriba no tiene por qué ser el de más tiempo, y tomándolo como referencia
+  // las barras salían todas llenas y dejaban de comparar nada.
+  const mayor = vistaEstadisticas.mayorDeLaSerie(libros);
   const nombres = nombresDeDispositivos();
   for (const libro of libros) {
     const fila = document.createElement('li');
@@ -5759,25 +5776,51 @@ function pintarLibrosLeidos(resumen) {
 
     elemento.append(titulo, formato, tiempo, barra);
 
-    // El desglose solo cuando hay más de un aparato en juego: con uno solo
-    // repetiría la cifra de al lado.
+    // Debajo, lo que no cabe en la línea: el reparto por aparato —solo si hay
+    // más de uno, que con uno repetiría la cifra de al lado— y cuándo se leyó
+    // por última vez, que es lo que justifica el orden por fecha.
+    const partes = [];
     if (libro.porDispositivo.length > 1) {
-      const reparto = document.createElement('span');
-      reparto.className = 'reparto-estadistica';
-      reparto.textContent = libro.porDispositivo
+      partes.push(libro.porDispositivo
         .map((parte) => {
           const conocido = nombres.get(parte.dispositivo);
           const nombre = conocido?.esteMismo ? t('deviceThisOne')
             : conocido?.nombre ?? t('deviceUnknown');
           return `${nombre} ${duracionLegible(parte.segundos)}`;
         })
-        .join(' · ');
+        .join(' · '));
+    }
+    const cuando = fechaDeLaUltimaLectura(libro.ultimaLectura);
+    if (cuando) partes.push(t('statsLastRead', { date: cuando }));
+    if (partes.length) {
+      const reparto = document.createElement('span');
+      reparto.className = 'reparto-estadistica';
+      reparto.textContent = partes.join(' · ');
       elemento.append(reparto);
     }
     fila.append(elemento);
     lista.append(fila);
   }
 }
+
+// La fecha de la última lectura, en corto y sin la hora: para ordenar por ella
+// basta el día, y la hora sobra en una lista que ya va apretada.
+function fechaDeLaUltimaLectura(marca) {
+  const milisegundos = Date.parse(marca ?? '');
+  if (!Number.isFinite(milisegundos)) return '';
+  const fecha = new Date(milisegundos);
+  const esteAnno = fecha.getFullYear() === new Date().getFullYear();
+  return fecha.toLocaleDateString(idiomaActual(), {
+    day: 'numeric', month: 'short', ...(esteAnno ? {} : { year: 'numeric' }),
+  });
+}
+
+$('orden-libros-estadisticas').addEventListener('change', (evento) => {
+  const orden = vistaEstadisticas.ordenLibrosValido(evento.target.value);
+  if (orden === 'tiempo') localStorage.removeItem(CLAVE_ORDEN_LIBROS);
+  else localStorage.setItem(CLAVE_ORDEN_LIBROS, orden);
+  pintarLibrosLeidos(estadisticas.resumen(progreso.cargarLocal()));
+});
 
 function pintarEstadisticas() {
   const datos = progreso.cargarLocal();
