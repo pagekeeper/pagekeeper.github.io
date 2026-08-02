@@ -46,6 +46,7 @@ import {
   carpetasRemotasDeLibros, crearCopiaConfigNube, validarCopiaConfigNube,
   validarConfigNube,
 } from './copia-local.js';
+import { decidirEspacio } from './desplazamiento-lectura.js';
 
 const CLAVE_CONFIG = 'lector.config';
 // Heredadas de cuando el papel del libro se elegía aparte del tema, y con un
@@ -6169,6 +6170,7 @@ $('casilla-barra-estado').addEventListener('change', (evento) => {
 });
 
 function cuandoCambiaPagina(pagina, total) {
+  colocarPaginaSiVeniaDelEspacio();
   const visible = lector.enDoble() && pagina < total ? `${pagina}-${pagina + 1}` : String(pagina);
   $('btn-indicador').textContent = `${visible} / ${total}`;
   if (!libroActual) return;
@@ -8618,12 +8620,49 @@ function tecladoOcupado(evento) {
   return Boolean(destino.closest('[role="dialog"]'));
 }
 
+// Al retroceder de página con el espacio se llega por abajo, así que la
+// página anterior se abre por el final: empezarla por arriba obligaría a
+// bajar toda ella para seguir leyendo hacia atrás.
+let abrirPaginaPorElFinal = false;
+
+function recorrerConEspacio(haciaAtras) {
+  const area = $('area-lectura');
+  const decision = decidirEspacio({
+    scrollTop: area.scrollTop,
+    scrollHeight: area.scrollHeight,
+    clientHeight: area.clientHeight,
+    haciaAtras,
+  });
+  if (decision.accion === 'desplazar') {
+    area.scrollTo({ top: decision.destino, behavior: 'smooth' });
+    return;
+  }
+  // Solo tiene sentido pasando página: en continuo el desplazamiento recorre
+  // el documento entero y el «final» sería el del libro, no el de la página.
+  abrirPaginaPorElFinal = haciaAtras && !epubAbierto() && lector.modo !== 'continuo'
+    && hayPaginaDestino(true);
+  pasarPagina(haciaAtras);
+}
+
+// El salto al final se hace después de que la página esté montada: antes no
+// se sabe cuánto mide. Lo llama `cuandoCambiaPagina`, que es justo el momento.
+function colocarPaginaSiVeniaDelEspacio() {
+  if (!abrirPaginaPorElFinal) return;
+  abrirPaginaPorElFinal = false;
+  const area = $('area-lectura');
+  area.scrollTop = area.scrollHeight - area.clientHeight;
+}
+
 function manejarTecla(evento) {
   if ($('vista-lector').classList.contains('oculto')) return;
   if (tecladoOcupado(evento)) return;
   switch (evento.key) {
     case 'ArrowLeft': case 'PageUp': pasarPagina(true); break;
-    case 'ArrowRight': case 'PageDown': case ' ': pasarPagina(false); break;
+    case 'ArrowRight': case 'PageDown': pasarPagina(false); break;
+    // El espacio (y Mayúsculas+espacio hacia atrás) recorre primero lo que
+    // queda de página y solo pasa de página al llegar al tope. Se le quita al
+    // navegador su desplazamiento porque el salto lo damos aquí, con solape.
+    case ' ': evento.preventDefault(); recorrerConEspacio(evento.shiftKey); break;
     // Arriba y abajo hacen lo mismo que el dedo, y con la misma condición: solo
     // cuando la página entera está a la vista. Si hay algo que desplazar —modo
     // continuo, zoom, una página más alta que la ventana—, las flechas son del
