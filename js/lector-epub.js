@@ -589,9 +589,18 @@ export class LectorEpub {
 
   // El comparador de CFI lo trae epub.js, así que la decisión vive en su
   // módulo (reflujo-epub.js) y aquí solo se le acerca la herramienta.
+  // Al abrir por una posición guardada pasa lo mismo que en un reajuste, y por
+  // el mismo motivo: la pantalla que la contiene empieza antes que ella. En una
+  // sola columna la diferencia es de unas líneas, pero en un ordenador —cuatro
+  // columnas— una pantalla abarca páginas enteras, y dar por posición su inicio
+  // retrasaba la lectura en cada apertura. Peor aún: esa posición retrasada se
+  // guardaba y se subía, así que el ordenador borraba una y otra vez lo leído
+  // en el móvil. El destino que se pidió restaurar sirve de ancla igual que el
+  // punto de lectura previo a un reajuste.
   posicionTrasElReflujo(lugar) {
     return posicionTrasReflujo(lugar?.start?.cfi, lugar?.end?.cfi,
-      this.anclaReflujo, (a, b) => new window.ePub.CFI().compare(a, b));
+      this.anclaReflujo ?? this.destinoProtegido,
+      (a, b) => new window.ePub.CFI().compare(a, b));
   }
 
   // ───────────── Pantallas del dispositivo ─────────────
