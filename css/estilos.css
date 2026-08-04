@@ -2055,6 +2055,11 @@ button.estrella { cursor: pointer; }
   display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical;
   overflow: hidden;
 }
+/* Las estrellas del menú se pulsan con el dedo tanto como las de la ficha,
+   pero aquí hay sitio de sobra: se dibujan a su tamaño natural. */
+#calificacion-menu-libro { margin: -0.1rem 0 0.1rem; }
+#calificacion-menu-libro .estrella { padding: 0.25rem 0.2rem; margin: -0.25rem 0; }
+#calificacion-menu-libro .estrella .icono { width: 1.05rem; height: 1.05rem; }
 /* El resumen del libro, bajo su título. Se corta a unas pocas líneas para que
    el menú no crezca hasta ocupar la pantalla. */
 #resumen-menu-libro {

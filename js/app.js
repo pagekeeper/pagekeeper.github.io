@@ -2204,12 +2204,22 @@ async function pintarContinuarLeyendo({
 
 // Menú «⋯» compartido: se rellena al abrirse con las acciones del libro o
 // carpeta pulsado, de modo que las fichas solo cargan con un botón.
+let libroDelMenu = null;
+
 function cerrarMenuAcciones() {
   $('menu-libro').classList.add('oculto');
 }
 
-function abrirMenuAcciones(titulo, acciones, ancla, resumen = '', nota = '') {
+function abrirMenuAcciones(titulo, acciones, ancla, resumen = '', nota = '', idLibro = '') {
   $('titulo-menu-libro').textContent = titulo;
+  // Las estrellas del libro, calificables aquí mismo: este menú es el camino
+  // táctil a todo lo del libro, y quien lo abre para dejar su opinión no
+  // tiene por qué pasar por el diálogo de la nota.
+  const estrellas = $('calificacion-menu-libro');
+  libroDelMenu = idLibro || null;
+  estrellas.classList.toggle('oculto', !libroDelMenu);
+  if (libroDelMenu) pintarEstrellas(estrellas, progreso.calificacionDe(libroDelMenu), { editable: true });
+  else estrellas.replaceChildren();
   // El resumen del libro, si sus metadatos traen uno: en pantalla táctil el
   // aviso al pasar el ratón no existe, y este menú es la otra forma de leerlo.
   // Con la nota propia pasa lo mismo, y va debajo para no mezclarse con él.
@@ -2310,11 +2320,15 @@ function crearBotonMenu(ficha, obtenerAcciones) {
   actualizarEtiqueta();
   const resumen = () => ficha.closest('li')?.dataset.resumen ?? '';
   const nota = () => ficha.closest('li')?.dataset.nota ?? '';
+  // Solo los libros se califican; las carpetas usan este mismo menú y no
+  // llevan `idLibro`, así que ahí no aparecen las estrellas.
+  const idLibro = () => ficha.closest('li')?.dataset.idLibro ?? '';
   menu.addEventListener('click', (evento) => {
     evento.stopPropagation();
     actualizarEtiqueta();
     abrirMenuAcciones(
-      ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu, resumen(), nota(),
+      ficha.querySelector('.nombre').textContent, obtenerAcciones(), menu,
+      resumen(), nota(), idLibro(),
     );
   });
   // El botón derecho sobre la ficha abre el mismo menú donde está el puntero.
@@ -2326,7 +2340,7 @@ function crearBotonMenu(ficha, obtenerAcciones) {
     actualizarEtiqueta();
     abrirMenuAcciones(
       ficha.querySelector('.nombre').textContent, obtenerAcciones(),
-      { x: evento.clientX, y: evento.clientY }, resumen(), nota(),
+      { x: evento.clientX, y: evento.clientY }, resumen(), nota(), idLibro(),
     );
   });
   return menu;
@@ -2543,7 +2557,9 @@ function crearFilaLibro({
   });
   acciones.push({
     icono: 'notebook-pen',
-    etiqueta: t('actionBookNote'),
+    // Dice las dos cosas que abre: la nota es lo que había, la calificación
+    // es lo nuevo, y quien busca calificar no adivinaría que está ahí dentro.
+    etiqueta: t('bookNoteRating'),
     alPulsar: () => abrirNotaLibro(id, elemento.querySelector('.nombre')?.textContent ?? tituloMostrado),
   });
   // El otro camino a la ficha, además del tiempo de la barra del pie: esa se
@@ -2726,7 +2742,7 @@ let calificacionDeLaNota = null;
 
 function abrirNotaLibro(id, titulo, esCarpeta = false) {
   libroDeLaNota = id;
-  $('titulo-nota-libro').textContent = t(esCarpeta ? 'folderNote' : 'bookNote');
+  $('titulo-nota-libro').textContent = t(esCarpeta ? 'folderNote' : 'bookNoteRating');
   $('texto-nota-libro').placeholder = t(esCarpeta ? 'folderNotePlaceholder' : 'bookNotePlaceholder');
   $('libro-de-la-nota').textContent = titulo;
   $('texto-nota-libro').value = progreso.notaDe(id) ?? '';
@@ -2738,6 +2754,20 @@ function abrirNotaLibro(id, titulo, esCarpeta = false) {
   $('dialogo-nota-libro').classList.remove('oculto');
   $('texto-nota-libro').focus();
 }
+
+// Calificar desde el menú «⋯». A diferencia del diálogo, aquí no hay
+// «Aceptar»: el menú no confirma nada, así que la estrella se guarda al
+// pulsarla, igual que en la ficha. El menú se queda abierto, que quien
+// rectifica suele hacerlo en el acto.
+$('calificacion-menu-libro').addEventListener('click', (evento) => {
+  const estrella = evento.target.closest('.estrella');
+  if (!estrella || !libroDelMenu) return;
+  guardarCalificacionLibro(
+    libroDelMenu,
+    calificacion.alPulsarEstrella(progreso.calificacionDe(libroDelMenu), Number(estrella.dataset.valor)),
+  );
+  pintarEstrellas($('calificacion-menu-libro'), progreso.calificacionDe(libroDelMenu), { editable: true });
+});
 
 $('estrellas-nota-libro').addEventListener('click', (evento) => {
   const estrella = evento.target.closest('.estrella');
