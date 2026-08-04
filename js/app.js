@@ -16,6 +16,7 @@ import {
 import { contieneTextoUtil } from './deteccion-texto-pdf.js';
 import { abrePorRaton } from './menu-contextual.js';
 import { resumenDeMetadatos } from './resumen-libro.js';
+import * as calificacion from './calificacion.js';
 import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
   normalizarColumnas, columnasAutomaticas, valoresDisponibles, aspectoDeLaOpcion,
@@ -2422,7 +2423,7 @@ function crearFilaLibro({
         <span class="carpeta-libro oculto"></span>
       </span>
       <span class="autor oculto"></span>
-      <span class="fila-detalle"><span class="detalle"></span></span>
+      <span class="fila-detalle"><span class="calificacion-libro estrellas oculto"></span><span class="detalle"></span></span>
       <span class="barra-progreso"><div style="width:${porcentaje}%"></div></span>
     </span>`;
   // Los libros de la nube (los que se pueden mover) también admiten
@@ -2580,6 +2581,7 @@ function crearFilaLibro({
 
   elemento.append(boton);
   aplicarNotaEnFila(elemento, id);
+  aplicarCalificacionEnFila(elemento, id);
   cargarMetadatosEnFila(elemento, id, titulo);
   return elemento;
 }
@@ -2613,6 +2615,93 @@ function aplicarNotaEnFila(fila, id) {
   }
 }
 
+// ── Calificación en estrellas ──
+
+function textoCalificacion(valor) {
+  return calificacion.textoAccesible(valor, {
+    sinCalificar: t('ratingNone'),
+    deMaximo: (n, max) => t('ratingOf', { n, max }),
+  });
+}
+
+// Las estrellas, del mismo modo en el diálogo y en la ficha. Editables son
+// botones —hay que poder llegar con el teclado y saber a qué se apunta—; de
+// solo lectura, un texto con estrellas dibujadas.
+function pintarEstrellas(contenedor, valor, { editable = false } = {}) {
+  const estados = calificacion.estrellasDe(valor);
+  contenedor.replaceChildren();
+  contenedor.classList.toggle('editable', editable);
+  contenedor.title = editable ? t('ratingHint') : textoCalificacion(valor);
+  if (!editable) contenedor.setAttribute('aria-label', textoCalificacion(valor));
+  for (const [indice, estado] of estados.entries()) {
+    const posicion = indice + 1;
+    const estrella = document.createElement(editable ? 'button' : 'span');
+    estrella.className = `estrella ${estado}`;
+    // La media estrella se compone: la vacía debajo y la llena recortada
+    // encima. Un trazado partido por la mitad no existe en el juego de iconos
+    // y así se pinta con el mismo dibujo que las demás.
+    estrella.innerHTML = estado === 'media'
+      ? `${icono('star')}<span class="mitad">${icono('star')}</span>`
+      : icono('star');
+    if (editable) {
+      estrella.type = 'button';
+      estrella.dataset.valor = String(posicion);
+      estrella.setAttribute('aria-label', t('ratingOf', { n: posicion, max: calificacion.MAXIMO }));
+      estrella.setAttribute('aria-pressed', String(estado !== 'vacia'));
+    }
+    contenedor.append(estrella);
+  }
+}
+
+// Las estrellas en la ficha de la biblioteca: solo si hay calificación. Una
+// fila de estrellas vacías en cada libro sería ruido en toda la lista, y para
+// estrenar la calificación ya está el diálogo de la nota.
+function aplicarCalificacionEnFila(fila, id) {
+  const valor = progreso.calificacionDe(id);
+  const hueco = fila.querySelector('.calificacion-libro');
+  if (!hueco) return;
+  fila.dataset.calificacion = valor === null ? '' : String(valor);
+  hueco.classList.toggle('oculto', valor === null);
+  if (valor === null) return hueco.replaceChildren();
+  pintarEstrellas(hueco, valor, { editable: true });
+}
+
+function refrescarCalificacionEnFichas(id) {
+  for (const fila of document.querySelectorAll(`li[data-id-libro="${CSS.escape(id)}"]`)) {
+    aplicarCalificacionEnFila(fila, id);
+  }
+}
+
+function guardarCalificacionLibro(id, valor) {
+  progreso.guardarCalificacion(id, valor);
+  refrescarCalificacionEnFichas(id);
+  aplicarOrganizacionBiblioteca();
+  if (libroActual?.id === id) pintarNotaLibroLector();
+  if (cliente && !id.startsWith('local:')) progreso.sincronizar(cliente).catch(() => null);
+}
+
+// Las estrellas ya pintadas guardan su explicación («4 de 5 estrellas») en un
+// atributo que el recorrido de data-i18n no alcanza: se rehacen.
+document.addEventListener('idioma-cambiado', () => {
+  for (const fila of document.querySelectorAll('li[data-id-libro]')) {
+    aplicarCalificacionEnFila(fila, fila.dataset.idLibro);
+  }
+  if (libroActual) pintarNotaLibroLector();
+});
+
+// Calificar desde la ficha no debe abrir el libro: el toque se queda aquí.
+document.addEventListener('click', (evento) => {
+  const estrella = evento.target.closest?.('li[data-id-libro] .calificacion-libro .estrella');
+  if (!estrella) return;
+  evento.stopPropagation();
+  evento.preventDefault();
+  const { idLibro } = estrella.closest('li[data-id-libro]').dataset;
+  guardarCalificacionLibro(
+    idLibro,
+    calificacion.alPulsarEstrella(progreso.calificacionDe(idLibro), Number(estrella.dataset.valor)),
+  );
+}, { capture: true });
+
 // El mismo libro puede estar en varias listas a la vez (la nube, «Continuar
 // leyendo»…): se refrescan todas sus fichas, no solo desde la que se abrió.
 function refrescarNotaEnFichas(id) {
@@ -2631,6 +2720,9 @@ function idNotaCarpeta(ruta, ambito) {
 }
 
 let libroDeLaNota = null;
+// La calificación del diálogo no se guarda al pulsar la estrella, sino al
+// aceptar: si no, «Cancelar» dejaría a medias un cambio ya hecho.
+let calificacionDeLaNota = null;
 
 function abrirNotaLibro(id, titulo, esCarpeta = false) {
   libroDeLaNota = id;
@@ -2639,9 +2731,22 @@ function abrirNotaLibro(id, titulo, esCarpeta = false) {
   $('libro-de-la-nota').textContent = titulo;
   $('texto-nota-libro').value = progreso.notaDe(id) ?? '';
   $('btn-borrar-nota-libro').classList.toggle('oculto', !progreso.notaDe(id));
+  // Una carpeta no se califica: lo que se califica es lo que se lee.
+  $('calificacion-nota-libro').classList.toggle('oculto', esCarpeta);
+  calificacionDeLaNota = esCarpeta ? null : progreso.calificacionDe(id);
+  pintarEstrellas($('estrellas-nota-libro'), calificacionDeLaNota, { editable: true });
   $('dialogo-nota-libro').classList.remove('oculto');
   $('texto-nota-libro').focus();
 }
+
+$('estrellas-nota-libro').addEventListener('click', (evento) => {
+  const estrella = evento.target.closest('.estrella');
+  if (!estrella) return;
+  calificacionDeLaNota = calificacion.alPulsarEstrella(
+    calificacionDeLaNota, Number(estrella.dataset.valor),
+  );
+  pintarEstrellas($('estrellas-nota-libro'), calificacionDeLaNota, { editable: true });
+});
 
 function cerrarNotaLibro() {
   libroDeLaNota = null;
@@ -2659,6 +2764,14 @@ function pintarNotaLibroLector() {
   const texto = $('texto-nota-lector');
   texto.textContent = nota ?? t('noBookNote');
   texto.classList.toggle('sin-nota', !nota);
+  // Aquí las estrellas solo se enseñan: se cambian en el diálogo, que es donde
+  // el botón de al lado lleva. Sin calificación no se pinta nada, igual que
+  // en la ficha.
+  const estrellas = $('estrellas-nota-lector');
+  const valor = progreso.calificacionDe(libroActual.id);
+  estrellas.classList.toggle('oculto', valor === null);
+  if (valor !== null) pintarEstrellas(estrellas, valor);
+  else estrellas.replaceChildren();
 }
 
 $('btn-editar-nota-lector').addEventListener('click', () => {
@@ -2669,6 +2782,11 @@ function guardarNotaLibro(texto) {
   const id = libroDeLaNota;
   if (!id) return;
   progreso.guardarNota(id, texto);
+  if (calificacionDeLaNota !== progreso.calificacionDe(id)) {
+    progreso.guardarCalificacion(id, calificacionDeLaNota);
+    refrescarCalificacionEnFichas(id);
+    aplicarOrganizacionBiblioteca();
+  }
   refrescarNotaEnFichas(id);
   pintarNotaCarpetaAbierta('nube');
   pintarNotaCarpetaAbierta('local');
@@ -2833,6 +2951,11 @@ function aplicarOrganizacionBiblioteca() {
       } else if (orden === 'reciente') {
         const diferencia = (b.dataset.fechaLectura || '').localeCompare(a.dataset.fechaLectura || '');
         if (diferencia) return diferencia;
+      } else if (orden === 'calificacion') {
+        const diferencia = calificacion.compararPorCalificacion(
+          a.dataset.calificacion, b.dataset.calificacion,
+        );
+        if (diferencia) return diferencia;
       }
       return comparadorTexto.compare(a.dataset.titulo, b.dataset.titulo);
     });
@@ -2845,7 +2968,10 @@ function aplicarOrganizacionBiblioteca() {
   for (const fila of filas) {
     const coincideTexto = !consulta || fila.dataset.busqueda?.includes(consulta) ||
       fila.dataset.notaBusqueda?.includes(consulta);
-    const coincideEstado = !fila.dataset.idLibro || filtro === 'todos' || fila.dataset.estadoLectura === filtro;
+    const coincideEstado = !fila.dataset.idLibro || filtro === 'todos' ||
+      (calificacion.esFiltroDeCalificacion(filtro)
+        ? calificacion.pasaFiltro(filtro, fila.dataset.calificacion)
+        : fila.dataset.estadoLectura === filtro);
     const coincide = coincideTexto && coincideEstado;
     fila.classList.toggle('oculto', !coincide);
     if (coincide && fila.dataset.idLibro) visibles += 1;

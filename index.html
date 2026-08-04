@@ -157,9 +157,19 @@
           <span data-i18n="filterBy">Mostrar</span>
           <select id="filtro-biblioteca">
             <option value="todos" data-i18n="filterAll">Todos</option>
-            <option value="leyendo" data-i18n="filterReading">Leyendo</option>
-            <option value="pendientes" data-i18n="filterPending">Pendientes</option>
-            <option value="terminados" data-i18n="filterFinished">Terminados</option>
+            <!-- Dos preguntas distintas en un mismo control: por dónde va la
+                 lectura y qué me pareció. Separadas en grupos porque no se
+                 pueden combinar, y juntas para no añadir otro selector. -->
+            <optgroup data-i18n-label="filterGroupStatus" label="Lectura">
+              <option value="leyendo" data-i18n="filterReading">Leyendo</option>
+              <option value="pendientes" data-i18n="filterPending">Pendientes</option>
+              <option value="terminados" data-i18n="filterFinished">Terminados</option>
+            </optgroup>
+            <optgroup data-i18n-label="filterGroupRating" label="Calificación">
+              <option value="calificados4" data-i18n="filterRated4">4 estrellas o más</option>
+              <option value="calificados3" data-i18n="filterRated3">3 estrellas o más</option>
+              <option value="sinCalificar" data-i18n="filterUnrated">Sin calificar</option>
+            </optgroup>
           </select>
         </label>
         <label>
@@ -169,6 +179,7 @@
             <option value="titulo" data-i18n="sortTitle">Título</option>
             <option value="autor" data-i18n="sortAuthor">Autor</option>
             <option value="progreso" data-i18n="sortProgress">Progreso</option>
+            <option value="calificacion" data-i18n="sortRating">Calificación</option>
           </select>
         </label>
         <div class="conmutador-vista">
@@ -548,6 +559,7 @@
         <section id="nota-libro-lector" class="nota-libro-lector">
           <div class="cabecera-nota-lector">
             <h3 data-i18n="bookNote">Nota del libro</h3>
+            <span id="estrellas-nota-lector" class="estrellas oculto"></span>
             <button type="button" id="btn-editar-nota-lector" class="btn-icono" data-icono="notebook-pen"
               title="Escribir la nota del libro" data-i18n-title="editBookNote"></button>
           </div>
@@ -1661,6 +1673,11 @@
       aria-labelledby="titulo-nota-libro">
       <h2 id="titulo-nota-libro" data-i18n="bookNote">Nota del libro</h2>
       <p id="libro-de-la-nota" class="libro-de-la-nota"></p>
+      <div id="calificacion-nota-libro" class="fila-calificacion">
+        <span id="etiqueta-calificacion" data-i18n="rating">Calificación</span>
+        <span id="estrellas-nota-libro" class="estrellas editable"
+          role="group" aria-labelledby="etiqueta-calificacion"></span>
+      </div>
       <label class="sr-solo" for="texto-nota-libro" data-i18n="bookNoteLabel">Tu nota sobre este libro</label>
       <textarea id="texto-nota-libro" class="texto-nota-libro" rows="8"
         placeholder="De qué va, por dónde lo dejaste, qué quieres recordar…"

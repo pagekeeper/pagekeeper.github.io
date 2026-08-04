@@ -24,6 +24,7 @@ import {
   revocarDispositivo,
   guardarMarcadores,
   guardarNota,
+  guardarCalificacion,
   fusionarEntradas,
   guardarTitulo,
   librosRecientes,
@@ -128,6 +129,48 @@ test('borrar el nombre en un dispositivo se propaga al fusionar', () => {
   remoto.tituloActualizado = '2026-01-02T10:00:00.000Z';
   const resultado = fusionarEntradas(local, remoto);
   assert.equal(resultado.titulo, undefined);
+});
+
+test('la calificación gana la más reciente y no arrastra la nota del otro', () => {
+  const local = entrada({ pagina: 20, posicionActualizada: '2026-01-03T10:00:00.000Z' });
+  local.calificacion = 3;
+  local.calificacionActualizada = '2026-01-01T10:00:00.000Z';
+  local.nota = 'Lo dejé a medias';
+  local.notaActualizada = '2026-01-06T10:00:00.000Z';
+  const remoto = entrada({ pagina: 10, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.calificacion = 5;
+  remoto.calificacionActualizada = '2026-01-04T10:00:00.000Z';
+  remoto.nota = 'Nota vieja';
+  remoto.notaActualizada = '2026-01-02T10:00:00.000Z';
+  const resultado = fusionarEntradas(local, remoto);
+  assert.equal(resultado.calificacion, 5);
+  assert.equal(resultado.nota, 'Lo dejé a medias');
+  assert.equal(resultado.pagina, 20);
+});
+
+test('quitar la calificación en un dispositivo se propaga al fusionar', () => {
+  const local = entrada({ pagina: 5, posicionActualizada: '2026-01-05T10:00:00.000Z' });
+  local.calificacionActualizada = '2026-01-05T10:00:00.000Z'; // borrado más reciente
+  const remoto = entrada({ pagina: 5, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.calificacion = 4;
+  remoto.calificacionActualizada = '2026-01-02T10:00:00.000Z';
+  assert.equal(fusionarEntradas(local, remoto).calificacion, undefined);
+});
+
+test('un libro que solo se calificó se guarda igualmente', async () => {
+  const { cliente, nube } = conNube();
+  anotarPagina('solo-calificado.pdf', 0, 100);
+  guardarCalificacion('solo-calificado.pdf', 4);
+
+  await sincronizar(cliente);
+
+  assert.equal(nube.libros['solo-calificado.pdf'].calificacion, 4);
+});
+
+test('calificar no mete el libro en «Continuar leyendo»', () => {
+  conAlmacenamiento();
+  guardarCalificacion('nunca-abierto.pdf', 5);
+  assert.deepEqual(librosRecientes(Infinity).map((libro) => libro.id), []);
 });
 
 test('fusiona el estado terminado sin alterar la posición de lectura', () => {

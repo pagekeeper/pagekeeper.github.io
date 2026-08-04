@@ -1009,6 +1009,52 @@ body.arrastrando-archivos .destino-arrastre.sobre-destino .indicador-arrastre { 
   margin-top: -0.35rem; color: var(--texto-suave); font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
+
+/* ── Calificación en estrellas ──
+   El mismo dibujo sirve para las cinco: llena o vacía lo decide el relleno.
+   La media se compone con una copia recortada encima, porque un trazado
+   partido por la mitad no existe en el juego de iconos. */
+.estrellas { display: inline-flex; align-items: center; gap: 0.1rem; }
+.estrella {
+  position: relative; flex: none; display: inline-flex;
+  padding: 0; border: 0; background: transparent; color: var(--texto-suave);
+  line-height: 0;
+}
+.estrella .icono { width: 1rem; height: 1rem; }
+.estrella.llena { color: var(--acento); }
+.estrella.llena .icono { fill: currentColor; }
+.estrella.media .mitad {
+  position: absolute; inset: 0; width: 50%; overflow: hidden; color: var(--acento);
+}
+.estrella.media .mitad .icono { fill: currentColor; }
+button.estrella { cursor: pointer; }
+/* Al apuntar a una estrella se encienden ella y las anteriores: enseña qué
+   calificación se va a dejar antes de soltar el dedo. */
+.estrellas.editable:hover .estrella { color: var(--acento); }
+.estrellas.editable:hover .estrella .icono { fill: currentColor; }
+.estrellas.editable .estrella:hover ~ .estrella { color: var(--texto-suave); }
+.estrellas.editable .estrella:hover ~ .estrella .icono { fill: none; }
+.estrella:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; border-radius: 0.2rem; }
+/* En el diálogo son el control principal de una opinión: algo más grandes que
+   en la ficha, donde solo acompañan al título. */
+.fila-calificacion { display: flex; align-items: center; gap: 0.6rem; margin-top: -0.15rem; }
+.fila-calificacion > span:first-child {
+  color: var(--texto-suave); font-size: 0.75rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.fila-calificacion .estrella .icono { width: 1.35rem; height: 1.35rem; }
+.libro .calificacion-libro { flex: none; }
+.libro .calificacion-libro .estrella .icono { width: 0.78rem; height: 0.78rem; }
+/* Con el dedo, el dibujo de la ficha (12 px) es un blanco imposible. Se
+   ensancha la zona sensible con relleno, no la estrella, y el margen negativo
+   devuelve lo que ese relleno le robaría a la altura de la fila. */
+@media (pointer: coarse) {
+  .fila-calificacion .estrella { padding: 0.3rem; margin: -0.3rem; }
+  .libro .calificacion-libro { gap: 0; }
+  .libro .calificacion-libro .estrella { padding: 0.4rem 0.2rem; margin: -0.4rem 0; }
+  .libro .calificacion-libro .estrella .icono { width: 0.9rem; height: 0.9rem; }
+}
+.cabecera-nota-lector .estrellas { flex: none; }
 .texto-nota-libro {
   width: 100%; resize: vertical; min-height: 7rem;
   padding: 0.55rem 0.7rem; border: 1px solid var(--borde-fuerte); border-radius: 0.5rem;

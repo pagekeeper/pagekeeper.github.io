@@ -117,6 +117,10 @@ const textos = {
     removeFromContinue: 'Quitar «{title}» de Continuar leyendo',
     filterBy: 'Mostrar', filterAll: 'Todos', filterReading: 'Leyendo', filterPending: 'Pendientes', filterFinished: 'Terminados',
     sortBy: 'Ordenar por', sortRecent: 'Lectura reciente', sortTitle: 'Título', sortAuthor: 'Autor', sortProgress: 'Progreso',
+    rating: 'Calificación', ratingNone: 'Sin calificar', ratingOf: '{n} de {max} estrellas',
+    ratingHint: 'Pulsa la estrella marcada para quitar la calificación',
+    sortRating: 'Calificación', filterRated4: '4 estrellas o más', filterRated3: '3 estrellas o más', filterUnrated: 'Sin calificar',
+    filterGroupStatus: 'Lectura', filterGroupRating: 'Calificación',
     viewLabel: 'Vista', viewList: 'Vista de lista', viewGrid: 'Vista de cuadrícula',
     toggleSection: 'Plegar o desplegar la sección',
     markFinished: 'Marcar «{title}» como terminado', markUnfinished: 'Quitar la etiqueta «Terminado» de «{title}»', finished: 'Terminado',
@@ -466,6 +470,10 @@ const textos = {
     removeFromContinue: 'Treu «{title}» de Continua llegint',
     filterBy: 'Mostra', filterAll: 'Tots', filterReading: 'En lectura', filterPending: 'Pendents', filterFinished: 'Acabats',
     sortBy: 'Ordena per', sortRecent: 'Lectura recent', sortTitle: 'Títol', sortAuthor: 'Autor', sortProgress: 'Progrés',
+    rating: 'Qualificació', ratingNone: 'Sense qualificar', ratingOf: '{n} de {max} estrelles',
+    ratingHint: 'Prem l\'estrella marcada per treure la qualificació',
+    sortRating: 'Qualificació', filterRated4: '4 estrelles o més', filterRated3: '3 estrelles o més', filterUnrated: 'Sense qualificar',
+    filterGroupStatus: 'Lectura', filterGroupRating: 'Qualificació',
     viewLabel: 'Vista', viewList: 'Vista de llista', viewGrid: 'Vista de graella',
     toggleSection: 'Plega o desplega la secció',
     markFinished: 'Marca «{title}» com a acabat', markUnfinished: 'Treu l’etiqueta «Acabat» de «{title}»', finished: 'Acabat',
@@ -815,6 +823,10 @@ const textos = {
     removeFromContinue: 'Remove “{title}” from Continue reading',
     filterBy: 'Show', filterAll: 'All', filterReading: 'Reading', filterPending: 'Pending', filterFinished: 'Finished',
     sortBy: 'Sort by', sortRecent: 'Recently read', sortTitle: 'Title', sortAuthor: 'Author', sortProgress: 'Progress',
+    rating: 'Rating', ratingNone: 'Not rated', ratingOf: '{n} of {max} stars',
+    ratingHint: 'Tap the marked star to clear the rating',
+    sortRating: 'Rating', filterRated4: '4 stars or more', filterRated3: '3 stars or more', filterUnrated: 'Not rated',
+    filterGroupStatus: 'Reading', filterGroupRating: 'Rating',
     viewLabel: 'View', viewList: 'List view', viewGrid: 'Grid view',
     toggleSection: 'Collapse or expand the section',
     markFinished: 'Mark “{title}” as finished', markUnfinished: 'Remove the “Finished” label from “{title}”', finished: 'Finished',
@@ -1164,6 +1176,10 @@ const textos = {
     removeFromContinue: 'Retirer « {title} » de Continuer la lecture',
     filterBy: 'Afficher', filterAll: 'Tous', filterReading: 'En cours', filterPending: 'En attente', filterFinished: 'Terminés',
     sortBy: 'Trier par', sortRecent: 'Lecture récente', sortTitle: 'Titre', sortAuthor: 'Auteur', sortProgress: 'Progression',
+    rating: 'Note', ratingNone: 'Non noté', ratingOf: '{n} étoiles sur {max}',
+    ratingHint: 'Appuyez sur l\'étoile marquée pour retirer la note',
+    sortRating: 'Note', filterRated4: '4 étoiles ou plus', filterRated3: '3 étoiles ou plus', filterUnrated: 'Non noté',
+    filterGroupStatus: 'Lecture', filterGroupRating: 'Note',
     viewLabel: 'Affichage', viewList: 'Vue en liste', viewGrid: 'Vue en grille',
     toggleSection: 'Replier ou déplier la section',
     markFinished: 'Marquer « {title} » comme terminé', markUnfinished: 'Retirer l’étiquette « Terminé » de « {title} »', finished: 'Terminé',
@@ -1513,6 +1529,10 @@ const textos = {
     removeFromContinue: 'Quitar «{title}» de Continuar lendo',
     filterBy: 'Amosar', filterAll: 'Todos', filterReading: 'Lendo', filterPending: 'Pendentes', filterFinished: 'Rematados',
     sortBy: 'Ordenar por', sortRecent: 'Lectura recente', sortTitle: 'Título', sortAuthor: 'Autor', sortProgress: 'Progreso',
+    rating: 'Cualificación', ratingNone: 'Sen cualificar', ratingOf: '{n} de {max} estrelas',
+    ratingHint: 'Preme a estrela marcada para quitar a cualificación',
+    sortRating: 'Cualificación', filterRated4: '4 estrelas ou máis', filterRated3: '3 estrelas ou máis', filterUnrated: 'Sen cualificar',
+    filterGroupStatus: 'Lectura', filterGroupRating: 'Cualificación',
     viewLabel: 'Vista', viewList: 'Vista de lista', viewGrid: 'Vista de grella',
     toggleSection: 'Pregar ou despregar a sección',
     markFinished: 'Marcar «{title}» como rematado', markUnfinished: 'Quitar a etiqueta «Rematado» de «{title}»', finished: 'Rematado',
@@ -1862,6 +1882,10 @@ const textos = {
     removeFromContinue: 'Kendu «{title}» Jarraitu irakurtzen ataletik',
     filterBy: 'Erakutsi', filterAll: 'Guztiak', filterReading: 'Irakurtzen', filterPending: 'Zain', filterFinished: 'Amaituta',
     sortBy: 'Ordenatu honela', sortRecent: 'Irakurketa berriena', sortTitle: 'Izenburua', sortAuthor: 'Egilea', sortProgress: 'Aurrerapena',
+    rating: 'Balorazioa', ratingNone: 'Baloratu gabe', ratingOf: '{max}(e)tik {n} izar',
+    ratingHint: 'Sakatu markatutako izarra balorazioa kentzeko',
+    sortRating: 'Balorazioa', filterRated4: '4 izar edo gehiago', filterRated3: '3 izar edo gehiago', filterUnrated: 'Baloratu gabe',
+    filterGroupStatus: 'Irakurketa', filterGroupRating: 'Balorazioa',
     viewLabel: 'Ikuspegia', viewList: 'Zerrenda-ikuspegia', viewGrid: 'Sareta-ikuspegia',
     toggleSection: 'Tolestu edo zabaldu atala',
     markFinished: '«{title}» amaituta gisa markatu', markUnfinished: 'Kendu «Amaituta» etiketa «{title}»-tik', finished: 'Amaituta',
@@ -2211,6 +2235,10 @@ const textos = {
     removeFromContinue: '„{title}“ aus Weiterlesen entfernen',
     filterBy: 'Anzeigen', filterAll: 'Alle', filterReading: 'In Arbeit', filterPending: 'Ausstehend', filterFinished: 'Beendet',
     sortBy: 'Sortieren nach', sortRecent: 'Zuletzt gelesen', sortTitle: 'Titel', sortAuthor: 'Autor', sortProgress: 'Fortschritt',
+    rating: 'Bewertung', ratingNone: 'Nicht bewertet', ratingOf: '{n} von {max} Sternen',
+    ratingHint: 'Tippe den markierten Stern an, um die Bewertung zu entfernen',
+    sortRating: 'Bewertung', filterRated4: '4 Sterne oder mehr', filterRated3: '3 Sterne oder mehr', filterUnrated: 'Nicht bewertet',
+    filterGroupStatus: 'Lesen', filterGroupRating: 'Bewertung',
     viewLabel: 'Ansicht', viewList: 'Listenansicht', viewGrid: 'Rasteransicht',
     toggleSection: 'Abschnitt ein- oder ausklappen',
     markFinished: '„{title}“ als beendet markieren', markUnfinished: 'Markierung „Beendet“ von „{title}“ entfernen', finished: 'Beendet',
@@ -2560,6 +2588,10 @@ const textos = {
     removeFromContinue: 'Remover «{title}» de Continuar a ler',
     filterBy: 'Mostrar', filterAll: 'Todos', filterReading: 'A ler', filterPending: 'Pendentes', filterFinished: 'Concluídos',
     sortBy: 'Ordenar por', sortRecent: 'Leitura recente', sortTitle: 'Título', sortAuthor: 'Autor', sortProgress: 'Progresso',
+    rating: 'Classificação', ratingNone: 'Sem classificação', ratingOf: '{n} de {max} estrelas',
+    ratingHint: 'Toque na estrela marcada para retirar a classificação',
+    sortRating: 'Classificação', filterRated4: '4 estrelas ou mais', filterRated3: '3 estrelas ou mais', filterUnrated: 'Sem classificação',
+    filterGroupStatus: 'Leitura', filterGroupRating: 'Classificação',
     viewLabel: 'Vista', viewList: 'Vista de lista', viewGrid: 'Vista em grelha',
     toggleSection: 'Recolher ou expandir a secção',
     markFinished: 'Marcar «{title}» como concluído', markUnfinished: 'Remover a etiqueta «Concluído» de «{title}»', finished: 'Concluído',
@@ -6559,6 +6591,11 @@ export function aplicarIdioma(nuevo) {
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach((elemento) => {
     elemento.placeholder = t(elemento.dataset.i18nPlaceholder);
+  });
+  // El nombre de un grupo de opciones va en un atributo, no en el contenido:
+  // un <optgroup> no tiene texto propio que traducir.
+  document.querySelectorAll('[data-i18n-label]').forEach((elemento) => {
+    elemento.label = t(elemento.dataset.i18nLabel);
   });
   etiquetarPorTitulo();
   const selector = document.getElementById('selector-idioma');

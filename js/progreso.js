@@ -9,6 +9,7 @@ import {
   apuntarTiempo, apuntarDia, fusionarTiempos, fusionarEstadisticas,
   normalizarTiempos, normalizarEstadisticas,
 } from './estadisticas.js';
+import { calificacionValida } from './calificacion.js';
 
 const CLAVE_LOCAL = 'lector.progreso';
 const CLAVE_BORRADOS_PENDIENTES = 'lector.progreso.borradosPendientes';
@@ -126,6 +127,7 @@ function normalizarEntrada(entrada = {}) {
   const terminadoActualizado = entrada.terminadoActualizado ?? FECHA_CERO;
   const tituloActualizado = entrada.tituloActualizado ?? FECHA_CERO;
   const notaActualizada = entrada.notaActualizada ?? FECHA_CERO;
+  const calificacionActualizada = entrada.calificacionActualizada ?? FECHA_CERO;
   const marcadores = Array.isArray(entrada.marcadores)
     ? entrada.marcadores.map((marcador) => normalizarMarcador(marcador, marcadoresActualizados))
     : [];
@@ -137,6 +139,7 @@ function normalizarEntrada(entrada = {}) {
     terminadoActualizado,
     tituloActualizado,
     notaActualizada,
+    calificacionActualizada,
     marcadoresVersion: 2,
     actualizado: fechaMaxima(
       entrada.actualizado,
@@ -145,6 +148,7 @@ function normalizarEntrada(entrada = {}) {
       terminadoActualizado,
       tituloActualizado,
       notaActualizada,
+      calificacionActualizada,
       ...marcadores.map((marcador) => marcador.actualizado),
     ),
   };
@@ -502,6 +506,30 @@ export function guardarNota(idLibro, nota) {
   return entrada;
 }
 
+// Qué le pareció el libro, en estrellas. Vive junto a la nota porque es lo
+// mismo dicho en corto: una opinión sobre el libro entero, no sobre un pasaje.
+export function calificacionDe(idLibro) {
+  return calificacionValida(progresoDe(idLibro)?.calificacion);
+}
+
+// Cambia (o borra, con null) la calificación del libro.
+export function guardarCalificacion(idLibro, valor) {
+  const datos = cargarLocal();
+  // Como la nota, sin pagina/paginas: calificar un libro no es empezarlo.
+  const entrada = normalizarEntrada(datos.libros[idLibro] ?? {});
+  const limpia = calificacionValida(valor);
+  const ahora = new Date().toISOString();
+  if (limpia !== null) entrada.calificacion = limpia;
+  else delete entrada.calificacion;
+  entrada.calificacionActualizada = ahora;
+  entrada.actualizado = fechaMaxima(entrada.actualizado, ahora);
+  entrada.dispositivo = nombreDispositivo();
+  datos.libros[idLibro] = entrada;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return entrada;
+}
+
 export function marcarTerminado(idLibro, terminado) {
   const datos = cargarLocal();
   const entrada = normalizarEntrada(datos.libros[idLibro] ?? { pagina: 0, paginas: 0 });
@@ -655,6 +683,16 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   resultado.notaActualizada = fechaMaxima(local.notaActualizada, remoto.notaActualizada);
   if (typeof anotacion.nota === 'string' && anotacion.nota.trim()) resultado.nota = anotacion.nota;
   else delete resultado.nota;
+  // Y la calificación por su cuenta, con su propia fecha: cambiar de opinión
+  // en un dispositivo no debe depender de en cuál se leyó después, ni tiene
+  // por qué arrastrar la nota escrita en el otro.
+  const juicio = local.calificacionActualizada > remoto.calificacionActualizada ? local : remoto;
+  resultado.calificacionActualizada = fechaMaxima(
+    local.calificacionActualizada, remoto.calificacionActualizada,
+  );
+  const calificacion = calificacionValida(juicio.calificacion);
+  if (calificacion !== null) resultado.calificacion = calificacion;
+  else delete resultado.calificacion;
   // Ver el libro pesa más que no verlo, pero «no traigo marca de ausencia» no
   // es «lo he visto»: la mayoría de dispositivos no recorren el servidor y no
   // opinan. Por eso el avistamiento se apunta con su fecha (`presenteHasta`) y
@@ -673,6 +711,7 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
     resultado.terminadoActualizado,
     resultado.tituloActualizado,
     resultado.notaActualizada,
+    resultado.calificacionActualizada,
     ...marcadores.map((marcador) => marcador.actualizado),
   );
   return resultado;
@@ -690,6 +729,7 @@ function entradaAporta(entrada) {
   if (typeof entrada.terminado === 'boolean') return true;
   if (typeof entrada.titulo === 'string' && entrada.titulo.trim()) return true;
   if (typeof entrada.nota === 'string' && entrada.nota.trim()) return true;
+  if (calificacionValida(entrada.calificacion) !== null) return true;
   // El tiempo dedicado también es memoria: un libro terminado y quitado de
   // «Continuar leyendo» sigue diciendo cuánto costó leerlo.
   if (Object.keys(entrada.tiempos ?? {}).length) return true;
