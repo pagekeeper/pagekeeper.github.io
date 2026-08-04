@@ -248,6 +248,11 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
     actualizado: ahora,
     dispositivo: nombreDispositivo(),
   };
+  // La marca de porcentaje aproximado solo vale para la anotación que la trae:
+  // arrastrada de una anterior diría que un número bueno no es de fiar.
+  if (datos.libros[idLibro].porcentajeAproximado !== true) {
+    delete datos.libros[idLibro].porcentajeAproximado;
+  }
   datos.version = VERSION_DATOS;
   guardarLocal(datos);
   marcarPosicionPendiente(idLibro);
@@ -608,36 +613,58 @@ function fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal) {
 // Fusiona por separado la posición y cada marcador. `cambioLocal` contiene
 // tokens que solo viven en este navegador: mientras sigan pendientes, la
 // edición local prevalece aunque el reloj del dispositivo esté desajustado.
-// ¿Se escribió esta posición sabiendo lo que había en el servidor?
 //
-// `visto` guarda qué posición remota conocía este dispositivo la última vez que
-// sincronizó. Si el servidor tiene una posterior, es que se leyó y se avanzó a
-// ciegas —sin cobertura, o con el servidor caído— y entonces «gana la más
-// reciente» es una mala regla: la posición local, por venir de una copia vieja,
-// puede estar mucho más atrás y aun así ser la más nueva, borrando el avance
-// real hecho en otro aparato.
+// ¿Quién ha movido la posición desde la última vez que estos dos se vieron?
 //
-// En ese caso concreto se conserva la más avanzada. Fuera de él manda la fecha,
-// para que volver atrás a releer un capítulo siga funcionando entre dispositivos.
-function escribioAciegas(local, remoto) {
-  const visto = local.visto ?? FECHA_CERO;
-  return remoto.posicionActualizada > visto;
+// La pregunta no se responde con las fechas. Dos dispositivos con el reloj
+// desajustado —y basta un móvil que no se pone en hora— fechan mal sus
+// escrituras, y entonces «gana la más reciente» le da la razón siempre al
+// mismo: el del reloj adelantado congelaba su posición y borraba la lectura
+// recién hecha en el otro aparato, una y otra vez.
+//
+// Por eso se compara con `vistoPosicion`, que es la posición remota que este
+// dispositivo llegó a conocer en su última sincronización. Contra esa
+// referencia, cada lado dice si se ha movido o no, sin depender de ningún
+// reloj:
+//
+//  - solo se movió uno  → gana ese, aunque su fecha sea la más vieja. Así un
+//    retroceso hecho en otro dispositivo también se propaga: volver atrás a
+//    releer un capítulo es un cambio tan legítimo como avanzar.
+//  - se movieron los dos → hay conflicto de verdad: se leyó en dos sitios sin
+//    que se vieran. Se conserva la más avanzada, que es la que menos lectura
+//    tira por la borda.
+//
+// Sin esa referencia (la primera sincronización de este libro) no queda más
+// que la fecha.
+function claveDePosicion(entrada) {
+  // El CFI identifica el punto exacto en un EPUB; en PDF, el número de página.
+  return entrada?.cfi ?? (Number.isFinite(Number(entrada?.pagina)) ? `p${entrada.pagina}` : '');
 }
 
 function sinVisto(entrada) {
-  const { visto, ...resto } = entrada;
+  const { visto, vistoPosicion, ...resto } = entrada;
   return resto;
 }
 
+// Cuánto se ha leído, para decidir un conflicto. En EPUB `pagina` es un
+// porcentaje estimado, y mientras el libro no está repartido en localizaciones
+// se anota el del punto anterior (ver `porcentajeAproximado`): un número así no
+// puede decidir nada, porque diría que la posición vieja está más avanzada.
 function avance(entrada) {
+  if (entrada?.porcentajeAproximado) return -1;
   const pagina = Number(entrada?.pagina);
   return Number.isFinite(pagina) ? pagina : -1;
 }
 
 function escogerPosicion(local, remoto) {
-  const localEsReciente = local.posicionActualizada > remoto.posicionActualizada;
-  if (localEsReciente && escribioAciegas(local, remoto)) return avance(local) >= avance(remoto);
-  return localEsReciente;
+  const visto = local.vistoPosicion;
+  if (visto !== undefined) {
+    const cambioLocal = claveDePosicion(local) !== visto;
+    const cambioRemoto = claveDePosicion(remoto) !== visto;
+    if (cambioLocal !== cambioRemoto) return cambioLocal;
+    if (cambioLocal && cambioRemoto) return avance(local) >= avance(remoto);
+  }
+  return local.posicionActualizada > remoto.posicionActualizada;
 }
 
 export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}) {
@@ -955,14 +982,38 @@ async function sincronizarAhora(cliente) {
       // `visto` es la memoria de este dispositivo —qué posición remota llegó a
       // conocer— y por eso se guarda solo en local: en el archivo compartido
       // cada aparato pisaría la del anterior y no significaría nada.
+      //
+      // Se anota lo que traía el archivo compartido, no el resultado de la
+      // fusión. Guardar el resultado hacía que un dispositivo con el reloj
+      // adelantado apuntara su propia fecha futura como «lo que vi del
+      // servidor», y a partir de ahí ninguna escritura ajena la superaba: su
+      // posición quedaba congelada y borraba la de los demás.
       if (mio && suyo) {
         const fusionado = fusionarEntradas(mio, suyo, cambios[id]);
-        local.libros[id] = { ...fusionado, visto: fusionado.posicionActualizada };
+        const visto = normalizarEntrada(suyo);
+        local.libros[id] = {
+          ...fusionado,
+          visto: visto.posicionActualizada,
+          vistoPosicion: claveDePosicion(visto),
+        };
         remoto.libros[id] = sinVisto(fusionado);
-      } else if (mio) remoto.libros[id] = sinVisto(normalizarEntrada(mio));
-      else if (suyo) {
+      } else if (mio) {
+        remoto.libros[id] = sinVisto(normalizarEntrada(mio));
+        // Lo que este dispositivo acaba de subir es, desde ya, lo que hay en el
+        // servidor: si no se apunta, la próxima fusión creería que el otro lado
+        // se movió cuando lo único que hay allí es su propia escritura.
+        local.libros[id] = {
+          ...normalizarEntrada(mio),
+          visto: normalizarEntrada(mio).posicionActualizada,
+          vistoPosicion: claveDePosicion(mio),
+        };
+      } else if (suyo) {
         const entrada = normalizarEntrada(suyo);
-        local.libros[id] = { ...entrada, visto: entrada.posicionActualizada };
+        local.libros[id] = {
+          ...entrada,
+          visto: entrada.posicionActualizada,
+          vistoPosicion: claveDePosicion(entrada),
+        };
       }
       // Lo que no recuerda nada no ocupa sitio en el archivo compartido.
       if (!entradaAporta(local.libros[id])) {

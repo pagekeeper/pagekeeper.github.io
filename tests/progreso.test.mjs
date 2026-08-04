@@ -173,6 +173,79 @@ test('calificar no mete el libro en «Continuar leyendo»', () => {
   assert.deepEqual(librosRecientes(Infinity).map((libro) => libro.id), []);
 });
 
+// ── Quién movió la posición desde la última vez que se vieron ──
+
+function conVisto(entrada, posicionVista) {
+  return { ...entrada, visto: entrada.posicionActualizada, vistoPosicion: posicionVista };
+}
+
+test('un retroceso hecho en otro dispositivo se propaga', () => {
+  // Aquí está lo que antes no funcionaba: la regla de «gana el más avanzado»
+  // impedía para siempre volver atrás desde otro aparato.
+  const local = conVisto(
+    entrada({ pagina: 40, posicionActualizada: '2026-01-05T10:00:00.000Z' }), 'p40',
+  );
+  const remoto = entrada({ pagina: 20, posicionActualizada: '2026-01-06T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 20);
+});
+
+test('el dispositivo quieto acepta lo que traiga el otro, aunque su reloj vaya adelantado', () => {
+  // El local no se ha movido desde lo que vio (p10); el remoto sí, y encima
+  // con una fecha anterior porque su reloj va atrasado.
+  const local = conVisto(
+    entrada({ pagina: 10, posicionActualizada: '2026-01-09T10:00:00.000Z' }), 'p10',
+  );
+  const remoto = entrada({ pagina: 55, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 55);
+});
+
+test('lo leído aquí no lo borra un servidor que no se ha movido', () => {
+  const local = conVisto(
+    entrada({ pagina: 80, posicionActualizada: '2026-01-01T10:00:00.000Z' }), 'p30',
+  );
+  const remoto = entrada({ pagina: 30, posicionActualizada: '2026-01-09T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 80);
+});
+
+test('si los dos se movieron sin verse, se conserva lo más avanzado', () => {
+  const local = conVisto(
+    entrada({ pagina: 70, posicionActualizada: '2026-01-01T10:00:00.000Z' }), 'p10',
+  );
+  const remoto = entrada({ pagina: 45, posicionActualizada: '2026-01-09T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 70);
+});
+
+test('un porcentaje aproximado no decide un conflicto', () => {
+  // El local dice 70 pero es el porcentaje del punto anterior, anotado antes
+  // de que el libro estuviera repartido en localizaciones: no vale para decir
+  // quién va más adelantado.
+  const local = {
+    ...conVisto(entrada({ pagina: 70, posicionActualizada: '2026-01-01T10:00:00.000Z' }), 'p10'),
+    porcentajeAproximado: true,
+  };
+  const remoto = entrada({ pagina: 45, posicionActualizada: '2026-01-09T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 45);
+});
+
+test('sin memoria de lo visto, sigue mandando la fecha', () => {
+  const local = entrada({ pagina: 10, posicionActualizada: '2026-01-09T10:00:00.000Z' });
+  const remoto = entrada({ pagina: 55, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  assert.equal(fusionarEntradas(local, remoto).pagina, 10);
+});
+
+test('la posición de un EPUB se compara por su CFI, no por el porcentaje', () => {
+  const cfi = 'epubcfi(/6/18!/4/64/1:1541)';
+  const local = conVisto(
+    { ...entrada({ pagina: 24.4, posicionActualizada: '2026-01-05T10:00:00.000Z' }),
+      cfi: 'epubcfi(/6/18!/4/54/1:245)' },
+    'epubcfi(/6/18!/4/54/1:245)',
+  );
+  const remoto = {
+    ...entrada({ pagina: 26.1, posicionActualizada: '2026-01-04T10:00:00.000Z' }), cfi,
+  };
+  assert.equal(fusionarEntradas(local, remoto).cfi, cfi);
+});
+
 test('fusiona el estado terminado sin alterar la posición de lectura', () => {
   const local = entrada({ pagina: 20, posicionActualizada: '2026-01-03T10:00:00.000Z' });
   local.terminado = false;

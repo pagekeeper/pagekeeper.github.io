@@ -4707,8 +4707,17 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
   const nombre = nombreDeId(id);
   mostrarCarga(t('downloading', { title: nombre }));
   try {
-    // Antes de abrir, trae el progreso más reciente de otros dispositivos.
-    await progreso.sincronizar(cliente).catch(() => null);
+    // Antes de abrir, trae el progreso más reciente de otros dispositivos. Si
+    // no se consigue, el libro se abre igual —por donde iba este aparato—,
+    // pero callarlo era el peor de los males: quien lo había dejado más
+    // adelante en otro dispositivo veía su lectura perdida sin explicación, y
+    // al pasar de página la sobrescribía. Se avisa y se vuelve a intentar.
+    let errorProgreso = null;
+    try {
+      await progreso.sincronizar(cliente);
+    } catch (error) {
+      errorProgreso = error;
+    }
     const infoCopia = await almacen.obtenerInfoCopiaRemota(cliente.base, id).catch(() => null);
     let datos = null;
     let desdeCopia = false;
@@ -4754,6 +4763,14 @@ async function abrirLibroRemoto(id, infoRemota = {}) {
     });
     if (desdeCopia) avisar(t('openedOfflineCopy'), 5000);
     else if (falloActualizacion) avisar(t('offlineUpdateFailed'), 5000);
+    if (errorProgreso) {
+      avisar(t('openedWithoutSync'), 6000);
+      // Se deja apuntado como pendiente en vez de reintentarlo aquí a mano:
+      // así lo recoge la tanda de reintentos con esperas crecientes, y cuando
+      // uno salga bien, si aquí todavía no se ha leído nada, el libro saltará
+      // solo a donde tocaba (ver `atenderPosicionRemota`).
+      apuntarSubidaPendiente(errorProgreso, id);
+    }
   } catch (error) {
     if (error.code !== 'PDF_PASSWORD_CANCELLED') avisar(explicarError(error), 6000);
   } finally {
@@ -5132,6 +5149,10 @@ async function abrirEnLector(datos, libro) {
   // color y su capa de imágenes.
   aplicarPapel();
   const avance = progreso.progresoDe(libro.id);
+  // Con qué posición se abrió y si desde entonces se ha leído algo. Sirve para
+  // saber si una posición que llegue tarde de otro dispositivo se puede aplicar
+  // sin quitarle la página de las manos a nadie (ver `atenderPosicionRemota`).
+  posicionAlAbrir = claveDePosicionLibro(avance);
   mostrarVista('lector');
   registrarVistaLector();
 
@@ -5443,6 +5464,47 @@ function apuntarSubidaPendiente(error, idLibro = null) {
   temporizadorReintento = setTimeout(reintentarSubida, espera);
 }
 
+// ───────── La posición que llega tarde de otro dispositivo ─────────
+//
+// Al abrir un libro de la nube se sincroniza antes de leer la posición, pero
+// esa petición puede fallar o llegar tarde: entonces el libro se abre por
+// donde iba este aparato y la lectura hecha en el otro parecía perdida. Como
+// la sincronización se reintenta sola, aquí se recoge lo que llegue después.
+//
+// Solo se salta si desde que se abrió no se ha leído nada: mover la página a
+// quien está leyendo sería peor que el fallo que esto arregla. Si ya se está
+// leyendo, la posición ajena se queda guardada y la fusión decidirá cuando
+// toque.
+let posicionAlAbrir = null;
+
+function claveDePosicionLibro(avance) {
+  if (avance?.cfi) return avance.cfi;
+  return Number.isFinite(Number(avance?.pagina)) ? `p${avance.pagina}` : null;
+}
+
+function claveActualDelLector() {
+  const posicion = posicionActualLibro();
+  if (typeof posicion === 'string') return posicion;
+  return Number.isFinite(Number(posicion)) ? `p${posicion}` : null;
+}
+
+async function atenderPosicionRemota() {
+  if (!libroActual || libroActual.tipo !== 'webdav') return;
+  const avance = progreso.progresoDe(libroActual.id);
+  const destino = claveDePosicionLibro(avance);
+  if (!destino || destino === posicionAlAbrir) return;
+  // Que el lector siga donde se abrió es lo que dice que aquí no se ha leído.
+  if (claveActualDelLector() !== posicionAlAbrir) return;
+  posicionAlAbrir = destino;
+  try {
+    await (epubAbierto() ? lectorEpub : lector).irA(avance.cfi ?? avance.pagina);
+    avisar(t('positionFromOtherDevice'), 5000);
+  } catch {
+    // Un CFI que este dispositivo no sabe resolver no debe romper la lectura:
+    // se queda donde está, que es lo que ya se veía.
+  }
+}
+
 function subidaConseguida() {
   if (intentosFallidos > 0) {
     registro.anotar('ok', 'recuperada', t('logRecovered', { intentos: intentosFallidos }));
@@ -5457,6 +5519,9 @@ function subidaConseguida() {
   intentosFallidos = 0;
   libroPendiente = null;
   actualizarEstadoSincronizacion();
+  // Toda sincronización que sale bien puede traer la posición de otro
+  // dispositivo, no solo la del reintento tras un fallo al abrir.
+  atenderPosicionRemota();
 }
 
 // El reintento no depende de que siga habiendo un libro abierto: lo que quedó
@@ -6370,6 +6435,11 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   if (!libroActual || !cfi) return;
   if (restaurandoPosicionEpub) {
     cfiEpubGuardado = cfi;
+    // epub.js afina el CFI al recuperar la posición: ese afinado es la
+    // apertura misma, no una lectura, y si no se apuntara aquí parecería que
+    // ya se ha leído algo y no se aceptaría la posición que llegue de otro
+    // dispositivo.
+    posicionAlAbrir = cfi;
     return;
   }
   if (vistaMovidaPorLaVoz()) {
@@ -6401,11 +6471,17 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
     cfiEpubPendientePorcentaje = conLocalizaciones ? null : cfi;
   }
   // Mientras no hay localizaciones se conserva el % anterior para no
-  // machacar la barra de progreso de la biblioteca con un cero.
+  // machacar la barra de progreso de la biblioteca con un cero. Ese número es
+  // del punto donde se estaba antes, no de este: va marcado como aproximado
+  // para que nadie lo tome por bueno. Sin la marca, al fusionar parecía que la
+  // posición vieja iba más adelantada que la recién leída en otro dispositivo,
+  // y la resucitaba.
   const pct = conLocalizaciones
     ? porcentaje
     : (progreso.progresoDe(libroActual.id)?.pagina ?? 0);
-  progreso.anotarPagina(libroActual.id, pct, 100, { cfi });
+  progreso.anotarPagina(libroActual.id, pct, 100, {
+    cfi, ...(conLocalizaciones ? {} : { porcentajeAproximado: true }),
+  });
   planificarSincronizacion();
 }
 
