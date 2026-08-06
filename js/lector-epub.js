@@ -435,8 +435,18 @@ export class LectorEpub {
     // Los enlaces internos del libro (notas al pie, índice propio) los salta
     // epub.js por su cuenta; se avisa antes del salto con la posición actual
     // para que quede apuntada en el historial de navegación.
+    //
+    // Y se trata el salto como lo que es: un movimiento deliberado. epub.js no
+    // avisa a nadie de que ha cambiado de sitio, así que el ancla del último
+    // reajuste seguía viva y la recolocación posterior deshacía el salto: se
+    // llegaba a la nota y medio segundo después el libro volvía solo a la
+    // página de antes. El destino pasa a defenderse mientras el capítulo se
+    // asienta, igual que la posición restaurada al abrir.
     vista.hooks.content.register((contents) => {
-      contents.on('linkClicked', () => this.alPulsarEnlaceInterno?.(this.cfi));
+      contents.on('linkClicked', (href) => {
+        this.alPulsarEnlaceInterno?.(this.cfi);
+        this.protegerDestino(this.destinoDelEnlace(href));
+      });
     });
     this.aplicarTemas();
     vista.on('relocated', (lugar) => {
@@ -515,6 +525,18 @@ export class LectorEpub {
     this.tempDestinoProtegido = setTimeout(() => {
       this.destinoProtegido = null;
     }, MS_ASENTAMIENTO);
+  }
+
+  // El destino de un enlace interno tal y como lo entiende display(): epub.js
+  // lo resuelve contra la raíz del libro, y sin esa vuelta un «../Text/x.html»
+  // no señala a ninguna sección.
+  destinoDelEnlace(href) {
+    if (!href) return null;
+    try {
+      return this.libro?.path?.relative(href) ?? href;
+    } catch {
+      return href;
+    }
   }
 
   recuperarDestinoProtegido() {
@@ -1410,8 +1432,13 @@ export class LectorEpub {
     }
   }
 
+  // Un salto pide un punto exacto, así que ese punto se defiende mientras el
+  // capítulo se asienta. Antes se quitaba toda defensa, y volver de una nota
+  // —que obliga a montar de nuevo el capítulo de partida— dejaba el libro
+  // páginas más atrás: cada repaginación recolocaba la vista por el principio
+  // de la pantalla, que empieza antes que el destino, y el efecto se acumula.
   irA(destino) {
-    this.protegerDestino(null);
+    this.protegerDestino(destino ?? null);
     return this.vista?.display(destino);
   }
 
