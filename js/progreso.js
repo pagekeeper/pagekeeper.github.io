@@ -250,7 +250,10 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
   };
   // La marca de porcentaje aproximado solo vale para la anotación que la trae:
   // arrastrada de una anterior diría que un número bueno no es de fiar.
-  if (datos.libros[idLibro].porcentajeAproximado !== true) {
+  // (Miraba la entrada ya mezclada, donde la marca vieja seguía puesta: se
+  // quedaba pegada para siempre y el porcentaje bueno que llegaba después
+  // seguía pasando por dudoso.)
+  if (resto.porcentajeAproximado !== true) {
     delete datos.libros[idLibro].porcentajeAproximado;
   }
   datos.version = VERSION_DATOS;

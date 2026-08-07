@@ -48,6 +48,10 @@ import {
   validarConfigNube,
 } from './copia-local.js';
 import { decidirEspacio } from './desplazamiento-lectura.js';
+import {
+  claveDePosicion, distanciaPosiciones,
+  decidirPosicionRemota, avisoDePosicion,
+} from './posicion-remota.js';
 
 const CLAVE_CONFIG = 'lector.config';
 // Heredadas de cuando el papel del libro se elegía aparte del tema, y con un
@@ -599,6 +603,7 @@ function cerrarVistaLector() {
   cerrarBusquedaLibro();
   cerrarIndiceLibro();
   cerrarPanelMarcadores();
+  cerrarAvisoPosicionRemota();
   // Antes de soltar el libro: la última página leída también cuenta, y con
   // «libroActual» ya vacío no habría a quién apuntársela.
   cerrarMuestraDeRitmo();
@@ -5152,7 +5157,11 @@ async function abrirEnLector(datos, libro) {
   // Con qué posición se abrió y si desde entonces se ha leído algo. Sirve para
   // saber si una posición que llegue tarde de otro dispositivo se puede aplicar
   // sin quitarle la página de las manos a nadie (ver `atenderPosicionRemota`).
-  posicionAlAbrir = claveDePosicionLibro(avance);
+  posicionAlAbrir = claveDePosicion(avance);
+  // Lo rechazado en el libro anterior no dice nada de este, y un cartel a
+  // medio responder no debe sobrevivir al cambio de libro.
+  posicionRemotaDescartada = null;
+  cerrarAvisoPosicionRemota();
   mostrarVista('lector');
   registrarVistaLector();
 
@@ -5471,16 +5480,13 @@ function apuntarSubidaPendiente(error, idLibro = null) {
 // donde iba este aparato y la lectura hecha en el otro parecía perdida. Como
 // la sincronización se reintenta sola, aquí se recoge lo que llegue después.
 //
-// Solo se salta si desde que se abrió no se ha leído nada: mover la página a
-// quien está leyendo sería peor que el fallo que esto arregla. Si ya se está
-// leyendo, la posición ajena se queda guardada y la fusión decidirá cuando
-// toque.
+// Solo se salta sin avisar si desde que se abrió no se ha leído nada: mover la
+// página a quien está leyendo sería peor que el fallo que esto arregla. Si ya
+// se está leyendo, se pregunta con las dos posiciones delante (ver
+// «posicion-remota.js»), porque la fusión ya se ha quedado con la ajena y sin
+// cartel nadie se enteraría de que la posición buena era otra.
 let posicionAlAbrir = null;
-
-function claveDePosicionLibro(avance) {
-  if (avance?.cfi) return avance.cfi;
-  return Number.isFinite(Number(avance?.pagina)) ? `p${avance.pagina}` : null;
-}
+let posicionRemotaDescartada = null;
 
 function claveActualDelLector() {
   const posicion = posicionActualLibro();
@@ -5488,14 +5494,20 @@ function claveActualDelLector() {
   return Number.isFinite(Number(posicion)) ? `p${posicion}` : null;
 }
 
-async function atenderPosicionRemota() {
-  if (!libroActual || libroActual.tipo !== 'webdav') return;
-  const avance = progreso.progresoDe(libroActual.id);
-  const destino = claveDePosicionLibro(avance);
-  if (!destino || destino === posicionAlAbrir) return;
-  // Que el lector siga donde se abrió es lo que dice que aquí no se ha leído.
-  if (claveActualDelLector() !== posicionAlAbrir) return;
-  posicionAlAbrir = destino;
+// Por dónde va el lector ahora mismo, en la misma forma que lo guardado: en
+// EPUB el porcentaje (solo cuando el reparto en localizaciones está hecho y el
+// número significa algo), en PDF la página y el total.
+function avanceEnPantalla() {
+  if (epubAbierto()) {
+    return {
+      cfi: lectorEpub.cfi, pagina: lectorEpub.porcentaje, paginas: 100,
+      ...(lectorEpub.conLocalizaciones ? {} : { porcentajeAproximado: true }),
+    };
+  }
+  return { pagina: lector.pagina, paginas: lector.totalPaginas };
+}
+
+async function saltarAPosicion(avance) {
   try {
     await (epubAbierto() ? lectorEpub : lector).irA(avance.cfi ?? avance.pagina);
     avisar(t('positionFromOtherDevice'), 5000);
@@ -5504,6 +5516,87 @@ async function atenderPosicionRemota() {
     // se queda donde está, que es lo que ya se veía.
   }
 }
+
+async function atenderPosicionRemota() {
+  if (!libroActual || libroActual.tipo !== 'webdav') return;
+  const avance = progreso.progresoDe(libroActual.id);
+  const destino = claveDePosicion(avance);
+  const enPantalla = avanceEnPantalla();
+  const decision = decidirPosicionRemota({
+    clave: destino,
+    claveApertura: posicionAlAbrir,
+    claveLector: claveActualDelLector(),
+    claveDescartada: posicionRemotaDescartada,
+    distancia: distanciaPosiciones(avance, enPantalla),
+  });
+  if (decision === 'nada') return;
+  if (decision === 'saltar') {
+    posicionAlAbrir = destino;
+    cerrarAvisoPosicionRemota();
+    await saltarAPosicion(avance);
+    return;
+  }
+  preguntarPosicionRemota(avance, enPantalla, destino);
+}
+
+// El cartel se queda hasta que se responde: es una decisión, no una noticia.
+// Mientras está abierto se sigue leyendo con normalidad; si de tanto leer se
+// llega justo a esa posición, ya no hay nada que preguntar y se retira solo.
+function preguntarPosicionRemota(avance, enPantalla, destino) {
+  const aviso = avisoDePosicion(avance, enPantalla);
+  $('texto-posicion-remota').textContent = t(aviso.clave, {
+    remoto: formatearPorcentaje(aviso.remoto, aviso.paginas === null ? 1 : 0),
+    local: formatearPorcentaje(aviso.local, aviso.paginas === null ? 1 : 0),
+    paginas: aviso.paginas ?? '',
+  });
+  const panel = $('aviso-posicion-remota');
+  panel.dataset.destino = destino;
+  // Sin robar el foco: quien está leyendo pasa páginas con la barra o las
+  // flechas, y un botón enfocado se las quedaría (y saltaría sin querer).
+  panel.classList.remove('oculto');
+}
+
+function cerrarAvisoPosicionRemota() {
+  const panel = $('aviso-posicion-remota');
+  panel.classList.add('oculto');
+  delete panel.dataset.destino;
+}
+
+// Leyendo se puede llegar justo al punto por el que preguntaba el cartel: ya
+// no hay nada que decidir y se retira sin obligar a responder.
+function revisarAvisoPosicionRemota() {
+  const panel = $('aviso-posicion-remota');
+  if (panel.classList.contains('oculto')) return;
+  if (panel.dataset.destino === claveActualDelLector()) cerrarAvisoPosicionRemota();
+}
+
+$('btn-ir-posicion-remota').addEventListener('click', async () => {
+  if (!libroActual) return cerrarAvisoPosicionRemota();
+  const avance = progreso.progresoDe(libroActual.id);
+  posicionAlAbrir = claveDePosicion(avance);
+  cerrarAvisoPosicionRemota();
+  await saltarAPosicion(avance);
+});
+
+// Quedarse no es solo cerrar el cartel: la posición guardada es ahora mismo la
+// del otro dispositivo, y si no se reafirmara la de aquí, la biblioteca —y el
+// otro aparato en cuanto sincronice— seguirían diciendo que la lectura va por
+// donde no va. Se anota lo que hay en pantalla, que es lo que se ha elegido.
+$('btn-quedarse-posicion').addEventListener('click', () => {
+  posicionRemotaDescartada = $('aviso-posicion-remota').dataset.destino ?? null;
+  cerrarAvisoPosicionRemota();
+  if (!libroActual) return;
+  const enPantalla = avanceEnPantalla();
+  // Sin el reparto del EPUB hecho, el porcentaje de pantalla no vale; se deja
+  // que lo escriba el seguimiento normal en cuanto se pase de página.
+  if (!enPantalla.porcentajeAproximado) {
+    progreso.anotarPagina(libroActual.id, enPantalla.pagina, enPantalla.paginas,
+      enPantalla.cfi ? { cfi: enPantalla.cfi } : {});
+    planificarSincronizacion();
+  }
+  posicionAlAbrir = claveActualDelLector();
+  avisar(t('remotePositionStayed'), 4000);
+});
 
 function subidaConseguida() {
   if (intentosFallidos > 0) {
@@ -6396,6 +6489,7 @@ function cuandoCambiaPagina(pagina, total) {
   $('btn-indicador').textContent = `${visible} / ${total}`;
   if (!libroActual) return;
   progreso.anotarPagina(libroActual.id, pagina, total);
+  revisarAvisoPosicionRemota();
   marcarMiniaturaActual();
   marcarEntradaIndiceActual();
   anotarRitmo(pagina);
@@ -6482,6 +6576,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
   progreso.anotarPagina(libroActual.id, pct, 100, {
     cfi, ...(conLocalizaciones ? {} : { porcentajeAproximado: true }),
   });
+  revisarAvisoPosicionRemota();
   planificarSincronizacion();
 }
 

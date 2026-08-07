@@ -2133,6 +2133,22 @@ button.estrella { cursor: pointer; }
 .zona-sup { top: 0; }
 .zona-inf { bottom: calc(1.9rem + env(safe-area-inset-bottom)); }
 
+/* ── Aviso de posición de otro dispositivo ──
+   Se queda hasta que se responde (a diferencia del toast, que se va solo):
+   es una decisión, no una noticia. Va donde el toast para no tapar el texto
+   del libro, pero por encima de él. */
+.aviso-posicion {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+  background: var(--fondo-tarjeta); border: 1px solid var(--acento);
+  border-radius: 0.75rem; padding: 0.8rem 1rem; font-size: 0.9rem;
+  z-index: 101; max-width: min(90vw, 28rem);
+  display: flex; flex-direction: column; gap: 0.7rem;
+  box-shadow: 0 4px 16px var(--sombra);
+}
+.aviso-posicion.oculto { display: none; }
+.acciones-aviso-posicion { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.acciones-aviso-posicion button { padding: 0.4rem 0.9rem; }
+
 /* ── Toast y carga ── */
 .toast {
   position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);

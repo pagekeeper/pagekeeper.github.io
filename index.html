@@ -1800,6 +1800,18 @@
     </div>
   </div>
 
+  <!-- Cuando llega la posición de otro dispositivo y aquí ya se ha leído, no
+       se salta a ciegas: se enseña de qué punto se habla y se decide. -->
+  <div id="aviso-posicion-remota" class="aviso-posicion oculto" role="alert">
+    <p id="texto-posicion-remota"></p>
+    <div class="acciones-aviso-posicion">
+      <button type="button" id="btn-ir-posicion-remota" class="btn-primario"
+        data-i18n="remotePositionGo">Ir allí</button>
+      <button type="button" id="btn-quedarse-posicion" class="btn-secundario"
+        data-i18n="remotePositionStay">Quedarme aquí</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast oculto" role="status"></div>
   <div id="cargando" class="cargando oculto"><div class="ruedecilla"></div><span id="texto-cargando">Cargando…</span></div>
   <!-- El texto visible de arriba cambia con cada porcentaje; lo que se anuncia

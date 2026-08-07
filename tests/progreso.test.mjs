@@ -227,6 +227,18 @@ test('un porcentaje aproximado no decide un conflicto', () => {
   assert.equal(fusionarEntradas(local, remoto).pagina, 45);
 });
 
+test('la marca de porcentaje aproximado no sobrevive a la anotación siguiente', () => {
+  conAlmacenamiento();
+  // Mientras el EPUB no está repartido en localizaciones se anota el
+  // porcentaje del punto anterior, marcado como dudoso…
+  anotarPagina('libro.epub', 12, 100, { cfi: 'epubcfi(/6/8!/4/2)', porcentajeAproximado: true });
+  assert.equal(progresoDe('libro.epub').porcentajeAproximado, true);
+  // …y en cuanto llega uno bueno la marca tiene que irse, o el porcentaje
+  // seguiría sin valer para decidir un conflicto ni para enseñarlo.
+  anotarPagina('libro.epub', 18.4, 100, { cfi: 'epubcfi(/6/8!/4/6)' });
+  assert.equal('porcentajeAproximado' in progresoDe('libro.epub'), false);
+});
+
 test('sin memoria de lo visto, sigue mandando la fecha', () => {
   const local = entrada({ pagina: 10, posicionActualizada: '2026-01-09T10:00:00.000Z' });
   const remoto = entrada({ pagina: 55, posicionActualizada: '2026-01-02T10:00:00.000Z' });
