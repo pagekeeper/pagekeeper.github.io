@@ -12,18 +12,63 @@
 // navegador es cosa de app.js.
 
 // Las medidas van en milímetros porque es lo que entiende el papel. Carta es
-// la de Norteamérica; el resto del mundo imprime en A4.
+// la de Norteamérica; el resto del mundo imprime en A4. `personalizado` no
+// trae medidas: las pone quien imprime, y por eso vale null.
 export const TAMANOS = {
   a4: { ancho: 210, alto: 297 },
   carta: { ancho: 216, alto: 279 },
+  personalizado: null,
 };
 
 // Márgenes en milímetros. El estrecho ahorra hojas y el ancho deja sitio para
 // escribir al lado, que es para lo que se imprime un libro que se estudia.
-export const MARGENES = { estrecho: 12, normal: 20, ancho: 30 };
+export const MARGENES = { estrecho: 12, normal: 20, ancho: 30, personalizado: null };
 
 // El cuerpo de letra, en puntos: la unidad del papel, no de la pantalla.
-export const LETRAS = { pequena: 9.5, normal: 11, grande: 13 };
+export const LETRAS = { pequena: 9.5, normal: 11, grande: 13, personalizado: null };
+
+// Hasta dónde se admite lo que se escriba a mano. No son manías: una hoja de
+// 20 mm o una letra de 2 puntos no se imprimen, y un número disparatado hace
+// que el navegador tarde muchísimo o se rinda. Fuera de estos topes se
+// recorta al más cercano, que es más útil que rechazar lo escrito.
+export const LIMITES = {
+  ancho: { minimo: 50, maximo: 500, porDefecto: 210, paso: 1 },
+  alto: { minimo: 50, maximo: 500, porDefecto: 297, paso: 1 },
+  margen: { minimo: 0, maximo: 60, porDefecto: 20, paso: 1 },
+  letra: { minimo: 5, maximo: 30, porDefecto: 11, paso: 0.5 },
+};
+
+// Un número escrito a mano: se admite la coma decimal (es lo que se teclea en
+// español y en catalán) y se recorta a lo que cabe. Lo que no es un número se
+// queda con la medida de siempre en vez de romper la hoja de estilo.
+export function numeroEnRango(valor, limites) {
+  const numero = typeof valor === 'number'
+    ? valor
+    : parseFloat(String(valor ?? '').replace(',', '.'));
+  if (!Number.isFinite(numero)) return limites.porDefecto;
+  return Math.min(limites.maximo, Math.max(limites.minimo, numero));
+}
+
+// Las tres medidas de la hoja, ya resueltas: elegir «personalizado» es lo que
+// hace que manden los números escritos a mano.
+export function medidasDelPapel({ tamano, ancho, alto } = {}) {
+  const elegido = TAMANOS[opcionValida(tamano, TAMANOS, 'a4')];
+  if (elegido) return elegido;
+  return {
+    ancho: numeroEnRango(ancho, LIMITES.ancho),
+    alto: numeroEnRango(alto, LIMITES.alto),
+  };
+}
+
+export function medidaDelMargen({ margen, margenPersonal } = {}) {
+  const elegido = MARGENES[opcionValida(margen, MARGENES, 'normal')];
+  return elegido ?? numeroEnRango(margenPersonal, LIMITES.margen);
+}
+
+export function medidaDeLaLetra({ letra, letraPersonal } = {}) {
+  const elegida = LETRAS[opcionValida(letra, LETRAS, 'normal')];
+  return elegida ?? numeroEnRango(letraPersonal, LIMITES.letra);
+}
 
 // Los mismos colores de la paleta de resaltado, rebajados: en pantalla el
 // subrayado va traslúcido sobre el texto y en el papel hay que pedirlo ya
@@ -132,10 +177,10 @@ export function rellenoDePapel(anotacion) {
 // borde. Va después de las hojas del propio libro, así que gana en lo que
 // discutan; lo marcado con `!important` es lo que el libro suele fijar para
 // la pantalla y en el papel estorba (anchos en píxeles, márgenes del cuerpo).
-export function hojaDeImpresion({ tamano = 'a4', margen = 'normal', letra = 'normal' } = {}) {
-  const hoja = TAMANOS[opcionValida(tamano, TAMANOS, 'a4')];
-  const blanco = MARGENES[opcionValida(margen, MARGENES, 'normal')];
-  const cuerpo = LETRAS[opcionValida(letra, LETRAS, 'normal')];
+export function hojaDeImpresion(opciones = {}) {
+  const hoja = medidasDelPapel(opciones);
+  const blanco = medidaDelMargen(opciones);
+  const cuerpo = medidaDeLaLetra(opciones);
   return `
 @page { size: ${hoja.ancho}mm ${hoja.alto}mm; margin: ${blanco}mm; }
 html, body {

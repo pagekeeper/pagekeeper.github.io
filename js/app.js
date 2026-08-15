@@ -6915,27 +6915,57 @@ function soltarDocumentoImpreso(vaciarElMarco) {
   if (vaciarElMarco) $('marco-impresion').src = 'about:blank';
 }
 
+// Las medidas a mano: qué lista las pide, dónde se escriben y con qué topes.
+const MEDIDAS_A_MANO = [
+  {
+    opcion: 'impresion-tamano',
+    fila: 'medida-papel',
+    campos: [['impresion-ancho', 'ancho'], ['impresion-alto', 'alto']],
+  },
+  { opcion: 'impresion-margen', fila: 'medida-margen', campos: [['impresion-margen-mm', 'margen']] },
+  { opcion: 'impresion-letra', fila: 'medida-letra', campos: [['impresion-letra-pt', 'letra']] },
+];
+
 function opcionesImpresionGuardadas() {
+  let guardado = {};
   try {
-    const guardado = JSON.parse(localStorage.getItem(CLAVE_IMPRESION) ?? '{}');
-    return {
-      tamano: impresion.opcionValida(guardado.tamano, impresion.TAMANOS, 'a4'),
-      margen: impresion.opcionValida(guardado.margen, impresion.MARGENES, 'normal'),
-      letra: impresion.opcionValida(guardado.letra, impresion.LETRAS, 'normal'),
-      anotaciones: guardado.anotaciones !== false,
-    };
-  } catch {
-    return { tamano: 'a4', margen: 'normal', letra: 'normal', anotaciones: true };
-  }
+    guardado = JSON.parse(localStorage.getItem(CLAVE_IMPRESION) ?? '{}') ?? {};
+  } catch { /* lo guardado no se entiende: se empieza de cero */ }
+  const { LIMITES } = impresion;
+  return {
+    tamano: impresion.opcionValida(guardado.tamano, impresion.TAMANOS, 'a4'),
+    margen: impresion.opcionValida(guardado.margen, impresion.MARGENES, 'normal'),
+    letra: impresion.opcionValida(guardado.letra, impresion.LETRAS, 'normal'),
+    // Las medidas a mano se guardan aunque esté elegido A4: quien vuelve a
+    // «personalizado» se encuentra lo que escribió la última vez.
+    ancho: impresion.numeroEnRango(guardado.ancho, LIMITES.ancho),
+    alto: impresion.numeroEnRango(guardado.alto, LIMITES.alto),
+    margenPersonal: impresion.numeroEnRango(guardado.margenPersonal, LIMITES.margen),
+    letraPersonal: impresion.numeroEnRango(guardado.letraPersonal, LIMITES.letra),
+    anotaciones: guardado.anotaciones !== false,
+  };
 }
 
 function opcionesImpresionElegidas() {
+  const { LIMITES } = impresion;
   return {
     tamano: $('impresion-tamano').value,
     margen: $('impresion-margen').value,
     letra: $('impresion-letra').value,
+    ancho: impresion.numeroEnRango($('impresion-ancho').value, LIMITES.ancho),
+    alto: impresion.numeroEnRango($('impresion-alto').value, LIMITES.alto),
+    margenPersonal: impresion.numeroEnRango($('impresion-margen-mm').value, LIMITES.margen),
+    letraPersonal: impresion.numeroEnRango($('impresion-letra-pt').value, LIMITES.letra),
     anotaciones: $('impresion-anotaciones').checked,
   };
+}
+
+// Los campos a mano solo salen cuando su lista está en «personalizado»: verlos
+// siempre, apagados, es ruido en un diálogo que ya tiene bastante.
+function sincronizarMedidasPersonales() {
+  for (const { opcion, fila } of MEDIDAS_A_MANO) {
+    $(fila).classList.toggle('oculto', $(opcion).value !== 'personalizado');
+  }
 }
 
 function guardarOpcionesImpresion() {
@@ -6951,7 +6981,12 @@ function abrirDialogoImprimir() {
   $('impresion-tamano').value = opciones.tamano;
   $('impresion-margen').value = opciones.margen;
   $('impresion-letra').value = opciones.letra;
+  $('impresion-ancho').value = opciones.ancho;
+  $('impresion-alto').value = opciones.alto;
+  $('impresion-margen-mm').value = opciones.margenPersonal;
+  $('impresion-letra-pt').value = opciones.letraPersonal;
   $('impresion-anotaciones').checked = opciones.anotaciones;
+  sincronizarMedidasPersonales();
   // Sin nada subrayado, la casilla no tiene de qué hablar.
   const hayAnotaciones = anotacionesActuales.some((anotacion) => anotacion.cfi);
   $('impresion-anotaciones').closest('label').classList.toggle('oculto', !hayAnotaciones);
@@ -7276,6 +7311,16 @@ async function imprimirLibro() {
 }
 
 $('btn-imprimir').addEventListener('click', abrirDialogoImprimir);
+for (const { opcion, campos } of MEDIDAS_A_MANO) {
+  $(opcion).addEventListener('change', sincronizarMedidasPersonales);
+  for (const [campo, tope] of campos) {
+    // Lo escrito se recorta a lo que cabe en cuanto se suelta el campo: más
+    // vale ver el número que se va a usar que descubrirlo en el papel.
+    $(campo).addEventListener('change', () => {
+      $(campo).value = impresion.numeroEnRango($(campo).value, impresion.LIMITES[tope]);
+    });
+  }
+}
 $('impresion-todos').addEventListener('click', () => elegirTodosLosCapitulos(true));
 $('impresion-ninguno').addEventListener('click', () => elegirTodosLosCapitulos(false));
 $('btn-cancelar-imprimir').addEventListener('click', cerrarDialogoImprimir);

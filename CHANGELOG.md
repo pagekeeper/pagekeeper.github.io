@@ -7,6 +7,16 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.2.0 — 15 de agosto de 2026
+
+### Añadido
+- **Las medidas de la impresión se pueden escribir exactas.** Las tres listas
+  del diálogo —papel, márgenes y letra— tienen ahora «Personalizado»: el papel
+  admite el ancho y el alto en milímetros (un A5 son 148 × 210), el margen sus
+  milímetros y la letra sus puntos, con medios puntos. Se recuerda lo escrito
+  aunque después se vuelva a A4, y un número imposible se recorta a lo que cabe
+  en cuanto se suelta el campo, para verlo antes de que salga en el papel.
+
 ## 1.1.1 — 15 de agosto de 2026
 
 ### Cambiado

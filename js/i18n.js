@@ -10,6 +10,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir o guardar en PDF',
+    printCustom: 'Personalizado',
+    printCustomWidth: 'Ancho en milímetros',
+    printCustomHeight: 'Alto en milímetros',
+    printCustomMargin: 'Margen en milímetros',
+    printCustomFont: 'Cuerpo de letra en puntos',
     printHelp: 'Se abrirá el diálogo de impresión del navegador, donde puedes elegir la impresora o «Guardar como PDF».',
     printPaper: 'Papel',
     printPaperLetter: 'Carta',
@@ -404,6 +409,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimeix o desa en PDF',
+    printCustom: 'Personalitzat',
+    printCustomWidth: 'Amplada en mil·límetres',
+    printCustomHeight: 'Alçada en mil·límetres',
+    printCustomMargin: 'Marge en mil·límetres',
+    printCustomFont: 'Cos de lletra en punts',
     printHelp: 'S’obrirà el diàleg d’impressió del navegador, on pots triar la impressora o «Desa com a PDF».',
     printPaper: 'Paper',
     printPaperLetter: 'Carta',
@@ -798,6 +808,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Print or save as PDF',
+    printCustom: 'Custom',
+    printCustomWidth: 'Width in millimetres',
+    printCustomHeight: 'Height in millimetres',
+    printCustomMargin: 'Margin in millimetres',
+    printCustomFont: 'Text size in points',
     printHelp: 'Your browser’s print dialog will open, where you can pick a printer or “Save as PDF”.',
     printPaper: 'Paper',
     printPaperLetter: 'Letter',
@@ -1192,6 +1207,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimer ou enregistrer en PDF',
+    printCustom: 'Personnalisé',
+    printCustomWidth: 'Largeur en millimètres',
+    printCustomHeight: 'Hauteur en millimètres',
+    printCustomMargin: 'Marge en millimètres',
+    printCustomFont: 'Corps du texte en points',
     printHelp: 'La boîte de dialogue d’impression du navigateur s’ouvrira : vous pourrez y choisir l’imprimante ou « Enregistrer au format PDF ».',
     printPaper: 'Papier',
     printPaperLetter: 'Letter',
@@ -1586,6 +1606,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir ou gardar en PDF',
+    printCustom: 'Personalizado',
+    printCustomWidth: 'Largura en milímetros',
+    printCustomHeight: 'Altura en milímetros',
+    printCustomMargin: 'Marxe en milímetros',
+    printCustomFont: 'Corpo de letra en puntos',
     printHelp: 'Abrirase o diálogo de impresión do navegador, onde podes escoller a impresora ou «Gardar como PDF».',
     printPaper: 'Papel',
     printPaperLetter: 'Carta',
@@ -1980,6 +2005,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Inprimatu edo gorde PDF gisa',
+    printCustom: 'Pertsonalizatua',
+    printCustomWidth: 'Zabalera milimetrotan',
+    printCustomHeight: 'Altuera milimetrotan',
+    printCustomMargin: 'Marjina milimetrotan',
+    printCustomFont: 'Letra-tamaina puntutan',
     printHelp: 'Nabigatzailearen inprimatze-elkarrizketa irekiko da: bertan inprimagailua edo «Gorde PDF gisa» aukera dezakezu.',
     printPaper: 'Papera',
     printPaperLetter: 'Letter',
@@ -2374,6 +2404,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Drucken oder als PDF speichern',
+    printCustom: 'Benutzerdefiniert',
+    printCustomWidth: 'Breite in Millimetern',
+    printCustomHeight: 'Höhe in Millimetern',
+    printCustomMargin: 'Rand in Millimetern',
+    printCustomFont: 'Schriftgröße in Punkt',
     printHelp: 'Es öffnet sich der Druckdialog des Browsers, in dem du den Drucker oder „Als PDF speichern“ wählen kannst.',
     printPaper: 'Papier',
     printPaperLetter: 'Letter',
@@ -2768,6 +2803,11 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir ou guardar em PDF',
+    printCustom: 'Personalizado',
+    printCustomWidth: 'Largura em milímetros',
+    printCustomHeight: 'Altura em milímetros',
+    printCustomMargin: 'Margem em milímetros',
+    printCustomFont: 'Corpo de letra em pontos',
     printHelp: 'Abrir-se-á a caixa de impressão do navegador, onde podes escolher a impressora ou «Guardar como PDF».',
     printPaper: 'Papel',
     printPaperLetter: 'Carta',
@@ -3564,7 +3604,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Portar un EPUB al paper</summary>
           <p>
-        el botó de la impressora (o «Imprimeix o desa en PDF» al menú «⋯») compon el llibre per a fulls de paper i obre el diàleg d’impressió del navegador, on pots triar la impressora o «Desa com a PDF». Es tria la mida del full (A4 o Carta), els marges i el cos de lletra; cada capítol comença en un full nou i el llibre conserva la seva maquetació i les seves il·lustracions. Els ajustos es recorden per a la propera vegada. Als PDF no hi surt: aquests s’imprimeixen baixant-los.</p>
+        el botó de la impressora (o «Imprimeix o desa en PDF» al menú «⋯») compon el llibre per a fulls de paper i obre el diàleg d’impressió del navegador, on pots triar la impressora o «Desa com a PDF». Es tria la mida del full (A4 o Carta), els marges i el cos de lletra; cada capítol comença en un full nou i el llibre conserva la seva maquetació i les seves il·lustracions. Les tres mesures admeten a més un número exacte: triant «Personalitzat» s’escriuen els mil·límetres del full i del marge, i els punts de la lletra. Els ajustos es recorden per a la propera vegada. Als PDF no hi surt: aquests s’imprimeixen baixant-los.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Imprimir només un capítol</summary>
@@ -4095,7 +4135,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Taking an EPUB to paper</summary>
           <p>
-        the printer button (or “Print or save as PDF” in the “⋯” menu) lays the book out for sheets of paper and opens your browser’s print dialog, where you can pick a printer or “Save as PDF”. You choose the paper size (A4 or Letter), the margins and the text size; each chapter starts on a new sheet, and the book keeps its own layout and illustrations. The settings are remembered for next time. It does not show up for PDFs: those you print by downloading them.</p>
+        the printer button (or “Print or save as PDF” in the “⋯” menu) lays the book out for sheets of paper and opens your browser’s print dialog, where you can pick a printer or “Save as PDF”. You choose the paper size (A4 or Letter), the margins and the text size; each chapter starts on a new sheet, and the book keeps its own layout and illustrations. All three measurements also take an exact number: choose “Custom” and type the millimetres for the sheet and the margin, and the points for the text. The settings are remembered for next time. It does not show up for PDFs: those you print by downloading them.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Printing a single chapter</summary>
@@ -4654,7 +4694,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Porter un EPUB sur le papier</summary>
           <p>
-        le bouton de l’imprimante (ou « Imprimer ou enregistrer en PDF » dans le menu « ⋯ ») compose le livre pour des feuilles de papier et ouvre la boîte de dialogue d’impression du navigateur, où vous pouvez choisir l’imprimante ou « Enregistrer au format PDF ». Vous choisissez le format (A4 ou Letter), les marges et le corps du texte ; chaque chapitre commence sur une nouvelle feuille et le livre garde sa mise en page et ses illustrations. Les réglages sont mémorisés pour la fois suivante. Pour les PDF, l’option n’apparaît pas : ceux-là s’impriment en les téléchargeant.</p>
+        le bouton de l’imprimante (ou « Imprimer ou enregistrer en PDF » dans le menu « ⋯ ») compose le livre pour des feuilles de papier et ouvre la boîte de dialogue d’impression du navigateur, où vous pouvez choisir l’imprimante ou « Enregistrer au format PDF ». Vous choisissez le format (A4 ou Letter), les marges et le corps du texte ; chaque chapitre commence sur une nouvelle feuille et le livre garde sa mise en page et ses illustrations. Les trois mesures acceptent aussi un nombre exact : avec « Personnalisé », vous saisissez les millimètres de la feuille et de la marge, et les points du texte. Les réglages sont mémorisés pour la fois suivante. Pour les PDF, l’option n’apparaît pas : ceux-là s’impriment en les téléchargeant.</p>
         </details>
         <details class="punto-ayuda">
           <summary>N’imprimer qu’un chapitre</summary>
@@ -5192,7 +5232,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Levar un EPUB ao papel</summary>
           <p>
-        o botón da impresora (ou «Imprimir ou gardar en PDF» no menú «⋯») compón o libro para follas de papel e abre o diálogo de impresión do navegador, onde podes escoller a impresora ou «Gardar como PDF». Escóllese o tamaño da folla (A4 ou Carta), as marxes e o corpo de letra; cada capítulo comeza en folla nova e o libro conserva a súa maquetación e as súas ilustracións. Os axustes lémbranse para a próxima vez. Nos PDF non aparece: eses imprímense descargándoos.</p>
+        o botón da impresora (ou «Imprimir ou gardar en PDF» no menú «⋯») compón o libro para follas de papel e abre o diálogo de impresión do navegador, onde podes escoller a impresora ou «Gardar como PDF». Escóllese o tamaño da folla (A4 ou Carta), as marxes e o corpo de letra; cada capítulo comeza en folla nova e o libro conserva a súa maquetación e as súas ilustracións. As tres medidas admiten tamén un número exacto: escollendo «Personalizado» escríbense os milímetros da folla e da marxe, e os puntos da letra. Os axustes lémbranse para a próxima vez. Nos PDF non aparece: eses imprímense descargándoos.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Imprimir só un capítulo</summary>
@@ -5743,7 +5783,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>EPUB bat paperera eraman</summary>
           <p>
-        inprimagailuaren botoiak (edo «⋯» menuko «Inprimatu edo gorde PDF gisa») liburua paper-orrietarako osatzen du eta nabigatzailearen inprimatze-elkarrizketa irekitzen du; bertan inprimagailua edo «Gorde PDF gisa» aukera dezakezu. Orriaren tamaina (A4 edo Letter), marjinak eta letra-tamaina aukeratzen dira; kapitulu bakoitza orri berrian hasten da, eta liburuak bere maketazioa eta ilustrazioak gordetzen ditu. Ezarpenak hurrengorako gogoratzen dira. PDFetan ez da agertzen: horiek deskargatuz inprimatzen dira.</p>
+        inprimagailuaren botoiak (edo «⋯» menuko «Inprimatu edo gorde PDF gisa») liburua paper-orrietarako osatzen du eta nabigatzailearen inprimatze-elkarrizketa irekitzen du; bertan inprimagailua edo «Gorde PDF gisa» aukera dezakezu. Orriaren tamaina (A4 edo Letter), marjinak eta letra-tamaina aukeratzen dira; kapitulu bakoitza orri berrian hasten da, eta liburuak bere maketazioa eta ilustrazioak gordetzen ditu. Hiru neurriek zenbaki zehatza ere onartzen dute: «Pertsonalizatua» aukeratuta, orriaren eta marjinaren milimetroak eta letraren puntuak idazten dira. Ezarpenak hurrengorako gogoratzen dira. PDFetan ez da agertzen: horiek deskargatuz inprimatzen dira.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Kapitulu bakarra inprimatu</summary>
@@ -6320,7 +6360,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Ein EPUB aufs Papier bringen</summary>
           <p>
-        die Druckerschaltfläche (oder „Drucken oder als PDF speichern“ im Menü „⋯“) setzt das Buch für Papierseiten und öffnet den Druckdialog des Browsers, in dem du den Drucker oder „Als PDF speichern“ wählen kannst. Du wählst das Papierformat (A4 oder Letter), die Ränder und die Schriftgröße; jedes Kapitel beginnt auf einer neuen Seite, und das Buch behält sein Layout und seine Illustrationen. Die Einstellungen werden für das nächste Mal gemerkt. Bei PDFs erscheint sie nicht: die druckt man, indem man sie herunterlädt.</p>
+        die Druckerschaltfläche (oder „Drucken oder als PDF speichern“ im Menü „⋯“) setzt das Buch für Papierseiten und öffnet den Druckdialog des Browsers, in dem du den Drucker oder „Als PDF speichern“ wählen kannst. Du wählst das Papierformat (A4 oder Letter), die Ränder und die Schriftgröße; jedes Kapitel beginnt auf einer neuen Seite, und das Buch behält sein Layout und seine Illustrationen. Alle drei Maße nehmen auch eine genaue Zahl: mit „Benutzerdefiniert“ trägst du die Millimeter für Blatt und Rand und die Punkt für die Schrift ein. Die Einstellungen werden für das nächste Mal gemerkt. Bei PDFs erscheint sie nicht: die druckt man, indem man sie herunterlädt.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Nur ein Kapitel drucken</summary>
@@ -6879,7 +6919,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Levar um EPUB ao papel</summary>
           <p>
-        o botão da impressora (ou «Imprimir ou guardar em PDF» no menu «⋯») compõe o livro para folhas de papel e abre a caixa de impressão do navegador, onde podes escolher a impressora ou «Guardar como PDF». Escolhe-se o tamanho da folha (A4 ou Carta), as margens e o corpo de letra; cada capítulo começa em folha nova e o livro conserva a sua paginação e as suas ilustrações. Os ajustes ficam memorizados para a próxima vez. Nos PDF não aparece: esses imprimem-se descarregando-os.</p>
+        o botão da impressora (ou «Imprimir ou guardar em PDF» no menu «⋯») compõe o livro para folhas de papel e abre a caixa de impressão do navegador, onde podes escolher a impressora ou «Guardar como PDF». Escolhe-se o tamanho da folha (A4 ou Carta), as margens e o corpo de letra; cada capítulo começa em folha nova e o livro conserva a sua paginação e as suas ilustrações. As três medidas admitem também um número exato: escolhendo «Personalizado», escrevem-se os milímetros da folha e da margem, e os pontos da letra. Os ajustes ficam memorizados para a próxima vez. Nos PDF não aparece: esses imprimem-se descarregando-os.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Imprimir só um capítulo</summary>

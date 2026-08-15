@@ -1541,7 +1541,7 @@
           navegador, donde puedes elegir la impresora o «Guardar como PDF». Se elige el
           tamaño de la hoja (A4 o Carta), los márgenes y el cuerpo de letra; cada
           capítulo empieza en hoja nueva y el libro conserva su maquetación y sus
-          ilustraciones. Los ajustes se recuerdan para la próxima vez. En los PDF no
+          ilustraciones. Las tres medidas admiten además un número exacto: eligiendo «Personalizado» se escriben los milímetros de la hoja y del margen, y los puntos de la letra. Los ajustes se recuerdan para la próxima vez. En los PDF no
           aparece: esos se imprimen descargándolos.</p>
           </details>
           <details class="punto-ayuda">
@@ -1688,30 +1688,57 @@
       aria-labelledby="titulo-imprimir">
       <h2 id="titulo-imprimir" data-i18n="printBook">Imprimir o guardar en PDF</h2>
       <p class="ayuda" data-i18n="printHelp">Se abrirá el diálogo de impresión del navegador, donde puedes elegir la impresora o «Guardar como PDF».</p>
+      <!-- Cada medida tiene sus opciones de siempre y, eligiendo
+           «Personalizado», el número exacto debajo. -->
       <div class="opciones-impresion">
-        <label>
-          <span data-i18n="printPaper">Papel</span>
+        <div class="opcion-impresion">
+          <label for="impresion-tamano" data-i18n="printPaper">Papel</label>
           <select id="impresion-tamano">
             <option value="a4">A4</option>
             <option value="carta" data-i18n="printPaperLetter">Carta</option>
+            <option value="personalizado" data-i18n="printCustom">Personalizado</option>
           </select>
-        </label>
-        <label>
-          <span data-i18n="printMargins">Márgenes</span>
+          <span id="medida-papel" class="medida-personal oculto">
+            <input type="number" id="impresion-ancho" min="50" max="500" step="1"
+              inputmode="decimal" aria-label="Ancho en milímetros"
+              data-i18n-aria-label="printCustomWidth">
+            <span aria-hidden="true">×</span>
+            <input type="number" id="impresion-alto" min="50" max="500" step="1"
+              inputmode="decimal" aria-label="Alto en milímetros"
+              data-i18n-aria-label="printCustomHeight">
+            <span class="unidad" aria-hidden="true">mm</span>
+          </span>
+        </div>
+        <div class="opcion-impresion">
+          <label for="impresion-margen" data-i18n="printMargins">Márgenes</label>
           <select id="impresion-margen">
             <option value="estrecho" data-i18n="printMarginNarrow">Estrechos</option>
             <option value="normal" data-i18n="printMarginNormal">Normales</option>
             <option value="ancho" data-i18n="printMarginWide">Anchos</option>
+            <option value="personalizado" data-i18n="printCustom">Personalizado</option>
           </select>
-        </label>
-        <label>
-          <span data-i18n="printFont">Letra</span>
+          <span id="medida-margen" class="medida-personal oculto">
+            <input type="number" id="impresion-margen-mm" min="0" max="60" step="1"
+              inputmode="decimal" aria-label="Margen en milímetros"
+              data-i18n-aria-label="printCustomMargin">
+            <span class="unidad" aria-hidden="true">mm</span>
+          </span>
+        </div>
+        <div class="opcion-impresion">
+          <label for="impresion-letra" data-i18n="printFont">Letra</label>
           <select id="impresion-letra">
             <option value="pequena" data-i18n="printFontSmall">Pequeña</option>
             <option value="normal" data-i18n="printFontNormal">Normal</option>
             <option value="grande" data-i18n="printFontLarge">Grande</option>
+            <option value="personalizado" data-i18n="printCustom">Personalizado</option>
           </select>
-        </label>
+          <span id="medida-letra" class="medida-personal oculto">
+            <input type="number" id="impresion-letra-pt" min="5" max="30" step="0.5"
+              inputmode="decimal" aria-label="Cuerpo de letra en puntos"
+              data-i18n-aria-label="printCustomFont">
+            <span class="unidad" aria-hidden="true">pt</span>
+          </span>
+        </div>
       </div>
       <label class="casilla">
         <input type="checkbox" id="impresion-anotaciones">

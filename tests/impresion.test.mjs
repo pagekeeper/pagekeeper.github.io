@@ -2,10 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  TAMANOS, MARGENES, LETRAS, RELLENOS_PAPEL,
+  TAMANOS, MARGENES, LETRAS, RELLENOS_PAPEL, LIMITES,
   rutaSinAncla, titulosDelIndice, capitulosImprimibles,
   anotacionesPorCapitulo, rellenoDePapel, hojaDeImpresion,
   tituloDelDocumento, resumenSeleccion, opcionValida,
+  numeroEnRango, medidasDelPapel, medidaDelMargen, medidaDeLaLetra,
 } from '../js/impresion.js';
 
 const numerar = (numero) => `Capítulo ${numero}`;
@@ -107,6 +108,62 @@ test('sin decir nada, A4 con márgenes normales', () => {
   const hoja = hojaDeImpresion();
   assert.match(hoja, new RegExp(`size: ${TAMANOS.a4.ancho}mm ${TAMANOS.a4.alto}mm`));
   assert.match(hoja, new RegExp(`margin: ${MARGENES.normal}mm`));
+});
+
+// ── Medidas escritas a mano ──
+
+test('un número escrito a mano se admite con coma decimal', () => {
+  assert.equal(numeroEnRango('12,5', LIMITES.letra), 12.5);
+  assert.equal(numeroEnRango('12.5', LIMITES.letra), 12.5);
+  assert.equal(numeroEnRango(9, LIMITES.letra), 9);
+});
+
+test('lo que se pasa de los topes se recorta al más cercano', () => {
+  assert.equal(numeroEnRango(400, LIMITES.letra), LIMITES.letra.maximo);
+  assert.equal(numeroEnRango(-5, LIMITES.margen), LIMITES.margen.minimo);
+});
+
+test('lo que no es un número deja la medida de siempre', () => {
+  assert.equal(numeroEnRango('', LIMITES.margen), LIMITES.margen.porDefecto);
+  assert.equal(numeroEnRango('ancho', LIMITES.margen), LIMITES.margen.porDefecto);
+  assert.equal(numeroEnRango(null, LIMITES.letra), LIMITES.letra.porDefecto);
+  assert.equal(numeroEnRango(Infinity, LIMITES.letra), LIMITES.letra.porDefecto);
+});
+
+test('un papel a medida manda sobre los tamaños de la lista', () => {
+  assert.deepEqual(
+    medidasDelPapel({ tamano: 'personalizado', ancho: 148, alto: 210 }),
+    { ancho: 148, alto: 210 },
+  );
+  // Y los de la lista no se dejan tocar por lo que haya escrito antes.
+  assert.deepEqual(medidasDelPapel({ tamano: 'a4', ancho: 148, alto: 210 }), TAMANOS.a4);
+});
+
+test('el margen y la letra a medida también', () => {
+  assert.equal(medidaDelMargen({ margen: 'personalizado', margenPersonal: '7,5' }), 7.5);
+  assert.equal(medidaDelMargen({ margen: 'ancho', margenPersonal: 7.5 }), MARGENES.ancho);
+  assert.equal(medidaDeLaLetra({ letra: 'personalizado', letraPersonal: 10.5 }), 10.5);
+  assert.equal(medidaDeLaLetra({ letra: 'pequena', letraPersonal: 10.5 }), LETRAS.pequena);
+});
+
+test('un margen de cero es un margen, no un descuido', () => {
+  assert.equal(medidaDelMargen({ margen: 'personalizado', margenPersonal: 0 }), 0);
+});
+
+test('la hoja recoge las medidas escritas a mano', () => {
+  const hoja = hojaDeImpresion({
+    tamano: 'personalizado', ancho: 148, alto: 210,
+    margen: 'personalizado', margenPersonal: 8,
+    letra: 'personalizado', letraPersonal: 10.5,
+  });
+  assert.match(hoja, /@page \{ size: 148mm 210mm; margin: 8mm; \}/);
+  assert.match(hoja, /font-size: 10\.5pt/);
+});
+
+test('elegir «personalizado» sin escribir nada no rompe la hoja', () => {
+  const hoja = hojaDeImpresion({ tamano: 'personalizado', margen: 'personalizado', letra: 'personalizado' });
+  assert.match(hoja, /size: 210mm 297mm; margin: 20mm/);
+  assert.match(hoja, /font-size: 11pt/);
 });
 
 test('los subrayados se piden en color: el navegador los quita al imprimir', () => {

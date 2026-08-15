@@ -32,6 +32,7 @@ DOCUMENTO = """() => {
     subrayados: doc.querySelectorAll('.pk-subrayado').length,
     notas: doc.querySelectorAll('.pk-notas li').length,
     texto: (doc.body.textContent || '').replace(/\\s+/g, ' ').trim().length,
+    cuerpo: doc.defaultView.getComputedStyle(doc.body).fontSize,
     pagina: [...doc.styleSheets].flatMap((hoja) => {
       try {
         return [...hoja.cssRules]
@@ -108,6 +109,54 @@ def solo_los_capitulos_elegidos(page, r):
                 f'se eligieron dos capítulos y salieron {documento["capitulos"]}')
 
 
+def las_medidas_a_mano(page, r):
+    """Elegir «Personalizado» y escribir los milímetros y los puntos exactos."""
+    page.click('#btn-imprimir')
+    page.wait_for_timeout(700)
+    r.comprobar(not page.locator('#medida-papel').is_visible(),
+                'los campos a mano no deberían verse con un papel de la lista')
+    for lista in ('impresion-tamano', 'impresion-margen', 'impresion-letra'):
+        page.select_option(f'#{lista}', 'personalizado')
+    page.wait_for_timeout(300)
+    r.comprobar(page.locator('#medida-papel').is_visible()
+                and page.locator('#medida-margen').is_visible()
+                and page.locator('#medida-letra').is_visible(),
+                'pidiendo medidas a mano, los campos deberían salir')
+
+    # Un número imposible se recorta en cuanto se suelta el campo.
+    page.fill('#impresion-letra-pt', '900')
+    page.locator('#impresion-margen-mm').focus()
+    page.wait_for_timeout(300)
+    recortado = page.input_value('#impresion-letra-pt')
+    print('[imprimir] 900 pt se quedan en', recortado)
+    r.comprobar(float(recortado) <= 30, f'900 pt no se recortaron: quedaron en {recortado}')
+
+    # A5 con márgenes de 8 mm y letra de 10,5 pt (que son 14 px).
+    page.fill('#impresion-ancho', '148')
+    page.fill('#impresion-alto', '210')
+    page.fill('#impresion-margen-mm', '8')
+    page.fill('#impresion-letra-pt', '10.5')
+    page.locator('#btn-confirmar-imprimir').focus()
+    page.wait_for_timeout(300)
+    page.click('#impresion-ninguno')
+    page.locator('#lista-capitulos-impresion li input').nth(4).check()
+    documento = imprimir(page)
+    print('[imprimir] a mano:', documento['pagina'], documento['cuerpo'])
+    r.comprobar('148mm 210mm' in documento['pagina'] and 'margin: 8mm' in documento['pagina'],
+                f'el papel a mano no llegó: {documento["pagina"]}')
+    r.comprobar(documento['cuerpo'] == '14px',
+                f'10,5 pt deberían ser 14 px y son {documento["cuerpo"]}')
+
+    # Y lo escrito sigue ahí la próxima vez.
+    page.click('#btn-imprimir')
+    page.wait_for_timeout(700)
+    r.comprobar(page.input_value('#impresion-ancho') == '148'
+                and page.input_value('#impresion-letra-pt') == '10.5',
+                'las medidas escritas a mano no se recuerdan')
+    page.click('#btn-cancelar-imprimir')
+    page.wait_for_timeout(300)
+
+
 def los_subrayados_van_al_papel(page, r):
     """Con la casilla marcada salen; sin marcarla, el texto va limpio."""
     for _ in range(14):
@@ -161,6 +210,7 @@ with comun.servidor() as base, sync_playwright() as p:
                 'en un EPUB debería poder imprimirse')
     el_documento_lleva_el_libro(page, r)
     solo_los_capitulos_elegidos(page, r)
+    las_medidas_a_mano(page, r)
     los_subrayados_van_al_papel(page, r)
     page.close()
 

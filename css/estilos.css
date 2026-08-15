@@ -1976,10 +1976,20 @@ button.estrella { cursor: pointer; }
 .opciones-impresion {
   display: flex; flex-wrap: wrap; gap: 0.6rem;
 }
-.opciones-impresion label {
+.opcion-impresion {
   display: flex; flex-direction: column; gap: 0.2rem;
   font-size: 0.85rem; color: var(--texto-suave); flex: 1 1 8rem;
 }
+/* El número exacto, debajo de su lista y solo cuando se pide a medida. Los
+   campos son estrechos a propósito: caben tres milímetros o dos puntos. */
+.medida-personal { display: flex; align-items: center; gap: 0.3rem; }
+.medida-personal input {
+  width: 4rem; min-width: 0;
+  background: var(--fondo); border: 1px solid var(--borde-fuerte);
+  border-radius: 0.5rem; padding: 0.3rem 0.4rem;
+  color: var(--texto); font-size: 0.9rem;
+}
+.medida-personal .unidad { color: var(--texto-suave); }
 .opciones-impresion select {
   background: var(--fondo); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.4rem 0.5rem;
