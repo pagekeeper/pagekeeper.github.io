@@ -84,6 +84,26 @@ with comun.servidor() as base, sync_playwright() as p:
     r.comprobar(page.locator('#barra-estado-lector .dato-estado-pulsable').count() == 0,
                 'un libro sin leer no debería enseñar tiempo dedicado')
 
+    # ── El mismo libro, el mismo nombre en todas partes
+    #
+    # La biblioteca enseñaba el título de los metadatos y la cabecera del
+    # lector, el nombre del archivo: el mismo libro tenía dos nombres según
+    # dónde se mirara.
+    page.click('#btn-volver')
+    page.wait_for_timeout(1500)
+    fila = page.locator('#lista-locales li[data-id-libro*=".pdf"] .nombre').first
+    enLaBiblioteca = fila.inner_text().strip()
+    archivo = comun.PDF.stem
+    print('[nombre] biblioteca:', enLaBiblioteca, '| archivo:', archivo)
+    r.comprobar(enLaBiblioteca != archivo,
+                'este PDF debería traer un título en sus metadatos: sin eso la prueba no comprueba nada')
+    comun.abrir_libro(page, '.pdf')
+    page.wait_for_timeout(2000)
+    enElLector = page.inner_text('#titulo-libro').strip()
+    print('[nombre] lector:    ', enElLector)
+    r.comprobar(enElLector == enLaBiblioteca,
+                f'la biblioteca dice «{enLaBiblioteca}» y el lector «{enElLector}»')
+
     nav.close()
 
 r.terminar()

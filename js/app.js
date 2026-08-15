@@ -40,6 +40,7 @@ import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import * as vistaAnotaciones from './vista-anotaciones.js';
 import * as impresion from './impresion.js';
+import { tituloMostrado as tituloDeLibro } from './titulo-libro.js';
 import * as vistaEstadisticas from './vista-estadisticas.js';
 import * as periodos from './periodos.js';
 import {
@@ -1213,7 +1214,7 @@ function aplicarPreferenciasCopia(preferencias = {}) {
   aplicarPapel();
   $('filtro-biblioteca').value = localStorage.getItem(CLAVE_FILTRO_BIBLIOTECA) ?? 'todos';
   $('orden-biblioteca').value = localStorage.getItem(CLAVE_ORDEN_BIBLIOTECA) ?? 'reciente';
-  aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+  aplicarVistaBiblioteca(vistaBibliotecaGuardada());
   sincronizarCasillaContinuar();
   aplicarPlegadoContinuar();
   sincronizarSelectRecientes();
@@ -2409,7 +2410,7 @@ function crearFilaLibro({
   // sobre el de los metadatos). `titulo` sigue vivo para la búsqueda, para que
   // el nombre original todavía encuentre el libro.
   const personalizado = progreso.tituloDe(id);
-  const tituloMostrado = personalizado || titulo;
+  const tituloMostrado = tituloDeLibro({ personalizado, archivo: titulo });
   const porcentaje = avance?.paginas ? Math.round((avance.pagina / avance.paginas) * 100) : 0;
   const estadoLectura = lecturaTerminada(avance, porcentaje)
     ? 'terminados'
@@ -2813,7 +2814,7 @@ function pintarNotaLibroLector() {
 }
 
 $('btn-editar-nota-lector').addEventListener('click', () => {
-  if (libroActual) abrirNotaLibro(libroActual.id, libroActual.titulo ?? '');
+  if (libroActual) abrirNotaLibro(libroActual.id, tituloDelLibroAbierto());
 });
 
 function guardarNotaLibro(texto) {
@@ -2947,9 +2948,10 @@ async function cargarMetadatosEnFila(fila, id, tituloArchivo = '') {
   // cuando no hay uno personalizado (aunque su autor y su texto sí se indexan).
   if (metadatos.titulo?.trim() && fila.dataset.tituloPersonalizado !== 'true') {
     const nombre = fila.querySelector('.nombre');
-    nombre.textContent = metadatos.titulo.trim();
-    nombre.title = metadatos.titulo.trim();
-    fila.dataset.titulo = normalizarBusqueda(metadatos.titulo.trim());
+    const mostrado = tituloDeLibro({ metadatos, archivo: tituloArchivo });
+    nombre.textContent = mostrado;
+    nombre.title = mostrado;
+    fila.dataset.titulo = normalizarBusqueda(mostrado);
   }
   if (metadatos.autor?.trim()) {
     const autor = fila.querySelector('.autor');
@@ -3086,6 +3088,13 @@ $('orden-biblioteca').addEventListener('change', (evento) => {
 
 // ── Vista de la biblioteca: lista o cuadrícula de portadas ──
 
+// De partida, la cuadrícula: una biblioteca se reconoce por las portadas
+// mucho antes que por los títulos, y con pocos libros la lista se ve vacía.
+// Quien elija la lista se queda con ella, que es lo que guarda la clave.
+function vistaBibliotecaGuardada() {
+  return localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) === 'lista' ? 'lista' : 'cuadricula';
+}
+
 function aplicarVistaBiblioteca(vista) {
   const cuadricula = vista === 'cuadricula';
   for (const lista of [$('lista-libros'), $('lista-locales'),
@@ -3096,7 +3105,7 @@ function aplicarVistaBiblioteca(vista) {
   $('btn-vista-cuadricula').setAttribute('aria-pressed', String(cuadricula));
 }
 
-aplicarVistaBiblioteca(localStorage.getItem(CLAVE_VISTA_BIBLIOTECA) ?? 'lista');
+aplicarVistaBiblioteca(vistaBibliotecaGuardada());
 for (const [id, vista] of [['btn-vista-lista', 'lista'], ['btn-vista-cuadricula', 'cuadricula']]) {
   $(id).addEventListener('click', () => {
     localStorage.setItem(CLAVE_VISTA_BIBLIOTECA, vista);
@@ -3137,6 +3146,9 @@ async function renombrarLibro(id) {
   const nuevo = respuesta.trim();
   if (nuevo === actual) return;
   progreso.guardarTitulo(id, nuevo);
+  // Se puede renombrar desde la biblioteca con el libro todavía abierto detrás:
+  // entonces la cabecera del lector se queda con el nombre viejo.
+  if (libroActual?.id === id) pintarTituloDelLibroAbierto();
   if (!id.startsWith('local:') && cliente) {
     try {
       await progreso.sincronizar(cliente);
@@ -5194,7 +5206,7 @@ async function abrirEnLector(datos, libro) {
   $('estado-busqueda-libro').textContent = '';
   $('resultados-busqueda-libro').replaceChildren();
   libroActual = libro;
-  $('titulo-libro').textContent = libro.titulo;
+  pintarTituloDelLibroAbierto();
   // El botón de subir solo tiene sentido con un libro local y una nube configurada.
   $('btn-subir').classList.toggle('oculto', !(libro.tipo === 'local' && cliente));
   const esEpub = libro.formato === 'epub';
@@ -5285,6 +5297,32 @@ async function abrirEnLector(datos, libro) {
   }
 }
 
+// El nombre con el que se enseña el libro abierto: el mismo que en la
+// biblioteca. Se guarda en `libroActual` porque lo piden varios sitios (la
+// cabecera, el menú «⋯», la nota del libro, la exportación, el papel) y no
+// tiene sentido que cada uno lo calcule.
+//
+// Se pinta dos veces a propósito: lo que se sabe al instante —el nombre del
+// archivo, o el que puso quien lee— y, cuando llegan los metadatos del almacén,
+// el título de verdad. Esperarlos dejaría la cabecera en blanco al abrir.
+async function pintarTituloDelLibroAbierto() {
+  const libro = libroActual;
+  if (!libro) return;
+  const personalizado = progreso.tituloDe(libro.id);
+  const pintar = (metadatos) => {
+    libro.tituloMostrado = tituloDeLibro({ personalizado, metadatos, archivo: libro.titulo });
+    if (libroActual === libro) $('titulo-libro').textContent = libro.tituloMostrado;
+  };
+  pintar(null);
+  const metadatos = await almacen.obtenerMetadatos(libro.id).catch(() => null);
+  if (libroActual !== libro) return; // entretanto se abrió otro
+  if (metadatos) pintar(metadatos);
+}
+
+function tituloDelLibroAbierto() {
+  return libroActual?.tituloMostrado || libroActual?.titulo || '';
+}
+
 // Sube el libro local abierto a la carpeta de la nube y lo convierte en un
 // libro sincronizado, conservando la posición actual.
 async function subirLibroActual() {
@@ -5339,7 +5377,7 @@ async function subirLibroActual() {
       tipo: 'webdav',
       formato: formatoDe(nombre),
     };
-    $('titulo-libro').textContent = libroActual.titulo;
+    pintarTituloDelLibroAbierto();
     $('btn-subir').classList.add('oculto');
     await progreso.sincronizar(cliente).catch(() => null);
     await anotaciones.sincronizar(destino, cliente).catch(() => null);
@@ -6759,7 +6797,7 @@ function reiniciarHistorialNavegacion() {
 // compacto. Los botones del menú activan los mismos controles de escritorio,
 // de modo que ambos diseños comparten exactamente el mismo comportamiento.
 function actualizarMenuLector() {
-  $('titulo-menu-lector').textContent = libroActual?.titulo ?? '';
+  $('titulo-menu-lector').textContent = tituloDelLibroAbierto();
   $('fila-menu-subir').classList.toggle('oculto', $('btn-subir').classList.contains('oculto'));
   $('fila-menu-indice').classList.toggle('oculto', $('btn-indice-libro').classList.contains('oculto'));
   $('fila-menu-texto').classList.toggle('oculto', $('control-texto').classList.contains('oculto'));
@@ -7227,7 +7265,7 @@ async function componerDocumentoImpresion(opciones, alProgreso) {
     }
   }
   alProgreso(elegidos.length, elegidos.length);
-  const titulo = impresion.tituloDelDocumento(libroActual?.titulo, t('printFallbackTitle'));
+  const titulo = impresion.tituloDelDocumento(tituloDelLibroAbierto(), t('printFallbackTitle'));
   const autor = libro.packaging?.metadata?.creator ?? '';
   const idioma = libro.packaging?.metadata?.language || document.documentElement.lang || 'es';
   return [
@@ -8315,7 +8353,7 @@ function markdownAnotaciones() {
     notaLibro: progreso.notaDe(libroActual.id),
     ubicacionDe: ubicacionExportacion,
     textos: {
-      cabecera: t('exportHeader', { title: libroActual.titulo }),
+      cabecera: t('exportHeader', { title: tituloDelLibroAbierto() }),
       origen: `${t('exportSource')} · ${fecha}`,
       notaDelLibro: t('bookNote'),
       nota: t('note'),
@@ -8327,7 +8365,7 @@ function exportarAnotaciones() {
   // Con nota y sin subrayados también hay algo que llevarse.
   if (!libroActual || !(anotacionesActuales.length || progreso.notaDe(libroActual.id))) return;
   const nombre = vistaAnotaciones.nombreDeArchivo(
-    libroActual.titulo, t('annotations').toLowerCase(),
+    tituloDelLibroAbierto(), t('annotations').toLowerCase(),
   );
   entregarDescarga(nombre, markdownAnotaciones(), 'text/markdown');
   avisar(t('annotationsExported'));

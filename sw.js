@@ -41,6 +41,7 @@ const RECURSOS = [
   'js/marcadores.js',
   'js/vista-anotaciones.js',
   'js/impresion.js',
+  'js/titulo-libro.js',
   'js/vista-estadisticas.js',
   'js/periodos.js',
   'js/recorte.js',
