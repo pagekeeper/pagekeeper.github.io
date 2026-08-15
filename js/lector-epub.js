@@ -1213,6 +1213,20 @@ export class LectorEpub {
     };
   }
 
+  // ¿Queda libro hacia ese lado? Dentro del capítulo basta con mirar la tira
+  // de columnas; en sus bordes, el capítulo vecino todavía no está montado y
+  // hay que preguntar a epub.js, que marca la ubicación con `atStart`/`atEnd`
+  // cuando es la primera o la última página de la primera o la última sección.
+  // Sin ubicación se responde que sí: es preferible pasar página de más a que
+  // el libro se quede atrancado en un sitio del que no se puede salir.
+  hayVecina(haciaAtras) {
+    const columnas = this.tiraDeColumnas();
+    if (columnas && (haciaAtras ? columnas.antes : columnas.despues)) return true;
+    const lugar = this.vista?.currentLocation?.();
+    if (!lugar || typeof lugar.then === 'function') return true;
+    return !(haciaAtras ? lugar.atStart : lugar.atEnd);
+  }
+
   // ───────────── Apoyo a la lectura en voz alta ─────────────
 
   // Texto desde la posición visible hasta el final del capítulo actual.

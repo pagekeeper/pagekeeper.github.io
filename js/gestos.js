@@ -60,10 +60,14 @@ export function decidirArranque(dx, dy, { holgura = HOLGURA_GESTO, vertical = fa
   return 'horizontal';
 }
 
-// ¿Hay página al otro lado? En EPUB siempre: el capítulo siguiente se monta
-// cuando hace falta.
-export function hayPaginaDestino({ haciaAtras, epub, pagina, totalPaginas, paso = 1 }) {
-  if (epub) return true;
+// ¿Hay página al otro lado? En EPUB no se puede saber contando páginas —el
+// capítulo siguiente se monta cuando hace falta—, así que lo decide el lector
+// y llega hecho en `hayVecinaEpub`. Se da por supuesto que sí: al no saberlo,
+// más vale dejar pasar página que atrancar el libro.
+export function hayPaginaDestino({
+  haciaAtras, epub, hayVecinaEpub = true, pagina, totalPaginas, paso = 1,
+}) {
+  if (epub) return hayVecinaEpub;
   return haciaAtras ? pagina > 1 : pagina + paso <= totalPaginas;
 }
 

@@ -1497,6 +1497,17 @@ button.estrella { cursor: pointer; }
 /* La animación es solo al soltar: mientras el dedo manda, la página va con él
    sin retardo ninguno. */
 .soltando-pagina { transition: transform 0.19s ease-out; }
+/* El tope: al principio y al final del libro la página se asoma y vuelve. La
+   vuelta es más lenta que la ida para que se lea como un rebote y no como una
+   página que se ha quedado a medias. */
+.tope-pagina { animation: tope-pagina 0.28s ease-out; }
+/* Lo que se asoma sale del área: sin esto aparecería una barra horizontal
+   durante el rebote. */
+#area-lectura.tope-en-curso { overflow: hidden; }
+@keyframes tope-pagina {
+  35% { transform: translateX(var(--asomo-tope, 0)); }
+  100% { transform: translateX(0); }
+}
 /* En EPUB lo que se desliza es la tira de columnas del capítulo, y estos
    avisos de nota cuelgan del contenedor de fuera: si se quedaran quietos
    flotarían sobre un texto que ya no es el suyo. */

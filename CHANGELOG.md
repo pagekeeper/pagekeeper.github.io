@@ -7,6 +7,19 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.0.2 — 15 de agosto de 2026
+
+### Cambiado
+- **La última página ya no finge que pasa.** En los EPUB, al llegar al final
+  del libro la página hacía la animación entera y volvía a aparecer la misma,
+  como si algo no se hubiera pintado. Ahora el libro sabe cuándo se ha
+  terminado: la página se asoma un poco y vuelve, igual que cuando se arrastra
+  con el dedo contra el tope. Lo mismo al principio, hacia atrás.
+- **El tope se nota también sin dedo.** Pulsando el margen o con las flechas,
+  en la primera y la última página no ocurría absolutamente nada, y no
+  moverse se parece demasiado a que el toque no se haya registrado. Ahora
+  responde con el mismo rebote corto.
+
 ## 1.0.1 — 15 de agosto de 2026
 
 ### Arreglado

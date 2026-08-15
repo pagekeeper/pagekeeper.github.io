@@ -130,6 +130,64 @@ def no_salta_la_ultima_pagina_epub(page, r):
                 'EPUB: un píxel de desfase se salta la última página del capítulo')
 
 
+# Lo que se ve al llegar al borde: se apuntan las clases que van y vienen en el
+# área de lectura mientras dura el intento.
+VIGILAR = """() => {
+  window.__clases = [];
+  new MutationObserver((cambios) => cambios.forEach((c) => window.__clases.push(
+    String(c.target.className)))).observe(document.getElementById('area-lectura'),
+    { attributes: true, subtree: true, attributeFilter: ['class'] });
+}"""
+
+
+def topa_en_los_bordes(page, r, etiqueta, final):
+    """En el último página del libro no se pasa página: se topa y se vuelve.
+
+    El EPUB no sabe contar páginas y durante un tiempo dio por hecho que
+    siempre había una más: al final del libro hacía la animación entera y
+    volvía a caer la misma página, que parecía un fallo de pintado. Y el PDF,
+    que sí lo sabía, no hacía nada de nada, que se confunde con un toque que
+    no se ha registrado.
+    """
+    page.once('dialog', lambda dialogo: dialogo.accept(final))
+    page.click('#btn-indicador')
+    page.wait_for_timeout(3000)
+    borde = page.evaluate(POSICION)
+
+    page.evaluate(VIGILAR)
+    page.click('#zona-siguiente')
+    page.wait_for_timeout(900)
+    clases = page.evaluate('() => window.__clases')
+    print(f'[{etiqueta}] al final, pulsar el margen:', clases[:2])
+    r.comprobar(any('tope-pagina' in c for c in clases),
+                f'{etiqueta}: al final del libro el margen no da ninguna señal')
+    r.comprobar(page.evaluate(POSICION) == borde,
+                f'{etiqueta}: al final del libro el margen cambia de página')
+
+    # Un arrastre largo tampoco: el tope frena el recorrido, pero pasarse del
+    # umbral era posible y entonces la página salía entera para nada.
+    page.evaluate(DESLIZA, [700, 450, -700, 0])
+    page.wait_for_timeout(1200)
+    r.comprobar(page.evaluate(POSICION) == borde,
+                f'{etiqueta}: al final del libro el arrastre cambia de página')
+    r.comprobar(page.evaluate(
+        "() => [...document.querySelectorAll('#contenedor-epub,.par-paginas')]"
+        ".every((e) => !e.style.transform)"),
+        f'{etiqueta}: al final del libro la página se queda desplazada')
+
+    # Y hacia atrás se sigue pudiendo, que es lo que evita quedarse encerrado.
+    page.click('#zona-anterior')
+    page.wait_for_timeout(1500)
+    r.comprobar(page.evaluate(POSICION) != borde,
+                f'{etiqueta}: desde el final del libro no se puede volver atrás')
+
+    # Se devuelve el libro al principio: quedarse en el final dejaría sin
+    # margen a lo que venga después, que espera poder desplazarse hacia abajo.
+    page.once('dialog', lambda dialogo: dialogo.accept('1'))
+    page.click('#btn-indicador')
+    page.wait_for_timeout(3000)
+
+
 def en_modo_continuo(page, r, etiqueta):
     """La rueda y las flechas desplazan, y nada cambia de página."""
     page.evaluate("() => document.getElementById('btn-modo').click()")
@@ -181,6 +239,9 @@ with comun.servidor() as base, sync_playwright() as p:
         en_modo_pagina(page, r, etiqueta)
         if etiqueta == 'EPUB':
             no_salta_la_ultima_pagina_epub(page, r)
+        # A dónde saltar para ponerse en el borde: el EPUB va por porcentaje.
+        final = '100' if etiqueta == 'EPUB' else page.inner_text('#btn-indicador').split('/')[-1]
+        topa_en_los_bordes(page, r, etiqueta, final.strip())
         en_modo_continuo(page, r, etiqueta)
         page.close()
     nav.close()

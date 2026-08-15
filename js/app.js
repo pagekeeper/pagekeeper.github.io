@@ -9366,10 +9366,17 @@ function hayPaginaDestino(haciaAtras) {
   return gestos.hayPaginaDestino({
     haciaAtras,
     epub: epubAbierto(),
+    hayVecinaEpub: epubAbierto() ? lectorEpub.hayVecina(haciaAtras) : true,
     pagina: lector.pagina,
     totalPaginas: lector.totalPaginas,
     paso: lector.enDoble() ? 2 : 1,
   });
+}
+
+// Lo mismo, pero durante un arrastre: se responde con lo apuntado al arrancar.
+function hayDestinoDelGesto(haciaAtras) {
+  if (!gesto?.destinos) return hayPaginaDestino(haciaAtras);
+  return haciaAtras ? gesto.destinos.atras : gesto.destinos.adelante;
 }
 
 async function prepararVecinasDelGesto() {
@@ -9409,7 +9416,7 @@ function iniciarGesto(x, y, toques) {
   gesto = {
     x, y, dx: 0, dy: 0, vertical: false,
     activo: false, terminado: false, vecinas: [], elemento: null,
-    paso: 0, enColumnas: false,
+    paso: 0, enColumnas: false, destinos: null,
   };
 }
 
@@ -9431,6 +9438,10 @@ function moverGesto(x, y, toques, evitar) {
       gesto.elemento = piezas.elemento;
       gesto.paso = piezas.paso;
       gesto.enColumnas = piezas.enColumnas;
+      // Los dos lados se preguntan una sola vez, al arrancar: la respuesta no
+      // cambia mientras dura el arrastre y en EPUB cuesta (hay que pedirle la
+      // ubicación a epub.js), demasiado para hacerlo en cada movimiento.
+      gesto.destinos = { atras: hayPaginaDestino(true), adelante: hayPaginaDestino(false) };
       gesto.elemento?.classList.add('arrastrando-pagina');
       $('area-lectura').classList.add('gesto-pagina');
       prepararVecinasDelGesto();
@@ -9447,7 +9458,7 @@ function moverGesto(x, y, toques, evitar) {
   if (!gesto.elemento) return;
   evitar?.(); // el gesto es nuestro: ni scroll ni selección
   gesto.dx = gestos.recorridoDelGesto(dx, {
-    hayDestino: hayPaginaDestino(dx > 0),
+    hayDestino: hayDestinoDelGesto(dx > 0),
     enColumnas: gesto.enColumnas,
     paso: gesto.paso,
   });
@@ -9478,7 +9489,9 @@ function terminarGestoPagina() {
   }
   if (!activo || !elemento) { limpiarGesto(); return; }
   const ancho = gesto.paso || $('area-lectura').clientWidth || 1;
-  const pasa = gestos.pasaDePagina(dx, ancho);
+  // El tope frena el recorrido, pero un arrastre largo de verdad todavía lo
+  // pasaría: sin página a la que ir, la vuelta a su sitio es la única salida.
+  const pasa = hayDestinoDelGesto(dx > 0) && gestos.pasaDePagina(dx, ancho);
   const activoLector = epubAbierto() ? lectorEpub : lector;
   if (!pasa) {
     // Vuelta a su sitio, con la transición que da la clase.
@@ -9501,20 +9514,20 @@ function terminarGestoPagina() {
 // del gesto (la vecina preparada detrás, la tira de columnas en EPUB), solo
 // que el desplazamiento va de una vez y de principio a fin.
 //
-// Donde el gesto no cabe —modo continuo, con zoom, sin página a la que ir— se
-// cambia de página como siempre, sin animación.
+// Donde el gesto no cabe —modo continuo, con zoom— se cambia de página como
+// siempre, sin animación.
 async function pasarPagina(haciaAtras) {
   const activo = epubAbierto() ? lectorEpub : lector;
   const cambiar = () => (haciaAtras ? activo.anterior() : activo.siguiente());
   if (gesto || !gestoDePaginaPermitido()) return void cambiar();
-  if (!hayPaginaDestino(haciaAtras)) return;
+  if (!hayPaginaDestino(haciaAtras)) return void toparConElBorde(haciaAtras);
   const piezas = piezasDelGesto(haciaAtras);
   if (!piezas.elemento) return void cambiar();
   const elemento = piezas.elemento;
   gesto = {
     x: 0, y: 0, dx: 0, dy: 0, vertical: false,
     activo: true, terminado: false, vecinas: [],
-    elemento, paso: piezas.paso, enColumnas: piezas.enColumnas,
+    elemento, paso: piezas.paso, enColumnas: piezas.enColumnas, destinos: null,
   };
   elemento.classList.add('arrastrando-pagina');
   $('area-lectura').classList.add('gesto-pagina');
@@ -9535,6 +9548,32 @@ async function pasarPagina(haciaAtras) {
     limpiarGesto();
     cambiar();
   });
+}
+
+// Sin página a la que ir, la actual se asoma un poco y vuelve. Arrastrando ya
+// se notaba el tope (la página se queda corta y regresa); pulsando el margen o
+// con las teclas no pasaba nada de nada, y no moverse se confunde con que el
+// toque no se ha registrado. El recorrido es corto a propósito: tiene que
+// leerse como «hasta aquí», no como una página a medio pasar.
+const RECORRIDO_TOPE = 0.07; // parte del ancho de la vista
+
+function toparConElBorde(haciaAtras) {
+  const elemento = piezasDelGesto(haciaAtras).elemento;
+  if (!elemento || elemento.classList.contains('tope-pagina')) return;
+  const asomo = ($('area-lectura').clientWidth || 0) * RECORRIDO_TOPE;
+  if (!asomo) return;
+  // Va como animación y no como transición porque son dos tramos —salir y
+  // volver— y así no queda ningún transform puesto si algo la interrumpe.
+  elemento.style.setProperty('--asomo-tope', `${haciaAtras ? asomo : -asomo}px`);
+  elemento.classList.add('tope-pagina');
+  $('area-lectura').classList.add('tope-en-curso');
+  const limpiar = () => {
+    elemento.classList.remove('tope-pagina');
+    elemento.style.removeProperty('--asomo-tope');
+    $('area-lectura').classList.remove('tope-en-curso');
+  };
+  elemento.addEventListener('animationend', limpiar, { once: true });
+  setTimeout(limpiar, 400); // por si la animación no llega a emitir el aviso
 }
 
 // Espera a que acabe el deslizamiento en vez de contar un tiempo fijo: con

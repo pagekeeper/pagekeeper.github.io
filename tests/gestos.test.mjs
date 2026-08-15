@@ -108,8 +108,14 @@ test('en una pantalla apaisada el umbral vertical no baja del mínimo en píxele
   assert.equal(pasaDePaginaVertical(70, 300), true);
 });
 
-test('en EPUB siempre hay página al otro lado', () => {
-  assert.equal(hayPaginaDestino({ haciaAtras: true, epub: true, pagina: 1, totalPaginas: 1 }), true);
+test('en EPUB manda lo que diga el lector, no el recuento de páginas', () => {
+  const epub = { epub: true, pagina: 1, totalPaginas: 1 };
+  assert.equal(hayPaginaDestino({ ...epub, haciaAtras: true, hayVecinaEpub: true }), true);
+  assert.equal(hayPaginaDestino({ ...epub, haciaAtras: false, hayVecinaEpub: false }), false);
+});
+
+test('en EPUB, sin saber si hay vecina, se deja pasar página', () => {
+  assert.equal(hayPaginaDestino({ haciaAtras: false, epub: true, pagina: 1, totalPaginas: 1 }), true);
 });
 
 test('en la primera página del PDF no se puede ir hacia atrás', () => {
