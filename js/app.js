@@ -31,6 +31,7 @@ import {
   esLibro, librosElegidos, librosArrastrados, capturarArrastre,
 } from './archivos-entrantes.js';
 import * as estadisticas from './estadisticas.js';
+import * as duplicados from './duplicados.js';
 import * as gestos from './gestos.js';
 import { puntoEnElMarco, clicConPunto } from './zonas-toque.js';
 import { imagenAmpliable, descripcionImagen } from './imagen-ampliada.js';
@@ -4847,6 +4848,54 @@ function carpetasDe(entrantes) {
     .sort((a, b) => a.split('/').length - b.split('/').length);
 }
 
+// El resumen del contenido de un libro, con el que se reconoce el mismo texto
+// aunque el archivo llegue con otro nombre. SHA-256 porque es lo que trae el
+// navegador; de un libro de 13 MB sale en unas décimas y solo se calcula al
+// añadirlo o al comparar con un candidato del mismo tamaño.
+async function huellaDe(datos) {
+  try {
+    const resumen = await crypto.subtle.digest('SHA-256', datos);
+    return [...new Uint8Array(resumen)].map((b) => b.toString(16).padStart(2, '0')).join('');
+  } catch {
+    // Sin `crypto.subtle` (contexto no seguro) no hay huella: se sigue sin
+    // comprobar duplicados antes que impedir añadir el libro.
+    return '';
+  }
+}
+
+// Las huellas de los candidatos, calculándolas la primera vez y guardándolas
+// para la próxima: los libros añadidos antes de que esto existiera no la
+// tienen, y releerlos en cada comparación sería tirar el trabajo.
+async function huellasDe(candidatos) {
+  const huellas = {};
+  for (const libro of candidatos) {
+    if (libro.huella) {
+      huellas[libro.id] = libro.huella;
+      continue;
+    }
+    try {
+      const datos = await almacen.obtenerDatos(libro.id);
+      if (!datos) continue;
+      const huella = await huellaDe(datos);
+      if (!huella) continue;
+      huellas[libro.id] = huella;
+      await almacen.guardarHuella(libro.id, huella).catch(() => null);
+    } catch { /* no se pudo leer: ese candidato no se puede descartar ni confirmar */ }
+  }
+  return huellas;
+}
+
+// Lanza si el libro ya está en la biblioteca con otro nombre. Devuelve el que
+// ya estaba, para poder abrirlo en su lugar.
+async function libroYaEnLaBiblioteca({ id, tamano }, datos) {
+  const huella = await huellaDe(datos);
+  const libros = await almacen.listarLibros().catch(() => []);
+  const candidatos = duplicados.candidatosPorTamano(libros, { id, tamano });
+  const huellas = candidatos.length ? await huellasDe(candidatos) : {};
+  const decision = duplicados.decidirEntrante({ id, tamano, huella }, libros, huellas);
+  return { huella, repetido: decision.accion === 'duplicado' ? decision.libro : null };
+}
+
 async function guardarArchivoLocal(archivo, abrirDespues = false, carpeta = rutaLocal) {
   mostrarCarga(t('adding', { title: archivo.name }));
   const datos = new Uint8Array(await archivo.arrayBuffer());
@@ -4856,6 +4905,16 @@ async function guardarArchivoLocal(archivo, abrirDespues = false, carpeta = ruta
     tamano: archivo.size,
     carpeta,
   };
+  // El mismo libro con otro nombre no entra dos veces: la biblioteca acababa
+  // con dos fichas del mismo texto, cada una con su posición y su tiempo. Se
+  // abre el que ya estaba, que es lo que se quería leer.
+  const { huella, repetido } = await libroYaEnLaBiblioteca(libro, datos);
+  if (repetido) {
+    avisar(t('localDuplicate', { title: repetido.nombre }), 6000);
+    if (abrirDespues) await abrirLibroLocal(repetido);
+    return false;
+  }
+  libro.huella = huella;
   await almacen.guardarLibro(libro, datos);
   asegurarMiniatura(libro.id, formatoDe(archivo.name), datos);
   if (abrirDespues) {
@@ -4868,6 +4927,7 @@ async function guardarArchivoLocal(archivo, abrirDespues = false, carpeta = ruta
       tamano: datos.byteLength,
     });
   }
+  return true;
 }
 
 async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
@@ -4890,8 +4950,10 @@ async function guardarArchivosLocales(archivos, abrirSiEsUno = false) {
     }
     for (const { archivo, carpeta } of validos) {
       try {
-        await guardarArchivoLocal(archivo, abiertoDirectamente, destinoLocal(carpeta));
-        guardados += 1;
+        // Un duplicado no cuenta como añadido: ya avisó él por su cuenta.
+        if (await guardarArchivoLocal(archivo, abiertoDirectamente, destinoLocal(carpeta))) {
+          guardados += 1;
+        }
       } catch (error) {
         avisar(t('saveFailed', { title: archivo.name, error: error.message }), 6000);
       }

@@ -278,16 +278,37 @@ export async function moverLibroACarpeta(id, carpeta) {
   }
 }
 
-export async function guardarLibro({ id, nombre, tamano, anadido, carpeta = '' }, datos) {
+// `huella` es el resumen del contenido, con el que se reconoce el mismo libro
+// aunque llegue con otro nombre (ver duplicados.js). Se guarda al añadirlo para
+// no tener que volver a leer el archivo entero cada vez que se compara.
+export async function guardarLibro({ id, nombre, tamano, anadido, carpeta = '', huella }, datos) {
   const bd = await abrirBd();
   try {
     const tx = bd.transaction(['libros', 'datos'], 'readwrite');
     tx.objectStore('libros').put({
       id, nombre, tamano, anadido: anadido ?? new Date().toISOString(),
       carpeta: normalizarCarpeta(carpeta),
+      ...(huella ? { huella } : {}),
     });
     tx.objectStore('datos').put(new Blob([datos], { type: tipoLibro(nombre) }), id);
     await esperarTransaccion(tx);
+  } finally {
+    bd.close();
+  }
+}
+
+// La huella de un libro que ya estaba guardado, calculada la primera vez que
+// hace falta compararlo. No toca el resto de su ficha ni sus datos.
+export async function guardarHuella(id, huella) {
+  if (!huella) return false;
+  const bd = await abrirBd();
+  try {
+    const tx = bd.transaction('libros', 'readwrite');
+    const libro = await esperar(tx.objectStore('libros').get(id));
+    if (!libro) return false;
+    tx.objectStore('libros').put({ ...libro, huella });
+    await esperarTransaccion(tx);
+    return true;
   } finally {
     bd.close();
   }
