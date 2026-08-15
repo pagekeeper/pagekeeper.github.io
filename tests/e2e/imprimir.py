@@ -26,6 +26,8 @@ DOCUMENTO = """() => {
     titulo: doc.title,
     capitulos: doc.querySelectorAll('.pk-capitulo').length,
     portada: doc.querySelector('.pk-portada h1')?.textContent ?? '',
+    hayPortada: Boolean(doc.querySelector('.pk-portada')),
+    primero: doc.body.firstElementChild?.className ?? '',
     hojas: doc.querySelectorAll('head style').length,
     imagenes: imagenes.length,
     imagenesRotas: imagenes.filter((i) => !i.naturalWidth).length,
@@ -107,6 +109,31 @@ def solo_los_capitulos_elegidos(page, r):
     print('[imprimir] dos capítulos:', documento['capitulos'], 'artículos')
     r.comprobar(documento['capitulos'] == 2,
                 f'se eligieron dos capítulos y salieron {documento["capitulos"]}')
+
+
+def la_hoja_de_titulo_se_puede_quitar(page, r):
+    """Quien imprime un capítulo suelto no quiere la hoja del título."""
+    page.click('#btn-imprimir')
+    page.wait_for_timeout(700)
+    r.comprobar(page.is_checked('#impresion-portada'),
+                'la hoja de título debería venir marcada de partida')
+    page.uncheck('#impresion-portada')
+    page.click('#impresion-ninguno')
+    page.locator('#lista-capitulos-impresion li input').nth(5).check()
+    documento = imprimir(page)
+    print('[imprimir] sin hoja de título, empieza por:', documento['primero'])
+    r.comprobar(not documento['hayPortada'], 'la hoja de título salió aunque se desmarcó')
+    r.comprobar(documento['primero'] == 'pk-capitulo',
+                f'el documento empieza por «{documento["primero"]}» y no por el capítulo')
+
+    # Y la casilla se recuerda, como el resto de los ajustes.
+    page.click('#btn-imprimir')
+    page.wait_for_timeout(700)
+    r.comprobar(not page.is_checked('#impresion-portada'),
+                'la casilla de la hoja de título no se recuerda')
+    page.check('#impresion-portada')
+    page.click('#btn-cancelar-imprimir')
+    page.wait_for_timeout(300)
 
 
 def las_medidas_a_mano(page, r):
@@ -210,6 +237,7 @@ with comun.servidor() as base, sync_playwright() as p:
                 'en un EPUB debería poder imprimirse')
     el_documento_lleva_el_libro(page, r)
     solo_los_capitulos_elegidos(page, r)
+    la_hoja_de_titulo_se_puede_quitar(page, r)
     las_medidas_a_mano(page, r)
     los_subrayados_van_al_papel(page, r)
     page.close()

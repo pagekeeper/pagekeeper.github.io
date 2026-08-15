@@ -6942,6 +6942,7 @@ function opcionesImpresionGuardadas() {
     alto: impresion.numeroEnRango(guardado.alto, LIMITES.alto),
     margenPersonal: impresion.numeroEnRango(guardado.margenPersonal, LIMITES.margen),
     letraPersonal: impresion.numeroEnRango(guardado.letraPersonal, LIMITES.letra),
+    portada: guardado.portada !== false,
     anotaciones: guardado.anotaciones !== false,
   };
 }
@@ -6956,6 +6957,7 @@ function opcionesImpresionElegidas() {
     alto: impresion.numeroEnRango($('impresion-alto').value, LIMITES.alto),
     margenPersonal: impresion.numeroEnRango($('impresion-margen-mm').value, LIMITES.margen),
     letraPersonal: impresion.numeroEnRango($('impresion-letra-pt').value, LIMITES.letra),
+    portada: $('impresion-portada').checked,
     anotaciones: $('impresion-anotaciones').checked,
   };
 }
@@ -6985,6 +6987,7 @@ function abrirDialogoImprimir() {
   $('impresion-alto').value = opciones.alto;
   $('impresion-margen-mm').value = opciones.margenPersonal;
   $('impresion-letra-pt').value = opciones.letraPersonal;
+  $('impresion-portada').checked = opciones.portada;
   $('impresion-anotaciones').checked = opciones.anotaciones;
   sincronizarMedidasPersonales();
   // Sin nada subrayado, la casilla no tiene de qué hablar.
@@ -7234,9 +7237,12 @@ async function componerDocumentoImpresion(opciones, alProgreso) {
     ...[...estilos.values()].map((css) => `<style>${css}</style>`),
     '<style>', impresion.hojaDeImpresion(opciones), '</style>',
     '</head><body>',
-    '<section class="pk-portada"><h1>', escaparTexto(titulo), '</h1>',
-    autor ? `<p>${escaparTexto(autor)}</p>` : '',
-    '</section>',
+    // La hoja de título es cosa nuestra, no del libro: quien imprime solo un
+    // capítulo suelto no la quiere, así que se puede quitar.
+    opciones.portada
+      ? `<section class="pk-portada"><h1>${escaparTexto(titulo)}</h1>${
+        autor ? `<p>${escaparTexto(autor)}</p>` : ''}</section>`
+      : '',
     cuerpos.join('\n'),
     '</body></html>',
   ].join('');

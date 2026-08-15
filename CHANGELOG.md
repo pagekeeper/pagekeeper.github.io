@@ -7,6 +7,15 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.3.0 — 15 de agosto de 2026
+
+### Añadido
+- **La hoja de título de la impresión se puede quitar.** El documento empezaba
+  siempre con una hoja con el nombre del libro y el autor, incluso desmarcando
+  la cubierta y los primeros capítulos, que es justo cuando no se quiere: al
+  imprimir un capítulo suelto, esa hoja sobra. Ahora es una casilla, marcada de
+  partida, y lo que elijas se recuerda.
+
 ## 1.2.0 — 15 de agosto de 2026
 
 ### Añadido

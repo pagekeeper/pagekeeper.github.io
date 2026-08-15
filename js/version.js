@@ -11,4 +11,4 @@
 // worker (`pagekeeper-vNN`), que sube en cada despliegue aunque no cambie la
 // versión: uno dice qué hay dentro y el otro obliga al navegador a volver a
 // pedir los archivos.
-export const VERSION = '1.2.0';
+export const VERSION = '1.3.0';

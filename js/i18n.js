@@ -10,6 +10,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir o guardar en PDF',
+    printTitlePage: 'Empezar con una hoja de título',
     printCustom: 'Personalizado',
     printCustomWidth: 'Ancho en milímetros',
     printCustomHeight: 'Alto en milímetros',
@@ -409,6 +410,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimeix o desa en PDF',
+    printTitlePage: 'Comença amb un full de títol',
     printCustom: 'Personalitzat',
     printCustomWidth: 'Amplada en mil·límetres',
     printCustomHeight: 'Alçada en mil·límetres',
@@ -808,6 +810,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Print or save as PDF',
+    printTitlePage: 'Start with a title page',
     printCustom: 'Custom',
     printCustomWidth: 'Width in millimetres',
     printCustomHeight: 'Height in millimetres',
@@ -1207,6 +1210,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimer ou enregistrer en PDF',
+    printTitlePage: 'Commencer par une page de titre',
     printCustom: 'Personnalisé',
     printCustomWidth: 'Largeur en millimètres',
     printCustomHeight: 'Hauteur en millimètres',
@@ -1606,6 +1610,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir ou gardar en PDF',
+    printTitlePage: 'Comezar cunha folla de título',
     printCustom: 'Personalizado',
     printCustomWidth: 'Largura en milímetros',
     printCustomHeight: 'Altura en milímetros',
@@ -2005,6 +2010,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Inprimatu edo gorde PDF gisa',
+    printTitlePage: 'Hasi izenburu-orri batekin',
     printCustom: 'Pertsonalizatua',
     printCustomWidth: 'Zabalera milimetrotan',
     printCustomHeight: 'Altuera milimetrotan',
@@ -2404,6 +2410,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Drucken oder als PDF speichern',
+    printTitlePage: 'Mit einem Titelblatt beginnen',
     printCustom: 'Benutzerdefiniert',
     printCustomWidth: 'Breite in Millimetern',
     printCustomHeight: 'Höhe in Millimetern',
@@ -2803,6 +2810,7 @@ const textos = {
     appVersion: 'PageKeeper {version}',
     // Imprimir el EPUB en papel o en PDF.
     printBook: 'Imprimir ou guardar em PDF',
+    printTitlePage: 'Começar com uma folha de título',
     printCustom: 'Personalizado',
     printCustomWidth: 'Largura em milímetros',
     printCustomHeight: 'Altura em milímetros',
@@ -3609,7 +3617,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Imprimir només un capítol</summary>
           <p>
-        la llista del diàleg porta tots els capítols marcats. Desmarca els que no vulguis —o prem «Cap» i tria’n només un— i el paper només portarà aquests. Un llibre sencer en A4 són molts fulls.</p>
+        la llista del diàleg porta tots els capítols marcats. Desmarca els que no vulguis —o prem «Cap» i tria’n només un— i el paper només portarà aquests. Un llibre sencer en A4 són molts fulls. El full de títol amb el nom del llibre i l’autor també es pot treure, amb la seva casella.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Subratllats i notes al paper</summary>
@@ -4140,7 +4148,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Printing a single chapter</summary>
           <p>
-        every chapter starts ticked in the dialog’s list. Untick the ones you don’t want —or press “None” and pick just one— and only those reach the paper. A whole book in A4 is a lot of sheets.</p>
+        every chapter starts ticked in the dialog’s list. Untick the ones you don’t want —or press “None” and pick just one— and only those reach the paper. A whole book in A4 is a lot of sheets. The title page with the book’s name and author can be left out too, with its own checkbox.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Highlights and notes on paper</summary>
@@ -4699,7 +4707,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>N’imprimer qu’un chapitre</summary>
           <p>
-        la liste de la boîte de dialogue arrive avec tous les chapitres cochés. Décochez ceux dont vous ne voulez pas — ou appuyez sur « Aucun » et n’en choisissez qu’un — et le papier ne portera que ceux-là. Un livre entier en A4, cela fait beaucoup de feuilles.</p>
+        la liste de la boîte de dialogue arrive avec tous les chapitres cochés. Décochez ceux dont vous ne voulez pas — ou appuyez sur « Aucun » et n’en choisissez qu’un — et le papier ne portera que ceux-là. Un livre entier en A4, cela fait beaucoup de feuilles. La page de titre avec le nom du livre et l’auteur peut aussi être retirée, avec sa case.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Surlignages et notes sur le papier</summary>
@@ -5237,7 +5245,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Imprimir só un capítulo</summary>
           <p>
-        a lista do diálogo trae todos os capítulos marcados. Desmarca os que non queiras —ou preme «Ningún» e escolle só un— e o papel levará unicamente eses. Un libro enteiro en A4 son moitas follas.</p>
+        a lista do diálogo trae todos os capítulos marcados. Desmarca os que non queiras —ou preme «Ningún» e escolle só un— e o papel levará unicamente eses. Un libro enteiro en A4 son moitas follas. A folla de título co nome do libro e o autor tamén se pode quitar, coa súa caixa.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Subliñados e notas no papel</summary>
@@ -5788,7 +5796,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Kapitulu bakarra inprimatu</summary>
           <p>
-        elkarrizketako zerrendan kapitulu guztiak markatuta daude. Kendu marka nahi ez dituzunei —edo sakatu «Bat ere ez» eta aukeratu bakarra— eta paperean horiek bakarrik aterako dira. Liburu oso bat A4 tamainan orri asko dira.</p>
+        elkarrizketako zerrendan kapitulu guztiak markatuta daude. Kendu marka nahi ez dituzunei —edo sakatu «Bat ere ez» eta aukeratu bakarra— eta paperean horiek bakarrik aterako dira. Liburu oso bat A4 tamainan orri asko dira. Liburuaren izena eta egilea dituen izenburu-orria ere ken daiteke, bere kontrol-laukiarekin.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Azpimarratuak eta oharrak paperean</summary>
@@ -6365,7 +6373,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Nur ein Kapitel drucken</summary>
           <p>
-        in der Liste des Dialogs sind alle Kapitel angehakt. Nimm bei denen das Häkchen weg, die du nicht willst – oder drücke „Keine“ und wähle nur eines –, und aufs Papier kommen nur diese. Ein ganzes Buch in A4 sind viele Blätter.</p>
+        in der Liste des Dialogs sind alle Kapitel angehakt. Nimm bei denen das Häkchen weg, die du nicht willst – oder drücke „Keine“ und wähle nur eines –, und aufs Papier kommen nur diese. Ein ganzes Buch in A4 sind viele Blätter. Das Titelblatt mit Name und Autor des Buches lässt sich ebenfalls weglassen, mit seinem eigenen Kontrollkästchen.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Markierungen und Notizen auf dem Papier</summary>
@@ -6924,7 +6932,7 @@ const ayudas = {
         <details class="punto-ayuda">
           <summary>Imprimir só um capítulo</summary>
           <p>
-        a lista da caixa traz todos os capítulos marcados. Desmarca os que não quiseres —ou carrega em «Nenhum» e escolhe só um— e o papel levará apenas esses. Um livro inteiro em A4 são muitas folhas.</p>
+        a lista da caixa traz todos os capítulos marcados. Desmarca os que não quiseres —ou carrega em «Nenhum» e escolhe só um— e o papel levará apenas esses. Um livro inteiro em A4 são muitas folhas. A folha de título com o nome do livro e o autor também se pode tirar, com a sua caixa.</p>
         </details>
         <details class="punto-ayuda">
           <summary>Sublinhados e notas no papel</summary>
