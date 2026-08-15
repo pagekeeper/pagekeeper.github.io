@@ -134,6 +134,18 @@ Al cerrar un cambio:
 Si un mismo trabajo se parte en varios commits, la versión sube una vez, en el
 último, y la etiqueta va ahí.
 
+## Despliegue
+
+Empujar a `main` lanza el flujo `.github/workflows/desplegar.yml`, que pasa las
+pruebas de lógica y publica el repositorio en GitHub Pages. Se ve en la
+pestaña «Actions» del repositorio, y desde ahí se puede relanzar a mano.
+
+No vuelvas a la compilación heredada de Pages (la que se configuraba con una
+rama): dejaba de dispararse cada dos por tres y había que pedirla por la API
+sin que nada avisara. Si el sitio no se actualiza, mira primero si el flujo ha
+corrido y qué dice; comprobar la versión publicada es un `curl` a
+`https://pagekeeper.github.io/js/version.js`.
+
 ## Git
 
 El usuario prefiere que los cambios terminados se confirmen y se suban a

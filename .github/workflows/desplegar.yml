@@ -1,0 +1,63 @@
+# Publica el sitio en GitHub Pages.
+#
+# Antes lo hacía la compilación heredada de Pages, esa que se dispara sola al
+# empujar a main y no se ve en ninguna parte. Dejó de dispararse en tres de
+# cada cinco subidas: el commit llegaba a GitHub y el sitio seguía sirviendo el
+# anterior, sin que nada avisara, y había que pedir la reconstrucción a mano
+# por la API. Este flujo sale en la pestaña «Actions»: si no ha corrido se ve,
+# y si falla, avisa.
+#
+# No hay nada que compilar —lo que está en el repositorio es lo que se sirve,
+# ver CLAUDE.md—, así que el único paso previo son las pruebas de lógica, que
+# tardan unos segundos y evitan publicar algo que ya se sabe roto. Las de
+# navegador no caben aquí: levantan un Chromium y tardan minutos.
+
+name: Desplegar en GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  # Para relanzarlo a mano desde «Actions» sin tener que empujar nada.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Con dos subidas seguidas se publica la última, pero sin cortar un despliegue
+# a medias: cancelarlo dejaría el sitio a medio cambiar.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  pruebas:
+    name: Pruebas de lógica
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      # `node --test` a secas: el proyecto no tiene dependencias que instalar.
+      - run: node --test tests/*.test.mjs
+
+  desplegar:
+    name: Publicar
+    needs: pruebas
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      # Se sube el repositorio entero, que es exactamente lo que publicaba la
+      # compilación heredada. Dejar fuera las pruebas o las skills sería otro
+      # cambio, y este solo cambia quién despliega.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: despliegue
+        uses: actions/deploy-pages@v4
