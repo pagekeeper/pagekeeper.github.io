@@ -23,7 +23,7 @@ import {
   normalizarLetrasPorLinea, LETRAS_INICIALES,
 } from './columnas.js';
 import {
-  segundosDeLaMuestra, acumularRitmo, minutosRestantes,
+  segundosDeLaMuestra, acumularRitmo, minutosRestantes, reubicacionEsLectura,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE, SEGUNDOS_TOPE,
   UNIDADES_MINIMAS_PAGINAS, UNIDADES_MINIMAS_PORCENTAJE,
 } from './ritmo.js';
@@ -5718,6 +5718,23 @@ function anotarRitmo(unidad) {
   localStorage.setItem(CLAVE_RITMO, JSON.stringify(mapa));
 }
 
+// La puerta por la que entran todas las reubicaciones de la vista: apunta la
+// lectura, o se limita a poner al día la referencia cuando lo que ha pasado es
+// un repaginado (ver «reubicacionEsLectura» en ritmo.js). Reencuadrar no toca
+// la marca: el tramo abierto sigue corriendo, y con él la cuenta que enciende
+// el aviso de «En pausa».
+function anotarReubicacion(unidad, porReflujo = false) {
+  // Sin tramo todavía —la primera reubicación tras abrir— hay que abrirlo aunque
+  // venga de un reajuste: sin marca, el aviso de pausa daría por parado un
+  // reloj que nunca ha echado a andar.
+  const empezando = ritmoSesion.unidad === null;
+  if (empezando || reubicacionEsLectura(porReflujo, unidad, ritmoSesion.unidad)) {
+    anotarRitmo(unidad);
+  } else {
+    ritmoSesion.unidad = unidad;
+  }
+}
+
 // Cierra el tramo abierto sin esperar a que cambie la posición, dándolo por
 // tiempo en la página actual (avance cero, que el ritmo suma sin olvidar nada).
 // Lo que se lee en la última página de una sesión también es lectura, y antes
@@ -6496,7 +6513,9 @@ function cuandoCambiaPagina(pagina, total) {
   revisarAvisoPosicionRemota();
   marcarMiniaturaActual();
   marcarEntradaIndiceActual();
-  anotarRitmo(pagina);
+  // Remontar avisa igual que pasar de página; si es la misma, no hay lectura
+  // nueva que apuntar, solo el mismo tramo siguiendo abierto.
+  anotarReubicacion(pagina, pagina === ritmoSesion.unidad);
   pintarTiempoRestante();
   // Remontar la página (zoom, giro, otro ancho de ventana) cambia el aumento.
   pintarZoom();
@@ -6523,7 +6542,7 @@ function porcentajeDesfasado(cfi, porcentaje) {
   return Boolean(avance) && avance.cfi === cfi && avance.pagina !== porcentaje;
 }
 
-function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
+function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones, porReflujo = false) {
   $('btn-indicador').textContent = conLocalizaciones ? `${formatearPorcentaje(porcentaje)}%` : '…';
   marcarEntradaIndiceActual();
   // Antes de cualquier vuelta atrás: la pantalla del capítulo cambia en todas
@@ -6549,7 +6568,7 @@ function cuandoCambiaPosicionEpub(cfi, porcentaje, conLocalizaciones) {
     vozLectura.detener();
   }
   if (conLocalizaciones) {
-    anotarRitmo(porcentaje);
+    anotarReubicacion(porcentaje, porReflujo);
     pintarTiempoRestante();
   }
   if (cfi === cfiEpubGuardado) {

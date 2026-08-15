@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import {
   segundosDeLaMuestra, acumularRitmo, segundosPorUnidad, minutosRestantes,
+  reubicacionEsLectura,
   SEMIVIDA_PAGINAS, SEMIVIDA_PORCENTAJE, SEGUNDOS_TOPE,
   UNIDADES_MINIMAS_PORCENTAJE,
 } from '../js/ritmo.js';
@@ -117,4 +118,20 @@ test('los dos primeros minutos siguen sin estimar nada', () => {
   let entrada = null;
   for (let i = 0; i < 2; i++) entrada = acumularRitmo(entrada, 40, 0.015, SEMIVIDA_PORCENTAJE);
   assert.equal(segundosPorUnidad(entrada, UNIDADES_MINIMAS_PORCENTAJE), null);
+});
+
+test('repaginar no es lectura: el reajuste no cuenta como pasar de página', () => {
+  // El EPUB avisa con otro porcentaje después de repaginar (girar el móvil,
+  // abrir el índice): la lectura sigue donde estaba.
+  assert.equal(reubicacionEsLectura(true, 63.1, 63.3), false);
+  // El PDF avisa con la misma página al remontar por el zoom.
+  assert.equal(reubicacionEsLectura(false, 12, 12), false);
+});
+
+test('pasar de página sí es lectura', () => {
+  assert.equal(reubicacionEsLectura(false, 63.5, 63.3), true);
+  assert.equal(reubicacionEsLectura(false, 13, 12), true);
+  // Y la primera reubicación de la sesión, sin nada anterior con lo que
+  // comparar, también abre tramo.
+  assert.equal(reubicacionEsLectura(false, 1, null), true);
 });

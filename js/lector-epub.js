@@ -709,7 +709,12 @@ export class LectorEpub {
         this.porcentaje = Math.round(fraccion * 1000) / 10;
       } catch { /* CFI fuera de las localizaciones: se conserva el anterior */ }
     }
-    this.alCambiarPosicion?.(this.cfi, this.porcentaje, this.conLocalizaciones);
+    // El ancla del reflujo está puesta justo mientras dura un cambio de
+    // tamaño, así que dice lo que hace falta saber ahí fuera: esta reubicación
+    // es el reajuste, no un cambio de página. Quien mide el ritmo lo necesita
+    // para no contar como lectura el rato que se llevara en la página.
+    this.alCambiarPosicion?.(this.cfi, this.porcentaje, this.conLocalizaciones,
+      this.anclaReflujo !== null);
   }
 
   aplicarTemas() {

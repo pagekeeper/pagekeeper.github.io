@@ -46,6 +46,20 @@ export function segundosDeLaMuestra(segundos, avance) {
   return Math.min(segundos, SEGUNDOS_TOPE);
 }
 
+// Si una reubicación de la vista es lectura o solo un reencuadre.
+//
+// El lector avisa de que ha cambiado de sitio por dos motivos distintos: se ha
+// pasado de página, o se ha repaginado sin mover a nadie —girar el móvil,
+// abrir el índice, cambiar el ancho de la ventana en el EPUB; el zoom o un
+// remontado en el PDF—. Solo lo primero es lectura. Tratando lo segundo como
+// un cambio de posición se cerraba el tramo abierto y el reloj empezaba de
+// cero, con dos efectos visibles: el aviso de «En pausa» no llegaba nunca en
+// una sesión con reajustes, y cada reajuste regalaba al tiempo dedicado hasta
+// el tope de reloj sin haber leído una línea.
+export function reubicacionEsLectura(porReflujo, unidad, anterior) {
+  return !porReflujo && unidad !== anterior;
+}
+
 // Suma la muestra a lo acumulado, olvidando de forma exponencial según lo
 // avanzado: un tramo de 4 páginas hace olvidar cuatro veces más que uno de 1.
 // El tiempo pasado sin cambiar de unidad se suma sin olvidar nada, porque
