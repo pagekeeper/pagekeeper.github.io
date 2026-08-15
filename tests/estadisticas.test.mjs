@@ -8,6 +8,7 @@ import {
   mesesCombinados,
   claveDia, DIAS_GUARDADOS,
   apartarLibro, restoDeLibro, fusionarLeidos, podarLeidos,
+  marcarOculto, fusionarOculto, estaOculto, SEGUNDOS_PARA_REAPARECER,
 } from '../js/estadisticas.js';
 
 // Una fecha local concreta, para no depender del huso de quien ejecute.
@@ -446,4 +447,59 @@ test('un resto viejo se poda con el mismo plazo que los días', () => {
     'reciente.pdf': { tiempos: { a: { s: 600, p: 0 } }, borrado: '2026-05-19T10:00:00.000Z' },
   };
   assert.deepEqual(Object.keys(podarLeidos(leidos, hoy)), ['reciente.pdf']);
+});
+
+// ───────────── Ocultar un libro de la lista ─────────────
+
+test('un libro oculto se marca como tal y vuelve al leerlo otro rato', () => {
+  const marca = marcarOculto(true, 3600, dia(2026, 5, 20));
+  const entrada = { tiempos: { a: { s: 3600, p: 0 } }, ...marca };
+  assert.equal(librosLeidos({ 'novela.epub': entrada })[0].oculto, true);
+
+  // Un roce de unos segundos no lo devuelve: eso no es volver a leerlo.
+  entrada.tiempos.a.s = 3620;
+  assert.equal(librosLeidos({ 'novela.epub': entrada })[0].oculto, true);
+  // Un rato de verdad, sí.
+  entrada.tiempos.a.s = 3600 + SEGUNDOS_PARA_REAPARECER;
+  assert.equal(librosLeidos({ 'novela.epub': entrada })[0].oculto, false);
+});
+
+test('ocultar no toca lo apuntado ni los totales', () => {
+  const datos = { libros: { 'novela.epub': {
+    tiempos: { a: { s: 3600, p: 10 } }, ...marcarOculto(true, 3600, dia(2026, 5, 20)),
+  } } };
+  const r = resumen(datos, dia(2026, 5, 20));
+  assert.equal(r.libros[0].segundos, 3600);
+  assert.equal(r.hay, true);
+  const ficha = estadisticasDeLibro(datos, 'novela.epub');
+  assert.equal(ficha.segundos, 3600);
+  assert.equal(ficha.oculto, true);
+});
+
+test('volver a mostrarlo cancela el ocultado, aunque no se haya leído más', () => {
+  const entrada = { tiempos: { a: { s: 3600, p: 0 } }, ...marcarOculto(true, 3600, dia(2026, 5, 20)) };
+  Object.assign(entrada, marcarOculto(false, 3600, dia(2026, 5, 21)));
+  assert.equal(librosLeidos({ 'novela.epub': entrada })[0].oculto, false);
+});
+
+test('entre dispositivos gana lo último que se pidió', () => {
+  const escondido = marcarOculto(true, 600, dia(2026, 5, 20));
+  const visible = marcarOculto(false, 600, dia(2026, 5, 22));
+  assert.deepEqual(fusionarOculto(escondido, visible), visible);
+  assert.deepEqual(fusionarOculto(visible, escondido), visible);
+  assert.deepEqual(fusionarOculto(escondido, undefined), escondido);
+  assert.equal(fusionarOculto(undefined, undefined), null);
+});
+
+test('un libro borrado también se puede ocultar', () => {
+  const leidos = { 'ida.pdf': {
+    tiempos: { a: { s: 1800, p: 0 } }, borrado: '2026-05-20T10:00:00.000Z',
+    ...marcarOculto(true, 1800, dia(2026, 5, 21)),
+  } };
+  assert.equal(librosLeidos({}, leidos)[0].oculto, true);
+  // Y la marca sobrevive a la fusión con el otro dispositivo, que no sabía nada.
+  const fusionados = fusionarLeidos(leidos, { 'ida.pdf': {
+    tiempos: { a: { s: 1800, p: 0 } }, borrado: '2026-05-25T10:00:00.000Z',
+  } });
+  assert.equal(estaOculto(fusionados['ida.pdf'], 1800), true);
 });

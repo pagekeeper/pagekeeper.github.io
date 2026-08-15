@@ -9,6 +9,7 @@ import {
   apuntarTiempo, apuntarDia, fusionarTiempos, fusionarEstadisticas,
   normalizarTiempos, normalizarEstadisticas,
   apartarLibro, fusionarLeidos, normalizarLeidos, podarLeidos,
+  estadisticasDeLibro, fusionarOculto, marcarOculto,
 } from './estadisticas.js';
 import { calificacionValida } from './calificacion.js';
 
@@ -333,6 +334,10 @@ export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date
   const apartado = normalizarLeidos(datos.leidos)[idLibro];
   if (apartado) {
     entrada.tiempos = fusionarTiempos(entrada.tiempos, apartado.tiempos);
+    // También la marca de ocultar: si el libro estaba fuera de la lista cuando
+    // se borró, volver a añadirlo no es motivo para devolverlo a ella.
+    const escondido = fusionarOculto(entrada, apartado);
+    if (escondido) Object.assign(entrada, escondido);
     delete datos.leidos[idLibro];
   }
   datos.libros[idLibro] = entrada;
@@ -342,6 +347,24 @@ export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date
   // Sin token de cambio pendiente: el tiempo no compite con nadie, se fusiona
   // por suma y la casilla propia siempre gana por ser la mayor.
   return entrada.tiempos;
+}
+
+// Saca un libro de la lista «En qué se va el tiempo», o lo devuelve a ella.
+// Lo apuntado no se toca: la marca solo dice cuánto llevaba acumulado al
+// ocultarse, y en cuanto se lea otro rato vuelve solo (ver `estaOculto`).
+//
+// La marca va donde esté el libro: en su entrada si sigue en la biblioteca, y
+// en lo apartado si ya se borró —desde la lista se pueden ocultar los dos—.
+export function ocultarDeEstadisticas(idLibro, ocultar = true, ahora = Date.now()) {
+  const datos = cargarLocal();
+  const total = estadisticasDeLibro(datos, idLibro).segundos;
+  const marca = marcarOculto(ocultar, total, ahora);
+  if (datos.libros[idLibro]) Object.assign(datos.libros[idLibro], marca);
+  else if (datos.leidos?.[idLibro]) Object.assign(datos.leidos[idLibro], marca);
+  else return false;
+  datos.version = VERSION_DATOS;
+  guardarLocal(datos);
+  return true;
 }
 
 // ───────────── Borrar las estadísticas ─────────────
@@ -750,6 +773,14 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   const calificacion = calificacionValida(juicio.calificacion);
   if (calificacion !== null) resultado.calificacion = calificacion;
   else delete resultado.calificacion;
+  // Estar fuera de la lista de estadísticas también lleva su sello: se decide
+  // por sí solo, sin depender de en qué aparato se leyó después.
+  const escondido = fusionarOculto(local, remoto);
+  if (escondido) Object.assign(resultado, escondido);
+  else {
+    delete resultado.ocultoEn;
+    delete resultado.ocultoActualizado;
+  }
   // Ver el libro pesa más que no verlo, pero «no traigo marca de ausencia» no
   // es «lo he visto»: la mayoría de dispositivos no recorren el servidor y no
   // opinan. Por eso el avistamiento se apunta con su fecha (`presenteHasta`) y

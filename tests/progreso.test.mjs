@@ -36,6 +36,7 @@ import {
   ultimoLibroLeido,
   olvidar,
   olvidarPorPrefijo,
+  ocultarDeEstadisticas,
 } from '../js/progreso.js';
 import { resumen } from '../js/estadisticas.js';
 
@@ -1167,4 +1168,65 @@ test('borrar las estadísticas se lleva también lo de los libros borrados', () 
   borrarEstadisticas();
   assert.equal(cargarLocal().leidos, undefined);
   assert.deepEqual(resumen(cargarLocal()).libros, []);
+});
+
+// ── Ocultar un libro de la lista de estadísticas ──
+
+test('ocultar un libro lo saca de la lista y llega a los demás dispositivos', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('novela.epub', 10, 100);
+  anotarTiempoLectura('novela.epub', 1800, 0);
+  await sincronizar(nube.cliente);
+
+  assert.equal(ocultarDeEstadisticas('novela.epub'), true);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, true);
+  // Lo apuntado sigue donde estaba: ocultar no borra.
+  assert.equal(resumen(cargarLocal()).libros[0].segundos, 1800);
+  await sincronizar(nube.cliente);
+
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, true);
+
+  // Y volver a leerlo desde el portátil lo devuelve a la lista.
+  anotarTiempoLectura('novela.epub', 600, 0);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, false);
+});
+
+test('un libro oculto que se borra sigue oculto, y su marca sobrevive', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('ida.pdf', 5, 100);
+  anotarTiempoLectura('ida.pdf', 900, 30);
+  ocultarDeEstadisticas('ida.pdf');
+  await olvidar('ida.pdf', nube.cliente);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, true);
+  assert.equal(resumen(cargarLocal()).libros[0].borrado !== '', true);
+  // Y si el libro vuelve, vuelve oculto: reponerlo no es haberlo leído.
+  anotarPagina('ida.pdf', 1, 100);
+  anotarTiempoLectura('ida.pdf', 20, 1);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, true);
+});
+
+test('volver a mostrarlo se puede pedir sin leer nada', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  anotarPagina('libro.pdf', 5, 100);
+  anotarTiempoLectura('libro.pdf', 600, 20);
+  ocultarDeEstadisticas('libro.pdf', true, Date.now());
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, true);
+  ocultarDeEstadisticas('libro.pdf', false, Date.now() + 1000);
+  assert.equal(resumen(cargarLocal()).libros[0].oculto, false);
+  // Un libro del que no se sabe nada no se puede ocultar.
+  assert.equal(ocultarDeEstadisticas('inexistente.pdf'), false);
 });

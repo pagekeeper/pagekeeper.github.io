@@ -2501,6 +2501,14 @@ button.estrella { cursor: pointer; }
 /* En la ficha el reparto no tiene columna de formato: el libro es uno solo. */
 .reparto-ficha .libro-estadistica { grid-template-columns: 1fr auto; }
 
+/* Sacar el libro de la lista de estadísticas. Va al final de la ficha y
+   separado por una línea: es una acción, no un dato más de los de arriba. */
+.ocultar-ficha {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 0.4rem;
+  padding-top: 0.75rem; border-top: 1px solid var(--borde);
+}
+.ocultar-ficha .ayuda { margin: 0; font-size: 0.8rem; }
+
 /* El único dato de la barra del pie que se pulsa. Se subraya de puntos para
    que se note sin gritar, porque el resto de la línea no es pulsable. */
 .dato-estado-pulsable {

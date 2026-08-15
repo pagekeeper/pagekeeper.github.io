@@ -83,6 +83,43 @@ with comun.servidor() as base, sync_playwright() as p:
     r.comprobar(page.is_visible('#vista-biblioteca') and not page.is_visible('#vista-estadisticas'),
                 'el botón atrás del navegador debería volver a la biblioteca')
 
+    # ── Ocultar un libro de la lista, desde su ficha
+    comun.sembrar_tiempo(page, 'Novelas/otro-libro.epub', segundos=3000, paginas=0)
+    page.click('#btn-estadisticas')
+    page.wait_for_selector('#vista-estadisticas:not(.oculto)')
+    page.wait_for_timeout(400)
+    antes = page.locator('#libros-estadisticas .titulo-estadistica').all_inner_texts()
+    r.comprobar(len(antes) == 2, f'esperaba dos libros en la lista y hay {len(antes)}')
+    # La ficha del que se va a ocultar: el sembrado, que no está en la biblioteca.
+    page.locator('#libros-estadisticas .libro-estadistica', has_text='otro-libro').click()
+    page.wait_for_timeout(300)
+    r.comprobar(page.is_visible('#ocultar-ficha-libro'), 'la ficha no ofrece ocultar el libro')
+    page.click('#btn-ocultar-libro')
+    page.wait_for_timeout(300)
+    r.comprobar(page.is_visible('#cifras-ficha-libro'),
+                'la ficha de un libro oculto debería seguir enseñando su tiempo')
+    print('botón tras ocultar:', page.inner_text('#btn-ocultar-libro'))
+    page.click('#cerrar-ficha-libro')
+    page.wait_for_timeout(300)
+    despues = page.locator('#libros-estadisticas .titulo-estadistica').all_inner_texts()
+    print('lista tras ocultar:', json.dumps(despues, ensure_ascii=False))
+    r.comprobar(len(despues) == 1 and not any('otro-libro' in x for x in despues),
+                'el libro oculto sigue en la lista')
+    # Ocultar no borra: el tiempo sigue apuntado y los totales no se mueven.
+    r.comprobar(page.evaluate("""() => {
+      const datos = JSON.parse(localStorage.getItem('lector.progreso'));
+      return (datos.libros['Novelas/otro-libro.epub'].tiempos ?? null) !== null;
+    }"""), 'ocultar se ha llevado por delante el tiempo apuntado')
+    page.click('#btn-cerrar-estadisticas')
+    page.wait_for_selector('#vista-biblioteca:not(.oculto)')
+    page.click('#btn-estadisticas')
+    page.wait_for_selector('#vista-estadisticas:not(.oculto)')
+    page.wait_for_timeout(400)
+    r.comprobar(len(page.locator('#libros-estadisticas .titulo-estadistica').all_inner_texts()) == 1,
+                'al volver a la pantalla, el libro oculto ha reaparecido')
+    page.click('#btn-cerrar-estadisticas')
+    page.wait_for_selector('#vista-biblioteca:not(.oculto)')
+
     # ── Borrar el libro no borra lo que se leyó de él
     page.locator('#lista-locales .btn-menu-libro').first.click()
     page.wait_for_timeout(200)

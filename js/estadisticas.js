@@ -305,6 +305,68 @@ function formatoDe(id) {
   return /\.epub$/i.test(nombre) ? 'epub' : 'pdf';
 }
 
+// ───────────── Libros ocultos de la lista ─────────────
+//
+// «En qué se va el tiempo» es una lista corta, y hay libros que uno no quiere
+// ver ahí: el manual que se consulta a diario, el libro de otra persona, lo que
+// sea. Ocultar no borra nada —el tiempo sigue en su ficha y en los totales—,
+// solo lo saca de esa lista.
+//
+// La marca no es un «sí o no», sino el tiempo que el libro llevaba acumulado
+// cuando se ocultó:
+//
+//   ocultoEn: <segundos>, ocultoActualizado: <ISO>
+//
+// Así el libro vuelve solo en cuanto se lea otro rato, sin que nadie tenga que
+// acordarse de desocultarlo ni que haga falta un evento que avise: cada vez
+// que se pinta la lista se compara el total con esa cifra. Un «sí o no» habría
+// necesitado que alguien lo apagara al leer, y esa señal no existe en todos
+// los caminos por los que entra tiempo.
+//
+// El sello es para la fusión, como el del título o el de la nota: ocultar en un
+// dispositivo llega a los demás, y gana lo último que se pidió.
+
+// Cuánto tiene que crecer el tiempo para que el libro vuelva a la lista. Sin
+// margen, abrir el libro por error y cerrarlo lo devolvía: la primera muestra
+// válida son unos segundos, y eso no es «volver a leerlo».
+export const SEGUNDOS_PARA_REAPARECER = 60;
+
+export function marcaDeOcultar(entrada) {
+  const sello = entrada?.ocultoActualizado;
+  if (typeof sello !== 'string' || !sello) return null;
+  // Sin cifra —null— el libro está a la vista: es lo que deja «volver a
+  // mostrar», y hay que distinguirlo de un cero, que sí es estar oculto desde
+  // el principio. `Number(null)` da 0, así que la comprobación va antes.
+  const segundos = entrada?.ocultoEn == null ? NaN : Number(entrada.ocultoEn);
+  return {
+    ocultoEn: Number.isFinite(segundos) && segundos >= 0 ? Math.round(segundos) : null,
+    ocultoActualizado: sello,
+  };
+}
+
+// Los campos que hay que guardar al ocultar o al volver a mostrar. Ocultar
+// apunta el tiempo de ahora; mostrar deja el sello sin cifra, que es como se
+// dice «este libro está a la vista» de forma que la fusión pueda compararlo.
+export function marcarOculto(ocultar, totalSegundos, ahora = Date.now()) {
+  return {
+    ocultoEn: ocultar ? Math.round(Math.max(0, Number(totalSegundos) || 0)) : null,
+    ocultoActualizado: new Date(ahora).toISOString(),
+  };
+}
+
+export function estaOculto(entrada, totalSegundos) {
+  const marca = marcaDeOcultar(entrada);
+  if (!marca || marca.ocultoEn === null) return false;
+  return totalSegundos < marca.ocultoEn + SEGUNDOS_PARA_REAPARECER;
+}
+
+export function fusionarOculto(local, remoto) {
+  const mia = marcaDeOcultar(local);
+  const suya = marcaDeOcultar(remoto);
+  if (!mia || !suya) return mia ?? suya;
+  return mia.ocultoActualizado >= suya.ocultoActualizado ? mia : suya;
+}
+
 // ───────────── Libros que ya no están ─────────────
 //
 // Borrar un libro no borra haberlo leído. Su entrada de progreso sí se va —no
@@ -332,6 +394,8 @@ function restoValido(resto) {
   if (typeof resto?.ultimaLectura === 'string' && resto.ultimaLectura) {
     limpio.ultimaLectura = resto.ultimaLectura;
   }
+  const escondido = marcaDeOcultar(resto);
+  if (escondido) Object.assign(limpio, escondido);
   return limpio;
 }
 
@@ -354,6 +418,9 @@ export function restoDeLibro(entrada, ahora = Date.now()) {
     titulo: entrada?.titulo,
     ultimaLectura: entrada?.posicionActualizada ?? entrada?.actualizado ?? '',
     borrado: new Date(ahora).toISOString(),
+    // Estar fuera de la lista se conserva al borrar el libro: quien lo escondió
+    // no quiere verlo aparecer justo cuando lo quita de la biblioteca.
+    ...(marcaDeOcultar(entrada) ?? {}),
   });
 }
 
@@ -398,7 +465,12 @@ export function fusionarLeidos(local, remoto) {
     // El borrado más reciente manda en lo demás: es el que vio el libro por
     // última vez, y su fecha es la que da el plazo más largo antes de podar.
     const reciente = (mio.borrado ?? '') >= (suyo.borrado ?? '') ? mio : suyo;
-    fusionados[id] = { ...reciente, tiempos: fusionarTiempos(mio.tiempos, suyo.tiempos) };
+    const fusionado = { ...reciente, tiempos: fusionarTiempos(mio.tiempos, suyo.tiempos) };
+    // Salvo la marca de ocultar, que lleva su propio sello: quien lo escondió
+    // pudo hacerlo en el aparato que no fue el último en borrarlo.
+    const escondido = fusionarOculto(mio, suyo);
+    if (escondido) Object.assign(fusionado, escondido);
+    fusionados[id] = fusionado;
   }
   return fusionados;
 }
@@ -436,6 +508,9 @@ export function librosLeidos(libros, leidos) {
       // Que el libro ya no esté se dice en la lista, para que nadie lo busque
       // en la biblioteca. Si volvió a aparecer, no hay nada que advertir.
       borrado: entrada ? '' : (resto?.borrado ?? ''),
+      // Se marca en vez de filtrarse aquí: quien pinta la lista decide, y los
+      // totales de arriba siguen contando con él, que ocultar no es borrar.
+      oculto: estaOculto(fusionarOculto(entrada, resto), total.s),
       segundos: total.s,
       paginas: total.p,
       porDispositivo: Object.entries(tiempos)
@@ -480,6 +555,7 @@ export function estadisticasDeLibro(datos, id) {
     terminado: entrada?.terminado === true,
     // Un libro del que solo queda el resto ya no está en la biblioteca.
     borrado: !entrada && resto ? (resto.borrado ?? '') : '',
+    oculto: estaOculto(fusionarOculto(entrada, resto), total.s),
   };
 }
 

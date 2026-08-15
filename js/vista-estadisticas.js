@@ -43,7 +43,10 @@ export function librosParaLaLista(libros, {
     tiempo: porTiempo,
   };
   return (libros ?? [])
-    .filter((libro) => libro.segundos > minimo)
+    // Los ocultos no cuentan ni para el recorte: si ocuparan sitio entre los
+    // diez, ocultar uno dejaría la lista más corta en vez de dar paso al
+    // siguiente, que es justo lo que se está pidiendo al ocultarlo.
+    .filter((libro) => !libro.oculto && libro.segundos > minimo)
     .sort(criterios[ordenLibrosValido(orden)])
     .slice(0, LIBROS_EN_LISTA);
 }

@@ -6270,6 +6270,14 @@ function pintarFichaLibro(id) {
     ...cifras.map(([etiqueta, valor, pie]) => cifraFicha(etiqueta, valor, pie)),
   );
 
+  // Sacarlo de «En qué se va el tiempo», o devolverlo. Solo con tiempo
+  // apuntado: sin nada que enseñar no hay nada que esconder.
+  $('ocultar-ficha-libro').classList.toggle('oculto', !ficha.hay);
+  if (ficha.hay) {
+    $('btn-ocultar-libro').textContent = t(ficha.oculto ? 'statsShowInList' : 'statsHideFromList');
+    $('pie-ocultar-libro').textContent = t(ficha.oculto ? 'statsHiddenNote' : 'statsHideNote');
+  }
+
   // El reparto, solo si de verdad hay varios aparatos: con uno repetiría la
   // cifra de arriba.
   const varios = ficha.porDispositivo.length > 1;
@@ -6321,6 +6329,22 @@ function cerrarFichaLibro() {
   if (abrioLaFicha?.isConnected) abrioLaFicha.focus();
   abrioLaFicha = null;
 }
+
+// Ocultar (o devolver) desde la ficha. La lista de detrás se repinta sin
+// cerrar la ficha: se ve marchar el libro, que es la confirmación de que ha
+// pasado algo. El aviso se queda en el pie del propio botón, que ya cambia.
+$('btn-ocultar-libro').addEventListener('click', () => {
+  const id = fichaAbiertaDe;
+  if (!id) return;
+  const oculto = estadisticas.estadisticasDeLibro(progreso.cargarLocal(), id).oculto;
+  if (!progreso.ocultarDeEstadisticas(id, !oculto)) return;
+  pintarFichaLibro(id);
+  if (!$('vista-estadisticas').classList.contains('oculto')) pintarEstadisticas();
+  pintarResumenEstadisticas();
+  // Ocultar es una preferencia de la lectura, no de este aparato: viaja con
+  // el resto del registro.
+  if (cliente) progreso.sincronizar(cliente).catch(() => null);
+});
 
 $('cerrar-ficha-libro').addEventListener('click', cerrarFichaLibro);
 // Pulsar fuera cierra, como en el menú «⋯»: el velo es el propio contenedor.
