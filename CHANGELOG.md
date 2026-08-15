@@ -7,6 +7,22 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.3.1 — 15 de agosto de 2026
+
+### Cambiado
+- **La biblioteca se abre en cuadrícula.** Quien no haya elegido vista verá
+  ahora las portadas en lugar de la lista: una biblioteca se reconoce por las
+  cubiertas mucho antes que por los títulos. Los dos botones de siempre siguen
+  ahí, y quien elija la lista se queda con ella.
+
+### Arreglado
+- **El libro se llama igual en todas partes.** La biblioteca enseñaba el
+  título del libro y la cabecera del lector, el nombre del archivo, así que el
+  mismo libro aparecía con dos nombres. Ahora manda el mismo en los dos sitios
+  —el que hayas puesto tú, si lo has puesto, y si no el del propio libro—, y
+  también en el menú «⋯», en la exportación de anotaciones y en la hoja de
+  título de la impresión.
+
 ## 1.3.0 — 15 de agosto de 2026
 
 ### Añadido
