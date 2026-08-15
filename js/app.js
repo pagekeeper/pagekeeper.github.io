@@ -9692,10 +9692,13 @@ $('area-lectura').addEventListener('click', (evento) => {
 
 // ───────────────────────── Arranque ─────────────────────────
 
-// Qué versión se está usando, al pie de los ajustes: es lo primero que hay que
-// poder mirar cuando algo no va como se esperaba.
+// Qué versión se está usando. Va al pie de los ajustes y también al de la
+// biblioteca: es lo primero que hay que poder mirar cuando algo no va como se
+// esperaba, y en el pie se ve sin abrir nada.
 function pintarVersion() {
-  $('version-app').textContent = t('appVersion', { version: VERSION });
+  const texto = t('appVersion', { version: VERSION });
+  $('version-app').textContent = texto;
+  $('version-pie').textContent = texto;
 }
 
 pintarIconos();

@@ -7,6 +7,13 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.0.4 — 15 de agosto de 2026
+
+### Cambiado
+- **La versión se ve al pie de la biblioteca**, junto al aviso de copyright.
+  Estaba solo al final de los ajustes, y para saber qué versión se está usando
+  —lo primero que hace falta cuando algo no va— había que ir a buscarla.
+
 ## 1.0.3 — 15 de agosto de 2026
 
 ### Arreglado
