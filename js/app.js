@@ -39,6 +39,7 @@ import { imagenAmpliable, descripcionImagen } from './imagen-ampliada.js';
 import * as panelNav from './panel-navegacion.js';
 import { anadirMarcador, renombrarMarcador } from './marcadores.js';
 import * as vistaAnotaciones from './vista-anotaciones.js';
+import * as impresion from './impresion.js';
 import * as vistaEstadisticas from './vista-estadisticas.js';
 import * as periodos from './periodos.js';
 import {
@@ -5206,6 +5207,7 @@ async function abrirEnLector(datos, libro) {
   $('btn-rotar').classList.toggle('oculto', esEpub);
   $('btn-pagina-completa').classList.toggle('oculto', esEpub);
   $('btn-recorte').classList.toggle('oculto', esEpub);
+  $('btn-imprimir').classList.toggle('oculto', !esEpub);
   aplicarAparienciaModo(modoActual());
   aplicarAparienciaDoble();
   reiniciarRitmo();
@@ -6765,6 +6767,9 @@ function actualizarMenuLector() {
   $('fila-menu-columnas').classList.toggle('oculto', $('control-columnas').classList.contains('oculto'));
   $('menu-pagina-completa').classList.toggle('oculto', $('btn-pagina-completa').classList.contains('oculto'));
   $('fila-menu-recorte').classList.toggle('oculto', $('btn-recorte').classList.contains('oculto'));
+  // Un PDF ya se imprime descargándolo; lo que aquí se compone es el texto que
+  // fluye de un EPUB, que en la pantalla no tiene páginas que llevar al papel.
+  $('fila-menu-imprimir').classList.toggle('oculto', $('btn-imprimir').classList.contains('oculto'));
 
   const modo = modoActual();
   $('menu-modo').innerHTML = icono(modo === 'continuo' ? 'file-text' : 'scroll-text') +
@@ -6876,9 +6881,408 @@ for (const [idMenu, idOriginal] of [
   ['menu-ancho-auto', 'btn-ancho-auto'],
   ['menu-pagina-completa', 'btn-pagina-completa'],
   ['menu-recorte', 'btn-recorte'],
+  ['menu-imprimir', 'btn-imprimir'],
   ['menu-zoom-mas', 'btn-zoom-mas'],
   ['menu-inmersivo', 'btn-inmersivo'],
 ]) enlazarAccionMenu(idMenu, idOriginal);
+
+// ───────────── Imprimir el EPUB (o guardarlo en PDF) ─────────────
+//
+// El PDF no se genera aquí: se compone un documento con los capítulos
+// elegidos —el contenido tal cual lo trae el libro, con sus hojas de estilo y
+// sus imágenes— y se le pasa al navegador, que ya sabe paginar en A4 y ofrece
+// «Guardar como PDF» en su propio diálogo. Las cuentas del papel (tamaños,
+// márgenes, la hoja de estilo, qué capítulos hay) están en impresion.js.
+//
+// El documento se monta en un marco aparte y no en esta página: así el libro
+// no se mezcla con la interfaz de la aplicación ni hereda su CSS, y lo que se
+// imprime es solo el libro.
+
+const CLAVE_IMPRESION = 'lector.impresion'; // solo de este dispositivo
+
+let capitulosImpresion = [];
+let componiendoImpresion = false;
+// El documento impreso se suelta con retraso (ver imprimirLibro), y quien
+// imprime dos veces seguidas se encontraba con que el plazo del primero
+// vaciaba el marco del segundo. Se guarda para poder cancelarlo.
+let documentoImpreso = null;
+
+function soltarDocumentoImpreso(vaciarElMarco) {
+  if (!documentoImpreso) return;
+  clearTimeout(documentoImpreso.plazo);
+  URL.revokeObjectURL(documentoImpreso.url);
+  documentoImpreso = null;
+  if (vaciarElMarco) $('marco-impresion').src = 'about:blank';
+}
+
+function opcionesImpresionGuardadas() {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CLAVE_IMPRESION) ?? '{}');
+    return {
+      tamano: impresion.opcionValida(guardado.tamano, impresion.TAMANOS, 'a4'),
+      margen: impresion.opcionValida(guardado.margen, impresion.MARGENES, 'normal'),
+      letra: impresion.opcionValida(guardado.letra, impresion.LETRAS, 'normal'),
+      anotaciones: guardado.anotaciones !== false,
+    };
+  } catch {
+    return { tamano: 'a4', margen: 'normal', letra: 'normal', anotaciones: true };
+  }
+}
+
+function opcionesImpresionElegidas() {
+  return {
+    tamano: $('impresion-tamano').value,
+    margen: $('impresion-margen').value,
+    letra: $('impresion-letra').value,
+    anotaciones: $('impresion-anotaciones').checked,
+  };
+}
+
+function guardarOpcionesImpresion() {
+  try {
+    localStorage.setItem(CLAVE_IMPRESION, JSON.stringify(opcionesImpresionElegidas()));
+  } catch { /* sin sitio en el almacén: se imprime igual */ }
+}
+
+function abrirDialogoImprimir() {
+  const libro = lectorEpub.libro;
+  if (!epubAbierto() || !libro) return;
+  const opciones = opcionesImpresionGuardadas();
+  $('impresion-tamano').value = opciones.tamano;
+  $('impresion-margen').value = opciones.margen;
+  $('impresion-letra').value = opciones.letra;
+  $('impresion-anotaciones').checked = opciones.anotaciones;
+  // Sin nada subrayado, la casilla no tiene de qué hablar.
+  const hayAnotaciones = anotacionesActuales.some((anotacion) => anotacion.cfi);
+  $('impresion-anotaciones').closest('label').classList.toggle('oculto', !hayAnotaciones);
+  capitulosImpresion = impresion.capitulosImprimibles(
+    libro.spine?.spineItems ?? [],
+    libro.navigation?.toc,
+    (numero) => t('printChapterNumber', { number: numero }),
+  ).map((capitulo) => ({ ...capitulo, elegido: true }));
+  $('estado-imprimir').textContent = '';
+  pintarCapitulosImpresion();
+  $('dialogo-imprimir').classList.remove('oculto');
+  $('btn-confirmar-imprimir').focus();
+}
+
+function cerrarDialogoImprimir() {
+  if (componiendoImpresion) return; // a medio componer, cancelar es cosa del botón
+  $('dialogo-imprimir').classList.add('oculto');
+  capitulosImpresion = [];
+}
+
+function pintarCapitulosImpresion() {
+  const lista = $('lista-capitulos-impresion');
+  lista.replaceChildren();
+  for (const capitulo of capitulosImpresion) {
+    const li = document.createElement('li');
+    const etiqueta = document.createElement('label');
+    etiqueta.className = 'casilla';
+    const casilla = document.createElement('input');
+    casilla.type = 'checkbox';
+    casilla.checked = capitulo.elegido;
+    casilla.addEventListener('change', () => {
+      capitulo.elegido = casilla.checked;
+      pintarResumenImpresion();
+    });
+    const texto = document.createElement('span');
+    texto.textContent = capitulo.titulo;
+    etiqueta.append(casilla, texto);
+    li.append(etiqueta);
+    lista.append(li);
+  }
+  pintarResumenImpresion();
+}
+
+function pintarResumenImpresion() {
+  const elegidos = capitulosImpresion.filter((capitulo) => capitulo.elegido).length;
+  $('resumen-impresion').textContent = impresion.resumenSeleccion(
+    elegidos, capitulosImpresion.length, {
+      ninguno: t('printNoChapters'),
+      todos: t('printWholeBook'),
+      algunos: ({ elegidos: cuantos, total }) => t('printSomeChapters', { count: cuantos, total }),
+    },
+  );
+  $('btn-confirmar-imprimir').disabled = elegidos === 0 || componiendoImpresion;
+}
+
+function elegirTodosLosCapitulos(elegido) {
+  for (const capitulo of capitulosImpresion) capitulo.elegido = elegido;
+  for (const casilla of $('lista-capitulos-impresion').querySelectorAll('input')) {
+    casilla.checked = elegido;
+  }
+  pintarResumenImpresion();
+}
+
+// El HTML que devuelve epub.js es XHTML; algún libro viejo trae HTML suelto y
+// entonces el analizador estricto se queja en vez de devolver el documento.
+function analizarCapitulo(html) {
+  const comoXhtml = new DOMParser().parseFromString(html, 'application/xhtml+xml');
+  if (!comoXhtml.querySelector('parsererror')) return comoXhtml;
+  return new DOMParser().parseFromString(html, 'text/html');
+}
+
+// Los trozos de texto que toca un rango. Un pasaje subrayado cruza a menudo
+// varias etiquetas —empieza en un párrafo y acaba en el siguiente—, y entonces
+// no se puede envolver de una vez: hay que ir nodo a nodo.
+function trozosDeTexto(doc, rango) {
+  if (rango.startContainer === rango.endContainer && rango.startContainer.nodeType === 3) {
+    return [{ nodo: rango.startContainer, desde: rango.startOffset, hasta: rango.endOffset }];
+  }
+  const trozos = [];
+  const recorrido = doc.createTreeWalker(rango.commonAncestorContainer, NodeFilter.SHOW_TEXT);
+  for (let nodo = recorrido.nextNode(); nodo; nodo = recorrido.nextNode()) {
+    if (!rango.intersectsNode(nodo)) continue;
+    const desde = nodo === rango.startContainer ? rango.startOffset : 0;
+    const hasta = nodo === rango.endContainer ? rango.endOffset : nodo.data.length;
+    if (hasta > desde) trozos.push({ nodo, desde, hasta });
+  }
+  return trozos;
+}
+
+// Marca en el papel un pasaje subrayado y, si lleva nota, le pone la llamada
+// al final. Devuelve si se ha podido marcar algo.
+function subrayarEnElPapel(doc, rango, relleno, numeroNota) {
+  const trozos = trozosDeTexto(doc, rango);
+  if (!trozos.length) return false;
+  let ultima = null;
+  for (const { nodo, desde, hasta } of trozos) {
+    const marca = doc.createElement('mark');
+    marca.className = 'pk-subrayado';
+    marca.setAttribute('style', `background: ${relleno}`);
+    const trozo = doc.createRange();
+    trozo.setStart(nodo, desde);
+    trozo.setEnd(nodo, hasta);
+    trozo.surroundContents(marca); // dentro de un solo nodo de texto, siempre cabe
+    ultima = ultima ?? marca;
+  }
+  if (numeroNota) {
+    const llamada = doc.createElement('sup');
+    llamada.className = 'pk-llamada';
+    llamada.textContent = String(numeroNota);
+    ultima.after(llamada);
+  }
+  return true;
+}
+
+// Los subrayados y las notas de un capítulo, ya puestos en su documento. Se
+// numeran en el orden en que aparecen, y se pintan del final hacia el
+// principio: envolver un pasaje parte el texto en varios nodos, y hacerlo al
+// revés dejaría sin sitio a los que vinieran después.
+function anotarCapituloParaPapel(doc, anotaciones) {
+  const situadas = [];
+  for (const anotacion of anotaciones) {
+    try {
+      const rango = new window.ePub.CFI(anotacion.cfi).toRange(doc);
+      if (rango) situadas.push({ anotacion, rango });
+    } catch { /* un CFI de otra edición del libro no se puede situar */ }
+  }
+  situadas.sort((una, otra) =>
+    una.rango.compareBoundaryPoints(window.Range.START_TO_START, otra.rango));
+  let numero = 0;
+  const notas = [];
+  for (const situada of situadas) {
+    situada.numero = situada.anotacion.nota ? ++numero : 0;
+  }
+  for (const { anotacion, rango, numero: suyo } of [...situadas].reverse()) {
+    const puesta = subrayarEnElPapel(doc, rango, impresion.rellenoDePapel(anotacion), suyo);
+    if (puesta && suyo) notas.unshift(anotacion);
+  }
+  return notas;
+}
+
+// La lista de notas que cierra el capítulo: cada una con el pasaje al que
+// acompaña, que en el papel no se puede pulsar para ir a verlo.
+function listaDeNotasParaPapel(doc, notas) {
+  if (!notas.length) return null;
+  const bloque = doc.createElement('aside');
+  bloque.className = 'pk-notas';
+  const titulo = doc.createElement('h2');
+  titulo.textContent = t('printNotesHeading');
+  const lista = doc.createElement('ol');
+  for (const nota of notas) {
+    const elemento = doc.createElement('li');
+    const cita = (nota.texto ?? '').trim();
+    if (cita) {
+      const bloqueCita = doc.createElement('blockquote');
+      bloqueCita.textContent = cita;
+      elemento.append(bloqueCita);
+    }
+    const texto = doc.createElement('div');
+    texto.className = 'pk-nota-texto';
+    texto.textContent = nota.nota ?? '';
+    elemento.append(texto);
+    lista.append(elemento);
+  }
+  bloque.append(titulo, lista);
+  return bloque;
+}
+
+// La ruta de un recurso dentro del libro, resolviendo el «../» que suelen
+// llevar los enlaces del capítulo a la carpeta de estilos. Se parte de la ruta
+// canónica del capítulo (`url`) y no de su `href`, que va sin la carpeta del
+// paquete y dejaría la hoja de estilo en la raíz, donde no está.
+function rutaEnElLibro(href, seccion) {
+  const base = seccion.url ?? `/${seccion.href}`;
+  try {
+    return new URL(href, `http://libro${base.startsWith('/') ? base : `/${base}`}`).pathname;
+  } catch {
+    return null;
+  }
+}
+
+// Las hojas de estilo del capítulo, leídas del archivo del libro y no de la
+// red. La copia que epub.js deja preparada vive en una dirección «blob:», y
+// la política de seguridad de la aplicación no deja pedir esas: se saca del
+// comprimido, que además es más rápido y permite no repetir una hoja que
+// comparten veinte capítulos. Las direcciones de dentro (letras, fondos) se
+// sustituyen por las de esas copias, que es lo que hace epub.js al pintar.
+async function recogerHojasDelLibro(libro, seccion, estilos) {
+  const enlaces = seccion.document?.querySelectorAll('link[rel~="stylesheet"][href]') ?? [];
+  for (const enlace of enlaces) {
+    const ruta = rutaEnElLibro(enlace.getAttribute('href'), seccion);
+    if (!ruta || estilos.has(ruta)) continue;
+    try {
+      const css = await libro.archive.getText(ruta);
+      if (css) estilos.set(ruta, libro.resources.substitute(css, ruta));
+    } catch { /* una hoja que no se puede leer no impide imprimir el texto */ }
+  }
+}
+
+// Compone el documento entero. Va capítulo a capítulo porque cargarlos todos
+// a la vez en un libro grande no cabe en la memoria de un móvil, y avisa del
+// avance: en un libro de trescientas páginas esto tarda unos segundos.
+async function componerDocumentoImpresion(opciones, alProgreso) {
+  const libro = lectorEpub.libro;
+  const elegidos = capitulosImpresion.filter((capitulo) => capitulo.elegido);
+  const porCapitulo = opciones.anotaciones
+    ? impresion.anotacionesPorCapitulo(anotacionesActuales, (cfi) => {
+      try { return libro.spine.get(cfi)?.href ?? null; } catch { return null; }
+    })
+    : new Map();
+  const estilos = new Map(); // el contenido de la hoja, para no repetirla por capítulo
+  const cuerpos = [];
+  for (const [hechos, capitulo] of elegidos.entries()) {
+    alProgreso(hechos, elegidos.length);
+    const seccion = libro.spine.get(capitulo.href);
+    if (!seccion) continue;
+    try {
+      // `render` devuelve el capítulo con sus imágenes y sus hojas de estilo ya
+      // apuntando a la copia que epub.js saca del archivo comprimido.
+      const doc = analizarCapitulo(await seccion.render(libro.load.bind(libro)));
+      await recogerHojasDelLibro(libro, seccion, estilos);
+      for (const estilo of doc.querySelectorAll('style')) {
+        estilos.set(estilo.textContent, estilo.textContent);
+      }
+      const notas = anotarCapituloParaPapel(doc, porCapitulo.get(capitulo.href) ?? []);
+      const cuerpo = doc.body;
+      if (!cuerpo) continue;
+      const cierre = listaDeNotasParaPapel(doc, notas);
+      if (cierre) cuerpo.append(cierre);
+      cuerpos.push(`<article class="pk-capitulo">${cuerpo.innerHTML}</article>`);
+    } catch (error) {
+      registro.anotar('aviso', 'impresión', t('printChapterFailed', { title: capitulo.titulo }));
+      console.warn('No se pudo componer el capítulo', capitulo.href, error);
+    } finally {
+      seccion.unload();
+    }
+  }
+  alProgreso(elegidos.length, elegidos.length);
+  const titulo = impresion.tituloDelDocumento(libroActual?.titulo, t('printFallbackTitle'));
+  const autor = libro.packaging?.metadata?.creator ?? '';
+  const idioma = libro.packaging?.metadata?.language || document.documentElement.lang || 'es';
+  return [
+    '<!doctype html><html lang="', escaparAtributo(idioma), '"><head><meta charset="utf-8">',
+    '<title>', escaparTexto(titulo), '</title>',
+    // Las del libro primero: la nuestra tiene que poder desdecirlas.
+    ...[...estilos.values()].map((css) => `<style>${css}</style>`),
+    '<style>', impresion.hojaDeImpresion(opciones), '</style>',
+    '</head><body>',
+    '<section class="pk-portada"><h1>', escaparTexto(titulo), '</h1>',
+    autor ? `<p>${escaparTexto(autor)}</p>` : '',
+    '</section>',
+    cuerpos.join('\n'),
+    '</body></html>',
+  ].join('');
+}
+
+function escaparTexto(texto) {
+  const nodo = document.createElement('div');
+  nodo.textContent = String(texto ?? '');
+  return nodo.innerHTML;
+}
+
+function escaparAtributo(texto) {
+  return escaparTexto(texto).replace(/"/g, '&quot;');
+}
+
+// Un documento recién puesto en el marco no está listo para imprimirse: las
+// imágenes y las letras llegan después, y sin esperarlas el navegador imprime
+// huecos en blanco.
+async function esperarAlMarco(marco) {
+  const doc = marco.contentDocument;
+  await Promise.allSettled([
+    ...[...doc.images].map((imagen) => imagen.decode().catch(() => null)),
+    doc.fonts?.ready,
+  ]);
+}
+
+async function imprimirLibro() {
+  if (componiendoImpresion || !epubAbierto() || !lectorEpub.libro) return;
+  const opciones = opcionesImpresionElegidas();
+  guardarOpcionesImpresion();
+  componiendoImpresion = true;
+  $('btn-confirmar-imprimir').disabled = true;
+  soltarDocumentoImpreso(false); // el marco se lleva el documento nuevo
+  const marco = $('marco-impresion');
+  let url = null;
+  try {
+    const documento = await componerDocumentoImpresion(opciones, (hechos, total) => {
+      $('estado-imprimir').textContent = t('printPreparing', { done: hechos, total });
+    });
+    url = URL.createObjectURL(new Blob([documento], { type: 'text/html' }));
+    await new Promise((listo, fallo) => {
+      marco.onload = listo;
+      marco.onerror = () => fallo(new Error('marco'));
+      marco.src = url;
+    });
+    await esperarAlMarco(marco);
+    $('estado-imprimir').textContent = '';
+    componiendoImpresion = false;
+    $('dialogo-imprimir').classList.add('oculto');
+    // print() no vuelve hasta que se cierra el diálogo del navegador, así que
+    // a partir de aquí ya se ha impreso (o se ha desistido): ni una cosa ni la
+    // otra son un error, y en las dos hay que soltar el documento.
+    marco.contentWindow.focus();
+    marco.contentWindow.print();
+  } catch (error) {
+    $('estado-imprimir').textContent = t('printFailed');
+    registro.anotar('error', 'impresión', explicarError(error));
+  } finally {
+    componiendoImpresion = false;
+    $('btn-confirmar-imprimir').disabled = false;
+    // El documento se suelta con calma: en algunos navegadores print() vuelve
+    // antes de que se haya terminado de mandar a la impresora.
+    if (url) {
+      documentoImpreso = {
+        url,
+        plazo: setTimeout(() => {
+          if (documentoImpreso?.url === url) soltarDocumentoImpreso(true);
+        }, 20000),
+      };
+    }
+  }
+}
+
+$('btn-imprimir').addEventListener('click', abrirDialogoImprimir);
+$('impresion-todos').addEventListener('click', () => elegirTodosLosCapitulos(true));
+$('impresion-ninguno').addEventListener('click', () => elegirTodosLosCapitulos(false));
+$('btn-cancelar-imprimir').addEventListener('click', cerrarDialogoImprimir);
+$('btn-confirmar-imprimir').addEventListener('click', () => { imprimirLibro(); });
+$('dialogo-imprimir').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-imprimir')) cerrarDialogoImprimir();
+});
 
 // Apunta una posición de partida en el historial sin navegar (el salto ya
 // lo hace otro, como epub.js con los enlaces internos del libro).
@@ -8770,6 +9174,10 @@ document.addEventListener('keydown', (evento) => {
     cerrarAvisoPdfSinTexto();
     return;
   }
+  if (!$('dialogo-imprimir').classList.contains('oculto')) {
+    cerrarDialogoImprimir();
+    return;
+  }
   if (!$('menu-nota-contextual').classList.contains('oculto')) {
     cerrarMenuNota();
     return;
@@ -9075,8 +9483,8 @@ const ETIQUETAS_CON_TECLADO_PROPIO = new Set(['INPUT', 'TEXTAREA', 'SELECT', 'OP
 // Diálogos y menús que se superponen al libro: mientras alguno esté abierto,
 // las teclas son suyas aunque el foco no haya llegado a caer dentro.
 const CAPAS_SOBRE_EL_LIBRO = ['dialogo-mover', 'dialogo-editar-nota',
-  'dialogo-contrasena-pdf', 'dialogo-pdf-sin-texto', 'menu-libro',
-  'fondo-menu-lector', 'menu-nota-contextual', 'visor-imagen'];
+  'dialogo-contrasena-pdf', 'dialogo-pdf-sin-texto', 'dialogo-imprimir',
+  'menu-libro', 'fondo-menu-lector', 'menu-nota-contextual', 'visor-imagen'];
 
 // Decide si otra parte de la interfaz tiene preferencia sobre estas teclas.
 // Sin esta comprobación, elegir el interlineado con las flechas o escribir un

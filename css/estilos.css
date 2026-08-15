@@ -1836,6 +1836,7 @@ button.estrella { cursor: pointer; }
   .barra-lector > #btn-modo,
   .barra-lector > #btn-rotar,
   .barra-lector > #btn-pagina-completa,
+  .barra-lector > #btn-imprimir,
   .barra-lector > .tiempo-restante { display: none !important; }
   .barra-lector > #control-texto:not(.oculto),
   .barra-lector > #control-columnas:not(.oculto) { width: 0; overflow: visible; }
@@ -1968,6 +1969,51 @@ button.estrella { cursor: pointer; }
 .pasos-ocr { margin-left: 1.25rem; display: flex; flex-direction: column; gap: 0.35rem; }
 .dialogo-pdf-sin-texto .fila-botones { justify-content: flex-end; }
 .dialogo-editar-nota { width: min(32rem, 100%); }
+
+/* Imprimir el EPUB. Más ancho que un diálogo normal porque lleva dentro la
+   lista de capítulos, que son títulos largos. */
+.dialogo-imprimir { width: min(34rem, 100%); max-height: min(38rem, 90dvh); }
+.opciones-impresion {
+  display: flex; flex-wrap: wrap; gap: 0.6rem;
+}
+.opciones-impresion label {
+  display: flex; flex-direction: column; gap: 0.2rem;
+  font-size: 0.85rem; color: var(--texto-suave); flex: 1 1 8rem;
+}
+.opciones-impresion select {
+  background: var(--fondo); border: 1px solid var(--borde-fuerte);
+  border-radius: 0.5rem; padding: 0.4rem 0.5rem;
+  color: var(--texto); font-size: 0.95rem;
+}
+.capitulos-impresion {
+  display: flex; flex-direction: column; min-height: 6rem;
+  border: 1px solid var(--borde); border-radius: 0.5rem; overflow: hidden;
+}
+.cabecera-capitulos-impresion {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--borde);
+  font-size: 0.85rem; color: var(--texto-suave);
+}
+.lista-capitulos-impresion {
+  list-style: none; margin: 0; padding: 0.4rem 0.6rem; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 0.25rem;
+}
+.lista-capitulos-impresion .casilla { font-size: 0.9rem; }
+/* Un botón que se lee como un enlace: acompaña a la lista sin competir con
+   los botones de abajo, que son los que deciden. */
+.btn-enlace {
+  background: none; border: none; padding: 0.1rem 0.25rem;
+  color: var(--acento); font: inherit; cursor: pointer; border-radius: 0.3rem;
+}
+.btn-enlace:hover { text-decoration: underline; }
+.btn-enlace:focus-visible { outline: 2px solid var(--acento); outline-offset: 1px; }
+/* El documento que se va a imprimir se compone aquí dentro: tiene que existir
+   y estar maquetado, pero no verse. `display: none` no vale, que entonces el
+   navegador no lo pinta y saldrían hojas en blanco. */
+.marco-impresion {
+  position: fixed; left: -10000px; top: 0;
+  width: 210mm; height: 297mm; border: 0; visibility: hidden;
+}
 
 /* Registro de actividad: una lista larga que se lee de arriba abajo, con el
    error destacado por color porque es lo que se viene a buscar. */

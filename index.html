@@ -446,6 +446,8 @@
       <button id="btn-pagina-completa" class="btn-icono" data-icono="maximize" title="Ajustar la página completa" data-i18n-title="fitPage"></button>
       <button id="btn-recorte" class="btn-icono" data-icono="crop" title="Recortar los márgenes"
         data-i18n-title="cropMargins" aria-pressed="false"></button>
+      <button id="btn-imprimir" class="btn-icono oculto" data-icono="printer"
+        title="Imprimir o guardar en PDF" data-i18n-title="printBook"></button>
       <button id="btn-inmersivo" class="btn-icono" data-icono="expand"
         title="Leer a pantalla completa" data-i18n-title="immersive" aria-pressed="false"></button>
       <button id="btn-imagenes-noche" class="btn-icono oculto" data-icono="image"
@@ -480,6 +482,11 @@
             </button></li>
             <li id="fila-menu-texto"><button type="button" id="menu-texto" class="item-menu-lector">
               <span data-icono="type"></span><span data-i18n="textSettings">Ajustes de texto</span>
+            </button></li>
+            <!-- Solo en EPUB: un PDF ya se puede imprimir descargándolo, y lo
+                 que aquí se compone es el texto que fluye del libro. -->
+            <li id="fila-menu-imprimir"><button type="button" id="menu-imprimir" class="item-menu-lector">
+              <span data-icono="printer"></span><span data-i18n="printBook">Imprimir o guardar en PDF</span>
             </button></li>
             <li class="grupo-zoom-menu">
               <span data-i18n="zoom">Zoom</span>
@@ -1641,6 +1648,64 @@
   </section>
 
   <!-- Diálogo para mover un libro de la nube a otra carpeta -->
+  <!-- Imprimir el EPUB (o guardarlo en PDF, que es lo mismo desde el diálogo
+       del navegador). Se elige el papel y qué capítulos van; el documento se
+       compone aparte, en un marco oculto. -->
+  <div id="dialogo-imprimir" class="dialogo-fondo oculto">
+    <div class="dialogo dialogo-imprimir" role="dialog" aria-modal="true"
+      aria-labelledby="titulo-imprimir">
+      <h2 id="titulo-imprimir" data-i18n="printBook">Imprimir o guardar en PDF</h2>
+      <p class="ayuda" data-i18n="printHelp">Se abrirá el diálogo de impresión del navegador, donde puedes elegir la impresora o «Guardar como PDF».</p>
+      <div class="opciones-impresion">
+        <label>
+          <span data-i18n="printPaper">Papel</span>
+          <select id="impresion-tamano">
+            <option value="a4">A4</option>
+            <option value="carta" data-i18n="printPaperLetter">Carta</option>
+          </select>
+        </label>
+        <label>
+          <span data-i18n="printMargins">Márgenes</span>
+          <select id="impresion-margen">
+            <option value="estrecho" data-i18n="printMarginNarrow">Estrechos</option>
+            <option value="normal" data-i18n="printMarginNormal">Normales</option>
+            <option value="ancho" data-i18n="printMarginWide">Anchos</option>
+          </select>
+        </label>
+        <label>
+          <span data-i18n="printFont">Letra</span>
+          <select id="impresion-letra">
+            <option value="pequena" data-i18n="printFontSmall">Pequeña</option>
+            <option value="normal" data-i18n="printFontNormal">Normal</option>
+            <option value="grande" data-i18n="printFontLarge">Grande</option>
+          </select>
+        </label>
+      </div>
+      <label class="casilla">
+        <input type="checkbox" id="impresion-anotaciones">
+        <span data-i18n="printAnnotations">Incluir los subrayados y las notas</span>
+      </label>
+      <div class="capitulos-impresion">
+        <div class="cabecera-capitulos-impresion">
+          <span id="resumen-impresion" role="status"></span>
+          <span>
+            <button type="button" id="impresion-todos" class="btn-enlace" data-i18n="selectAll">Todos</button>
+            <button type="button" id="impresion-ninguno" class="btn-enlace" data-i18n="selectNone">Ninguno</button>
+          </span>
+        </div>
+        <ul id="lista-capitulos-impresion" class="lista-capitulos-impresion"></ul>
+      </div>
+      <div id="estado-imprimir" class="estado" role="status"></div>
+      <div class="fila-botones">
+        <button type="button" id="btn-cancelar-imprimir" class="btn-secundario" data-i18n="cancel">Cancelar</button>
+        <button type="button" id="btn-confirmar-imprimir" class="btn-primario" data-i18n="print">Imprimir</button>
+      </div>
+    </div>
+  </div>
+  <!-- Donde se compone el documento que se imprime. Fuera de la vista: lo que
+       se ve es el diálogo del navegador, no esto. -->
+  <iframe id="marco-impresion" class="marco-impresion" aria-hidden="true" tabindex="-1"></iframe>
+
   <div id="dialogo-mover" class="dialogo-fondo oculto">
     <div class="dialogo" role="dialog" aria-modal="true" aria-labelledby="titulo-mover">
       <h2 id="titulo-mover"></h2>

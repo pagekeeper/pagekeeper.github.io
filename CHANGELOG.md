@@ -7,6 +7,25 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.1.0 — 15 de agosto de 2026
+
+### Añadido
+- **Los EPUB se pueden imprimir, o guardar en PDF.** En el lector hay un botón
+  nuevo (y su entrada en el menú «⋯») que compone el libro para el papel y
+  abre el diálogo de impresión del navegador, donde está «Guardar como PDF».
+  Se elige el tamaño de la hoja —A4 o Carta—, los márgenes y el cuerpo de
+  letra, y qué capítulos van: por omisión el libro entero, pero se puede
+  desmarcar lo que no interese e imprimir solo un capítulo.
+- **Los subrayados y las notas pueden ir al papel.** Los pasajes salen con su
+  color y cada nota, con su llamada, se recoge al final del capítulo junto al
+  fragmento al que acompaña. Es una casilla, así que también se puede imprimir
+  el texto limpio.
+
+El libro se compone con su propia maquetación —sus hojas de estilo y sus
+ilustraciones—, cada capítulo empieza en hoja nueva y los títulos no se quedan
+colgando al pie. En los PDF no aparece la opción: esos ya se imprimen
+descargándolos.
+
 ## 1.0.4 — 15 de agosto de 2026
 
 ### Cambiado
