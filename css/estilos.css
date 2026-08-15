@@ -2509,6 +2509,12 @@ button.estrella { cursor: pointer; }
 }
 .ocultar-ficha .ayuda { margin: 0; font-size: 0.8rem; }
 
+/* La versión, al pie de los ajustes: se lee cuando se busca, no antes. */
+.version-app {
+  margin: 1.5rem 0 0; text-align: center;
+  font-size: 0.75rem; color: var(--texto-suave);
+}
+
 /* El único dato de la barra del pie que se pulsa. Se subraya de puntos para
    que se note sin gritar, porque el resto de la línea no es pulsable. */
 .dato-estado-pulsable {

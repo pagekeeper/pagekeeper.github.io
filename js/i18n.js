@@ -7,6 +7,7 @@ const IDIOMAS = ['es', 'ca', 'gl', 'eu', 'en', 'fr', 'de', 'pt'];
 const textos = {
   es: {
     appTagline: 'Lector de libros electrónicos',
+    appVersion: 'PageKeeper {version}',
     language: 'Idioma', help: 'Ayuda', settings: 'Ajustes', back: 'Volver', cloud: 'En la nube',
     device: 'En este dispositivo', addLocal: 'Añadir un libro (PDF o EPUB) de este dispositivo',
     addCloud: 'Subir un libro (PDF o EPUB) a la nube', reload: 'Recargar',
@@ -258,6 +259,7 @@ const textos = {
     statsThisDay: 'Hoy',
     statsPrevWeek: 'La semana anterior', statsPrevMonth: 'El mes anterior',
     statsPrevYear: 'El año anterior', statsPrevDay: 'Ayer',
+    statsSoFar: 'a estas alturas', statsUpToMonth: 'hasta {month}',
     statsMoreThanBefore: '{percent} % más', statsLessThanBefore: '{percent} % menos',
     statsSame: 'Igual', statsFirstTime: 'Empiezas', statsNoTime: 'Nada',
     statsHistoryFrom: 'El detalle por días llega hasta el {date}.',
@@ -373,6 +375,7 @@ const textos = {
   },
   ca: {
     appTagline: 'Lector de llibres electrònics',
+    appVersion: 'PageKeeper {version}',
     language: 'Idioma', help: 'Ajuda', settings: 'Configuració', back: 'Torna', cloud: 'Al núvol',
     device: 'En aquest dispositiu', addLocal: 'Afegeix un llibre (PDF o EPUB) d’aquest dispositiu',
     addCloud: 'Puja un llibre (PDF o EPUB) al núvol', reload: 'Recarrega',
@@ -624,6 +627,7 @@ const textos = {
     statsThisDay: 'Avui',
     statsPrevWeek: 'La setmana anterior', statsPrevMonth: 'El mes anterior',
     statsPrevYear: 'L’any anterior', statsPrevDay: 'Ahir',
+    statsSoFar: 'a hores d’ara', statsUpToMonth: 'fins al {month}',
     statsMoreThanBefore: '{percent} % més', statsLessThanBefore: '{percent} % menys',
     statsSame: 'Igual', statsFirstTime: 'Comences', statsNoTime: 'Res',
     statsHistoryFrom: 'El detall per dies arriba fins al {date}.',
@@ -739,6 +743,7 @@ const textos = {
   },
   en: {
     appTagline: 'E-book reader',
+    appVersion: 'PageKeeper {version}',
     language: 'Language', help: 'Help', settings: 'Settings', back: 'Back', cloud: 'In the cloud',
     device: 'On this device', addLocal: 'Add a book (PDF or EPUB) from this device',
     addCloud: 'Upload a book (PDF or EPUB) to the cloud', reload: 'Reload',
@@ -990,6 +995,7 @@ const textos = {
     statsThisDay: 'Today',
     statsPrevWeek: 'Previous week', statsPrevMonth: 'Previous month',
     statsPrevYear: 'Previous year', statsPrevDay: 'Yesterday',
+    statsSoFar: 'so far', statsUpToMonth: 'up to {month}',
     statsMoreThanBefore: '{percent}% more', statsLessThanBefore: '{percent}% less',
     statsSame: 'The same', statsFirstTime: 'Just started', statsNoTime: 'Nothing',
     statsHistoryFrom: 'The day-by-day detail goes back to {date}.',
@@ -1105,6 +1111,7 @@ const textos = {
   },
   fr: {
     appTagline: 'Liseuse de livres électroniques',
+    appVersion: 'PageKeeper {version}',
     language: 'Langue', help: 'Aide', settings: 'Réglages', back: 'Retour', cloud: 'Dans le nuage',
     device: 'Sur cet appareil', addLocal: 'Ajouter un livre (PDF ou EPUB) depuis cet appareil',
     addCloud: 'Envoyer un livre (PDF ou EPUB) dans le nuage', reload: 'Recharger',
@@ -1356,6 +1363,7 @@ const textos = {
     statsThisDay: 'Aujourd’hui',
     statsPrevWeek: 'La semaine précédente', statsPrevMonth: 'Le mois précédent',
     statsPrevYear: 'L’année précédente', statsPrevDay: 'Hier',
+    statsSoFar: 'au même stade', statsUpToMonth: 'jusqu’à {month}',
     statsMoreThanBefore: '{percent} % de plus', statsLessThanBefore: '{percent} % de moins',
     statsSame: 'Identique', statsFirstTime: 'Vous démarrez', statsNoTime: 'Rien',
     statsHistoryFrom: 'Le détail par jour remonte jusqu’au {date}.',
@@ -1471,6 +1479,7 @@ const textos = {
   },
   gl: {
     appTagline: 'Lector de libros electrónicos',
+    appVersion: 'PageKeeper {version}',
     language: 'Idioma', help: 'Axuda', settings: 'Axustes', back: 'Volver', cloud: 'Na nube',
     device: 'Neste dispositivo', addLocal: 'Engadir un libro (PDF ou EPUB) deste dispositivo',
     addCloud: 'Subir un libro (PDF ou EPUB) á nube', reload: 'Recargar',
@@ -1722,6 +1731,7 @@ const textos = {
     statsThisDay: 'Hoxe',
     statsPrevWeek: 'A semana anterior', statsPrevMonth: 'O mes anterior',
     statsPrevYear: 'O ano anterior', statsPrevDay: 'Onte',
+    statsSoFar: 'a estas alturas', statsUpToMonth: 'ata {month}',
     statsMoreThanBefore: '{percent} % máis', statsLessThanBefore: '{percent} % menos',
     statsSame: 'Igual', statsFirstTime: 'Comezas', statsNoTime: 'Nada',
     statsHistoryFrom: 'O detalle por días chega ata o {date}.',
@@ -1837,6 +1847,7 @@ const textos = {
   },
   eu: {
     appTagline: 'Liburu elektronikoen irakurgailua',
+    appVersion: 'PageKeeper {version}',
     language: 'Hizkuntza', help: 'Laguntza', settings: 'Ezarpenak', back: 'Itzuli', cloud: 'Hodeian',
     device: 'Gailu honetan', addLocal: 'Gehitu liburu bat (PDF edo EPUB) gailu honetatik',
     addCloud: 'Igo liburu bat (PDF edo EPUB) hodeira', reload: 'Berrkargatu',
@@ -2088,6 +2099,7 @@ const textos = {
     statsThisDay: 'Gaur',
     statsPrevWeek: 'Aurreko astea', statsPrevMonth: 'Aurreko hilabetea',
     statsPrevYear: 'Aurreko urtea', statsPrevDay: 'Atzo',
+    statsSoFar: 'orain arte', statsUpToMonth: '{month} arte',
     statsMoreThanBefore: '% {percent} gehiago', statsLessThanBefore: '% {percent} gutxiago',
     statsSame: 'Berdin', statsFirstTime: 'Hasi zara', statsNoTime: 'Ezer ez',
     statsHistoryFrom: 'Eguneko xehetasuna {date} arte iristen da.',
@@ -2203,6 +2215,7 @@ const textos = {
   },
   de: {
     appTagline: 'E-Book-Reader',
+    appVersion: 'PageKeeper {version}',
     language: 'Sprache', help: 'Hilfe', settings: 'Einstellungen', back: 'Zurück', cloud: 'In der Cloud',
     device: 'Auf diesem Gerät', addLocal: 'Ein Buch (PDF oder EPUB) von diesem Gerät hinzufügen',
     addCloud: 'Ein Buch (PDF oder EPUB) in die Cloud hochladen', reload: 'Neu laden',
@@ -2454,6 +2467,7 @@ const textos = {
     statsThisDay: 'Heute',
     statsPrevWeek: 'Vorige Woche', statsPrevMonth: 'Voriger Monat',
     statsPrevYear: 'Voriges Jahr', statsPrevDay: 'Gestern',
+    statsSoFar: 'bis jetzt', statsUpToMonth: 'bis {month}',
     statsMoreThanBefore: '{percent} % mehr', statsLessThanBefore: '{percent} % weniger',
     statsSame: 'Gleich', statsFirstTime: 'Du fängst an', statsNoTime: 'Nichts',
     statsHistoryFrom: 'Die Tagesansicht reicht bis zum {date} zurück.',
@@ -2569,6 +2583,7 @@ const textos = {
   },
   pt: {
     appTagline: 'Leitor de livros eletrónicos',
+    appVersion: 'PageKeeper {version}',
     language: 'Idioma', help: 'Ajuda', settings: 'Definições', back: 'Voltar', cloud: 'Na nuvem',
     device: 'Neste dispositivo', addLocal: 'Adicionar um livro (PDF ou EPUB) deste dispositivo',
     addCloud: 'Enviar um livro (PDF ou EPUB) para a nuvem', reload: 'Recarregar',
@@ -2820,6 +2835,7 @@ const textos = {
     statsThisDay: 'Hoje',
     statsPrevWeek: 'A semana anterior', statsPrevMonth: 'O mês anterior',
     statsPrevYear: 'O ano anterior', statsPrevDay: 'Ontem',
+    statsSoFar: 'a esta altura', statsUpToMonth: 'até {month}',
     statsMoreThanBefore: '{percent} % mais', statsLessThanBefore: '{percent} % menos',
     statsSame: 'Igual', statsFirstTime: 'Está a começar', statsNoTime: 'Nada',
     statsHistoryFrom: 'O detalhe por dias chega até {date}.',

@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  lunesDe, claveDelPeriodo, inicioDelPeriodo, seriePeriodos, comparar,
+  lunesDe, claveDelPeriodo, inicioDelPeriodo, seriePeriodos,
+  compararALaMismaAltura, diasTranscurridos,
   totalesDePeriodos, desdeCuandoHayDatos, CUANTOS,
 } from '../js/periodos.js';
 
@@ -80,26 +81,102 @@ test('el tramo lleva sus fechas de inicio y fin, que es lo que le pone nombre', 
   assert.equal(mes.fin.getDate(), 28);     // febrero de 2026 no es bisiesto
 });
 
-test('la comparación mira el tramo en curso contra el anterior', () => {
-  const serie = seriePeriodos(DATOS, 'mes', fecha(2026, 8, 1), 2);
-  const { actual, anterior, variacion, sentido } = comparar(serie);
-  assert.equal(actual.clave, '2026-08');
-  assert.equal(anterior.clave, '2026-07');
-  assert.equal(variacion, -67); // 1800 frente a 5400
-  assert.equal(sentido, 'menos');
+// ── Comparar con el periodo anterior a la misma altura ──
+//
+// Un tramo en curso nunca está terminado, así que enfrentarlo entero al
+// anterior solo decía qué día de la semana era hoy.
+
+const SEMANAS = {
+  dias: {
+    // Semana del 20 de julio (la anterior): lunes, martes… y también el
+    // viernes, que ya no cuenta si hoy es martes.
+    '2026-07-20': { s: 600, p: 0 },
+    '2026-07-21': { s: 600, p: 0 },
+    '2026-07-24': { s: 5400, p: 0 },
+    // Semana en curso: hoy es martes 28.
+    '2026-07-27': { s: 300, p: 0 },
+    '2026-07-28': { s: 300, p: 0 },
+  },
+  meses: {},
+};
+
+test('la semana en curso se compara con los mismos días de la anterior', () => {
+  const r = compararALaMismaAltura(SEMANAS, 'semana', fecha(2026, 7, 28));
+  assert.equal(r.actual.segundos, 600);      // lunes y martes de esta semana
+  assert.equal(r.anterior.segundos, 1200);   // lunes y martes de la anterior, no el viernes
+  assert.equal(r.variacion, -50);
+  assert.equal(r.sentido, 'menos');
+  assert.deepEqual(r.altura, { unidad: 'dia', dias: 2 });
 });
 
-// Sin nada antes no hay porcentaje que dar: dividir por cero no es un aumento
-// del infinito por ciento, es que no había con qué comparar.
+test('el día en curso cuenta como un día más transcurrido', () => {
+  assert.equal(diasTranscurridos('semana', fecha(2026, 7, 27)), 1); // lunes
+  assert.equal(diasTranscurridos('semana', fecha(2026, 8, 2)), 7);  // domingo
+  assert.equal(diasTranscurridos('mes', fecha(2026, 7, 28)), 28);
+});
+
+test('el mes en curso se compara con los mismos días del anterior', () => {
+  const datos = { dias: {
+    '2026-06-01': { s: 1200, p: 0 },
+    '2026-06-02': { s: 1200, p: 0 },
+    '2026-06-20': { s: 9000, p: 0 },  // lo de después del día 2 no entra
+    '2026-07-01': { s: 1800, p: 0 },
+    '2026-07-02': { s: 1800, p: 0 },
+  }, meses: {} };
+  const r = compararALaMismaAltura(datos, 'mes', fecha(2026, 7, 2));
+  assert.equal(r.actual.segundos, 3600);
+  assert.equal(r.anterior.segundos, 2400);
+  assert.equal(r.variacion, 50);
+  assert.equal(r.sentido, 'mas');
+});
+
+// El 31 de marzo no tiene equivalente en febrero: sin tope, el tramo anterior
+// se habría comido los primeros días de marzo.
+test('comparar un mes largo con uno corto no se sale del mes corto', () => {
+  const datos = { dias: {
+    '2026-02-28': { s: 600, p: 0 },
+    '2026-03-01': { s: 3600, p: 0 },
+    '2026-03-31': { s: 60, p: 0 },
+  }, meses: {} };
+  const r = compararALaMismaAltura(datos, 'mes', fecha(2026, 3, 31));
+  assert.equal(r.anterior.segundos, 600);   // todo febrero, sin tocar marzo
+  assert.equal(r.actual.segundos, 3660);
+});
+
+test('el año se compara por meses cerrados, que es lo que sobrevive a la poda', () => {
+  const datos = { dias: {}, meses: {
+    '2025-01': { s: 3600, p: 0 },
+    '2025-02': { s: 3600, p: 0 },
+    '2025-08': { s: 36000, p: 0 },  // agosto del año pasado no entra en junio
+    '2026-01': { s: 1800, p: 0 },
+    '2026-02': { s: 1800, p: 0 },
+    '2026-03': { s: 600, p: 0 },    // marzo en curso: tampoco entra
+  } };
+  const r = compararALaMismaAltura(datos, 'anno', fecha(2026, 3, 15));
+  assert.equal(r.actual.segundos, 3600);    // enero y febrero de este año
+  assert.equal(r.anterior.segundos, 7200);  // enero y febrero del pasado
+  assert.equal(r.variacion, -50);
+  assert.deepEqual(r.altura, { unidad: 'mes', hasta: 2 });
+});
+
+// En enero no hay ningún mes cerrado de este año: no hay comparación honesta
+// que hacer, y se prefiere no enseñar ninguna.
+test('en enero el año todavía no se compara', () => {
+  const r = compararALaMismaAltura({ dias: {}, meses: { '2026-01': { s: 600, p: 0 } } },
+    'anno', fecha(2026, 1, 20));
+  assert.equal(r.actual, null);
+  assert.equal(r.altura, null);
+});
+
 test('sin lectura en el tramo anterior no se inventa un porcentaje', () => {
-  const serie = seriePeriodos(DATOS, 'anno', fecha(2026, 8, 1), 3);
-  const { variacion, sentido } = comparar(serie.slice(0, 2)); // 2024 y 2025
-  assert.equal(variacion, 100);
-  assert.equal(sentido, 'mas');
-  const desdeCero = comparar([{ segundos: 0 }, { segundos: 500 }]);
-  assert.equal(desdeCero.variacion, null);
-  assert.equal(desdeCero.sentido, 'mas');
-  assert.equal(comparar([]).actual, null);
+  const datos = { dias: { '2026-07-27': { s: 600, p: 0 } }, meses: {} };
+  const r = compararALaMismaAltura(datos, 'semana', fecha(2026, 7, 27));
+  assert.equal(r.anterior.segundos, 0);
+  assert.equal(r.variacion, null);
+  assert.equal(r.sentido, 'mas');
+  // Y con los días no se compara nada: hoy contra ayer no dice cómo va la
+  // lectura, y hoy casi siempre va por la mitad.
+  assert.equal(compararALaMismaAltura(datos, 'dia', fecha(2026, 7, 27)).actual, null);
 });
 
 test('los totales cuentan solo los tramos con lectura', () => {

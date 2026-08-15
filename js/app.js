@@ -32,6 +32,7 @@ import {
 } from './archivos-entrantes.js';
 import * as estadisticas from './estadisticas.js';
 import * as duplicados from './duplicados.js';
+import { VERSION } from './version.js';
 import * as gestos from './gestos.js';
 import { puntoEnElMarco, clicConPunto } from './zonas-toque.js';
 import { imagenAmpliable, descripcionImagen } from './imagen-ampliada.js';
@@ -5986,6 +5987,13 @@ function nombreDelTramo(punto) {
   return fechaCorta(punto.clave);
 }
 
+// El nombre del mes (1 = enero) en el idioma en uso, para decir hasta dónde
+// llega la comparación anual.
+function nombreDeMes(numero) {
+  return new Date(2026, Math.max(0, numero - 1), 1)
+    .toLocaleDateString(idiomaActual(), { month: 'long' });
+}
+
 function resumenDeLaSerie(serie, periodo) {
   const { tramosConLectura, segundos } = periodos.totalesDePeriodos(serie);
   if (!tramosConLectura) return null;
@@ -6042,7 +6050,8 @@ function pintarGrafico(datos) {
 // va por la mitad.
 function pintarComparacion(serie, periodo, datos) {
   const caja = $('comparacion-periodos');
-  const { actual, anterior, variacion, sentido } = periodos.comparar(serie);
+  const { actual, anterior, variacion, sentido, altura } =
+    periodos.compararALaMismaAltura(datos, periodo, Date.now());
   const procede = periodo !== 'dia' && actual && (actual.segundos > 0 || anterior?.segundos > 0);
   caja.classList.toggle('oculto', !procede);
   if (!procede) return;
@@ -6050,9 +6059,16 @@ function pintarComparacion(serie, periodo, datos) {
   // Un tramo a cero se dice «Nada» y no «< 1 m»: al lado de un «100 % menos»,
   // el «menos de un minuto» se lee como que algo se leyó.
   const cifra = (segundos) => (segundos > 0 ? duracionLegible(segundos) : t('statsNoTime'));
-  $('etiqueta-periodo-actual').textContent = t(NOMBRE_TRAMO[periodo]);
+  $('etiqueta-periodo-actual').textContent = t(NOMBRE_TRAMO[periodo])
+    + (altura?.unidad === 'mes' ? ` ${t('statsUpToMonth', { month: nombreDeMes(altura.hasta) })}` : '');
   $('valor-periodo-actual').textContent = cifra(actual.segundos);
-  $('etiqueta-periodo-anterior').textContent = t(NOMBRE_TRAMO_ANTERIOR[periodo]);
+  // Se dice con qué se está comparando de verdad: no con el tramo anterior
+  // entero, sino con lo que llevaba a estas alturas. Si no, un «72 % menos»
+  // el martes solo contaba que la semana acaba de empezar.
+  $('etiqueta-periodo-anterior').textContent = t(NOMBRE_TRAMO_ANTERIOR[periodo])
+    + (altura?.unidad === 'mes'
+      ? ` ${t('statsUpToMonth', { month: nombreDeMes(altura.hasta) })}`
+      : `, ${t('statsSoFar')}`);
   $('valor-periodo-anterior').textContent = cifra(anterior?.segundos ?? 0);
 
   const marca = $('variacion-periodos');
@@ -9616,8 +9632,15 @@ $('area-lectura').addEventListener('click', (evento) => {
 
 // ───────────────────────── Arranque ─────────────────────────
 
+// Qué versión se está usando, al pie de los ajustes: es lo primero que hay que
+// poder mirar cuando algo no va como se esperaba.
+function pintarVersion() {
+  $('version-app').textContent = t('appVersion', { version: VERSION });
+}
+
 pintarIconos();
 document.addEventListener('idioma-cambiado', () => {
+  pintarVersion();
   aplicarMargenEpub();
   aplicarAparienciaModo(modoActual());
   aplicarAparienciaDoble();
@@ -9628,6 +9651,7 @@ document.addEventListener('idioma-cambiado', () => {
   else if (!$('panel-anotaciones').classList.contains('oculto')) pintarAnotaciones();
 });
 iniciarIdioma();
+pintarVersion();
 migrarPapelAlTema();
 limpiarAjustesGlobalesViejos();
 // Las estadísticas de la primera versión vivían aparte y sin dueño: al

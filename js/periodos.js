@@ -128,17 +128,103 @@ export function seriePeriodos(datos, periodo, ahora = Date.now(), cuantos = CUAN
 // mirar estas cifras. La variación se da en porcentaje sobre el anterior;
 // cuando el anterior está a cero no hay porcentaje que dar (dividir por cero
 // no es «infinito por ciento», es que no había con qué comparar).
-export function comparar(serie) {
-  const actual = serie[serie.length - 1] ?? null;
-  const anterior = serie[serie.length - 2] ?? null;
-  if (!actual) return { actual: null, anterior: null, variacion: null, sentido: 'igual' };
-  const antes = anterior?.segundos ?? 0;
-  const ahora = actual.segundos;
+function variacionEntre(ahora, antes) {
   const variacion = antes > 0 ? Math.round(((ahora - antes) / antes) * 100) : null;
   let sentido = 'igual';
   if (ahora > antes) sentido = 'mas';
   else if (ahora < antes) sentido = 'menos';
-  return { actual, anterior, variacion, sentido };
+  return { variacion, sentido };
+}
+
+// ───────────── Comparar sin que el periodo a medias pierda siempre ─────────────
+//
+// El tramo en curso nunca está terminado: el martes, «esta semana» son dos días
+// y «la semana anterior» son siete. Comparar esas dos cifras daba un «72 %
+// menos» que no decía nada de la lectura, solo de qué día era hoy; y hacia
+// final de semana el mismo hábito iba pareciendo cada vez mejor. Por eso ahora
+// el anterior se recorta a la misma altura: los mismos días transcurridos,
+// contados desde su inicio.
+//
+// Queda un sesgo pequeño, el del día en curso: hoy compite con un día entero
+// del tramo anterior. Se asume a propósito, porque la alternativa —comparar
+// solo hasta ayer— dejaba sin comparación el primer día de cada tramo y hacía
+// que la cifra grande («esta semana») no fuera la lectura real de la semana.
+//
+// El año va por meses y no por días: los días se podan a los 400, así que del
+// año pasado no queda ninguno. Con meses la altura es más basta —solo cuenta
+// hasta el último mes cerrado—, pero es la única que se puede sostener con lo
+// que hay guardado, y en enero no hay nada que comparar todavía.
+
+// Cuántos días lleva el tramo en curso, contando el de hoy.
+export function diasTranscurridos(periodo, fecha) {
+  const inicio = inicioDelPeriodo(periodo, fecha);
+  const hoy = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate());
+  return Math.round((hoy - inicio) / 86400000) + 1;
+}
+
+function sumaDeMesesEntre(meses, desde, hasta) {
+  let segundos = 0;
+  let paginas = 0;
+  for (const [clave, valor] of Object.entries(meses)) {
+    if (clave < desde || clave > hasta) continue;
+    segundos += valor.s;
+    paginas += valor.p;
+  }
+  return { segundos, paginas };
+}
+
+// El trozo del año que se puede comparar: de enero al último mes cerrado. En
+// enero devuelve null, que es «todavía no hay con qué comparar».
+function trozosDelAnno(meses, fecha, atras = 0) {
+  const anno = fecha.getFullYear() - atras;
+  const ultimoMes = fecha.getMonth(); // 0-11; el mes en curso no cuenta
+  if (ultimoMes === 0) return null;
+  const hasta = `${anno}-${dosCifras(ultimoMes)}`;
+  return { ...sumaDeMesesEntre(meses, `${anno}-01`, hasta), hasta: ultimoMes };
+}
+
+// Lo leído en el tramo en curso y lo leído en el anterior a la misma altura.
+// `altura` es lo que hace falta para poder decirlo en la pantalla: en qué
+// unidad se ha recortado y cuánto.
+export function compararALaMismaAltura(datos, periodo, ahora = Date.now()) {
+  const hoy = ahora instanceof Date ? ahora : new Date(ahora);
+  const dias = datos?.dias ?? {};
+  const meses = datos?.meses ?? {};
+  const vacio = { actual: null, anterior: null, variacion: null, sentido: 'igual', altura: null };
+  if (periodo === 'dia') return vacio;
+
+  if (periodo === 'anno') {
+    const actual = trozosDelAnno(meses, hoy);
+    const anterior = trozosDelAnno(meses, hoy, 1);
+    if (!actual) return vacio;
+    return {
+      actual, anterior,
+      ...variacionEntre(actual.segundos, anterior?.segundos ?? 0),
+      altura: { unidad: 'mes', hasta: actual.hasta },
+    };
+  }
+
+  const transcurridos = diasTranscurridos(periodo, hoy);
+  const inicioActual = inicioDelPeriodo(periodo, hoy);
+  const inicioAnterior = inicioDelPeriodo(periodo, hoy, 1);
+  const finAnterior = new Date(
+    inicioAnterior.getFullYear(), inicioAnterior.getMonth(),
+    inicioAnterior.getDate() + transcurridos - 1,
+  );
+  // Un mes más corto que el anterior no puede pasarse de su último día: el 31
+  // de marzo no tiene equivalente en febrero, y sin este tope el tramo
+  // «anterior» se comería los primeros días del mes en curso.
+  const finPeriodoAnterior = periodo === 'mes'
+    ? new Date(inicioAnterior.getFullYear(), inicioAnterior.getMonth() + 1, 0)
+    : new Date(inicioAnterior.getFullYear(), inicioAnterior.getMonth(), inicioAnterior.getDate() + 6);
+  const fin = finAnterior > finPeriodoAnterior ? finPeriodoAnterior : finAnterior;
+  const actual = sumaDeDias(dias, claveDeFecha(inicioActual), claveDeFecha(hoy));
+  const anterior = sumaDeDias(dias, claveDeFecha(inicioAnterior), claveDeFecha(fin));
+  return {
+    actual, anterior,
+    ...variacionEntre(actual.segundos, anterior.segundos),
+    altura: { unidad: 'dia', dias: transcurridos },
+  };
 }
 
 // Lo que resume la serie entera, para la línea de debajo del gráfico.

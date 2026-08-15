@@ -91,11 +91,48 @@ Playwright no dispara solos, el service worker cacheando).
    `sw.js`.** Si falta, la aplicación deja de arrancar sin conexión.
 5. Al cambiar el comportamiento de algo que ya funcionaba —aunque sea para
    mejor— dilo explícitamente en el mensaje del commit y al usuario.
+6. **Sube la versión y anótala** (ver «Versiones», aquí debajo).
 
 Una forma barata de comprobar que un refactor no ha cambiado nada: escribe el
 guion de Playwright, ejecútalo, guarda la salida, haz `git stash` para volver
 al código anterior, ejecútalo otra vez y compara. Si las dos salidas son
 idénticas, el comportamiento se ha conservado.
+
+## Versiones
+
+Desde la 1.0.0, cada cambio que llega a `main` lleva número de versión. Sirve
+para saber qué se está usando cuando algo falla y para poder decir «esto entró
+en la 1.2.0» sin bucear en el historial.
+
+Se numera **MAYOR.MENOR.PARCHE**:
+
+- **MAYOR**: algo deja de funcionar como antes para quien ya lo usaba (un dato
+  que hay que migrar, una forma de trabajar distinta).
+- **MENOR**: se añade algo —una función, una pantalla—, aunque además arregle
+  cosas.
+- **PARCHE**: arreglos y retoques que no añaden nada nuevo.
+
+Un cambio que no toca la aplicación (pruebas, documentación, este archivo) no
+sube versión.
+
+Al cerrar un cambio:
+
+1. Sube `VERSION` en **`js/version.js`**.
+2. Añade su apartado a **`CHANGELOG.md`**, arriba del todo, con la fecha y las
+   secciones que hagan falta (Añadido / Cambiado / Arreglado). En español y en
+   el tono de los comentarios: qué cambia para quien lee libros, no qué archivo
+   se tocó.
+3. Sube también la caché de `sw.js` (`pagekeeper-vNN`), que es otra cosa: ese
+   número sube en **cada** despliegue, aunque la versión no cambie.
+4. Etiqueta el commit y sube la etiqueta:
+
+   ```bash
+   git tag -a v1.2.0 -m "Resumen de una línea"
+   git push origin main --tags
+   ```
+
+Si un mismo trabajo se parte en varios commits, la versión sube una vez, en el
+último, y la etiqueta va ahí.
 
 ## Git
 
