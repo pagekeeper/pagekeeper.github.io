@@ -7,6 +7,7 @@ import {
   racha, rachaMaxima, serie, librosLeidos, resumen, estadisticasDeLibro,
   mesesCombinados,
   claveDia, DIAS_GUARDADOS,
+  apartarLibro, restoDeLibro, fusionarLeidos, podarLeidos,
 } from '../js/estadisticas.js';
 
 // Una fecha local concreta, para no depender del huso de quien ejecute.
@@ -374,4 +375,75 @@ test('un mes que se quedó corto se completa con sus días', () => {
     meses: { '2026-07': { s: 1200, p: 1 } },
   } };
   assert.deepEqual(mesesCombinados(corto), { '2026-07': { s: 7200, p: 5 } });
+});
+
+// ───────────── Libros borrados de la biblioteca ─────────────
+
+test('lo leído de un libro borrado se aparta y sigue en la lista', () => {
+  const entrada = {
+    tiempos: { movil: { s: 3600, p: 40 } },
+    titulo: 'Mi novela',
+    posicionActualizada: '2026-05-01T10:00:00.000Z',
+  };
+  const leidos = apartarLibro(undefined, 'Novelas/mia.epub', entrada, dia(2026, 5, 20));
+  assert.deepEqual(leidos['Novelas/mia.epub'].tiempos, { movil: { s: 3600, p: 40 } });
+
+  const [libro] = librosLeidos({}, leidos);
+  assert.equal(libro.id, 'Novelas/mia.epub');
+  assert.equal(libro.segundos, 3600);
+  assert.equal(libro.titulo, 'Mi novela');
+  assert.equal(libro.ultimaLectura, '2026-05-01T10:00:00.000Z');
+  assert.equal(libro.formato, 'epub');
+  assert.ok(libro.borrado);
+});
+
+test('un libro que se borró sin leerse no deja resto', () => {
+  assert.deepEqual(apartarLibro(undefined, 'ojeado.pdf', { pagina: 3 }), {});
+  assert.equal(restoDeLibro({ tiempos: {} }), null);
+});
+
+// El caso de volver a añadir un libro borrado: los dos totales son el mismo
+// rato leído contado dos veces, no dos ratos distintos.
+test('un libro repuesto no cuenta su tiempo dos veces', () => {
+  const leidos = { 'novela.epub': {
+    tiempos: { movil: { s: 3600, p: 0 } }, borrado: '2026-05-20T10:00:00.000Z',
+  } };
+  const libros = { 'novela.epub': { tiempos: { movil: { s: 4200, p: 0 } } } };
+  const [libro] = librosLeidos(libros, leidos);
+  assert.equal(libro.segundos, 4200);
+  // Y como el libro está, no se anuncia como borrado.
+  assert.equal(libro.borrado, '');
+  assert.equal(estadisticasDeLibro({ libros, leidos }, 'novela.epub').segundos, 4200);
+});
+
+test('la ficha de un libro borrado sigue enseñando su tiempo', () => {
+  const ficha = estadisticasDeLibro({ leidos: { 'ida.pdf': {
+    tiempos: { a: { s: 1800, p: 30 } }, borrado: '2026-05-20T10:00:00.000Z',
+  } } }, 'ida.pdf');
+  assert.equal(ficha.hay, true);
+  assert.equal(ficha.segundos, 1800);
+  assert.equal(ficha.ritmo, 60);
+  assert.equal(ficha.borrado, '2026-05-20T10:00:00.000Z');
+});
+
+test('los restos se fusionan casilla a casilla, como los tiempos', () => {
+  const mios = { 'ida.pdf': { tiempos: { movil: { s: 600, p: 2 } }, borrado: '2026-05-01T10:00:00.000Z' } };
+  const suyos = {
+    'ida.pdf': { tiempos: { movil: { s: 300, p: 1 }, portatil: { s: 900, p: 3 } }, borrado: '2026-05-10T10:00:00.000Z' },
+    'otra.epub': { tiempos: { portatil: { s: 60, p: 0 } }, borrado: '2026-05-11T10:00:00.000Z' },
+  };
+  const fusionados = fusionarLeidos(mios, suyos);
+  assert.deepEqual(fusionados['ida.pdf'].tiempos, { movil: { s: 600, p: 2 }, portatil: { s: 900, p: 3 } });
+  assert.equal(fusionados['ida.pdf'].borrado, '2026-05-10T10:00:00.000Z');
+  assert.ok(fusionados['otra.epub']);
+});
+
+test('un resto viejo se poda con el mismo plazo que los días', () => {
+  const hoy = dia(2026, 5, 20);
+  const viejo = claveDia(new Date(hoy - (DIAS_GUARDADOS + 5) * 86400000));
+  const leidos = {
+    'antigua.pdf': { tiempos: { a: { s: 600, p: 0 } }, borrado: `${viejo}T10:00:00.000Z` },
+    'reciente.pdf': { tiempos: { a: { s: 600, p: 0 } }, borrado: '2026-05-19T10:00:00.000Z' },
+  };
+  assert.deepEqual(Object.keys(podarLeidos(leidos, hoy)), ['reciente.pdf']);
 });

@@ -34,7 +34,10 @@ import {
   sincronizar,
   tituloDe,
   ultimoLibroLeido,
+  olvidar,
+  olvidarPorPrefijo,
 } from '../js/progreso.js';
+import { resumen } from '../js/estadisticas.js';
 
 function conAlmacenamiento() {
   const memoria = new Map();
@@ -1069,4 +1072,99 @@ test('rescata las estadísticas de la primera versión, que no tenían dueño', 
   assert.equal(localStorage.getItem('lector.estadisticas'), null);
   // No se repite: la segunda pasada ya no encuentra nada.
   assert.equal(migrarEstadisticasAntiguas(), false);
+});
+
+// ── Libros borrados ──
+//
+// Borrar un libro se lleva su entrada, pero no lo que se leyó: eso se aparta y
+// sigue contando en las estadísticas hasta que se pode o se borren.
+
+test('borrar un libro conserva lo que se leyó de él', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('Novelas/mia.epub', 40, 100);
+  anotarTiempoLectura('Novelas/mia.epub', 1800, 0);
+  guardarTitulo('Novelas/mia.epub', 'Mi novela');
+  await sincronizar(nube.cliente);
+
+  await olvidar('Novelas/mia.epub', nube.cliente);
+  assert.equal(progresoDe('Novelas/mia.epub'), null);
+  assert.equal(nube.ver().libros['Novelas/mia.epub'], undefined);
+
+  const [libro] = resumen(cargarLocal()).libros;
+  assert.equal(libro.id, 'Novelas/mia.epub');
+  assert.equal(libro.segundos, 1800);
+  assert.equal(libro.titulo, 'Mi novela');
+  assert.ok(libro.borrado);
+  // Y llega a los demás dispositivos como cualquier otra estadística.
+  assert.ok(nube.ver().leidos['Novelas/mia.epub']);
+  comoDispositivo('portatil');
+  await sincronizar(nube.cliente);
+  assert.equal(resumen(cargarLocal()).libros[0].segundos, 1800);
+});
+
+test('borrar una carpeta conserva lo leído de sus libros', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('Curso/tema.pdf', 12, 100);
+  anotarTiempoLectura('Curso/tema.pdf', 900, 30);
+  await olvidarPorPrefijo('Curso/', nube.cliente);
+  assert.equal(progresoDe('Curso/tema.pdf'), null);
+  assert.equal(resumen(cargarLocal()).libros[0].segundos, 900);
+});
+
+test('el libro que desaparece del servidor deja su tiempo apuntado', async () => {
+  const nube = nubeCompartida();
+  const comoDispositivo = bancoDeDispositivos();
+  comoDispositivo('movil');
+  anotarPagina('ido.pdf', 5, 100);
+  anotarTiempoLectura('ido.pdf', 600, 20);
+  await conciliarPresencia([], nube.cliente);          // primero solo se apunta la ausencia
+  await conciliarPresencia([], nube.cliente, { ahora: true });
+  assert.equal(progresoDe('ido.pdf'), null);
+  assert.equal(resumen(cargarLocal()).libros[0].segundos, 600);
+});
+
+test('un libro borrado que vuelve recupera su tiempo en la entrada', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  anotarPagina('vuelve.pdf', 5, 100);
+  anotarTiempoLectura('vuelve.pdf', 600, 20);
+  const dispositivo = localStorage.getItem('lector.idDispositivo');
+  olvidar('vuelve.pdf');
+  anotarPagina('vuelve.pdf', 2, 100);
+  anotarTiempoLectura('vuelve.pdf', 120, 4);
+  assert.equal(progresoDe('vuelve.pdf').tiempos[dispositivo].s, 600);
+  assert.equal(cargarLocal().leidos?.['vuelve.pdf'], undefined);
+  // Y no se cuenta dos veces en la lista.
+  assert.equal(resumen(cargarLocal()).libros.length, 1);
+  assert.equal(resumen(cargarLocal()).libros[0].segundos, 600);
+});
+
+test('borrar las estadísticas se lleva también lo de los libros borrados', () => {
+  const memoria = new Map();
+  globalThis.localStorage = {
+    getItem: (clave) => memoria.get(clave) ?? null,
+    setItem: (clave, valor) => memoria.set(clave, String(valor)),
+    removeItem: (clave) => memoria.delete(clave),
+  };
+  Object.defineProperty(globalThis, 'navigator', {
+    value: { userAgent: 'Node test' }, configurable: true,
+  });
+  anotarPagina('ido.pdf', 5, 100);
+  anotarTiempoLectura('ido.pdf', 600, 20);
+  olvidar('ido.pdf');
+  assert.ok(cargarLocal().leidos['ido.pdf']);
+  borrarEstadisticas();
+  assert.equal(cargarLocal().leidos, undefined);
+  assert.deepEqual(resumen(cargarLocal()).libros, []);
 });

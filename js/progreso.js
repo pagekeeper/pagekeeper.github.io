@@ -8,6 +8,7 @@
 import {
   apuntarTiempo, apuntarDia, fusionarTiempos, fusionarEstadisticas,
   normalizarTiempos, normalizarEstadisticas,
+  apartarLibro, fusionarLeidos, normalizarLeidos, podarLeidos,
 } from './estadisticas.js';
 import { calificacionValida } from './calificacion.js';
 
@@ -169,7 +170,22 @@ function normalizarDatos(datos) {
   const estadisticas = normalizarEstadisticas(datos?.estadisticas);
   if (Object.keys(estadisticas).length) normalizados.estadisticas = estadisticas;
   else delete normalizados.estadisticas;
+  // Los restos de los libros borrados se podan aquí, de paso: es por donde
+  // pasa todo lo que se guarda o se sincroniza.
+  const leidos = podarLeidos(datos?.leidos);
+  if (Object.keys(leidos).length) normalizados.leidos = leidos;
+  else delete normalizados.leidos;
   return normalizados;
+}
+
+// Guarda lo leído de un libro que deja la biblioteca y devuelve el registro
+// listo para que quien llame borre su entrada. Se hace en todos los caminos
+// por los que un libro se va: borrarlo a mano, borrar la carpeta que lo tenía
+// y la limpieza de lo que ya no está en el servidor.
+function apartarLoLeido(datos, id) {
+  const leidos = apartarLibro(datos.leidos, id, datos.libros?.[id]);
+  if (Object.keys(leidos).length) datos.leidos = leidos;
+  return datos;
 }
 
 function cargarRegistroBorrados() {
@@ -311,6 +327,14 @@ export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date
   const tiempos = apuntarTiempo(entrada.tiempos, dispositivo, { segundos, paginas });
   if (!Object.keys(tiempos).length) return null;
   entrada.tiempos = tiempos;
+  // Si este libro se había borrado y ha vuelto, lo apartado vuelve con él: el
+  // contador de la entrada nueva empieza de cero, y dejar el resto fuera haría
+  // que su ficha enseñara solo lo leído desde que reapareció.
+  const apartado = normalizarLeidos(datos.leidos)[idLibro];
+  if (apartado) {
+    entrada.tiempos = fusionarTiempos(entrada.tiempos, apartado.tiempos);
+    delete datos.leidos[idLibro];
+  }
   datos.libros[idLibro] = entrada;
   datos.estadisticas = apuntarDia(datos.estadisticas, dispositivo, { segundos, paginas, ahora });
   datos.version = VERSION_DATOS;
@@ -334,6 +358,9 @@ export function anotarTiempoLectura(idLibro, segundos, paginas = 0, ahora = Date
 // servidor, que aún no se ha enterado.
 function vaciarEstadisticas(datos) {
   delete datos.estadisticas;
+  // Lo apartado de los libros borrados es tiempo de lectura como cualquier
+  // otro: quien pide borrar las estadísticas también lo está pidiendo de eso.
+  delete datos.leidos;
   for (const entrada of Object.values(datos.libros ?? {})) delete entrada?.tiempos;
 }
 
@@ -817,6 +844,7 @@ export async function conciliarPresencia(idsPresentes, cliente, { ahora: yaMismo
     // Sin plazo no se borra nada: la ausencia se sigue apuntando para poder
     // contarla en el informe, pero la entrada se queda.
     if (!yaMismo && (!dias || ahora - desde < dias * MS_DIA)) continue;
+    apartarLoLeido(datos, id);
     delete datos.libros[id];
     descartarCambiosPendientes(id);
     purgados.push(id);
@@ -842,6 +870,7 @@ export function conciliarLocales(idsPresentes, inventarioFiable = true) {
   const purgados = [];
   for (const id of Object.keys(datos.libros)) {
     if (!id.startsWith('local:') || presentes.has(id.normalize('NFC'))) continue;
+    apartarLoLeido(datos, id);
     delete datos.libros[id];
     descartarCambiosPendientes(id);
     purgados.push(id);
@@ -968,6 +997,18 @@ async function sincronizarAhora(cliente) {
       delete local.estadisticas;
       delete remoto.estadisticas;
     }
+    // Lo leído de los libros que ya no están, igual: es de la biblioteca y no
+    // de ningún libro del archivo, así que se resuelve aparte. Que un
+    // dispositivo todavía tenga el libro no anula el resto del que ya lo
+    // borró; al pintar se toma la casilla mayor y no se cuenta dos veces.
+    const leidosFusionados = fusionarLeidos(local.leidos, remoto.leidos);
+    if (Object.keys(leidosFusionados).length) {
+      local.leidos = leidosFusionados;
+      remoto.leidos = leidosFusionados;
+    } else {
+      delete local.leidos;
+      delete remoto.leidos;
+    }
     const dispositivosFusionados = fusionarDispositivos(local.dispositivos, remoto.dispositivos);
     caducarDispositivos({ dispositivos: dispositivosFusionados }, diasDeGracia(local));
     if (Object.keys(dispositivosFusionados).length) {
@@ -1063,6 +1104,13 @@ export function renombrar(idViejo, idNuevo) {
     dispositivo: nombreDispositivo(),
   };
   delete datos.libros[idViejo];
+  // Lo apartado de un borrado anterior del mismo archivo viaja con él: si no,
+  // se quedaría en la lista de estadísticas con la ruta vieja, como un libro
+  // aparte que ya no existe en ningún sitio.
+  if (datos.leidos?.[idViejo] && !datos.leidos[idNuevo]) {
+    datos.leidos[idNuevo] = datos.leidos[idViejo];
+    delete datos.leidos[idViejo];
+  }
   guardarLocal(datos);
   // Si el nuevo id tenía una limpieza pendiente (un libro anterior con el
   // mismo nombre), la entrada recién creada la cancela.
@@ -1097,6 +1145,7 @@ export async function olvidarPorPrefijo(prefijo, cliente = null) {
   const local = cargarLocal();
   const ids = Object.keys(local.libros).filter((id) => id.startsWith(prefijo));
   for (const id of ids) {
+    apartarLoLeido(local, id);
     delete local.libros[id];
     descartarCambiosPendientes(id);
   }
@@ -1111,6 +1160,7 @@ export async function olvidarPorPrefijo(prefijo, cliente = null) {
 // también en el archivo remoto (para que no reaparezca al sincronizar).
 export async function olvidar(idLibro, cliente = null) {
   const local = cargarLocal();
+  apartarLoLeido(local, idLibro);
   delete local.libros[idLibro];
   descartarCambiosPendientes(idLibro);
   guardarLocal(local);

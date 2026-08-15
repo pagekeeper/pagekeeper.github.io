@@ -83,6 +83,31 @@ with comun.servidor() as base, sync_playwright() as p:
     r.comprobar(page.is_visible('#vista-biblioteca') and not page.is_visible('#vista-estadisticas'),
                 'el botón atrás del navegador debería volver a la biblioteca')
 
+    # ── Borrar el libro no borra lo que se leyó de él
+    page.locator('#lista-locales .btn-menu-libro').first.click()
+    page.wait_for_timeout(200)
+    page.once('dialog', lambda d: d.accept())
+    page.locator('#lista-menu-libro .item-menu-peligro').first.click()
+    page.wait_for_timeout(600)
+    page.click('#btn-estadisticas')
+    page.wait_for_selector('#vista-estadisticas:not(.oculto)')
+    page.wait_for_timeout(400)
+    filas = page.locator('.libro-estadistica').all_inner_texts()
+    print('lista tras borrar el libro:', json.dumps(filas, ensure_ascii=False))
+    r.comprobar(page.locator('.libro-estadistica .titulo-estadistica').count() >= 1,
+                'al borrar el libro se ha perdido su tiempo de la lista')
+    r.comprobar(any('ya no está en la biblioteca' in fila for fila in filas),
+                'falta el aviso de que el libro ya no está en la biblioteca')
+    # Y su ficha sigue abriéndose con el tiempo dedicado.
+    page.locator('.libro-estadistica').first.click()
+    page.wait_for_timeout(300)
+    r.comprobar(page.is_visible('#cifras-ficha-libro'),
+                'la ficha de un libro borrado debería seguir enseñando sus cifras')
+    page.screenshot(path=str(comun.SALIDA / 'estadisticas-libro-borrado.png'), full_page=True)
+    page.click('#cerrar-ficha-libro')
+    page.click('#btn-cerrar-estadisticas')
+    page.wait_for_selector('#vista-biblioteca:not(.oculto)')
+
     # ── Se abre también desde Ajustes → Datos
     page.click('#btn-ajustes')
     page.click('#pestana-ajustes-datos')

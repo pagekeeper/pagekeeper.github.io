@@ -305,24 +305,137 @@ function formatoDe(id) {
   return /\.epub$/i.test(nombre) ? 'epub' : 'pdf';
 }
 
+// ───────────── Libros que ya no están ─────────────
+//
+// Borrar un libro no borra haberlo leído. Su entrada de progreso sí se va —no
+// hay posición que guardar de un archivo que no existe—, pero antes se aparta
+// aquí lo poco que hace falta para que siga contando en las estadísticas:
+//
+//   leidos = { '<id>': { tiempos, titulo, ultimaLectura, borrado } }
+//
+// Antes de esto, borrar un libro terminado hacía desaparecer de golpe sus
+// horas de la lista y de la ficha, y quedaba la contradicción de que los días
+// de lectura sí seguían ahí: el total del año no cuadraba con lo que la lista
+// era capaz de enseñar, y para no perderlo había que no borrar nunca nada.
+//
+// Vive en la raíz del registro, como los días, porque ya no pertenece a ningún
+// libro de la biblioteca; se fusiona casilla a casilla igual que los tiempos y
+// cae con la misma poda que los días (DIAS_GUARDADOS desde el borrado) y con
+// el borrado de estadísticas.
+
+function restoValido(resto) {
+  const tiempos = normalizarTiempos(resto?.tiempos);
+  if (!Object.keys(tiempos).length) return null;
+  const titulo = typeof resto?.titulo === 'string' ? resto.titulo.trim() : '';
+  const limpio = { tiempos, borrado: typeof resto?.borrado === 'string' ? resto.borrado : '' };
+  if (titulo) limpio.titulo = titulo;
+  if (typeof resto?.ultimaLectura === 'string' && resto.ultimaLectura) {
+    limpio.ultimaLectura = resto.ultimaLectura;
+  }
+  return limpio;
+}
+
+export function normalizarLeidos(leidos) {
+  const limpios = {};
+  if (!leidos || typeof leidos !== 'object') return limpios;
+  for (const [id, resto] of Object.entries(leidos)) {
+    const limpio = restoValido(resto);
+    if (limpio) limpios[id] = limpio;
+  }
+  return limpios;
+}
+
+// Lo que queda de un libro cuando se le quita el progreso: null si no se llegó
+// a leer, que es el caso corriente de un libro que se añade y se borra sin
+// abrir. `ahora` es la fecha del borrado, de la que cuelga la poda.
+export function restoDeLibro(entrada, ahora = Date.now()) {
+  return restoValido({
+    tiempos: entrada?.tiempos,
+    titulo: entrada?.titulo,
+    ultimaLectura: entrada?.posicionActualizada ?? entrada?.actualizado ?? '',
+    borrado: new Date(ahora).toISOString(),
+  });
+}
+
+// Aparta el resto de un libro que se va. Si ya había uno con ese id —se borró,
+// se repuso y se ha vuelto a borrar—, se queda la casilla mayor de cada
+// aparato, como en cualquier fusión de tiempos.
+export function apartarLibro(leidos, id, entrada, ahora = Date.now()) {
+  const apartados = normalizarLeidos(leidos);
+  const resto = restoDeLibro(entrada, ahora);
+  if (!resto) return apartados;
+  const anterior = apartados[id];
+  apartados[id] = anterior
+    ? { ...anterior, ...resto, tiempos: fusionarTiempos(anterior.tiempos, resto.tiempos) }
+    : resto;
+  return apartados;
+}
+
+export function podarLeidos(leidos, ahora = Date.now()) {
+  const limite = diaAnterior(claveDia(ahora), DIAS_GUARDADOS);
+  const vivos = {};
+  for (const [id, resto] of Object.entries(normalizarLeidos(leidos))) {
+    // Sin fecha de borrado no se puede podar: es un resto de antes de que la
+    // fecha existiera, y tirarlo por no saber cuándo cayó sería justo lo
+    // contrario de lo que hace aquí.
+    if (resto.borrado && resto.borrado.slice(0, 10) < limite) continue;
+    vivos[id] = resto;
+  }
+  return vivos;
+}
+
+export function fusionarLeidos(local, remoto) {
+  const mios = normalizarLeidos(local);
+  const suyos = normalizarLeidos(remoto);
+  const fusionados = {};
+  for (const id of new Set([...Object.keys(mios), ...Object.keys(suyos)])) {
+    const mio = mios[id];
+    const suyo = suyos[id];
+    if (!mio || !suyo) {
+      fusionados[id] = mio ?? suyo;
+      continue;
+    }
+    // El borrado más reciente manda en lo demás: es el que vio el libro por
+    // última vez, y su fecha es la que da el plazo más largo antes de podar.
+    const reciente = (mio.borrado ?? '') >= (suyo.borrado ?? '') ? mio : suyo;
+    fusionados[id] = { ...reciente, tiempos: fusionarTiempos(mio.tiempos, suyo.tiempos) };
+  }
+  return fusionados;
+}
+
 // Libros con tiempo apuntado, del más leído al que menos, con el desglose por
 // dispositivo: es lo que responde a «¿cuánto he tardado en leer esto?» cuando
-// se ha leído a ratos en el móvil y a ratos en el ordenador.
-export function librosLeidos(libros) {
+// se ha leído a ratos en el móvil y a ratos en el ordenador. Incluye los que
+// ya no están en la biblioteca, marcados con la fecha en que se borraron.
+export function librosLeidos(libros, leidos) {
+  const restos = normalizarLeidos(leidos);
   const lista = [];
-  for (const [id, entrada] of Object.entries(libros ?? {})) {
-    const tiempos = normalizarTiempos(entrada?.tiempos);
+  const ids = new Set([...Object.keys(libros ?? {}), ...Object.keys(restos)]);
+  for (const id of ids) {
+    const entrada = libros?.[id];
+    const resto = restos[id];
+    // Un libro repuesto tras haberse borrado tiene las dos cosas. Se toma la
+    // casilla mayor de cada aparato, nunca la suma: el contador vivo puede ser
+    // el mismo tiempo de antes, llegado por sincronización, y sumarlo lo
+    // duplicaría.
+    const tiempos = entrada && resto
+      ? fusionarTiempos(entrada.tiempos, resto.tiempos)
+      : normalizarTiempos(entrada?.tiempos ?? resto?.tiempos);
     const total = totalTiempo(tiempos);
     if (total.s <= 0) continue;
+    const titulo = entrada?.titulo ?? resto?.titulo;
     lista.push({
       id,
-      titulo: typeof entrada?.titulo === 'string' && entrada.titulo.trim() ? entrada.titulo.trim() : '',
+      titulo: typeof titulo === 'string' && titulo.trim() ? titulo.trim() : '',
       // La última vez que la lectura se movió de sitio, que es lo más cerca
       // que hay de «cuándo lo leí por última vez»: el tiempo por libro no
       // lleva fecha, porque cada aparato solo suma en su casilla.
-      ultimaLectura: entrada?.posicionActualizada ?? entrada?.actualizado ?? '',
+      ultimaLectura: entrada?.posicionActualizada ?? entrada?.actualizado ?? resto?.ultimaLectura ?? '',
       formato: formatoDe(id),
       enLaNube: !String(id).startsWith('local:'),
+      // Que el libro ya no esté se dice en la lista, para que nadie lo busque
+      // en la biblioteca. Si volvió a aparecer, no hay nada que advertir.
+      borrado: entrada ? '' : (resto?.borrado ?? ''),
       segundos: total.s,
       paginas: total.p,
       porDispositivo: Object.entries(tiempos)
@@ -338,7 +451,12 @@ export function librosLeidos(libros) {
 // propio libro y allí siempre hay algo que enseñar.
 export function estadisticasDeLibro(datos, id) {
   const entrada = datos?.libros?.[id];
-  const tiempos = normalizarTiempos(entrada?.tiempos);
+  const resto = normalizarLeidos(datos?.leidos)[id];
+  // La ficha se abre también desde la lista de estadísticas, donde siguen los
+  // libros borrados: allí no hay entrada de progreso, solo el resto apartado.
+  const tiempos = entrada && resto
+    ? fusionarTiempos(entrada.tiempos, resto.tiempos)
+    : normalizarTiempos(entrada?.tiempos ?? resto?.tiempos);
   const total = totalTiempo(tiempos);
   const porDispositivo = Object.entries(tiempos)
     .map(([dispositivo, valor]) => ({ dispositivo, segundos: valor.s, paginas: valor.p }))
@@ -360,6 +478,8 @@ export function estadisticasDeLibro(datos, id) {
       ? Math.min(100, Math.max(0, Math.round((pagina / paginas) * 100)))
       : null,
     terminado: entrada?.terminado === true,
+    // Un libro del que solo queda el resto ya no está en la biblioteca.
+    borrado: !entrada && resto ? (resto.borrado ?? '') : '',
   };
 }
 
@@ -375,7 +495,7 @@ export function resumen(datos, ahora = Date.now(), diasSerie = 30) {
     (mejor, dia) => (dias[dia].s > (mejor?.segundos ?? 0) ? { dia, segundos: dias[dia].s } : mejor),
     null,
   );
-  const libros = librosLeidos(datos?.libros);
+  const libros = librosLeidos(datos?.libros, datos?.leidos);
 
   return {
     hay: claves.length > 0 || libros.length > 0,

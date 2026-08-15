@@ -6115,6 +6115,9 @@ function pintarLibrosLeidos(resumen) {
     }
     const cuando = fechaDeLaUltimaLectura(libro.ultimaLectura);
     if (cuando) partes.push(t('statsLastRead', { date: cuando }));
+    // Un libro borrado sigue contando aquí, pero conviene decir que ya no está
+    // para que nadie lo busque en la biblioteca.
+    if (libro.borrado) partes.push(t('statsBookGone'));
     if (partes.length) {
       const reparto = document.createElement('span');
       reparto.className = 'reparto-estadistica';
@@ -6225,7 +6228,8 @@ function pintarFichaLibro(id) {
 
   const cifras = [];
   if (ficha.hay) {
-    cifras.push([t('statsBookTime'), duracionLegible(ficha.segundos)]);
+    cifras.push([t('statsBookTime'), duracionLegible(ficha.segundos),
+      ficha.borrado ? t('statsBookGone') : '']);
     if (ficha.porcentaje !== null) {
       cifras.push([t('statsBookRead'), `${ficha.porcentaje} %`,
         ficha.terminado ? t('finished') : '']);
