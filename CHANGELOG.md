@@ -7,6 +7,13 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.1.1 — 15 de agosto de 2026
+
+### Cambiado
+- **La ayuda explica cómo imprimir.** La pestaña «Lector» tiene un apartado
+  nuevo con cómo llevar un EPUB al papel, cómo imprimir solo un capítulo y qué
+  pasa con los subrayados y las notas. En los ocho idiomas.
+
 ## 1.1.0 — 15 de agosto de 2026
 
 ### Añadido

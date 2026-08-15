@@ -3559,6 +3559,27 @@ const ayudas = {
       </div>
 
       <div class="tarjeta">
+        <h2>Imprimir i desar en PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Portar un EPUB al paper</summary>
+          <p>
+        el botó de la impressora (o «Imprimeix o desa en PDF» al menú «⋯») compon el llibre per a fulls de paper i obre el diàleg d’impressió del navegador, on pots triar la impressora o «Desa com a PDF». Es tria la mida del full (A4 o Carta), els marges i el cos de lletra; cada capítol comença en un full nou i el llibre conserva la seva maquetació i les seves il·lustracions. Els ajustos es recorden per a la propera vegada. Als PDF no hi surt: aquests s’imprimeixen baixant-los.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Imprimir només un capítol</summary>
+          <p>
+        la llista del diàleg porta tots els capítols marcats. Desmarca els que no vulguis —o prem «Cap» i tria’n només un— i el paper només portarà aquests. Un llibre sencer en A4 són molts fulls.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Subratllats i notes al paper</summary>
+          <p>
+        si el llibre té anotacions, una casella permet endur-se-les: els passatges surten amb el seu color i cada nota, amb la seva crida, es recull al final del seu capítol al costat del fragment que comenta. Desmarcada, s’imprimeix el text net.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
         <h2>Sobre els PDF</h2>
         <div class="puntos-ayuda">
         <details class="punto-ayuda">
@@ -4064,6 +4085,27 @@ const ayudas = {
         again from the start. The settings (voice and speed) reopen from the “⋯” menu.
         Turning a page by hand stops the reading. It does not work on scanned PDFs
         without text.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Printing and saving as PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Taking an EPUB to paper</summary>
+          <p>
+        the printer button (or “Print or save as PDF” in the “⋯” menu) lays the book out for sheets of paper and opens your browser’s print dialog, where you can pick a printer or “Save as PDF”. You choose the paper size (A4 or Letter), the margins and the text size; each chapter starts on a new sheet, and the book keeps its own layout and illustrations. The settings are remembered for next time. It does not show up for PDFs: those you print by downloading them.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Printing a single chapter</summary>
+          <p>
+        every chapter starts ticked in the dialog’s list. Untick the ones you don’t want —or press “None” and pick just one— and only those reach the paper. A whole book in A4 is a lot of sheets.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Highlights and notes on paper</summary>
+          <p>
+        if the book has annotations, a checkbox brings them along: passages come out in their colour, and each note, with its marker, is collected at the end of its chapter next to the passage it comments on. Unticked, the text prints clean.</p>
         </details>
         </div>
       </div>
@@ -4607,6 +4649,27 @@ const ayudas = {
       </div>
 
       <div class="tarjeta">
+        <h2>Imprimer et enregistrer en PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Porter un EPUB sur le papier</summary>
+          <p>
+        le bouton de l’imprimante (ou « Imprimer ou enregistrer en PDF » dans le menu « ⋯ ») compose le livre pour des feuilles de papier et ouvre la boîte de dialogue d’impression du navigateur, où vous pouvez choisir l’imprimante ou « Enregistrer au format PDF ». Vous choisissez le format (A4 ou Letter), les marges et le corps du texte ; chaque chapitre commence sur une nouvelle feuille et le livre garde sa mise en page et ses illustrations. Les réglages sont mémorisés pour la fois suivante. Pour les PDF, l’option n’apparaît pas : ceux-là s’impriment en les téléchargeant.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>N’imprimer qu’un chapitre</summary>
+          <p>
+        la liste de la boîte de dialogue arrive avec tous les chapitres cochés. Décochez ceux dont vous ne voulez pas — ou appuyez sur « Aucun » et n’en choisissez qu’un — et le papier ne portera que ceux-là. Un livre entier en A4, cela fait beaucoup de feuilles.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Surlignages et notes sur le papier</summary>
+          <p>
+        si le livre a des annotations, une case permet de les emporter : les passages sortent avec leur couleur et chaque note, avec son appel, est reprise à la fin de son chapitre, à côté du passage qu’elle commente. Décochée, le texte s’imprime net.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
         <h2>À propos des PDF</h2>
         <div class="puntos-ayuda">
         <details class="punto-ayuda">
@@ -5119,6 +5182,27 @@ const ayudas = {
         interrompida lese de novo desde o inicio. Os axustes (voz e velocidade)
         ábrense de novo desde o menú «⋯». Pasar unha páxina á man detén a lectura. Non
         funciona en PDF escaneados sen texto.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Imprimir e gardar en PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Levar un EPUB ao papel</summary>
+          <p>
+        o botón da impresora (ou «Imprimir ou gardar en PDF» no menú «⋯») compón o libro para follas de papel e abre o diálogo de impresión do navegador, onde podes escoller a impresora ou «Gardar como PDF». Escóllese o tamaño da folla (A4 ou Carta), as marxes e o corpo de letra; cada capítulo comeza en folla nova e o libro conserva a súa maquetación e as súas ilustracións. Os axustes lémbranse para a próxima vez. Nos PDF non aparece: eses imprímense descargándoos.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Imprimir só un capítulo</summary>
+          <p>
+        a lista do diálogo trae todos os capítulos marcados. Desmarca os que non queiras —ou preme «Ningún» e escolle só un— e o papel levará unicamente eses. Un libro enteiro en A4 son moitas follas.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Subliñados e notas no papel</summary>
+          <p>
+        se o libro ten anotacións, unha caixa permite levalas: as pasaxes saen coa súa cor e cada nota, coa súa chamada, recóllese ao final do seu capítulo canda o fragmento que comenta. Desmarcada, imprímese o texto limpo.</p>
         </details>
         </div>
       </div>
@@ -5649,6 +5733,27 @@ const ayudas = {
         (ahotsa eta abiadura) «⋯» menutik berriro irekitzen dira. Eskuz orrialdea
         aldatzeak irakurketa gelditzen du. Ez du funtzionatzen testurik gabeko
         eskaneatutako PDFetan.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Inprimatu eta PDF gisa gorde</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>EPUB bat paperera eraman</summary>
+          <p>
+        inprimagailuaren botoiak (edo «⋯» menuko «Inprimatu edo gorde PDF gisa») liburua paper-orrietarako osatzen du eta nabigatzailearen inprimatze-elkarrizketa irekitzen du; bertan inprimagailua edo «Gorde PDF gisa» aukera dezakezu. Orriaren tamaina (A4 edo Letter), marjinak eta letra-tamaina aukeratzen dira; kapitulu bakoitza orri berrian hasten da, eta liburuak bere maketazioa eta ilustrazioak gordetzen ditu. Ezarpenak hurrengorako gogoratzen dira. PDFetan ez da agertzen: horiek deskargatuz inprimatzen dira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Kapitulu bakarra inprimatu</summary>
+          <p>
+        elkarrizketako zerrendan kapitulu guztiak markatuta daude. Kendu marka nahi ez dituzunei —edo sakatu «Bat ere ez» eta aukeratu bakarra— eta paperean horiek bakarrik aterako dira. Liburu oso bat A4 tamainan orri asko dira.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Azpimarratuak eta oharrak paperean</summary>
+          <p>
+        liburuak oharpenak baditu, kontrol-lauki batek eramaten uzten ditu: pasarteak beren kolorearekin ateratzen dira, eta ohar bakoitza, bere deiarekin, kapituluaren amaieran biltzen da, iruzkintzen duen zatiaren ondoan. Markarik gabe, testua garbi inprimatzen da.</p>
         </details>
         </div>
       </div>
@@ -6210,6 +6315,27 @@ const ayudas = {
       </div>
 
       <div class="tarjeta">
+        <h2>Drucken und als PDF speichern</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Ein EPUB aufs Papier bringen</summary>
+          <p>
+        die Druckerschaltfläche (oder „Drucken oder als PDF speichern“ im Menü „⋯“) setzt das Buch für Papierseiten und öffnet den Druckdialog des Browsers, in dem du den Drucker oder „Als PDF speichern“ wählen kannst. Du wählst das Papierformat (A4 oder Letter), die Ränder und die Schriftgröße; jedes Kapitel beginnt auf einer neuen Seite, und das Buch behält sein Layout und seine Illustrationen. Die Einstellungen werden für das nächste Mal gemerkt. Bei PDFs erscheint sie nicht: die druckt man, indem man sie herunterlädt.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Nur ein Kapitel drucken</summary>
+          <p>
+        in der Liste des Dialogs sind alle Kapitel angehakt. Nimm bei denen das Häkchen weg, die du nicht willst – oder drücke „Keine“ und wähle nur eines –, und aufs Papier kommen nur diese. Ein ganzes Buch in A4 sind viele Blätter.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Markierungen und Notizen auf dem Papier</summary>
+          <p>
+        hat das Buch Anmerkungen, nimmt ein Kontrollkästchen sie mit: die Stellen erscheinen in ihrer Farbe, und jede Notiz wird mit ihrer Ziffer am Ende ihres Kapitels gesammelt, neben der Stelle, die sie kommentiert. Ohne Häkchen wird der Text sauber gedruckt.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
         <h2>Über PDFs</h2>
         <div class="puntos-ayuda">
         <details class="punto-ayuda">
@@ -6743,6 +6869,27 @@ const ayudas = {
         definições (voz e velocidade) voltam a abrir-se a partir do menu «⋯».
         Passar de página à mão para a leitura. Não funciona em PDF
         digitalizados sem texto.</p>
+        </details>
+        </div>
+      </div>
+
+      <div class="tarjeta">
+        <h2>Imprimir e guardar em PDF</h2>
+        <div class="puntos-ayuda">
+        <details class="punto-ayuda">
+          <summary>Levar um EPUB ao papel</summary>
+          <p>
+        o botão da impressora (ou «Imprimir ou guardar em PDF» no menu «⋯») compõe o livro para folhas de papel e abre a caixa de impressão do navegador, onde podes escolher a impressora ou «Guardar como PDF». Escolhe-se o tamanho da folha (A4 ou Carta), as margens e o corpo de letra; cada capítulo começa em folha nova e o livro conserva a sua paginação e as suas ilustrações. Os ajustes ficam memorizados para a próxima vez. Nos PDF não aparece: esses imprimem-se descarregando-os.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Imprimir só um capítulo</summary>
+          <p>
+        a lista da caixa traz todos os capítulos marcados. Desmarca os que não quiseres —ou carrega em «Nenhum» e escolhe só um— e o papel levará apenas esses. Um livro inteiro em A4 são muitas folhas.</p>
+        </details>
+        <details class="punto-ayuda">
+          <summary>Sublinhados e notas no papel</summary>
+          <p>
+        se o livro tiver anotações, uma caixa permite levá-las: as passagens saem com a sua cor e cada nota, com a sua chamada, é recolhida no fim do seu capítulo junto ao trecho que comenta. Desmarcada, imprime-se o texto limpo.</p>
         </details>
         </div>
       </div>
