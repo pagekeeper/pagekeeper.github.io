@@ -125,6 +125,15 @@ test('el nombre personalizado gana el más reciente sin tocar la posición', () 
   assert.equal(resultado.titulo, 'Nombre nuevo');
 });
 
+test('quién movió la posición viaja con la posición que gana', () => {
+  const local = entrada({ pagina: 20, posicionActualizada: '2026-01-03T10:00:00.000Z' });
+  local.posicionDispositivo = 'aqui';
+  const remoto = entrada({ pagina: 10, posicionActualizada: '2026-01-02T10:00:00.000Z' });
+  remoto.posicionDispositivo = 'alli';
+  assert.equal(fusionarEntradas(local, remoto).posicionDispositivo, 'aqui');
+  assert.equal(fusionarEntradas(remoto, local).posicionDispositivo, 'aqui');
+});
+
 test('borrar el nombre en un dispositivo se propaga al fusionar', () => {
   const local = entrada({ pagina: 5, posicionActualizada: '2026-01-05T10:00:00.000Z' });
   local.tituloActualizado = '2026-01-05T10:00:00.000Z'; // borrado más reciente, sin titulo

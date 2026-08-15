@@ -264,6 +264,11 @@ export function anotarPagina(idLibro, pagina, totalPaginas, extra = {}) {
     posicionActualizada: ahora,
     actualizado: ahora,
     dispositivo: nombreDispositivo(),
+    // Quién movió la posición, con el identificador que distingue un aparato
+    // de otro (`dispositivo` es solo el sistema, y dos móviles Android serían
+    // el mismo). Sirve para no avisar de «otro dispositivo» cuando lo que
+    // baja de la nube lo escribió este mismo (ver posicion-remota.js).
+    posicionDispositivo: idDispositivo(),
   };
   // La marca de porcentaje aproximado solo vale para la anotación que la trae:
   // arrastrada de una anterior diría que un número bueno no es de fiar.
@@ -732,8 +737,11 @@ export function fusionarEntradas(localOriginal, remotoOriginal, cambioLocal = {}
   const reciente = local.actualizado >= remoto.actualizado ? local : remoto;
   const anterior = reciente === local ? remoto : local;
   const resultado = { ...anterior, ...reciente };
-  for (const campo of ['pagina', 'paginas', 'cfi']) delete resultado[campo];
-  for (const campo of ['pagina', 'paginas', 'cfi']) {
+  // `posicionDispositivo` viaja con la posición, no con lo más reciente: si se
+  // quedara la del otro lado, la entrada diría que la movió quien no fue.
+  const CAMPOS_POSICION = ['pagina', 'paginas', 'cfi', 'posicionDispositivo'];
+  for (const campo of CAMPOS_POSICION) delete resultado[campo];
+  for (const campo of CAMPOS_POSICION) {
     if (campo in posicion) resultado[campo] = posicion[campo];
   }
   const marcadores = fusionarMarcadores(localOriginal, remotoOriginal, cambioLocal);

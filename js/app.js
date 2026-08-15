@@ -5591,6 +5591,8 @@ async function atenderPosicionRemota() {
     claveLector: claveActualDelLector(),
     claveDescartada: posicionRemotaDescartada,
     distancia: distanciaPosiciones(avance, enPantalla),
+    mismoDispositivo: Boolean(avance?.posicionDispositivo)
+      && avance.posicionDispositivo === progreso.idDispositivo(),
   });
   if (decision === 'nada') return;
   if (decision === 'saltar') {
@@ -5599,7 +5601,29 @@ async function atenderPosicionRemota() {
     await saltarAPosicion(avance);
     return;
   }
+  if (decision === 'reafirmar') {
+    cerrarAvisoPosicionRemota();
+    quedarseDondeSeEsta();
+    return;
+  }
   preguntarPosicionRemota(avance, enPantalla, destino);
+}
+
+// Deja escrito que la posición buena es la que se está viendo. Hace falta
+// siempre que la fusión se haya quedado con otra: si no se reafirmara, la
+// biblioteca —y el resto de aparatos en cuanto sincronicen— seguirían diciendo
+// que la lectura va por donde no va.
+function quedarseDondeSeEsta() {
+  if (!libroActual) return;
+  const enPantalla = avanceEnPantalla();
+  // Sin el reparto del EPUB hecho, el porcentaje de pantalla no vale; se deja
+  // que lo escriba el seguimiento normal en cuanto se pase de página.
+  if (!enPantalla.porcentajeAproximado) {
+    progreso.anotarPagina(libroActual.id, enPantalla.pagina, enPantalla.paginas,
+      enPantalla.cfi ? { cfi: enPantalla.cfi } : {});
+    planificarSincronizacion();
+  }
+  posicionAlAbrir = claveActualDelLector();
 }
 
 // El cartel se queda hasta que se responde: es una decisión, no una noticia.
@@ -5641,23 +5665,13 @@ $('btn-ir-posicion-remota').addEventListener('click', async () => {
   await saltarAPosicion(avance);
 });
 
-// Quedarse no es solo cerrar el cartel: la posición guardada es ahora mismo la
-// del otro dispositivo, y si no se reafirmara la de aquí, la biblioteca —y el
-// otro aparato en cuanto sincronice— seguirían diciendo que la lectura va por
-// donde no va. Se anota lo que hay en pantalla, que es lo que se ha elegido.
+// Quedarse no es solo cerrar el cartel: hay que dejar escrito lo que se ha
+// elegido, que es lo que hace quedarseDondeSeEsta().
 $('btn-quedarse-posicion').addEventListener('click', () => {
   posicionRemotaDescartada = $('aviso-posicion-remota').dataset.destino ?? null;
   cerrarAvisoPosicionRemota();
   if (!libroActual) return;
-  const enPantalla = avanceEnPantalla();
-  // Sin el reparto del EPUB hecho, el porcentaje de pantalla no vale; se deja
-  // que lo escriba el seguimiento normal en cuanto se pase de página.
-  if (!enPantalla.porcentajeAproximado) {
-    progreso.anotarPagina(libroActual.id, enPantalla.pagina, enPantalla.paginas,
-      enPantalla.cfi ? { cfi: enPantalla.cfi } : {});
-    planificarSincronizacion();
-  }
-  posicionAlAbrir = claveActualDelLector();
+  quedarseDondeSeEsta();
   avisar(t('remotePositionStayed'), 4000);
 });
 

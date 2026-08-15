@@ -13,6 +13,14 @@
 //    decidido quedarse con la posición ajena y quien lee no se entera. Se
 //    pregunta, diciendo los dos puntos para que pueda valorar cuál quiere.
 //
+// Con una excepción: que la posición que llega la escribiera este mismo
+// aparato. Pasaba al ir y volver deprisa —cambiar el zoom, abrir una nota,
+// retroceder— mientras una subida estaba en marcha: lo que bajaba era la
+// lectura de uno mismo de hace unos segundos, y el cartel decía «en otro
+// dispositivo» sin que hubiera ningún otro dispositivo. Ahí no hay nada que
+// preguntar: manda lo que se está viendo, y se reafirma en silencio para que
+// la posición guardada deje de ir por detrás.
+//
 // Pintar el cartel es cosa de app.js; aquí solo se decide.
 
 // Por debajo de esto no se pregunta: un punto de porcentaje o una página de
@@ -43,13 +51,20 @@ export function distanciaPosiciones(remoto, local) {
 // salto o una respuesta, la última aceptada); `claveLector`, la que se está
 // viendo. Que sigan siendo la misma es lo que dice que aquí no se ha leído.
 // `claveDescartada` recuerda a qué posición se dijo que no, para no volver a
-// preguntar lo mismo en cada sincronización.
+// preguntar lo mismo en cada sincronización. `mismoDispositivo` dice si la
+// posición que llega la escribió este aparato: entonces no se pregunta, se
+// reafirma la de pantalla (ver arriba).
 export function decidirPosicionRemota({
   clave, claveApertura, claveLector, claveDescartada = null, distancia = null,
+  mismoDispositivo = false,
 }) {
   if (!clave) return 'nada';
   if (clave === claveApertura || clave === claveLector) return 'nada';
+  // Saltar sigue valiendo aunque la posición sea propia: si aquí no se ha
+  // leído nada, es la lectura de este mismo aparato que no llegó a tiempo al
+  // abrir el libro, justo lo que esto vino a rescatar.
   if (claveLector === claveApertura) return 'saltar';
+  if (mismoDispositivo) return 'reafirmar';
   if (clave === claveDescartada) return 'nada';
   if (distancia === null || distancia < DIFERENCIA_MINIMA) return 'nada';
   return 'preguntar';

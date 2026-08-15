@@ -7,6 +7,17 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.0.1 — 15 de agosto de 2026
+
+### Arreglado
+- **Se acabaron los avisos de «en otro dispositivo» que no venían de ningún
+  otro dispositivo.** Al ir y volver deprisa —cambiar el zoom, abrir una nota,
+  retroceder— mientras se estaba subiendo la posición, lo que bajaba de la nube
+  era la lectura de uno mismo de hace unos segundos, y aparecía el cartel
+  preguntando adónde ir. Ahora la posición lleva apuntado qué aparato la
+  escribió: si fue este, no se pregunta nada y se deja anotado el sitio por el
+  que se va de verdad.
+
 ## 1.0.0 — 15 de agosto de 2026
 
 Primera versión numerada. Recoge el estado de la aplicación a día de hoy y los

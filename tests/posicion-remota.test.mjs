@@ -72,6 +72,25 @@ test('una diferencia mínima no merece cartel', () => {
   }), 'nada');
 });
 
+test('lo que escribió este mismo aparato no se pregunta, se reafirma', () => {
+  assert.equal(decidirPosicionRemota({
+    clave: 'p120', claveApertura: 'p45', claveLector: 'p60', distancia: 60,
+    mismoDispositivo: true,
+  }), 'reafirmar');
+  // Aunque la diferencia sea pequeña o no se pueda medir: la posición guardada
+  // está mal igual, y el sitio bueno es el que se está viendo.
+  assert.equal(decidirPosicionRemota({
+    clave: 'p120', claveApertura: 'p45', claveLector: 'p60', distancia: null,
+    mismoDispositivo: true,
+  }), 'reafirmar');
+});
+
+test('sin haber leído aquí se salta aunque la posición sea propia', () => {
+  assert.equal(decidirPosicionRemota({
+    clave: 'p120', claveApertura: 'p45', claveLector: 'p45', mismoDispositivo: true,
+  }), 'saltar');
+});
+
 test('el aviso lleva el texto y los números de cada formato', () => {
   assert.deepEqual(
     avisoDePosicion({ cfi: 'epubcfi(/6/4)', pagina: 62.4 }, { cfi: 'epubcfi(/6/2)', pagina: 30 }),
