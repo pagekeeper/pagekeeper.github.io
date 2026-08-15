@@ -8043,6 +8043,13 @@ $('zona-abajo').addEventListener('click', (evento) => pulsarZona(evento, false))
 // las abre ampliadas. El enlace va primero porque una imagen enlazada —una
 // portada que lleva al índice— se pulsa para seguir el enlace, no para verla.
 function pulsarZona(evento, atras) {
+  // Las zonas son botones, y un botón pulsado con el ratón se queda con el
+  // foco: a partir de ahí el espacio lo volvía a activar, así que después de
+  // retroceder por el margen izquierdo el espacio retrocedía en vez de
+  // avanzar. Se suelta el foco, y el espacio vuelve a ser de quien lee. Solo
+  // cuando el clic viene de un puntero: llegando por teclado (Enter o Espacio
+  // sobre la zona) el foco tiene que quedarse donde está.
+  if (clicConPunto(evento)) evento.currentTarget?.blur();
   const objetivo = bajoElPunto(evento);
   if (objetivo?.enlace) objetivo.enlace.click();
   else if (objetivo?.imagen) abrirVisorImagen(objetivo.imagen);

@@ -7,6 +7,14 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.0.3 — 15 de agosto de 2026
+
+### Arreglado
+- **El espacio vuelve a avanzar siempre.** Si lo último que se había pulsado
+  con el ratón era el margen de retroceder, ese margen se quedaba con el foco y
+  el espacio lo volvía a activar: en vez de seguir leyendo, se retrocedía otra
+  vez. Mayúsculas+espacio sigue siendo el camino de vuelta.
+
 ## 1.0.2 — 15 de agosto de 2026
 
 ### Cambiado

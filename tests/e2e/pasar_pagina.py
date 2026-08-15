@@ -130,6 +130,42 @@ def no_salta_la_ultima_pagina_epub(page, r):
                 'EPUB: un píxel de desfase se salta la última página del capítulo')
 
 
+# Por dónde va, en número: la página en los PDF y el porcentaje en los EPUB.
+# Sirve para saber si se ha avanzado o retrocedido, que el CFI no dice.
+AVANCE = """() => parseFloat(
+  document.getElementById('btn-indicador').textContent.replace(',', '.'))"""
+
+
+def el_espacio_siempre_avanza(page, r, etiqueta):
+    """Aunque lo último que se haya pulsado sea el margen de retroceder.
+
+    Las zonas son botones y se quedaban con el foco al pulsarlas con el ratón:
+    el espacio volvía a activar la última, así que después de retroceder por el
+    margen izquierdo el espacio retrocedía otra vez.
+    """
+    # Con sitio por delante y por detrás: pegado al principio del libro no hay
+    # retroceso que probar, y en EPUB el porcentaje ni se mueve.
+    for _ in range(10):
+        page.click('#zona-siguiente')
+        page.wait_for_timeout(400)
+    page.click('#zona-anterior')
+    page.wait_for_timeout(1400)
+    atras = page.evaluate(AVANCE)
+    r.comprobar(page.evaluate(
+        "() => !document.activeElement.classList.contains('zona-toque')"),
+        f'{etiqueta}: la zona se queda con el foco tras pulsarla con el ratón')
+    page.keyboard.press(' ')
+    page.wait_for_timeout(1600)
+    despues = page.evaluate(AVANCE)
+    print(f'[{etiqueta}] tras retroceder con el ratón, el espacio: {atras} → {despues}')
+    r.comprobar(despues > atras, f'{etiqueta}: el espacio no avanza tras pulsar el margen')
+    # Y Mayúsculas+espacio sigue siendo el camino de vuelta.
+    page.keyboard.press('Shift+ ')
+    page.wait_for_timeout(1600)
+    r.comprobar(page.evaluate(AVANCE) < despues,
+                f'{etiqueta}: Mayúsculas+espacio no retrocede')
+
+
 # Lo que se ve al llegar al borde: se apuntan las clases que van y vienen en el
 # área de lectura mientras dura el intento.
 VIGILAR = """() => {
@@ -237,6 +273,7 @@ with comun.servidor() as base, sync_playwright() as p:
         page.evaluate("() => document.getElementById('zoom-pagina').click()")
         page.wait_for_timeout(1500)
         en_modo_pagina(page, r, etiqueta)
+        el_espacio_siempre_avanza(page, r, etiqueta)
         if etiqueta == 'EPUB':
             no_salta_la_ultima_pagina_epub(page, r)
         # A dónde saltar para ponerse en el borde: el EPUB va por porcentaje.
