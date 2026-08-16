@@ -6950,7 +6950,24 @@ function soltarDocumentoImpreso(vaciarElMarco) {
   clearTimeout(documentoImpreso.plazo);
   URL.revokeObjectURL(documentoImpreso.url);
   documentoImpreso = null;
-  if (vaciarElMarco) $('marco-impresion').src = 'about:blank';
+  if (vaciarElMarco) ponerEnElMarcoDeImpresion('about:blank');
+}
+
+// Cambiar lo que hay en el marco de impresión se hace con `location.replace` y
+// no asignando `src`: asignarlo apunta una navegación en el historial del
+// navegador por cada documento que pasa por ahí —el que se imprime y el
+// «about:blank» con el que se suelta después—, y como quien lee no ha
+// navegado a ninguna parte, la flecha de volver se gastaba en deshacer esos
+// pasos invisibles en vez de salir del libro. De ahí que unas veces hiciera
+// falta pulsarla una vez y otras tres: dependía de cuántas veces se hubiera
+// imprimido y de si había pasado ya el plazo que vacía el marco.
+function ponerEnElMarcoDeImpresion(url) {
+  const marco = $('marco-impresion');
+  // Sin ventana todavía (el marco acaba de montarse) no hay nada que
+  // reemplazar: entonces `src` es lo único que hay, y esa primera carga no
+  // apunta nada porque sustituye al documento vacío de partida.
+  if (marco.contentWindow) marco.contentWindow.location.replace(url);
+  else marco.src = url;
 }
 
 // Las medidas a mano: qué lista las pide, dónde se escriben y con qué topes.
@@ -7324,7 +7341,7 @@ async function imprimirLibro() {
     await new Promise((listo, fallo) => {
       marco.onload = listo;
       marco.onerror = () => fallo(new Error('marco'));
-      marco.src = url;
+      ponerEnElMarcoDeImpresion(url);
     });
     await esperarAlMarco(marco);
     $('estado-imprimir').textContent = '';

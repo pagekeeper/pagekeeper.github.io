@@ -7,6 +7,17 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.3.2 — 16 de agosto de 2026
+
+### Arreglado
+- **Después de imprimir, la flecha vuelve a la biblioteca a la primera.**
+  Hacían falta una, dos o más pulsaciones sin que se supiera de qué dependía:
+  el documento que se compone para imprimir apuntaba una navegación en el
+  historial del navegador cada vez que pasaba por el marco, y la flecha se
+  gastaba en deshacer esos pasos invisibles. Dependía de cuántas veces se
+  hubiera imprimido y de si habían pasado ya los veinte segundos tras los que
+  el documento se suelta.
+
 ## 1.3.1 — 15 de agosto de 2026
 
 ### Cambiado

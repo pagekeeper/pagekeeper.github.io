@@ -225,6 +225,24 @@ def los_subrayados_van_al_papel(page, r):
                 'desmarcada la casilla, el papel sigue llevando subrayados')
 
 
+def volver_al_libro_y_salir(page, r, historial):
+    """Después de imprimir, una sola pulsación saca del libro.
+
+    El marco donde se compone el documento apuntaba una navegación en el
+    historial del navegador por cada documento que pasaba por él, y la flecha
+    de volver se gastaba en deshacer esos pasos invisibles: unas veces hacía
+    falta pulsarla una vez y otras tres, según cuánto se hubiera imprimido.
+    """
+    ahora = page.evaluate('() => history.length')
+    print(f'[imprimir] historial: {historial} al abrir, {ahora} tras imprimir')
+    r.comprobar(ahora == historial,
+                f'imprimir dejó {ahora - historial} pasos de más en el historial')
+    page.click('#btn-volver')
+    page.wait_for_timeout(1500)
+    r.comprobar(page.locator('#vista-lector').evaluate("e => e.classList.contains('oculto')"),
+                'tras imprimir hace falta más de una pulsación para salir del libro')
+
+
 r = comun.Resultado('imprimir')
 
 with comun.servidor() as base, sync_playwright() as p:
@@ -235,11 +253,13 @@ with comun.servidor() as base, sync_playwright() as p:
     page.wait_for_timeout(3000)
     r.comprobar(page.locator('#btn-imprimir').is_visible(),
                 'en un EPUB debería poder imprimirse')
+    historial = page.evaluate('() => history.length')
     el_documento_lleva_el_libro(page, r)
     solo_los_capitulos_elegidos(page, r)
     la_hoja_de_titulo_se_puede_quitar(page, r)
     las_medidas_a_mano(page, r)
     los_subrayados_van_al_papel(page, r)
+    volver_al_libro_y_salir(page, r, historial)
     page.close()
 
     # En PDF no se ofrece: ese ya se imprime descargándolo.
