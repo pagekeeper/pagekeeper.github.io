@@ -21,7 +21,12 @@
        cargando código de fuera.
 
        blob: hace falta en varios sitios propios: el worker de PDF.js, las
-       portadas guardadas, las descargas y los capítulos del EPUB.
+       portadas guardadas, las descargas y los capítulos del EPUB. También en
+       font-src: las tipografías que trae incrustadas un libro se sirven así, y
+       sin ellas un libro con fórmulas (que suele traer la suya) se ve con la
+       letra del sistema y los símbolos salen donde pueden. Es el mismo riesgo
+       que ya se acepta con sus imágenes, y esas direcciones las crea la propia
+       aplicación: no abre la puerta a nada de fuera.
 
        style-src lleva 'unsafe-inline' porque el navegador cuenta como estilo
        en línea todo lo que se escribe desde JavaScript (elemento.style.alto),
@@ -37,7 +42,7 @@
     script-src 'self' https://bilateria.org;
     style-src 'self' 'unsafe-inline' blob:;
     img-src 'self' data: blob:;
-    font-src 'self' data:;
+    font-src 'self' data: blob:;
     media-src 'self' data: blob:;
     worker-src 'self' blob:;
     frame-src 'self' data: blob:;

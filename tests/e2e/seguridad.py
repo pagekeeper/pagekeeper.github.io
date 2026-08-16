@@ -6,6 +6,7 @@ cualquier aviso de CSP en la consola. Comprueba además que cada capítulo EPUB
 conserva su propia política, que es la que impide que un libro ejecute código.
 """
 
+import pathlib
 import shutil
 import zipfile
 
@@ -49,6 +50,59 @@ media-type="application/oebps-package+xml"/></rootfiles></container>"""
         z.writestr('OEBPS/content.opf', opf)
         z.writestr('OEBPS/nav.xhtml', nav)
         z.writestr('OEBPS/cap1.xhtml', CAPITULO.replace('%RELLENO%', 'Palabras y más palabras. ' * 60))
+    return destino
+
+
+def fuente_del_sistema():
+    """Cualquier tipografía que haya en la máquina, para incrustarla en un
+    libro de prueba. Ninguno de los ejemplos trae una, y meter un archivo de
+    fuente en el repositorio por una prueba no compensa. Si la máquina no tiene
+    ninguna, el caso se salta en vez de fallar."""
+    for carpeta in ('/usr/share/fonts', '/usr/local/share/fonts'):
+        raiz = pathlib.Path(carpeta)
+        if not raiz.is_dir():
+            continue
+        for archivo in sorted(raiz.rglob('*.ttf')):
+            if archivo.stat().st_size < 500_000:
+                return archivo
+    return None
+
+
+def epub_con_fuente(destino, fuente):
+    """Un EPUB mínimo cuyo texto pide una tipografía incrustada."""
+    opf = """<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="id">
+<metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+<dc:identifier id="id">prueba-fuente</dc:identifier>
+<dc:title>Prueba de fuente</dc:title><dc:language>es</dc:language></metadata>
+<manifest><item id="c1" href="cap1.xhtml" media-type="application/xhtml+xml"/>
+<item id="css" href="estilo.css" media-type="text/css"/>
+<item id="f" href="letra.ttf" media-type="font/ttf"/>
+<item id="nav" href="nav.xhtml" media-type="application/xhtml+xml" properties="nav"/></manifest>
+<spine><itemref idref="c1"/></spine></package>"""
+    css = ('@font-face { font-family: "LetraDelLibro"; '
+           'src: url("letra.ttf") format("truetype"); }\n'
+           'body { font-family: "LetraDelLibro", serif; }')
+    capitulo = """<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml"><head><title>Capítulo</title>
+<link rel="stylesheet" href="estilo.css"/></head>
+<body><h1>Con su letra</h1><p>%RELLENO%</p></body></html>"""
+    nav = """<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html><html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+<head><title>Índice</title></head><body><nav epub:type="toc"><ol>
+<li><a href="cap1.xhtml">Capítulo</a></li></ol></nav></body></html>"""
+    container = """<?xml version="1.0"?>
+<container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
+<rootfiles><rootfile full-path="OEBPS/content.opf"
+media-type="application/oebps-package+xml"/></rootfiles></container>"""
+    with zipfile.ZipFile(destino, 'w') as z:
+        z.writestr('mimetype', 'application/epub+zip', compress_type=zipfile.ZIP_STORED)
+        z.writestr('META-INF/container.xml', container)
+        z.writestr('OEBPS/content.opf', opf)
+        z.writestr('OEBPS/nav.xhtml', nav)
+        z.writestr('OEBPS/estilo.css', css)
+        z.writestr('OEBPS/cap1.xhtml', capitulo.replace('%RELLENO%', 'Palabras con su letra. ' * 80))
+        z.write(fuente, 'OEBPS/letra.ttf')
     return destino
 
 
@@ -132,6 +186,35 @@ with comun.servidor() as base, sync_playwright() as p:
     page.locator('#contenedor-epub').screenshot(path=str(comun.SALIDA / 'formulas.png'))
     page.click('#btn-volver')
     page.wait_for_selector('#vista-biblioteca:not(.oculto)')
+
+    # ── La tipografía que trae el libro
+    #
+    # Las fuentes incrustadas se sirven desde una dirección «blob:», y la
+    # política las bloqueaba: un libro con fórmulas —que casi siempre trae la
+    # suya— se veía con la letra del sistema y los símbolos donde podían.
+    fuente = fuente_del_sistema()
+    if not fuente:
+        print('sin fuentes en /usr/share/fonts: no se prueba la tipografía del libro.')
+    else:
+        libro = comun.SALIDA / 'con-fuente.epub'
+        epub_con_fuente(libro, fuente)
+        comun.anadir_libro(page, libro)
+        comun.abrir_libro(page, 'con-fuente')
+        page.wait_for_timeout(6000)
+        estado = ''
+        for f in [x for x in page.frames if x != page.main_frame]:
+            try:
+                estado = f.evaluate(
+                    """() => [...document.fonts]
+                         .filter((f) => f.family === 'LetraDelLibro')
+                         .map((f) => f.status).join(',')""") or estado
+            except Exception:
+                pass
+        print('tipografía del libro:', estado or '(no aparece)')
+        r.comprobar(estado == 'loaded',
+                    f'la fuente del libro no se ha cargado (estado: {estado or "ninguno"})')
+        page.click('#btn-volver')
+        page.wait_for_selector('#vista-biblioteca:not(.oculto)')
 
     # ── Descarga de una copia (blob + JSZip)
     page.click('#btn-archivos')

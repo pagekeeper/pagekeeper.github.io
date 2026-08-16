@@ -7,6 +7,15 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.3.3 — 16 de agosto de 2026
+
+### Arreglado
+- **Los libros se ven con su propia tipografía.** La política de seguridad
+  bloqueaba las letras que trae incrustadas un EPUB, así que un libro con
+  fórmulas —que casi siempre trae la suya— se leía con la letra del sistema y
+  los símbolos salían donde podían. Ahora se cargan, en la pantalla y también
+  al imprimir.
+
 ## 1.3.2 — 16 de agosto de 2026
 
 ### Arreglado
