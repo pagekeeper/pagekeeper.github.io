@@ -7,6 +7,22 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.4.0 — 18 de agosto de 2026
+
+### Añadido
+- **Un enlace puede abrir un libro directamente.** Una página que publique
+  EPUB o PDF ya puede poner un botón «Leer con PageKeeper»: al pulsarlo, el
+  libro se descarga, entra en la biblioteca y se abre para leer, sin pasar por
+  descargarlo a mano y volver a añadirlo. El enlace se escribe apuntando a
+  `pagekeeper.github.io/#libro=<dirección del archivo>`.
+
+  Como la dirección la escribe quien publica la página y no quien lee, la
+  descarga se pregunta antes y se enseña de qué servidor viene; solo se
+  aceptan direcciones `https` que terminen en `.epub` o `.pdf`. Si el libro ya
+  está en la biblioteca no se vuelve a descargar: se abre el que hay. Y con
+  una nube configurada se pregunta aparte si además se quiere guardar allí,
+  porque esa nube es de quien lee, no del sitio que enlaza.
+
 ## 1.3.3 — 16 de agosto de 2026
 
 ### Arreglado

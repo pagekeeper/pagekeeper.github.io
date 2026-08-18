@@ -19,6 +19,9 @@ import { resumenDeMetadatos } from './resumen-libro.js';
 import * as calificacion from './calificacion.js';
 import { libroQueSeAbreAlArrancar } from './apertura-inicial.js';
 import {
+  leerEnlaceDeLibro, validarUrlLibro, libroYaDescargado, tamanoAceptable,
+} from './libro-por-url.js';
+import {
   normalizarColumnas, columnasAutomaticas, valoresDisponibles, aspectoDeLaOpcion,
   normalizarLetrasPorLinea, LETRAS_INICIALES,
 } from './columnas.js';
@@ -1064,6 +1067,86 @@ function importarConfigDeUrl() {
     avisar(t('invalidConfigLink'), 5000);
   }
 }
+
+// ── Abrir un libro que llega por enlace ──
+// Una página puede enlazar un EPUB o un PDF con `#libro=<dirección>`: se
+// descarga, entra en la biblioteca como cualquier otro y se abre para leer.
+//
+// La descarga se pregunta antes y con el servidor a la vista, porque el enlace
+// lo escribe alguien de fuera y quien lo pulsa no siempre sabe a dónde apunta.
+// Lo que ya está en la biblioteca no se vuelve a pedir: se abre el que hay, y
+// así volver al mismo enlace es instantáneo y no gasta datos.
+async function abrirLibroDeEnlace() {
+  const enlace = leerEnlaceDeLibro(location.hash);
+  if (enlace === null) return;
+  // La dirección se quita de la barra nada más leerla: recargar la página no
+  // debería volver a preguntar por un libro que ya se decidió.
+  history.replaceState(estadoBiblioteca(), '', location.pathname + location.search);
+
+  let libro;
+  try {
+    libro = validarUrlLibro(enlace);
+  } catch {
+    avisar(t('bookLinkInvalid'), 5000);
+    return;
+  }
+
+  const yaEstaba = libroYaDescargado(await almacen.listarLibros().catch(() => []), libro.nombre);
+  if (yaEstaba) {
+    await abrirLibroLocal(yaEstaba);
+    return;
+  }
+
+  if (!confirm(t('bookLinkConfirm', { title: libro.nombre, host: libro.host }))) return;
+
+  mostrarCarga(t('downloading', { title: libro.nombre }));
+  let datos;
+  try {
+    const respuesta = await fetch(libro.url);
+    if (!respuesta.ok) throw new Error(`${respuesta.status} ${respuesta.statusText}`);
+    // El peso anunciado corta la descarga antes de empezarla; el real, después,
+    // porque la cabecera puede faltar o no decir la verdad.
+    if (!tamanoAceptable(respuesta.headers.get('content-length'))) throw new Error('DEMASIADO_GRANDE');
+    datos = await respuesta.arrayBuffer();
+    if (!tamanoAceptable(datos.byteLength)) throw new Error('DEMASIADO_GRANDE');
+  } catch (error) {
+    ocultarCarga();
+    avisar(error?.message === 'DEMASIADO_GRANDE' ? t('bookLinkTooBig') : t('bookLinkFailed'), 6000);
+    return;
+  }
+  ocultarCarga();
+
+  // Se reutiliza la entrada normal a la biblioteca: así el libro descargado
+  // pasa por las mismas comprobaciones de duplicados que uno arrastrado.
+  const archivo = new File([datos], libro.nombre, {
+    type: libro.formato === 'epub' ? 'application/epub+zip' : 'application/pdf',
+  });
+  try {
+    await guardarArchivoLocal(archivo, true);
+  } catch (error) {
+    avisar(t('saveFailed', { title: libro.nombre, error: error.message }), 6000);
+    return;
+  } finally {
+    ocultarCarga();
+    await cargarLibrosLocales().catch(() => null);
+  }
+
+  // Con nube configurada, el libro se ha guardado en este dispositivo y queda
+  // preguntar si además debe subirse, que es lo que lo haría aparecer en los
+  // demás. No se sube solo: es la nube de quien lee, no la del enlace.
+  if (cliente && confirm(t('bookLinkToCloud', { title: libro.nombre }))) {
+    const guardado = (await almacen.listarLibros().catch(() => []))
+      .find((entrada) => entrada.nombre === libro.nombre);
+    if (guardado) await subirLibroLocalANube(guardado);
+  }
+}
+
+// Cubre pegar o pulsar el enlace con la aplicación ya abierta: cambiar el
+// fragmento no recarga la página.
+window.addEventListener('hashchange', () => {
+  if (!location.hash.startsWith('#libro=')) return;
+  abrirLibroDeEnlace().catch(() => avisar(t('bookLinkFailed'), 6000));
+});
 
 // ── Exportar / importar configuración por archivo ──
 // El archivo contiene la contraseña de aplicación en texto legible. Se crea
@@ -10262,12 +10345,18 @@ window.addEventListener('online', () => {
 // Un enlace de configuración se abre para conectar este dispositivo, no para
 // leer: aunque esté pedida la apertura directa, esta vez se queda la biblioteca.
 const llegaConfigEnLaUrl = location.hash.startsWith('#cfg=');
+// Un enlace a un libro manda sobre la apertura automática: quien lo pulsa
+// quiere ese libro, no el que dejó a medias la última vez.
+const llegaLibroEnLaUrl = location.hash.startsWith('#libro=');
 importarConfigDeUrl();
 crearCliente();
-history.replaceState(estadoBiblioteca(), '');
+if (!llegaLibroEnLaUrl) history.replaceState(estadoBiblioteca(), '');
 mostrarVista('biblioteca');
 precargarLibrosEjemplo()
   .finally(() => cargarBiblioteca())
-  .then(() => (llegaConfigEnLaUrl ? null : abrirUltimaLecturaSiSePidio()))
+  .then(() => {
+    if (llegaLibroEnLaUrl) return abrirLibroDeEnlace();
+    return llegaConfigEnLaUrl ? null : abrirUltimaLecturaSiSePidio();
+  })
   .catch(() => null);
 

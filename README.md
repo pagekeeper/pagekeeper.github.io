@@ -287,6 +287,28 @@ libros y sincronizar el progreso de lectura.
 4. Tus PDF aparecerán en la biblioteca. Abre uno y lee: la posición se guarda
    sola.
 
+### Enlazar un libro desde otra página
+
+Una web que publique EPUB o PDF puede ofrecer un botón «Leer con PageKeeper»
+que abra el libro directamente en el lector:
+
+```html
+<a href="https://pagekeeper.github.io/#libro=https%3A%2F%2Ftu-sitio.org%2Flibro.epub">
+  Leer con PageKeeper
+</a>
+```
+
+La dirección del archivo va **codificada** en el fragmento `#libro=` (con
+`encodeURIComponent`). Al pulsarlo, PageKeeper pregunta si descargarlo —
+enseñando de qué servidor viene—, lo guarda en la biblioteca y lo abre. Si ese
+libro ya está en la biblioteca no lo vuelve a descargar: abre el que hay.
+
+Condiciones para que funcione:
+
+- La dirección debe ser `https` y terminar en `.epub` o `.pdf`.
+- El servidor que aloja el archivo debe permitir la descarga desde otro origen
+  (cabecera `Access-Control-Allow-Origin`). GitHub Pages ya lo hace.
+
 ### Configuración necesaria en Nextcloud
 
 1. **Contraseña de aplicación**: en Nextcloud ve a *Ajustes → Seguridad →
