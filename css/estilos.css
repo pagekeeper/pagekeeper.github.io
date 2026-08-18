@@ -699,8 +699,12 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9rem; }
 
 /* Casilla de una preferencia suelta, con la etiqueta al lado y toda la fila
-   como zona de pulsación. */
-.casilla { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; }
+   como zona de pulsación. Dentro de un formulario hay que repetir la
+   dirección: la regla de arriba apila etiqueta y campo, que es lo que quiere
+   un campo de texto pero deja la casilla encima de su propio texto. */
+.casilla, form label.casilla {
+  display: flex; flex-direction: row; align-items: center; gap: 0.6rem; cursor: pointer;
+}
 .casilla input {
   width: 1.1rem; height: 1.1rem; flex: none; margin: 0;
   accent-color: var(--acento-oscuro); cursor: pointer;

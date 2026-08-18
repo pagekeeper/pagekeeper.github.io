@@ -1896,6 +1896,26 @@
     </div>
   </div>
 
+  <!-- Un libro que llega por enlace se pregunta una sola vez: si además hay
+       nube configurada, la casilla decide de paso si sube allí, en lugar de
+       encadenar dos preguntas seguidas. -->
+  <div id="dialogo-libro-enlace" class="dialogo-fondo oculto">
+    <form id="form-libro-enlace" class="dialogo dialogo-libro-enlace" role="dialog"
+      aria-modal="true" aria-labelledby="titulo-libro-enlace">
+      <h2 id="titulo-libro-enlace" data-i18n="bookLinkTitle">Añadir libro a la biblioteca</h2>
+      <p id="texto-libro-enlace"></p>
+      <label class="casilla oculto" id="fila-libro-enlace-nube">
+        <input type="checkbox" id="casilla-libro-enlace-nube">
+        <span data-i18n="bookLinkAlsoCloud">Guardarlo también en mi nube</span>
+      </label>
+      <div class="fila-botones botones-dialogo">
+        <button type="button" id="btn-cancelar-libro-enlace" class="btn-secundario"
+          data-i18n="cancel">Cancelar</button>
+        <button type="submit" class="btn-primario" data-i18n="bookLinkAdd">Añadir y leer</button>
+      </div>
+    </form>
+  </div>
+
   <!-- Ilustración del libro abierta a pantalla completa. En EPUB, subir el
        tamaño de la letra no agranda las imágenes: para verlas de cerca se
        pulsan. Se cierra tocando en cualquier parte. -->

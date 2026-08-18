@@ -7,6 +7,25 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.5.0 — 18 de agosto de 2026
+
+### Cambiado
+- **Un libro que llega por enlace se pregunta una sola vez.** Antes salían dos
+  avisos seguidos del navegador: uno para descargarlo y otro, ya con el libro
+  abierto, para decidir si además subía a la nube. Ahora es un único cuadro,
+  con el nombre del libro y el servidor del que viene, una casilla para
+  guardarlo también en la nube —solo si la hay configurada— y los botones de
+  cancelar o añadir. Sin nube, el cuadro se queda en la pregunta de siempre.
+
+  La casilla parte desmarcada: subir a la nube de quien lee es una decisión
+  suya, no lo que ocurre si no se fija.
+
+### Arreglado
+- **Una casilla dentro de un formulario ya no queda encima de su texto.** La
+  regla que apila etiqueta y campo —la que quieren los campos de texto— se
+  llevaba por delante a las casillas. Solo se notaba en el cuadro nuevo, que
+  es la primera que vive dentro de un formulario.
+
 ## 1.4.1 — 18 de agosto de 2026
 
 ### Arreglado

@@ -384,6 +384,39 @@ function responderContrasenaPdf(clave) {
   resolver(clave);
 }
 
+// Un libro que llega por enlace se resuelve en una sola pregunta: descargarlo
+// o no y, si hay nube configurada, si además sube allí. Antes eran dos avisos
+// seguidos del navegador, y el segundo llegaba cuando ya se estaba leyendo.
+let resolverLibroEnlace = null;
+
+function preguntarPorLibroDeEnlace({ nombre, host, conNube }) {
+  $('texto-libro-enlace').textContent = t('bookLinkConfirm', { title: nombre, host });
+  $('fila-libro-enlace-nube').classList.toggle('oculto', !conNube);
+  // La casilla parte desmarcada: subir a la nube de quien lee es una decisión
+  // suya, no lo que pasa si no mira.
+  $('casilla-libro-enlace-nube').checked = false;
+  $('dialogo-libro-enlace').classList.remove('oculto');
+  requestAnimationFrame(() => $('btn-cancelar-libro-enlace').focus());
+  return new Promise((resolver) => { resolverLibroEnlace = resolver; });
+}
+
+function responderLibroEnlace(respuesta) {
+  if (!resolverLibroEnlace) return;
+  const resolver = resolverLibroEnlace;
+  resolverLibroEnlace = null;
+  $('dialogo-libro-enlace').classList.add('oculto');
+  resolver(respuesta);
+}
+
+$('form-libro-enlace').addEventListener('submit', (evento) => {
+  evento.preventDefault();
+  responderLibroEnlace({ nube: $('casilla-libro-enlace-nube').checked });
+});
+$('btn-cancelar-libro-enlace').addEventListener('click', () => responderLibroEnlace(null));
+$('dialogo-libro-enlace').addEventListener('click', (evento) => {
+  if (evento.target === $('dialogo-libro-enlace')) responderLibroEnlace(null);
+});
+
 $('form-contrasena-pdf').addEventListener('submit', (evento) => {
   evento.preventDefault();
   responderContrasenaPdf($('campo-contrasena-pdf').value);
@@ -685,8 +718,8 @@ function ocultarCarga() {
 // aria-modal ya prometía) y al cerrarse el foco vuelve a donde estaba.
 
 const CAPAS_MODALES = ['dialogo-mover', 'dialogo-editar-nota', 'dialogo-contrasena-pdf',
-  'dialogo-pdf-sin-texto', 'menu-libro', 'fondo-menu-lector', 'menu-nota-contextual',
-  'visor-imagen'];
+  'dialogo-pdf-sin-texto', 'dialogo-libro-enlace', 'menu-libro', 'fondo-menu-lector',
+  'menu-nota-contextual', 'visor-imagen'];
 
 // Los avisos y el indicador de carga viven fuera de las vistas y tienen que
 // seguir anunciándose aunque haya un diálogo delante.
@@ -1097,7 +1130,10 @@ async function abrirLibroDeEnlace() {
     return;
   }
 
-  if (!confirm(t('bookLinkConfirm', { title: libro.nombre, host: libro.host }))) return;
+  const decision = await preguntarPorLibroDeEnlace({
+    nombre: libro.nombre, host: libro.host, conNube: !!cliente,
+  });
+  if (!decision) return;
 
   mostrarCarga(t('downloading', { title: libro.nombre }));
   let datos;
@@ -1131,10 +1167,9 @@ async function abrirLibroDeEnlace() {
     await cargarLibrosLocales().catch(() => null);
   }
 
-  // Con nube configurada, el libro se ha guardado en este dispositivo y queda
-  // preguntar si además debe subirse, que es lo que lo haría aparecer en los
-  // demás. No se sube solo: es la nube de quien lee, no la del enlace.
-  if (cliente && confirm(t('bookLinkToCloud', { title: libro.nombre }))) {
+  // El libro ya está en este dispositivo; subirlo es lo que lo haría aparecer
+  // en los demás, y eso se decidió en la casilla del diálogo.
+  if (cliente && decision.nube) {
     const guardado = (await almacen.listarLibros().catch(() => []))
       .find((entrada) => entrada.nombre === libro.nombre);
     if (guardado) await subirLibroLocalANube(guardado);
