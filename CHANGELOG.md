@@ -7,6 +7,19 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.4.1 — 18 de agosto de 2026
+
+### Arreglado
+- **Los enlaces de un libro a una web de fuera vuelven a abrirse.** Pulsar un
+  enlace a YouTube (o a cualquier otra página) dentro de un EPUB no hacía
+  nada: el capítulo se pinta en un marco con permisos recortados y el
+  navegador bloqueaba en silencio la apertura de la pestaña. Con el botón
+  derecho sí funcionaba, porque abrir en otra pestaña ya no lo decide la
+  página, y de ahí que pareciera un capricho. Ahora la pestaña la abre el
+  lector, que está fuera de ese marco, en lugar de darle más permisos al
+  libro. Los enlaces internos —el índice, los saltos entre capítulos— siguen
+  resolviéndose dentro como hasta ahora.
+
 ## 1.4.0 — 18 de agosto de 2026
 
 ### Añadido

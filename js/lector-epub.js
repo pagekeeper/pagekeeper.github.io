@@ -20,6 +20,7 @@ import { abrePorRaton } from './menu-contextual.js';
 import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 import { posicionTrasReflujo } from './reflujo-epub.js';
 import { detectarIdioma, idiomaUtil } from './idioma-texto.js';
+import { esEnlaceExterno } from './enlaces-externos.js';
 import {
   columnasEfectivas, normalizarColumnas, normalizarLetrasPorLinea, LETRAS_INICIALES,
 } from './columnas.js';
@@ -831,10 +832,29 @@ export class LectorEpub {
     doc.addEventListener('touchcancel', reenviar('cancela'), { passive: true });
   }
 
+  // epub.js marca los enlaces de fuera con `target="_blank"`, pero el capítulo
+  // se pinta en un iframe con sandbox y sin `allow-popups`: el navegador
+  // bloquea esa apertura y el enlace parece roto —con el botón derecho sí
+  // funcionaba, porque abrir en otra pestaña ya no lo decide la página—. Se
+  // abre desde el documento de fuera, que no está dentro del sandbox, en vez
+  // de aflojarle los permisos al libro.
+  registrarEnlacesExternos(contents) {
+    const doc = contents?.document;
+    if (!doc) return;
+    doc.addEventListener('click', (evento) => {
+      const enlace = evento.target?.closest?.('a[href]');
+      if (!enlace || !esEnlaceExterno(enlace.href, window.location.origin)) return;
+      evento.preventDefault();
+      // Sin `noopener` la página que se abre podría manipular la del lector.
+      window.open(enlace.href, '_blank', 'noopener,noreferrer');
+    });
+  }
+
   registrarInteraccionesNotas(contents) {
     const doc = contents?.document;
     if (!doc) return;
     this.registrarToques(contents);
+    this.registrarEnlacesExternos(contents);
     let frameHover = null;
     doc.addEventListener('mousemove', (evento) => {
       cancelAnimationFrame(frameHover);
