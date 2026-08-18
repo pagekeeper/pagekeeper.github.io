@@ -711,6 +711,9 @@ form label { display: flex; flex-direction: column; gap: 0.3rem; font-size: 0.9r
 }
 .casilla input:focus-visible { outline: 2px solid var(--acento); outline-offset: 2px; }
 .casilla + .ayuda { margin-top: 0.45rem; }
+/* Destino de un libro que llega por enlace: dos opciones apiladas, no una
+   casilla suelta, para que se vea que hay elección y cuál viene marcada. */
+.opciones-libro-enlace { display: flex; flex-direction: column; gap: 0.5rem; }
 form input {
   background: var(--fondo); border: 1px solid var(--borde-fuerte);
   border-radius: 0.5rem; padding: 0.55rem 0.7rem;

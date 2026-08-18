@@ -1897,17 +1897,24 @@
   </div>
 
   <!-- Un libro que llega por enlace se pregunta una sola vez: si además hay
-       nube configurada, la casilla decide de paso si sube allí, en lugar de
-       encadenar dos preguntas seguidas. -->
+       nube configurada, la elección de destino decide de paso si sube allí, en
+       lugar de encadenar dos preguntas seguidas. -->
   <div id="dialogo-libro-enlace" class="dialogo-fondo oculto">
     <form id="form-libro-enlace" class="dialogo dialogo-libro-enlace" role="dialog"
       aria-modal="true" aria-labelledby="titulo-libro-enlace">
       <h2 id="titulo-libro-enlace" data-i18n="bookLinkTitle">Añadir libro a la biblioteca</h2>
       <p id="texto-libro-enlace"></p>
-      <label class="casilla oculto" id="fila-libro-enlace-nube">
-        <input type="checkbox" id="casilla-libro-enlace-nube">
-        <span data-i18n="bookLinkAlsoCloud">Guardarlo también en mi nube</span>
-      </label>
+      <div class="opciones-libro-enlace oculto" id="fila-libro-enlace-nube" role="radiogroup"
+        aria-labelledby="titulo-libro-enlace">
+        <label class="casilla">
+          <input type="radio" name="destino-libro-enlace" value="nube" id="radio-libro-enlace-nube" checked>
+          <span data-i18n="bookLinkSaveCloud">Guardarlo en mi nube</span>
+        </label>
+        <label class="casilla">
+          <input type="radio" name="destino-libro-enlace" value="local" id="radio-libro-enlace-local">
+          <span data-i18n="bookLinkSaveLocal">Guardarlo solo en este dispositivo</span>
+        </label>
+      </div>
       <div class="fila-botones botones-dialogo">
         <button type="button" id="btn-cancelar-libro-enlace" class="btn-secundario"
           data-i18n="cancel">Cancelar</button>

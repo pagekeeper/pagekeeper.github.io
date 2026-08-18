@@ -392,9 +392,11 @@ let resolverLibroEnlace = null;
 function preguntarPorLibroDeEnlace({ nombre, host, conNube }) {
   $('texto-libro-enlace').textContent = t('bookLinkConfirm', { title: nombre, host });
   $('fila-libro-enlace-nube').classList.toggle('oculto', !conNube);
-  // La casilla parte desmarcada: subir a la nube de quien lee es una decisión
-  // suya, no lo que pasa si no mira.
-  $('casilla-libro-enlace-nube').checked = false;
+  // Con nube configurada, guardar allí es lo normal: así el libro acompaña a
+  // quien lee en todos sus dispositivos. Quien prefiera dejarlo solo aquí lo
+  // dice con la otra opción.
+  $('radio-libro-enlace-nube').checked = true;
+  $('radio-libro-enlace-local').checked = false;
   $('dialogo-libro-enlace').classList.remove('oculto');
   requestAnimationFrame(() => $('btn-cancelar-libro-enlace').focus());
   return new Promise((resolver) => { resolverLibroEnlace = resolver; });
@@ -410,7 +412,7 @@ function responderLibroEnlace(respuesta) {
 
 $('form-libro-enlace').addEventListener('submit', (evento) => {
   evento.preventDefault();
-  responderLibroEnlace({ nube: $('casilla-libro-enlace-nube').checked });
+  responderLibroEnlace({ nube: $('radio-libro-enlace-nube').checked });
 });
 $('btn-cancelar-libro-enlace').addEventListener('click', () => responderLibroEnlace(null));
 $('dialogo-libro-enlace').addEventListener('click', (evento) => {

@@ -7,6 +7,15 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.5.1 — 18 de agosto de 2026
+
+### Cambiado
+- **El libro que llega por enlace pregunta dónde guardarlo.** Donde había una
+  casilla para subirlo «también» a la nube ahora hay dos opciones: guardarlo en
+  la nube o guardarlo solo en este dispositivo. Viene marcada la nube, que es
+  lo que hace que el libro acompañe a quien lee en todos sus dispositivos.
+  Igual que antes, la pregunta solo aparece si hay nube configurada.
+
 ## 1.5.0 — 18 de agosto de 2026
 
 ### Cambiado
