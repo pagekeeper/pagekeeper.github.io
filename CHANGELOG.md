@@ -7,6 +7,16 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.6.2 — 28 de septiembre de 2026
+
+### Arreglado
+- Los lectores de pantalla anuncian bien los botones de cada ficha de libro o
+  carpeta, el «⋯» y el círculo de terminado. La ficha entera era un botón con
+  esos botones dentro, y así no se podían anunciar. Con el teclado todo
+  funciona como antes: el tabulador se detiene en cada ficha, Intro la abre y
+  el siguiente tabulador pasa a sus botones. Con el ratón y el dedo no cambia
+  nada.
+
 ## 1.6.1 — 28 de septiembre de 2026
 
 ### Cambiado

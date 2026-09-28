@@ -2597,3 +2597,8 @@ button.estrella { cursor: pointer; }
   cursor: pointer; text-decoration: underline dotted; text-underline-offset: 0.2em;
 }
 .dato-estado-pulsable:hover, .dato-estado-pulsable:focus-visible { color: var(--acento); }
+
+/* El foco de teclado lo recibe el botón invisible de la ficha
+   (ponerBotonAbrirFicha): el anillo se dibuja en la ficha entera, que es lo
+   que se va a abrir. */
+.libro:has(> .abrir-ficha:focus-visible) { outline: 2px solid var(--acento); outline-offset: 2px; }

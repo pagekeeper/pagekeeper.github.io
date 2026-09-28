@@ -2441,6 +2441,25 @@ $('menu-libro').addEventListener('contextmenu', (evento) => {
 
 // Botón «⋯» que abre el menú de acciones de una ficha. El título se lee al
 // pulsarlo porque los metadatos pueden sustituir el nombre tras crear la fila.
+// El teclado entra en cada ficha por un botón propio, invisible, que va el
+// primero. Antes la ficha entera era un div con role="button", pero dentro
+// lleva el «⋯» y el círculo de terminado, y un botón con botones dentro deja
+// a los lectores de pantalla sin saber anunciar los de dentro. No se usa el
+// título como botón porque en Firefox no se puede empezar a arrastrar desde un
+// botón, y la pulsación larga sobre el título ya sirve para leerlo entero.
+// La pulsación de este botón sube hasta la ficha, que es la que abre.
+let contadorFichas = 0;
+function ponerBotonAbrirFicha(ficha) {
+  const nombre = ficha.querySelector('.nombre');
+  nombre.id ||= `nombre-ficha-${++contadorFichas}`;
+  const abrir = document.createElement('button');
+  abrir.type = 'button';
+  abrir.className = 'abrir-ficha sr-solo';
+  // Se nombra con el título que se ve, que cambia al llegar los metadatos.
+  abrir.setAttribute('aria-labelledby', nombre.id);
+  ficha.prepend(abrir);
+}
+
 function crearBotonMenu(ficha, obtenerAcciones) {
   const menu = document.createElement('button');
   menu.type = 'button';
@@ -2558,8 +2577,6 @@ function crearFilaLibro({
   const enLaNube = !String(id).startsWith('local:');
   const boton = document.createElement('div');
   boton.className = 'libro';
-  boton.setAttribute('role', 'button');
-  boton.tabIndex = 0;
   boton.innerHTML = `
     <span class="portada">${icono(formato === 'epub' ? 'book-open' : 'book')}</span>
     <span class="marca-origen ${enLaNube ? 'origen-nube' : 'origen-dispositivo'}" title="${t(enLaNube ? 'cloud' : 'device')}">${icono(enLaNube ? 'cloud' : 'smartphone')}</span>
@@ -2652,12 +2669,7 @@ function crearFilaLibro({
     }
     alAbrir(evento);
   });
-  boton.addEventListener('keydown', (evento) => {
-    if (evento.target !== boton) return;
-    if (evento.key !== 'Enter' && evento.key !== ' ') return;
-    evento.preventDefault();
-    alAbrir(evento);
-  });
+  ponerBotonAbrirFicha(boton);
 
   if (mostrarTerminado) {
     const terminado = document.createElement('button');
@@ -3462,12 +3474,10 @@ function ponerConteoCarpeta(fila, n) {
 function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
-  // Es un div con role="button" (no un <button>) para poder alojar dentro
-  // el botón «⋯» del menú: un botón anidado en otro no es HTML válido.
+  // La ficha es un div y no un botón porque aloja el «⋯» del menú (ver
+  // ponerBotonAbrirFicha).
   const boton = document.createElement('div');
   boton.className = 'libro carpeta';
-  boton.setAttribute('role', 'button');
-  boton.tabIndex = 0;
   boton.title = t('openFolder', { name: nombre });
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
@@ -3483,12 +3493,7 @@ function crearFilaCarpeta(nombre, soloLectura = false, conteo = null) {
     cargarBiblioteca();
   };
   boton.addEventListener('click', abrir);
-  boton.addEventListener('keydown', (evento) => {
-    if (evento.target !== boton) return;
-    if (evento.key !== 'Enter' && evento.key !== ' ') return;
-    evento.preventDefault();
-    abrir();
-  });
+  ponerBotonAbrirFicha(boton);
   hacerDestinoDeLibro(boton, ruta);
 
   if (!soloLectura) {
@@ -3909,14 +3914,11 @@ let carpetaArrastrada = '';
 function crearFilaCarpetaLocal(nombre, conteo = null) {
   const elemento = document.createElement('li');
   elemento.dataset.busqueda = normalizarBusqueda(nombre);
-  // Un div con role="button" y no un <button>, para poder alojar dentro el
-  // botón «⋯» del menú: un botón anidado en otro no es HTML válido.
+  // La ficha es un div y no un botón porque aloja el «⋯» del menú (ver
+  // ponerBotonAbrirFicha).
   const boton = document.createElement('div');
   boton.className = 'libro carpeta';
-  boton.setAttribute('role', 'button');
-  boton.tabIndex = 0;
   boton.title = t('openFolder', { name: nombre });
-  etiquetarPorTitulo(boton);
   boton.innerHTML = `
     <span class="portada portada-carpeta">${icono('folder')}</span>
     <span class="datos"><span class="cabecera-libro"><span class="nombre"></span><span class="nota-libro oculto"></span></span><span class="conteo-carpeta"></span></span>`;
@@ -3926,12 +3928,7 @@ function crearFilaCarpetaLocal(nombre, conteo = null) {
   elemento.dataset.idNota = idNota;
   const abrir = () => navegarCarpetaLocal(rutaLocalDe(nombre));
   boton.addEventListener('click', abrir);
-  boton.addEventListener('keydown', (evento) => {
-    if (evento.target !== boton) return;
-    if (evento.key !== 'Enter' && evento.key !== ' ') return;
-    evento.preventDefault();
-    abrir();
-  });
+  ponerBotonAbrirFicha(boton);
   hacerDestinoDeLibroLocal(boton, rutaLocalDe(nombre));
   boton.draggable = true;
   boton.addEventListener('dragstart', (evento) => {
