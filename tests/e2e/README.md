@@ -31,14 +31,15 @@ Las capturas quedan en `/tmp/pagekeeper-e2e` (lo dice cada prueba al acabar).
 | `ficha_libro.py` | El tiempo dedicado en la barra del pie y la ficha que abre al pulsarlo, por sus dos caminos (la barra y el menú «⋯»). |
 | `barra_pie.py` | Que la barra quepa a 360, 390 y 430 px con PDF y EPUB, y que en páginas continuas salga el porcentaje en lugar de las pantallas. |
 | `ayuda.py` | Que los apartados de la ayuda existan en español, catalán e inglés. |
+| `traslados.py` | Que llevar un libro de la nube al dispositivo y al revés sea un traslado: aparece en el destino y desaparece del origen, en la lista y en el servidor. |
 | `dos_dispositivos.py` | Dos navegadores sobre la misma nube: que el tiempo sume, que los días sean comunes y que borrar en uno borre en el otro sin tocar la posición. |
 
 ## Hace falta
 
 - **Playwright de Python** y un Chromium en `/usr/bin/chromium` (se cambia en
   `comun.py`, constante `CHROMIUM`).
-- **rclone**, solo para las que usan la nube. Si no está, `dos_dispositivos.py`
-  se salta y `seguridad.py` omite su último apartado, en vez de fallar. El
+- **rclone**, solo para las que usan la nube. Si no está, `dos_dispositivos.py` y
+  `traslados.py` se saltan y `seguridad.py` omite su último apartado, en vez de fallar. El
   proxy que le añade cabeceras CORS es el de `.claude/skills/verify/`.
 
 ## Escribir una nueva

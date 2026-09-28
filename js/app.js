@@ -1159,8 +1159,12 @@ async function abrirLibroDeEnlace() {
   const archivo = new File([datos], libro.nombre, {
     type: libro.formato === 'epub' ? 'application/epub+zip' : 'application/pdf',
   });
+  // Con la nube elegida, el libro pasa a ella y se lee desde allí: si se
+  // abriera el de aquí, el avance de esta sesión se anotaría en una copia que
+  // el traslado se lleva por delante.
+  const aLaNube = !!cliente && decision.nube;
   try {
-    await guardarArchivoLocal(archivo, true);
+    await guardarArchivoLocal(archivo, !aLaNube);
   } catch (error) {
     avisar(t('saveFailed', { title: libro.nombre, error: error.message }), 6000);
     return;
@@ -1169,13 +1173,15 @@ async function abrirLibroDeEnlace() {
     await cargarLibrosLocales().catch(() => null);
   }
 
-  // El libro ya está en este dispositivo; subirlo es lo que lo haría aparecer
-  // en los demás, y eso se decidió en la casilla del diálogo.
-  if (cliente && decision.nube) {
-    const guardado = (await almacen.listarLibros().catch(() => []))
-      .find((entrada) => entrada.nombre === libro.nombre);
-    if (guardado) await subirLibroLocalANube(guardado);
-  }
+  if (!aLaNube) return;
+  const guardado = (await almacen.listarLibros().catch(() => []))
+    .find((entrada) => entrada.nombre === libro.nombre);
+  if (!guardado) return;
+  const destino = await moverLibroLocalANube(guardado);
+  // Si el traslado no sale, el libro sigue en este dispositivo y se lee de
+  // aquí: haberlo pedido en la nube no es motivo para quedarse sin leerlo.
+  if (destino) await abrirLibroRemoto(destino);
+  else await abrirLibroLocal(guardado);
 }
 
 // Cubre pegar o pulsar el enlace con la aplicación ya abierta: cambiar el
@@ -2493,8 +2499,8 @@ function accionDescargarCarpeta(alPulsar) {
 function accionesLibroLocal(libro) {
   return {
     alRenombrar: () => renombrarLibro(libro.id),
-    // Subir a la nube: solo si hay servidor configurado.
-    alSubir: cliente ? () => subirLibroLocalANube(libro) : null,
+    // Mover a la nube: solo si hay servidor configurado.
+    alMoverANube: cliente ? () => moverLibroLocalANube(libro) : null,
     alMover: () => abrirDialogoMover({ id: libro.id, nombre: libro.nombre }, 'local'),
     alDescargar: () => descargarLibroLocal(libro),
     alBorrar: () => borrarLibroLocal(libro),
@@ -2508,7 +2514,7 @@ function accionesLibroRemoto(id, libro, copia, soloCopias = false) {
   return {
     alRenombrar: () => renombrarLibro(id),
     alMover: soloCopias ? null : () => abrirDialogoMover({ id, nombre: libro.nombre }),
-    alGuardarEnDispositivo: soloCopias ? null : () => guardarLibroRemotoEnDispositivo(id),
+    alMoverADispositivo: soloCopias ? null : () => moverLibroRemotoADispositivo(id),
     alDescargar: soloCopias ? () => descargarCopiaRemota(id) : () => descargarLibroRemoto(id),
     alBorrar: soloCopias ? null : () => borrarLibroRemoto(id),
     alSinConexion: copia && !desactualizada
@@ -2521,8 +2527,8 @@ function accionesLibroRemoto(id, libro, copia, soloCopias = false) {
 
 // Crea la fila de un libro: la ficha lo abre y el menú «⋯» agrupa el resto de acciones.
 function crearFilaLibro({
-  id, titulo, tamano, formato, alAbrir, alSubir, alMover, alDescargar, alBorrar,
-  alGuardarEnDispositivo, alSinConexion, alRenombrar, sinConexion = false, copiaDesactualizada = false,
+  id, titulo, tamano, formato, alAbrir, alMoverANube, alMover, alDescargar, alBorrar,
+  alMoverADispositivo, alSinConexion, alRenombrar, sinConexion = false, copiaDesactualizada = false,
   mostrarTerminado = true, sinTexto = false, carpeta = '',
 }) {
   const avance = progreso.progresoDe(id);
@@ -2699,13 +2705,13 @@ function crearFilaLibro({
     alPulsar: () => abrirFichaLibro(id, elemento.querySelector('.nombre')?.textContent ?? tituloMostrado),
   });
   if (alRenombrar) acciones.push({ icono: 'pencil', etiqueta: t('actionRename'), alPulsar: alRenombrar });
-  if (alSubir) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionUpload'), alPulsar: alSubir });
+  if (alMoverANube) acciones.push({ icono: 'cloud-upload', etiqueta: t('actionMoveToCloud'), alPulsar: alMoverANube });
   if (alMover) acciones.push({ icono: 'folder-input', etiqueta: t('actionMove'), alPulsar: alMover });
-  if (alGuardarEnDispositivo) {
+  if (alMoverADispositivo) {
     acciones.push({
       icono: 'smartphone',
-      etiqueta: t('actionSaveToDevice'),
-      alPulsar: alGuardarEnDispositivo,
+      etiqueta: t('actionMoveToDevice'),
+      alPulsar: alMoverADispositivo,
     });
   }
   if (alDescargar) acciones.push({ icono: 'download', etiqueta: t('actionDownload'), alPulsar: alDescargar });
@@ -3353,7 +3359,7 @@ function hacerDestinoDeLibro(elemento, rutaDestino) {
     if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
-    evento.dataTransfer.dropEffect = local ? 'copy' : 'move';
+    evento.dataTransfer.dropEffect = 'move';
     elemento.classList.add('destino-mover');
   });
   elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
@@ -3368,7 +3374,7 @@ function hacerDestinoDeLibro(elemento, rutaDestino) {
       if (id) moverLibroA(id, rutaDestino);
     } else if (local) {
       const libro = libroLocalArrastrado(evento);
-      if (libro) subirLibroLocalANube(libro, rutaDestino);
+      if (libro) moverLibroLocalANube(libro, rutaDestino);
     } else {
       moverCarpetaRemotaA(carpetaNubeArrastrada, rutaDestino);
     }
@@ -3873,7 +3879,7 @@ function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
     if (!nube && !local && !admiteCarpeta(evento)) return;
     evento.preventDefault();
     evento.stopPropagation();
-    evento.dataTransfer.dropEffect = nube ? 'copy' : 'move';
+    evento.dataTransfer.dropEffect = 'move';
     elemento.classList.add('destino-mover');
   });
   elemento.addEventListener('dragleave', () => elemento.classList.remove('destino-mover'));
@@ -3885,7 +3891,7 @@ function hacerDestinoDeLibroLocal(elemento, rutaDestino) {
     elemento.classList.remove('destino-mover');
     if (nube) {
       const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
-      if (id) guardarLibroRemotoEnDispositivo(id, rutaDestino);
+      if (id) moverLibroRemotoADispositivo(id, rutaDestino);
     } else if (local) {
       const libro = libroLocalArrastrado(evento);
       if (libro) moverLibroLocalA(libro, rutaDestino);
@@ -4507,10 +4513,11 @@ async function descargarLibroRemoto(id) {
   }
 }
 
-// Trae un libro de la nube a la biblioteca del dispositivo. Es una copia: el
-// original sigue en el servidor y el progreso de cada uno va por su lado,
-// porque cada biblioteca identifica los libros a su manera.
-async function guardarLibroRemotoEnDispositivo(id, carpeta = rutaLocal) {
+// Trae un libro de la nube a la biblioteca del dispositivo y lo quita del
+// servidor: es un traslado, no una copia. Cada biblioteca identifica los libros
+// a su manera, así que el progreso y las anotaciones se pasan al identificador
+// nuevo antes de soltar el viejo, o se perderían por el camino.
+async function moverLibroRemotoADispositivo(id, carpeta = rutaLocal) {
   if (!cliente) return;
   const nombre = nombreDeId(id);
   mostrarCarga(t('downloading', { title: nombre }));
@@ -4527,13 +4534,44 @@ async function guardarLibroRemotoEnDispositivo(id, carpeta = rutaLocal) {
     };
     await almacen.guardarLibro(libro, datos);
     asegurarMiniatura(libro.id, formatoDe(nombre), datos);
-    avisar(t('savedToDevice', { title: nombre }));
-    await cargarLibrosLocales();
+
+    const avance = progreso.progresoDe(id);
+    if (avance) {
+      progreso.anotarPagina(libro.id, avance.pagina, avance.paginas, {
+        ...(avance.cfi ? { cfi: avance.cfi } : {}),
+        ...(avance.marcadores?.length ? { marcadores: avance.marcadores } : {}),
+      });
+    }
+    await anotaciones.transferir(cliente.base, id, 'local', libro.id).catch(() => null);
+
+    // El original solo se retira cuando la copia de aquí ya está completa: si
+    // algo falla antes, el libro sigue en la nube y no se ha perdido nada. Si
+    // lo que falla es la retirada, queda en los dos sitios y hay que decirlo:
+    // el traslado a medias se ve raro si nadie lo cuenta.
+    try {
+      await retirarLibroDeLaNube(id);
+      avisar(t('movedToDevice', { title: nombre }));
+    } catch {
+      avisar(t('moveKeptAtSource', { title: nombre }), 6000);
+    }
+    await cargarBiblioteca();
   } catch (error) {
     avisar(explicarError(error), 6000);
   } finally {
     ocultarCarga();
   }
+}
+
+// Retira un libro del servidor con todo lo suyo: el archivo, sus anotaciones,
+// la copia guardada para leer sin conexión y la portada. Es el segundo tiempo
+// del traslado a este dispositivo.
+async function retirarLibroDeLaNube(id) {
+  await cliente.borrar(id);
+  await cliente.borrarAnotaciones(id).catch(() => null);
+  await almacen.borrarCopiaRemota(cliente.base, id).catch(() => null);
+  await anotaciones.olvidar(cliente.base, id).catch(() => null);
+  await progreso.olvidar(id, cliente).catch(() => null);
+  almacen.borrarPortada(id).catch(() => null);
 }
 
 async function descargarLibroLocal(libro) {
@@ -4676,10 +4714,11 @@ async function actualizarCopiaGuardada(id, nombre, datos) {
   } catch { /* la subida ya terminó; la copia se actualizará al abrirla */ }
 }
 
-// Sube un libro de este dispositivo a una carpeta de la nube (por defecto,
-// la abierta), conservando el progreso bajo el identificador de la nube.
-async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
-  if (!cliente) return;
+// Lleva un libro de este dispositivo a una carpeta de la nube (por defecto, la
+// abierta) y lo quita de aquí: es un traslado, no una copia. El progreso y las
+// anotaciones pasan antes al identificador de la nube.
+async function moverLibroLocalANube(libro, rutaDestino = rutaNube) {
+  if (!cliente) return null;
   let nombre = libro.nombre;
   if (!/\.(pdf|epub)$/i.test(nombre)) nombre += '.pdf';
   const destino = rutaDestino ? `${rutaDestino}/${nombre}` : nombre;
@@ -4687,11 +4726,11 @@ async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
   try {
     if (await cliente.existe(destino) &&
         !confirm(t('overwrite', { title: nombre }))) {
-      return;
+      return null;
     }
   } catch (error) {
     avisar(explicarError(error), 6000);
-    return;
+    return null;
   }
 
   mostrarCarga(t('uploading', { title: nombre }));
@@ -4712,9 +4751,25 @@ async function subirLibroLocalANube(libro, rutaDestino = rutaNube) {
     await anotaciones.transferir('local', libro.id, cliente.base, destino).catch(() => null);
     await anotaciones.sincronizar(destino, cliente).catch(() => null);
     await progreso.sincronizar(cliente).catch(() => null);
-    avisar(t('cloudUploaded', { title: nombre }));
+
+    // La copia de aquí se retira al final, cuando la de la nube ya está
+    // completa: si algo falla antes, el libro sigue en el dispositivo. Y si
+    // falla la retirada, queda en los dos sitios y se avisa.
+    try {
+      await almacen.borrarLibro(libro.id);
+      await progreso.olvidar(libro.id).catch(() => null);
+      await anotaciones.olvidar('local', libro.id).catch(() => null);
+      almacen.borrarPortada(libro.id).catch(() => null);
+      avisar(t('movedToCloud', { title: nombre }));
+    } catch {
+      avisar(t('moveKeptAtSource', { title: nombre }), 6000);
+    }
+    // El identificador de la nube es lo que necesita quien llame para seguir
+    // con el libro allí: leerlo, por ejemplo.
+    return destino;
   } catch (error) {
     avisar(explicarError(error), 6000);
+    return null;
   } finally {
     ocultarCarga();
     cargarBiblioteca();
@@ -5259,7 +5314,7 @@ for (const [id, alSoltar] of [
   zona.addEventListener('dragover', (evento) => {
     if (!tiposArrastreLibro(evento).local) return;
     evento.preventDefault();
-    evento.dataTransfer.dropEffect = 'copy';
+    evento.dataTransfer.dropEffect = 'move';
     zona.classList.add('sobre-destino');
   });
   zona.addEventListener('dragleave', (evento) => {
@@ -5270,7 +5325,7 @@ for (const [id, alSoltar] of [
     evento.preventDefault();
     zona.classList.remove('sobre-destino');
     const libro = libroLocalArrastrado(evento);
-    if (libro) subirLibroLocalANube(libro, rutaNube);
+    if (libro) moverLibroLocalANube(libro, rutaNube);
   });
 }
 
@@ -5289,7 +5344,7 @@ for (const [id, alSoltar] of [
   zona.addEventListener('dragover', (evento) => {
     if (!admitido(evento)) return;
     evento.preventDefault();
-    evento.dataTransfer.dropEffect = tiposArrastreLibro(evento).nube ? 'copy' : 'move';
+    evento.dataTransfer.dropEffect = 'move';
     zona.classList.add('sobre-destino');
   });
   zona.addEventListener('dragleave', (evento) => {
@@ -5302,7 +5357,7 @@ for (const [id, alSoltar] of [
     zona.classList.remove('sobre-destino');
     if (nube) {
       const id = evento.dataTransfer.getData(TIPO_ARRASTRE_LIBRO);
-      if (id) guardarLibroRemotoEnDispositivo(id, rutaLocal);
+      if (id) moverLibroRemotoADispositivo(id, rutaLocal);
     } else if (local) {
       const libro = libroLocalArrastrado(evento);
       if (libro) moverLibroLocalA(libro, rutaLocal);

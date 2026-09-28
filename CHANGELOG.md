@@ -7,6 +7,23 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.6.0 — 28 de septiembre de 2026
+
+### Cambiado
+- **Llevar un libro de la nube al dispositivo, o al revés, ahora lo mueve.**
+  Donde ponía «Subir a la nube» y «Guardar en este dispositivo» pone «Mover a
+  la nube» y «Mover a este dispositivo», y hacen lo que dicen: el libro deja de
+  estar donde estaba en vez de quedarse duplicado en los dos sitios. Se lleva
+  consigo la página por la que ibas, los marcadores y las anotaciones. Lo mismo
+  al arrastrarlo de una sección a la otra.
+
+  El original solo se retira cuando la copia del destino ya está completa, así
+  que un fallo por el camino deja el libro donde estaba. Si lo que falla es la
+  retirada, se avisa de que ha quedado en los dos sitios.
+
+  Un libro que llega por enlace y se pide en la nube se lee ya desde allí, para
+  que lo que se avance en esa sesión viaje entre dispositivos.
+
 ## 1.5.1 — 18 de agosto de 2026
 
 ### Cambiado

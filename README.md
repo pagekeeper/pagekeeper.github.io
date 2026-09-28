@@ -28,8 +28,8 @@ libros y sincronizar el progreso de lectura.
   vuelven a aparecer al abrirlos de nuevo. Los terminados y los archivos que ya
   no están disponibles se excluyen automáticamente. El menú «⋯» de cada ficha
   ofrece las mismas acciones que en la biblioteca, según de dónde venga el
-  libro: renombrar, mover, subir a la nube o guardar en el dispositivo, dejarlo
-  disponible sin conexión, descargar y borrar.
+  libro: renombrar, mover a otra carpeta, mover a la nube o a este dispositivo,
+  dejarlo disponible sin conexión, descargar y borrar.
 - 🗂️ **Biblioteca organizada**: permite ordenar por lectura reciente, título,
   autor o progreso; filtrar por pendientes, en lectura y terminados; y marcar
   manualmente cualquier libro como terminado o quitar la etiqueta pulsándola.
@@ -64,10 +64,12 @@ libros y sincronizar el progreso de lectura.
   tema oscuro, un segundo botón devuelve su color a las fotos y logotipos del
   PDF, dejando intactas las páginas escaneadas, donde la hoja entera es una
   imagen.
-- ↔️ **De la nube al dispositivo y al revés**: un libro remoto se guarda en el
-  dispositivo con «Guardar en este dispositivo» o arrastrándolo hasta la
-  sección local; uno local sube con su botón de la nube o arrastrándolo hasta
-  «En la nube». Siempre es una copia: el original se queda donde estaba.
+- ↔️ **De la nube al dispositivo y al revés**: un libro remoto pasa al
+  dispositivo con «Mover a este dispositivo» o arrastrándolo hasta la sección
+  local; uno local pasa a la nube con «Mover a la nube» o arrastrándolo hasta
+  «En la nube». Es un traslado, no una copia: el libro deja de estar donde
+  estaba y se lleva la página por la que ibas, los marcadores y las
+  anotaciones.
 - 💾 **Copias portables de la biblioteca**: la pantalla «Importar y exportar»
   descarga en ZIP tanto la biblioteca del dispositivo como, por separado,
   toda la biblioteca WebDAV con sus subcarpetas. Conserva progreso, marcadores
@@ -76,8 +78,8 @@ libros y sincronizar el progreso de lectura.
   guardar y restaurar por separado en un archivo de configuración que incluye
   la URL, el usuario y la contraseña de aplicación.
 - ☁️ **Subir a la nube**: con una nube configurada puedes subir un PDF
-  directamente desde la biblioteca (botón ➕) o, si ya lo estás leyendo en
-  local, copiarlo a la nube con un toque conservando la página actual.
+  directamente desde la biblioteca (botón ➕) o arrastrarlo hasta la sección
+  «En la nube».
 - 🗑️ **Borrar documentos**: cada libro tiene una papelera para eliminarlo,
   tanto de la nube (se borra del servidor) como del dispositivo.
 - 🖱️ **Arrastrar y soltar**: admite uno o varios PDF/EPUB sobre la sección
