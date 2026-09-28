@@ -5,9 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="theme-color" content="#f8fafc">
   <title>PageKeeper</title>
-  <meta name="analytics-endpoint" content="https://bilateria.org/app/estadistica/pagekeeper/track.php">
-  <meta name="analytics-stats-url" content="https://bilateria.org/app/estadistica/pagekeeper/admin-stats.php">
-  <meta name="analytics-site-id" content="pagekeeper">
   <!-- Política de seguridad. Es una red de seguridad por si algún día se cuela
        contenido ajeno en la propia página: los capítulos EPUB ya se sanean y
        llevan su propia política, mucho más estricta, en js/lector-epub.js.
@@ -39,7 +36,7 @@
     base-uri 'self';
     object-src 'none';
     form-action 'self';
-    script-src 'self' https://bilateria.org;
+    script-src 'self';
     style-src 'self' 'unsafe-inline' blob:;
     img-src 'self' data: blob:;
     font-src 'self' data: blob:;
@@ -214,10 +211,10 @@
             <p data-i18n="cloudScope">Libros y progreso disponibles en todos tus dispositivos</p>
           </div>
           <button id="btn-carpeta-nueva" class="btn-icono" data-icono="folder-plus" title="Crear una carpeta" data-i18n-title="newFolder"></button>
-          <label class="btn-icono" for="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube" data-i18n-title="addCloud"></label>
+          <button type="button" class="btn-icono" data-abre="selector-subir-nube" data-icono="cloud-upload" title="Subir un libro (PDF o EPUB) a la nube" data-i18n-title="addCloud"></button>
           <input type="file" id="selector-subir-nube" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
-          <label class="btn-icono accion-carpeta" for="selector-subir-carpeta-nube" data-icono="folder-up"
-            title="Subir una carpeta entera a la nube" data-i18n-title="addCloudFolder"></label>
+          <button type="button" class="btn-icono accion-carpeta" data-abre="selector-subir-carpeta-nube" data-icono="folder-up"
+            title="Subir una carpeta entera a la nube" data-i18n-title="addCloudFolder"></button>
           <input type="file" id="selector-subir-carpeta-nube" webkitdirectory multiple hidden>
           <button id="btn-recargar" class="btn-icono" data-icono="refresh-cw" title="Recargar" data-i18n-title="reload"></button>
           <button id="btn-plegar-nube" class="btn-icono btn-plegar-seccion" data-icono="chevron-down"
@@ -251,10 +248,10 @@
           </div>
           <button id="btn-carpeta-nueva-local" class="btn-icono" data-icono="folder-plus"
             title="Crear una carpeta" data-i18n-title="newFolder"></button>
-          <label class="btn-icono" for="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo" data-i18n-title="addLocal"></label>
+          <button type="button" class="btn-icono" data-abre="selector-archivo" data-icono="plus" title="Añadir un libro (PDF o EPUB) de este dispositivo" data-i18n-title="addLocal"></button>
           <input type="file" id="selector-archivo" accept=".pdf,.epub,application/pdf,application/epub+zip" multiple hidden>
-          <label class="btn-icono accion-carpeta" for="selector-carpeta" data-icono="folder-up"
-            title="Añadir una carpeta entera de este dispositivo" data-i18n-title="addLocalFolder"></label>
+          <button type="button" class="btn-icono accion-carpeta" data-abre="selector-carpeta" data-icono="folder-up"
+            title="Añadir una carpeta entera de este dispositivo" data-i18n-title="addLocalFolder"></button>
           <input type="file" id="selector-carpeta" webkitdirectory multiple hidden>
           <button id="btn-plegar-local" class="btn-icono btn-plegar-seccion" data-icono="chevron-down"
             title="Plegar o desplegar la sección" data-i18n-title="toggleSection"
@@ -296,14 +293,19 @@
           <a href="https://github.com/pagekeeper/pagekeeper.github.io" target="_blank"
             rel="noopener" data-i18n="source">Código fuente</a>
           <span aria-hidden="true">·</span>
+          <a href="https://jjdeharo.github.io/miae/?nivel=4" target="_blank"
+            rel="noopener" data-i18n="aiFooter">Creado con IA (nivel 4 del MIAE)</a>
+          <span aria-hidden="true">·</span>
           <details class="creditos-pie">
             <summary data-i18n="credits">Créditos</summary>
             <p data-i18n-html="creditsHtml">Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconos <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).</p>
+            <p data-i18n="aiCredits">PageKeeper se ha programado en diálogo con asistentes de IA, entre ellos Claude Code. El autor decide qué hace el programa y cómo se usa, prueba cada cambio en pantalla y corrige lo que no funciona; cada versión pasa además pruebas automáticas de la lógica y en un navegador.</p>
+            <p data-i18n-html="samplesCreditsHtml">Libros de ejemplo: <i>Lazarillo de Tormes</i> (anónimo), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) y <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, con dibujos de Ramon Casas), en dominio público, de <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); y <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He y Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).</p>
           </details>
           <span aria-hidden="true">·</span>
           <details class="creditos-pie">
             <summary data-i18n="privacy">Privacidad</summary>
-            <p data-i18n="analyticsNotice">Esta aplicación recoge únicamente estadísticas de uso agregadas con un sistema propio para conocer su utilización y mejorar la herramienta. No se almacenan direcciones IP ni se usan cookies de analítica para los visitantes.</p>
+            <p data-i18n="privacyNotice">PageKeeper no lleva analítica ni contadores de visitas, y no tiene servidor propio. Los libros, el progreso y las anotaciones se guardan en este navegador y, si la configuras, en tu nube WebDAV, con la que el navegador se comunica directamente.</p>
           </details>
         </div>
       </footer>
@@ -1198,11 +1200,13 @@
           bajo el título en el menú «⋯», que es como se lee en pantalla táctil.</p>
           </details>
           <details class="punto-ayuda">
-            <summary>Libro de ejemplo</summary>
+            <summary>Libros de ejemplo</summary>
             <p>
-          cuando la biblioteca está completamente vacía puedes añadir y abrir una obra
-          de muestra en el idioma de la interfaz. Después funciona como cualquier libro
-          local.</p>
+          la primera vez que se abre PageKeeper en un navegador, si no hay una
+          nube configurada ni libros en el dispositivo, la biblioteca trae dos
+          libros de ejemplo en el idioma de la interfaz: un EPUB y un PDF. Son
+          libros locales como cualquier otro, que se pueden leer, conservar o
+          borrar.</p>
           </details>
           </div>
         </div>
@@ -1991,6 +1995,5 @@
   <span id="anuncio-cargando" class="sr-solo" role="status"></span>
 
   <script type="module" src="js/app.js"></script>
-  <script src="js/analytics.js" defer></script>
 </body>
 </html>

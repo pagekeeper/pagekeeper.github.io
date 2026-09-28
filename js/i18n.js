@@ -104,7 +104,9 @@ const textos = {
     invalidConfigFile: 'El archivo no contiene una configuración válida de PageKeeper.',
     credits: 'Créditos', license: 'Licencia MIT', source: 'Código fuente',
     privacy: 'Privacidad',
-    analyticsNotice: 'Esta aplicación recoge únicamente estadísticas de uso agregadas con un sistema propio para conocer su utilización y mejorar la herramienta. No se almacenan direcciones IP ni se usan cookies de analítica para los visitantes.',
+    privacyNotice: 'PageKeeper no lleva analítica ni contadores de visitas, y no tiene servidor propio. Los libros, el progreso y las anotaciones se guardan en este navegador y, si la configuras, en tu nube WebDAV, con la que el navegador se comunica directamente.',
+    aiFooter: 'Creado con IA (nivel 4 del MIAE)',
+    aiCredits: 'PageKeeper se ha programado en diálogo con asistentes de IA, entre ellos Claude Code. El autor decide qué hace el programa y cómo se usa, prueba cada cambio en pantalla y corrige lo que no funciona; cada versión pasa además pruebas automáticas de la lógica y en un navegador.',
     continueReading: 'Continuar leyendo', recentCount: 'Cuántas lecturas mostrar', recentAuto: 'Las que quepan', recentN: '{count} lecturas',
     recentCountHelp: '«Las que quepan» enseña tres o cuatro según el ancho de la pantalla. Las demás siguen a un toque, en «Ver más».', removeContinue: 'Quitar «Continuar leyendo» de la biblioteca', continueRemoved: 'Se ha quitado «Continuar leyendo». Puedes volver a mostrarlo en Ajustes → Biblioteca.', continueReadingHelp: 'Tu lectura más reciente, con las demás a un toque',
     devices: 'Dispositivos conectados',
@@ -321,6 +323,7 @@ const textos = {
     passwordHelpHtml: '⚠️ En Nextcloud crea una <strong>contraseña de aplicación</strong> (Ajustes → Seguridad), no uses tu contraseña principal. Además, para que el navegador pueda conectar, el servidor debe permitir CORS: en Nextcloud instala la app <strong>WebAppPassword</strong> y añade el dominio de este lector. Los datos se guardan únicamente en este navegador.',
     transferHelp: 'Puedes copiar un enlace o guardar un archivo con la URL, el usuario y la contraseña de aplicación, y abrirlo en otro dispositivo. ⚠️ El enlace y el archivo permiten acceder a tu nube: guárdalos en privado y elimina las copias que ya no necesites.',
     creditsHtml: 'Construido con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconos <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    samplesCreditsHtml: 'Libros de ejemplo: <i>Lazarillo de Tormes</i> (anónimo), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) y <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, con dibujos de Ramon Casas), en dominio público, de <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); y <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He y Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Suelta aquí para mover a este dispositivo', dropCloud: 'Suelta aquí para mover a la nube',
     unsupportedFiles: 'Solo se pueden añadir archivos PDF o EPUB.',
     localDuplicate: 'Ese libro ya está en este dispositivo, guardado como «{title}».',
@@ -507,7 +510,9 @@ const textos = {
     invalidConfigFile: 'El fitxer no conté una configuració vàlida de PageKeeper.',
     credits: 'Crèdits', license: 'Llicència MIT', source: 'Codi font',
     privacy: 'Privacitat',
-    analyticsNotice: 'Aquesta aplicació recull únicament estadístiques d’ús agregades amb un sistema propi per conèixer-ne la utilització i millorar l’eina. No s’emmagatzemen adreces IP ni s’usen galetes d’analítica per als visitants.',
+    privacyNotice: 'PageKeeper no porta analítica ni comptadors de visites, i no té servidor propi. Els llibres, el progrés i les anotacions es desen en aquest navegador i, si el configures, al teu núvol WebDAV, amb el qual el navegador es comunica directament.',
+    aiFooter: 'Creat amb IA (nivell 4 del MIAE)',
+    aiCredits: 'PageKeeper s’ha programat en diàleg amb assistents d’IA, entre els quals Claude Code. L’autor decideix què fa el programa i com s’usa, prova cada canvi en pantalla i corregeix el que no funciona; cada versió passa, a més, proves automàtiques de la lògica i en un navegador.',
     continueReading: 'Continua llegint', recentCount: 'Quantes lectures mostrar', recentAuto: 'Les que hi càpiguen', recentN: '{count} lectures',
     recentCountHelp: '«Les que hi càpiguen» en mostra tres o quatre segons l’amplada de la pantalla. La resta són a un toc, a «Veure’n més».', removeContinue: 'Treu «Continua llegint» de la biblioteca', continueRemoved: 'S’ha tret «Continua llegint». El pots tornar a mostrar a Configuració → Biblioteca.', continueReadingHelp: 'La lectura més recent, amb les altres a un toc',
     devices: 'Dispositius connectats',
@@ -724,6 +729,7 @@ const textos = {
     passwordHelpHtml: '⚠️ A Nextcloud crea una <strong>contrasenya d’aplicació</strong> (Configuració → Seguretat); no facis servir la contrasenya principal. Perquè el navegador es pugui connectar, el servidor ha de permetre CORS: a Nextcloud instal·la <strong>WebAppPassword</strong> i afegeix el domini d’aquest lector. Les dades només es desen en aquest navegador.',
     transferHelp: 'Pots copiar un enllaç o desar un fitxer amb l’URL, l’usuari i la contrasenya d’aplicació, i obrir-lo en un altre dispositiu. ⚠️ L’enllaç i el fitxer permeten accedir al núvol: desa’ls en privat i elimina les còpies que ja no necessitis.',
     creditsHtml: 'Construït amb <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) i icones <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    samplesCreditsHtml: 'Llibres d’exemple: <i>Lazarillo de Tormes</i> (anònim), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) i <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, amb dibuixos de Ramon Casas), de domini públic, de <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); i <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He i Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Deixa anar aquí per moure a aquest dispositiu', dropCloud: 'Deixa anar aquí per moure al núvol',
     unsupportedFiles: 'Només es poden afegir fitxers PDF o EPUB.',
     localDuplicate: 'Aquest llibre ja és en aquest dispositiu, desat com a «{title}».',
@@ -910,7 +916,9 @@ const textos = {
     invalidConfigFile: 'The file does not contain a valid PageKeeper configuration.',
     credits: 'Credits', license: 'MIT License', source: 'Source code',
     privacy: 'Privacy',
-    analyticsNotice: 'This application only collects aggregated usage statistics with a self-hosted system, in order to understand how it is used and improve the tool. No IP addresses are stored and no analytics cookies are used for visitors.',
+    privacyNotice: 'PageKeeper has no analytics or visit counters, and no server of its own. Books, reading progress and annotations are stored in this browser and, if you set one up, in your WebDAV cloud, which the browser talks to directly.',
+    aiFooter: 'Made with AI (MIAE level 4)',
+    aiCredits: 'PageKeeper has been programmed in dialogue with AI assistants, including Claude Code. The author decides what the program does and how it is used, tests every change on screen and fixes what does not work; each version also passes automated tests of the logic and in a browser.',
     continueReading: 'Continue reading', recentCount: 'How many reads to show', recentAuto: 'As many as fit', recentN: '{count} reads',
     recentCountHelp: '“As many as fit” shows three or four depending on the screen width. The rest stay one tap away, under “Show more”.', removeContinue: 'Remove “Continue reading” from the library', continueRemoved: '“Continue reading” has been removed. You can show it again in Settings → Library.', continueReadingHelp: 'Your latest read, with the others one tap away',
     devices: 'Connected devices',
@@ -1127,6 +1135,7 @@ const textos = {
     passwordHelpHtml: '⚠️ In Nextcloud, create an <strong>app password</strong> (Settings → Security); do not use your main password. The server must also allow CORS so the browser can connect: in Nextcloud, install <strong>WebAppPassword</strong> and add this reader’s domain. Data is stored only in this browser.',
     transferHelp: 'You can copy a link or save a file containing the URL, username and app password, then open it on another device. ⚠️ The link and file provide access to your cloud: keep them private and delete copies you no longer need.',
     creditsHtml: 'Built with <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0), and <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> icons (ISC).',
+    samplesCreditsHtml: 'Sample books: <i>Lazarillo de Tormes</i> (anonymous), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) and <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, illustrated by Ramon Casas), in the public domain, from <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); and <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He and Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Drop here to move to this device', dropCloud: 'Drop here to move to the cloud',
     unsupportedFiles: 'Only PDF or EPUB files can be added.',
     localDuplicate: 'That book is already on this device, saved as “{title}”.',
@@ -1313,7 +1322,9 @@ const textos = {
     invalidConfigFile: 'Le fichier ne contient pas une configuration valide de PageKeeper.',
     credits: 'Crédits', license: 'Licence MIT', source: 'Code source',
     privacy: 'Confidentialité',
-    analyticsNotice: 'Cette application recueille uniquement des statistiques d’utilisation agrégées, avec un système autohébergé, pour mieux comprendre son usage et améliorer l’outil. Aucune adresse IP n’est conservée et aucun cookie d’analyse n’est utilisé pour les visiteurs.',
+    privacyNotice: 'PageKeeper n’intègre ni outil d’analyse ni compteur de visites, et n’a pas de serveur propre. Les livres, la progression et les annotations sont enregistrés dans ce navigateur et, si vous en configurez un, dans votre cloud WebDAV, avec lequel le navigateur communique directement.',
+    aiFooter: 'Créé avec l’IA (niveau 4 du MIAE)',
+    aiCredits: 'PageKeeper a été programmé en dialogue avec des assistants d’IA, dont Claude Code. L’auteur décide de ce que fait le programme et de la façon de l’utiliser, teste chaque changement à l’écran et corrige ce qui ne fonctionne pas ; chaque version passe en outre des tests automatiques de la logique et dans un navigateur.',
     continueReading: 'Continuer la lecture', recentCount: 'Combien de lectures afficher', recentAuto: 'Autant que possible', recentN: '{count} lectures',
     recentCountHelp: '« Autant que possible » en montre trois ou quatre selon la largeur de l’écran. Les autres restent à portée de touche, dans « Voir plus ».', removeContinue: 'Retirer « Continuer la lecture » de la bibliothèque', continueRemoved: '« Continuer la lecture » a été retiré. Vous pouvez le réafficher dans Réglages → Bibliothèque.', continueReadingHelp: 'Votre lecture la plus récente, les autres à portée de touche',
     devices: 'Appareils connectés',
@@ -1530,6 +1541,7 @@ const textos = {
     passwordHelpHtml: '⚠️ Dans Nextcloud, créez un <strong>mot de passe d’application</strong> (Réglages → Sécurité), n’utilisez pas votre mot de passe principal. Le serveur doit aussi autoriser CORS pour que le navigateur puisse se connecter : dans Nextcloud, installez <strong>WebAppPassword</strong> et ajoutez le domaine de cette liseuse. Les données sont enregistrées uniquement dans ce navigateur.',
     transferHelp: 'Vous pouvez copier un lien ou enregistrer un fichier contenant l’URL, l’utilisateur et le mot de passe d’application, puis l’ouvrir sur un autre appareil. ⚠️ Le lien et le fichier permettent d’accéder à votre nuage : gardez-les privés et supprimez les copies dont vous n’avez plus besoin.',
     creditsHtml: 'Construit avec <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) et les icônes <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    samplesCreditsHtml: 'Livres d’exemple : <i>Lazarillo de Tormes</i> (anonyme), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) et <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, illustré par Ramon Casas), dans le domaine public, issus de <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a> ; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>) ; <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>) ; et <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He et Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Déposez ici pour déplacer vers cet appareil', dropCloud: 'Déposez ici pour déplacer vers le nuage',
     unsupportedFiles: 'Seuls les fichiers PDF ou EPUB peuvent être ajoutés.',
     localDuplicate: 'Ce livre est déjà sur cet appareil, enregistré sous « {title} ».',
@@ -1716,7 +1728,9 @@ const textos = {
     invalidConfigFile: 'O arquivo non contén unha configuración válida de PageKeeper.',
     credits: 'Créditos', license: 'Licenza MIT', source: 'Código fonte',
     privacy: 'Privacidade',
-    analyticsNotice: 'Esta aplicación recolle unicamente estatísticas de uso agregadas cun sistema propio para coñecer a súa utilización e mellorar a ferramenta. Non se almacenan enderezos IP nin se usan cookies de analítica para as persoas visitantes.',
+    privacyNotice: 'PageKeeper non leva analítica nin contadores de visitas, e non ten servidor propio. Os libros, o progreso e as anotacións gárdanse neste navegador e, se a configuras, na túa nube WebDAV, coa que o navegador se comunica directamente.',
+    aiFooter: 'Creado con IA (nivel 4 do MIAE)',
+    aiCredits: 'PageKeeper programouse en diálogo con asistentes de IA, entre eles Claude Code. O autor decide que fai o programa e como se usa, proba cada cambio en pantalla e corrixe o que non funciona; cada versión pasa ademais probas automáticas da lóxica e nun navegador.',
     continueReading: 'Continuar lendo', recentCount: 'Cantas lecturas amosar', recentAuto: 'As que caiban', recentN: '{count} lecturas',
     recentCountHelp: '«As que caiban» amosa tres ou catro segundo o ancho da pantalla. As demais están a un toque, en «Ver máis».', removeContinue: 'Quitar «Continuar lendo» da biblioteca', continueRemoved: 'Quitouse «Continuar lendo». Podes volver a amosalo en Axustes → Biblioteca.', continueReadingHelp: 'A túa lectura máis recente, coas demais a un toque',
     devices: 'Dispositivos conectados',
@@ -1933,6 +1947,7 @@ const textos = {
     passwordHelpHtml: '⚠️ En Nextcloud crea un <strong>contrasinal de aplicación</strong> (Axustes → Seguridade), non uses o teu contrasinal principal. Ademais, para que o navegador poida conectar, o servidor debe permitir CORS: en Nextcloud instala a app <strong>WebAppPassword</strong> e engade o dominio deste lector. Os datos gárdanse unicamente neste navegador.',
     transferHelp: 'Podes copiar unha ligazón ou gardar un arquivo coa URL, o usuario e o contrasinal de aplicación, e abrilo noutro dispositivo. ⚠️ A ligazón e o arquivo permiten acceder á túa nube: gárdaos en privado e elimina as copias que xa non precises.',
     creditsHtml: 'Construído con <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e iconas <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    samplesCreditsHtml: 'Libros de exemplo: <i>Lazarillo de Tormes</i> (anónimo), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) e <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, con debuxos de Ramon Casas), de dominio público, de <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); e <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He e Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Solta aquí para mover a este dispositivo', dropCloud: 'Solta aquí para mover á nube',
     unsupportedFiles: 'Só se poden engadir arquivos PDF ou EPUB.',
     localDuplicate: 'Ese libro xa está neste dispositivo, gardado como «{title}».',
@@ -2119,7 +2134,9 @@ const textos = {
     invalidConfigFile: 'Fitxategiak ez du PageKeeperren baliozko konfiguraziorik.',
     credits: 'Kredituak', license: 'MIT lizentzia', source: 'Iturburu-kodea',
     privacy: 'Pribatutasuna',
-    analyticsNotice: 'Aplikazio honek erabilera-estatistika agregatuak baino ez ditu biltzen, norberaren sistema batekin, tresna nola erabiltzen den ezagutu eta hobetzeko. Ez da IP helbiderik gordetzen, ez eta analitika-cookierik erabiltzen ere bisitarientzat.',
+    privacyNotice: 'PageKeeper-ek ez du analitikarik ez bisita-kontagailurik, eta ez du zerbitzari propiorik. Liburuak, aurrerapena eta oharrak nabigatzaile honetan gordetzen dira eta, konfiguratzen baduzu, zure WebDAV hodeian; nabigatzailea zuzenean komunikatzen da harekin.',
+    aiFooter: 'AArekin sortua (MIAEren 4. maila)',
+    aiCredits: 'PageKeeper AA laguntzaileekin elkarrizketan programatu da, besteak beste Claude Coderekin. Egileak erabakitzen du programak zer egiten duen eta nola erabiltzen den, aldaketa bakoitza pantailan probatzen du eta funtzionatzen ez duena zuzentzen du; bertsio bakoitzak, gainera, logikaren eta nabigatzaileko proba automatikoak gainditzen ditu.',
     continueReading: 'Jarraitu irakurtzen', recentCount: 'Zenbat irakurketa erakutsi', recentAuto: 'Sartzen diren guztiak', recentN: '{count} irakurketa',
     recentCountHelp: '«Sartzen diren guztiak» hiru edo lau erakusten ditu pantailaren zabaleraren arabera. Gainerakoak ukitu batera daude, «Ikusi gehiago» atalean.', removeContinue: 'Kendu «Jarraitu irakurtzen» liburutegitik', continueRemoved: '«Jarraitu irakurtzen» kendu da. Berriro erakuts dezakezu Ezarpenak → Liburutegia atalean.', continueReadingHelp: 'Zure azken irakurketa, gainerakoak ukitu batera',
     devices: 'Konektatutako gailuak',
@@ -2336,6 +2353,7 @@ const textos = {
     passwordHelpHtml: '⚠️ Nextclouden sortu <strong>aplikazio-pasahitz</strong> bat (Ezarpenak → Segurtasuna), ez erabili zure pasahitz nagusia. Gainera, nabigatzaileak konektatu ahal izateko, zerbitzariak CORS onartu behar du: Nextclouden instalatu <strong>WebAppPassword</strong> aplikazioa eta gehitu irakurgailu honen domeinua. Datuak nabigatzaile honetan bakarrik gordetzen dira.',
     transferHelp: 'Esteka bat kopiatu edo URLa, erabiltzailea eta aplikazio-pasahitza dituen fitxategi bat gorde ditzakezu, eta beste gailu batean ireki. ⚠️ Estekak eta fitxategiak zure hodeirako sarbidea ematen dute: gorde pribatuki eta ezabatu behar ez dituzun kopiak.',
     creditsHtml: '<a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) eta <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> ikonoekin (ISC) eraikia.',
+    samplesCreditsHtml: 'Adibidezko liburuak: <i>Lazarillo de Tormes</i> (anonimoa), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) eta <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, Ramon Casasen marrazkiekin), jabari publikoan, <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a> webgunetik; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); eta <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He eta Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Askatu hemen gailu honetara eramateko', dropCloud: 'Askatu hemen hodeira eramateko',
     unsupportedFiles: 'PDF edo EPUB fitxategiak baino ezin dira gehitu.',
     localDuplicate: 'Liburu hori dagoeneko gailu honetan dago, «{title}» izenarekin gordeta.',
@@ -2522,7 +2540,9 @@ const textos = {
     invalidConfigFile: 'Die Datei enthält keine gültige PageKeeper-Konfiguration.',
     credits: 'Danksagungen', license: 'MIT-Lizenz', source: 'Quellcode',
     privacy: 'Datenschutz',
-    analyticsNotice: 'Diese Anwendung erfasst nur aggregierte Nutzungsstatistiken mit einem selbst betriebenen System, um zu verstehen, wie sie genutzt wird, und sie zu verbessern. Es werden keine IP-Adressen gespeichert und keine Analyse-Cookies für Besucher verwendet.',
+    privacyNotice: 'PageKeeper enthält keine Analyse und keine Besucherzähler und hat keinen eigenen Server. Bücher, Lesefortschritt und Anmerkungen werden in diesem Browser gespeichert und, wenn du eine einrichtest, in deiner WebDAV-Cloud, mit der der Browser direkt kommuniziert.',
+    aiFooter: 'Mit KI erstellt (MIAE-Stufe 4)',
+    aiCredits: 'PageKeeper wurde im Dialog mit KI-Assistenten programmiert, darunter Claude Code. Der Autor entscheidet, was das Programm tut und wie es benutzt wird, prüft jede Änderung am Bildschirm und behebt, was nicht funktioniert; jede Version besteht außerdem automatische Tests der Logik und in einem Browser.',
     continueReading: 'Weiterlesen', recentCount: 'Wie viele Lektüren anzeigen', recentAuto: 'So viele wie passen', recentN: '{count} Lektüren',
     recentCountHelp: '„So viele wie passen“ zeigt je nach Bildschirmbreite drei oder vier an. Die übrigen sind einen Fingertipp entfernt, unter „Mehr anzeigen“.', removeContinue: '„Weiterlesen“ aus der Bibliothek entfernen', continueRemoved: '„Weiterlesen“ wurde entfernt. Du kannst es unter Einstellungen → Bibliothek wieder anzeigen.', continueReadingHelp: 'Deine letzte Lektüre, die anderen einen Fingertipp entfernt',
     devices: 'Verbundene Geräte',
@@ -2739,6 +2759,7 @@ const textos = {
     passwordHelpHtml: '⚠️ Erstelle in Nextcloud ein <strong>App-Passwort</strong> (Einstellungen → Sicherheit); verwende nicht dein Hauptpasswort. Außerdem muss der Server CORS erlauben, damit sich der Browser verbinden kann: Installiere in Nextcloud die App <strong>WebAppPassword</strong> und füge die Domain dieses Readers hinzu. Die Daten werden nur in diesem Browser gespeichert.',
     transferHelp: 'Du kannst einen Link kopieren oder eine Datei mit URL, Benutzername und App-Passwort speichern und sie auf einem anderen Gerät öffnen. ⚠️ Der Link und die Datei ermöglichen Zugriff auf deine Cloud: Bewahre sie privat auf und lösche nicht mehr benötigte Kopien.',
     creditsHtml: 'Erstellt mit <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) und <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a>-Symbolen (ISC).',
+    samplesCreditsHtml: 'Beispielbücher: <i>Lazarillo de Tormes</i> (anonym), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) und <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, illustriert von Ramon Casas), gemeinfrei, von <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); und <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He und Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Hier ablegen, um auf dieses Gerät zu verschieben', dropCloud: 'Hier ablegen, um in die Cloud zu verschieben',
     unsupportedFiles: 'Es können nur PDF- oder EPUB-Dateien hinzugefügt werden.',
     localDuplicate: 'Dieses Buch ist bereits auf diesem Gerät, gespeichert als „{title}“.',
@@ -2925,7 +2946,9 @@ const textos = {
     invalidConfigFile: 'O ficheiro não contém uma configuração válida do PageKeeper.',
     credits: 'Créditos', license: 'Licença MIT', source: 'Código-fonte',
     privacy: 'Privacidade',
-    analyticsNotice: 'Esta aplicação recolhe apenas estatísticas de utilização agregadas com um sistema próprio, para conhecer a sua utilização e melhorar a ferramenta. Não são armazenados endereços IP nem são usados cookies de análise para os visitantes.',
+    privacyNotice: 'O PageKeeper não tem análises nem contadores de visitas, nem servidor próprio. Os livros, o progresso e as anotações são guardados neste navegador e, se a configurar, na sua nuvem WebDAV, com a qual o navegador comunica diretamente.',
+    aiFooter: 'Criado com IA (nível 4 do MIAE)',
+    aiCredits: 'O PageKeeper foi programado em diálogo com assistentes de IA, entre eles o Claude Code. O autor decide o que o programa faz e como se usa, testa cada alteração no ecrã e corrige o que não funciona; cada versão passa ainda testes automáticos da lógica e num navegador.',
     continueReading: 'Continuar a ler', recentCount: 'Quantas leituras mostrar', recentAuto: 'As que couberem', recentN: '{count} leituras',
     recentCountHelp: '«As que couberem» mostra três ou quatro consoante a largura do ecrã. As restantes ficam a um toque, em «Ver mais».', removeContinue: 'Remover «Continuar a ler» da biblioteca', continueRemoved: '«Continuar a ler» foi removido. Pode voltar a mostrá-lo em Definições → Biblioteca.', continueReadingHelp: 'A sua leitura mais recente, com as restantes a um toque',
     devices: 'Dispositivos ligados',
@@ -3142,6 +3165,7 @@ const textos = {
     passwordHelpHtml: '⚠️ No Nextcloud, crie uma <strong>palavra-passe de aplicação</strong> (Definições → Segurança); não use a sua palavra-passe principal. Além disso, para o navegador conseguir ligar-se, o servidor tem de permitir CORS: no Nextcloud, instale a aplicação <strong>WebAppPassword</strong> e adicione o domínio deste leitor. Os dados são guardados apenas neste navegador.',
     transferHelp: 'Pode copiar uma hiperligação ou guardar um ficheiro com o URL, o utilizador e a palavra-passe de aplicação, e abri-lo noutro dispositivo. ⚠️ A hiperligação e o ficheiro permitem aceder à sua nuvem: guarde-os em privado e elimine as cópias de que já não precisa.',
     creditsHtml: 'Construído com <a href="https://mozilla.github.io/pdf.js/" target="_blank" rel="noopener">PDF.js</a> (Apache 2.0), <a href="https://github.com/futurepress/epub.js" target="_blank" rel="noopener">epub.js</a> (BSD), JSZip (MIT), <a href="https://www.mathjax.org/" target="_blank" rel="noopener">MathJax</a> (Apache 2.0) e ícones <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC).',
+    samplesCreditsHtml: 'Livros de exemplo: <i>Lazarillo de Tormes</i> (anónimo), <i>Alice’s Adventures in Wonderland</i> (Lewis Carroll) e <i>L’auca del senyor Esteve</i> (Santiago Rusiñol, com desenhos de Ramon Casas), no domínio público, do <a href="https://www.gutenberg.org/" target="_blank" rel="noopener">Project Gutenberg</a>; <i>Orientaciones sobre el uso de herramientas digitales en el ámbito educativo desde la perspectiva de la protección de datos</i> (INTEF, <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener">CC BY-SA 4.0</a>); <i>Competència digital docent en intel·ligència artificial</i> (Generalitat de Catalunya, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>); e <a href="https://doi.org/10.1186/s43031-026-00154-2" target="_blank" rel="noopener"><i>Artificial intelligence in science education: global insights and future directions</i></a> (Peng He e Joseph Krajcik, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a>).',
     dropLocal: 'Largue aqui para mover para este dispositivo', dropCloud: 'Largue aqui para mover para a nuvem',
     unsupportedFiles: 'Só é possível adicionar ficheiros PDF ou EPUB.',
     localDuplicate: 'Esse livro já está neste dispositivo, guardado como «{title}».',
@@ -3308,10 +3332,13 @@ const ayudas = {
         menú «⋯», que és com es llegeix en pantalla tàctil.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Llibre d’exemple</summary>
+          <summary>Llibres d’exemple</summary>
           <p>
-        quan la biblioteca és completament buida pots afegir i obrir una obra de mostra
-        en l’idioma de la interfície. Després funciona com qualsevol llibre local.</p>
+        la primera vegada que s’obre PageKeeper en un navegador, si no hi ha cap
+        núvol configurat ni cap llibre al dispositiu, la biblioteca porta dos
+        llibres d’exemple en l’idioma de la interfície: un EPUB i un PDF. Són
+        llibres locals com qualsevol altre, que es poden llegir, conservar o
+        esborrar.</p>
         </details>
         </div>
       </div>
@@ -3842,10 +3869,12 @@ const ayudas = {
         menu, which is how you read it on a touch screen.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Sample book</summary>
+          <summary>Sample books</summary>
           <p>
-        when the library is completely empty you can add and open a sample work in the
-        interface language. After that it behaves like any other local book.</p>
+        the first time PageKeeper is opened in a browser, if no cloud is set up
+        and there are no books on the device, the library comes with two sample
+        books in the interface language: an EPUB and a PDF. They are local books
+        like any other, which you can read, keep or delete.</p>
         </details>
         </div>
       </div>
@@ -4376,11 +4405,12 @@ const ayudas = {
         le titre dans le menu « ⋯ », ce qui permet de le lire sur un écran tactile.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Livre d’exemple</summary>
+          <summary>Livres d’exemple</summary>
           <p>
-        quand la bibliothèque est complètement vide, vous pouvez ajouter et ouvrir un
-        livre d’exemple dans la langue de l’interface. Ensuite, il se comporte comme
-        n’importe quel autre livre local.</p>
+        la première fois que PageKeeper est ouvert dans un navigateur, si aucun
+        cloud n’est configuré et qu’il n’y a aucun livre sur l’appareil, la
+        bibliothèque contient deux livres d’exemple en espagnol : un EPUB et un PDF. Ce sont des livres locaux comme les
+        autres, que vous pouvez lire, conserver ou supprimer.</p>
         </details>
         </div>
       </div>
@@ -4937,11 +4967,11 @@ const ayudas = {
         título no menú «⋯», que é como se le nunha pantalla táctil.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Libro de exemplo</summary>
+          <summary>Libros de exemplo</summary>
           <p>
-        cando a biblioteca está completamente baleira podes engadir e abrir unha obra
-        de exemplo no idioma da interface. Despois compórtase como calquera outro
-        libro local.</p>
+        a primeira vez que se abre PageKeeper nun navegador, se non hai ningunha
+        nube configurada nin libros no dispositivo, a biblioteca trae dous libros de exemplo en castelán: un EPUB e un PDF. Son libros
+        locais coma calquera outro, que se poden ler, conservar ou borrar.</p>
         </details>
         </div>
       </div>
@@ -5473,11 +5503,13 @@ const ayudas = {
         batean irakurtzeko modua.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Adibidezko liburua</summary>
+          <summary>Adibidezko liburuak</summary>
           <p>
-        liburutegia guztiz hutsik dagoenean, interfazearen hizkuntzan dagoen
-        adibidezko lan bat gehitu eta ireki dezakezu. Ondoren beste edozein liburu
-        lokal bezala jokatzen du.</p>
+        PageKeeper nabigatzaile batean lehen aldiz irekitzen denean, hodeirik
+        konfiguratuta ez badago eta gailuan libururik ez badago, liburutegiak
+        gaztelaniazko bi adibidezko liburu ditu: EPUB bat eta PDF
+        bat. Beste edozein bezalako liburu lokalak dira: irakurri, gorde edo
+        ezabatu daitezke.</p>
         </details>
         </div>
       </div>
@@ -6028,11 +6060,13 @@ const ayudas = {
         einem Touchscreen.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Beispielbuch</summary>
+          <summary>Beispielbücher</summary>
           <p>
-        wenn die Bibliothek völlig leer ist, kannst du ein Beispielwerk in der
-        Sprache der Oberfläche hinzufügen und öffnen. Danach verhält es sich wie
-        jedes andere lokale Buch.</p>
+        wenn PageKeeper zum ersten Mal in einem Browser geöffnet wird und weder
+        eine Cloud eingerichtet ist noch Bücher auf dem Gerät liegen, enthält
+        die Bibliothek zwei spanischsprachige Beispielbücher: ein
+        EPUB und ein PDF. Es sind lokale Bücher wie alle anderen, die du lesen,
+        behalten oder löschen kannst.</p>
         </details>
         </div>
       </div>
@@ -6604,11 +6638,12 @@ const ayudas = {
         também sob o título no menu «⋯», que é como se lê num ecrã tátil.</p>
         </details>
         <details class="punto-ayuda">
-          <summary>Livro de exemplo</summary>
+          <summary>Livros de exemplo</summary>
           <p>
-        quando a biblioteca está completamente vazia, pode adicionar e abrir uma
-        obra de exemplo no idioma da interface. Depois comporta-se como qualquer
-        outro livro local.</p>
+        na primeira vez que o PageKeeper é aberto num navegador, se não houver
+        nenhuma nuvem configurada nem livros no dispositivo, a biblioteca traz
+        dois livros de exemplo em espanhol: um EPUB e um PDF. São
+        livros locais como qualquer outro, que se podem ler, guardar ou apagar.</p>
         </details>
         </div>
       </div>

@@ -659,6 +659,7 @@ body:not(.filtrado-biblioteca) .seccion-plegada > .cuerpo-plegable > .interior-p
 .creditos-pie summary:hover { text-decoration: underline; }
 .creditos-pie[open] { flex-basis: 100%; margin-top: 0.25rem; }
 .creditos-pie p { max-width: 42rem; margin: 0 auto; }
+.creditos-pie p + p { margin-top: 0.5rem; }
 
 .estado { font-size: 0.9rem; color: var(--texto-suave); min-height: 1.2rem; }
 .estado.error { color: var(--peligro); white-space: pre-wrap; }

@@ -5244,6 +5244,13 @@ if (!('webkitdirectory' in HTMLInputElement.prototype)) {
 
 $('aviso-local-vacio').addEventListener('click', () => $('selector-archivo').click());
 
+// Los botones de añadir y subir abren su selector de archivos oculto. Antes
+// eran un <label for> del selector, que con el ratón hacía lo mismo pero no
+// recibe el foco: con el teclado no había forma de llegar a ellos.
+document.querySelectorAll('[data-abre]').forEach((boton) => {
+  boton.addEventListener('click', () => $(boton.dataset.abre).click());
+});
+
 // ───────────────────────── Arrastrar archivos ─────────────────────────
 
 function contieneArchivos(evento) {

@@ -13,8 +13,11 @@ estático en GitHub Pages.
   funcionar sin conexión y con una política de seguridad estricta.
 - **No hay `package.json`.** Las pruebas se lanzan con el `node --test` que
   trae Node, sin nada alrededor.
+- **No hay analítica ni contadores de visitas** (ADR 7). La aplicación no se
+  comunica con más servidores que el propio sitio, la nube de cada persona y
+  la web de un libro que se abre por enlace.
 
-Si una tarea parece pedir cualquiera de esas tres cosas, casi siempre hay otro
+Si una tarea parece pedir cualquiera de esas cosas, casi siempre hay otro
 camino. Antes de introducirlas, pregunta.
 
 ## Dónde va el código nuevo
@@ -56,8 +59,10 @@ regresión. Se trocea cuando hay decisiones atrapadas, no por tamaño.
   qué pasaba antes de ponerlo, qué caso raro se está esquivando. Lee un módulo
   cualquiera antes de escribir para coger el tono.
 - Los textos de la interfaz nunca van escritos en el código: se añaden a
-  `js/i18n.js`, que lleva **tres idiomas (`es`, `ca`, `en`)**. Una clave nueva
-  se añade a los tres.
+  `js/i18n.js`, que lleva **ocho idiomas (`es`, `ca`, `gl`, `eu`, `en`, `fr`,
+  `de`, `pt`)**. Una clave nueva se añade a los ocho. La ayuda larga de cada
+  idioma va aparte, en el objeto `ayudas` del mismo archivo (la española está
+  en `index.html`).
 
 ## Pruebas
 
@@ -92,6 +97,9 @@ Playwright no dispara solos, el service worker cacheando).
 5. Al cambiar el comportamiento de algo que ya funcionaba —aunque sea para
    mejor— dilo explícitamente en el mensaje del commit y al usuario.
 6. **Sube la versión y anótala** (ver «Versiones», aquí debajo).
+7. **Si tomaste una decisión que condiciona el trabajo futuro, regístrala en
+   `docs/adr/`** (plantilla y lista en `docs/adr/README.md`). Si cambias algo
+   que un ADR describe, actualízalo.
 
 Una forma barata de comprobar que un refactor no ha cambiado nada: escribe el
 guion de Playwright, ejecútalo, guarda la salida, haz `git stash` para volver

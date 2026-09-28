@@ -36,9 +36,11 @@ libros y sincronizar el progreso de lectura.
   Si se abre de nuevo un libro terminado, la etiqueta desaparece sin reiniciar
   su progreso. Los libros con 0 % leído se consideran pendientes aunque ya se
   hayan abierto.
-- 📖 **Libro de ejemplo**: cuando la biblioteca está completamente vacía,
-  ofrece añadir y abrir una obra incluida en español, catalán o inglés según
-  el idioma de la interfaz. Los tres EPUB están disponibles también sin red.
+- 📖 **Libros de ejemplo**: la primera vez que se abre en un navegador, si no
+  hay nube configurada ni libros en el dispositivo, la biblioteca trae dos
+  obras, un EPUB y un PDF, que se pueden leer, conservar o borrar. Hay parejas
+  en español, catalán e inglés; con los demás idiomas se usa la española. Una
+  vez en la biblioteca se leen sin red, como cualquier libro local.
 - 📴 **Libros de la nube sin conexión**: cada PDF o EPUB remoto se puede fijar
   en el dispositivo. PageKeeper guarda una copia en IndexedDB, la actualiza
   cuando cambia en WebDAV y la abre automáticamente si falla la conexión, sin
@@ -267,9 +269,9 @@ libros y sincronizar el progreso de lectura.
   lleva la configuración de la nube (URL, usuario y contraseña, codificados
   en el fragmento `#cfg=…`, que nunca se envía a ningún servidor). Al abrirlo
   en otro dispositivo, el lector queda configurado automáticamente.
-- 🔒 **Privacidad**: no hay ningún servidor intermedio. El navegador habla
-  directamente con tu nube y las credenciales se guardan solo en tu navegador
-  (`localStorage`).
+- 🔒 **Privacidad**: no hay ningún servidor intermedio, ni analítica ni
+  contadores de visitas. El navegador habla directamente con tu nube y las
+  credenciales se guardan solo en tu navegador (`localStorage`).
 - 🛡️ **Los libros no ejecutan código**: cada capítulo EPUB se limpia antes de
   mostrarse (se quitan los `<script>`, los atributos `on…` y los enlaces
   `javascript:`) y se abre con una política propia, `default-src 'none'`, que
@@ -333,9 +335,10 @@ CORS que permitan el dominio del lector (métodos `GET`, `PUT`, `DELETE`,
 ## Publicar tu propia copia
 
 1. Haz un *fork* de este repositorio (o súbelo a tu cuenta).
-2. En GitHub: *Settings → Pages → Source: Deploy from a branch*, rama `main`,
-   carpeta `/ (root)`.
-3. Tu lector quedará en `https://tu-usuario.github.io/lector-pdf/`.
+2. En GitHub: *Settings → Pages → Source: GitHub Actions*. El flujo
+   `.github/workflows/desplegar.yml` pasa las pruebas de lógica y publica el
+   sitio cada vez que se sube algo a `main`.
+3. Tu lector quedará en `https://tu-usuario.github.io/<nombre-del-repositorio>/`.
 
 No hay proceso de compilación: es HTML, CSS y JavaScript planos.
 
@@ -406,38 +409,35 @@ Necesitan Playwright de Python, y rclone solo para las que usan la nube (sin
   permite enviar cabeceras propias. `connect-src` queda abierto a propósito: la
   nube WebDAV la elige cada persona y puede estar en cualquier dominio.
 
-## Estadísticas de uso
-
-PageKeeper recoge únicamente estadísticas de uso **agregadas**, con un sistema
-propio alojado en `bilateria.org`, para saber cuánto se utiliza la aplicación.
-No se almacenan direcciones IP ni se usan cookies de analítica.
-
-Cómo está montado:
-
-- los metadatos `analytics-endpoint`, `analytics-stats-url` y
-  `analytics-site-id` en `index.html` apuntan al backend;
-- `js/analytics.js` registra la visita en segundo plano (JSONP, con
-  `requestIdleCallback` y un timeout de 4 s), así que si el servidor falla el
-  lector sigue funcionando igual;
-- la petición se inyecta siempre **después** del evento `load`: un `<script
-  async>` insertado antes lo retrasaría hasta que la petición terminase, y con
-  el servidor colgado `load` no llegaría a dispararse nunca;
-- una visita por navegador cada 30 minutos: el resto de cargas envían
-  `summary_only=1`, que no registra nada;
-- no se cuenta nada en `localhost`, `127.0.0.1` ni con `file://`.
-
-**Las cifras no se muestran nunca en la interfaz.** No hay contador, ni badge,
-ni enlace al panel: la respuesta del servidor se descarta. Lo único visible es
-el aviso de «Privacidad» del pie. Las estadísticas se consultan solo desde el
-panel privado.
-
-Nada de esto afecta a tus libros ni a tu progreso de lectura, que siguen
-únicamente en tu dispositivo y en tu nube WebDAV.
-
 ## Licencia
 
-© 2026 Juan José de Haro. Código propio bajo licencia MIT.
+© 2026 Juan José de Haro. Código propio bajo licencia MIT (archivo `LICENSE`).
 
 Componentes de terceros incluidos en `vendor/`: PDF.js (Mozilla Foundation,
 Apache 2.0), epub.js (FuturePress, BSD), JSZip (MIT), MathJax (Apache 2.0)
 e iconos Lucide (ISC).
+
+Libros de ejemplo, en `ejemplos/`:
+
+- *Lazarillo de Tormes* (anónimo), *Alice's Adventures in Wonderland* (Lewis
+  Carroll) y *L'auca del senyor Esteve* (Santiago Rusiñol, con dibujos de
+  Ramon Casas): dominio público, ediciones de
+  [Project Gutenberg](https://www.gutenberg.org/).
+- *Orientaciones sobre el uso de herramientas digitales en el ámbito educativo
+  desde la perspectiva de la protección de datos*, INTEF,
+  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/deed.es).
+- *Competència digital docent en intel·ligència artificial*, Generalitat de
+  Catalunya, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es).
+- *[Artificial intelligence in science education: global insights and future
+  directions](https://doi.org/10.1186/s43031-026-00154-2)*, Peng He y Joseph
+  Krajcik, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/deed.es).
+
+## Uso de inteligencia artificial
+
+PageKeeper se ha programado en diálogo con asistentes de IA, entre ellos
+Claude Code, con un nivel de uso de
+[cocreación (nivel 4 del MIAE)](https://jjdeharo.github.io/miae/?nivel=4). El
+autor decide qué hace el programa y cómo se usa, prueba cada cambio en
+pantalla y corrige lo que no funciona; cada versión pasa además pruebas
+automáticas de la lógica (`node --test`) y en un navegador (`tests/e2e/`). Las
+decisiones de diseño y su motivo están en [`docs/adr/`](docs/adr/).

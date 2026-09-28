@@ -7,6 +7,27 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.6.1 — 28 de septiembre de 2026
+
+### Cambiado
+- **PageKeeper ya no cuenta las visitas.** Se ha retirado el contador que
+  registraba cada visita en bilateria.org. Además de ser analítica, enviaba la
+  dirección completa de la página, y con ella la de un libro abierto por
+  enlace. Ahora la aplicación solo habla con su propio sitio, con tu nube y con
+  la web de un libro que abras por enlace. El aviso de «Privacidad» del pie lo
+  explica.
+- El pie indica que PageKeeper se ha creado con IA (nivel 4 del MIAE), y los
+  créditos cuentan qué comprueba el autor y de dónde salen los libros de
+  ejemplo, con su autoría y su licencia.
+
+### Arreglado
+- Los botones de añadir un libro o una carpeta, y de subirlos a la nube, se
+  alcanzan con el tabulador y se pulsan con Intro o la barra espaciadora. Antes
+  solo respondían al ratón o al dedo.
+- La ayuda de los libros de ejemplo describe lo que pasa de verdad: llegan
+  solos la primera vez, dos por idioma, en vez de ofrecerse uno cuando la
+  biblioteca está vacía.
+
 ## 1.6.0 — 28 de septiembre de 2026
 
 ### Cambiado
