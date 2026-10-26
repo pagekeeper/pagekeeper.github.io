@@ -3286,7 +3286,7 @@ const ayudas = {
 
     <div id="panel-ayuda-empezar" class="panel-pestana" role="tabpanel"
       aria-label="Primers passos" tabindex="0">
-<div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local.</li><li><strong>Afegeix una carpeta sencera:</strong> el botó de la carpeta amb la fletxa (i el mateix gest d’arrossegar-hi una carpeta) copia tots els PDF i EPUB que hi hagi dins, subcarpetes incloses, i refà aquesta mateixa estructura a la biblioteca. Amb el núvol funciona igual: les carpetes es creen al servidor.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
+<div class="tarjeta"><h2>Què fa PageKeeper?</h2><p>Llegeix llibres PDF i EPUB, incloses fórmules matemàtiques, des del mòbil, la tauleta o l’ordinador, i recorda el punt de lectura.</p><ul class="lista-ayuda"><li><strong>Afegeix un llibre del dispositiu (botó «+»):</strong> funciona de seguida, sense comptes. El llibre queda desat només en aquest navegador. També pots arrossegar un o diversos fitxers a la secció local. Amb l’app d’Android, a més, pots obrir un PDF o EPUB des del gestor de fitxers («Obre amb») o enviar-l’hi des d’una altra aplicació («Comparteix»).</li><li><strong>Afegeix una carpeta sencera:</strong> el botó de la carpeta amb la fletxa (i el mateix gest d’arrossegar-hi una carpeta) copia tots els PDF i EPUB que hi hagi dins, subcarpetes incloses, i refà aquesta mateixa estructura a la biblioteca. Amb el núvol funciona igual: les carpetes es creen al servidor.</li><li><strong>Connecta un núvol (WebDAV):</strong> els llibres i la posició de lectura se sincronitzen entre dispositius.</li></ul></div>
 
 <div class="tarjeta"><h2>Clar, sèpia, fosc i negre</h2><p>El botó del tema, a la capçalera, obre un menú amb cinc opcions: <strong>el del sistema</strong> (cercle meitat clar meitat fosc), <strong>clar</strong> (sol), <strong>sèpia</strong> (tassa), <strong>fosc</strong> (lluna) i <strong>negre</strong> (lluna amb estrella). La icona del botó et diu en quin ets i la teva tria es recorda en aquest navegador. De primer s’usa el del sistema, de manera que l’aplicació s’aclareix o s’enfosqueix quan ho fa la resta del dispositiu.</p><p class="ayuda">El tema és també el paper amb què llegeixes: clar és paper blanc, sèpia el torrat dels lectors de tinta electrònica, fosc el mode nit de la pàgina i negre aquest mateix mode nit portat al negre pur, que a les pantalles OLED apaga el píxel i gasta menys bateria.</p><p class="ayuda">Amb «el del sistema» pots decidir a quin tema va cada costat: sèpia en lloc de clar de dia, o negre en lloc de fosc de nit. Es tria a <em>⚙️ Configuració → Biblioteca</em>, amb una mostra de cadascun per veure’ls sense canviar el tema del dispositiu.</p></div>
     </div>
@@ -3822,7 +3822,7 @@ const ayudas = {
         instantly, with no accounts and no settings. The book is stored in that
         browser’s library and it remembers where you left off. The one catch:
         everything is kept on that device only. You can also drag one or more
-        PDFs or EPUBs onto the local section.</li><li><strong>Add a whole folder:</strong> the folder button with the arrow (and dragging a folder onto the section) copies every PDF and EPUB inside it, subfolders included, and rebuilds the same structure in your library. It works the same with the cloud, where the folders are created on the server.</li><li><strong>Connect cloud storage (WebDAV):</strong> your books and your
+        PDFs or EPUBs onto the local section. With the Android app you can also open a PDF or EPUB from your file manager (“Open with”) or send it from another app (“Share”).</li><li><strong>Add a whole folder:</strong> the folder button with the arrow (and dragging a folder onto the section) copies every PDF and EPUB inside it, subfolders included, and rebuilds the same structure in your library. It works the same with the cloud, where the folders are created on the server.</li><li><strong>Connect cloud storage (WebDAV):</strong> your books and your
         reading position sync across all your devices. It needs some setting up
         first, explained further down.</li></ul></div>
 
@@ -4355,7 +4355,7 @@ const ayudas = {
         fonctionne aussitôt, sans compte ni réglage. Le livre est conservé dans la
         bibliothèque de ce navigateur et l’application se souvient d’où vous en étiez
         resté. Le seul hic : tout reste uniquement sur cet appareil. Vous pouvez aussi
-        déposer un ou plusieurs PDF ou EPUB sur la section locale.</li><li><strong>Ajouter un dossier entier :</strong> le bouton de dossier avec la flèche (et déposer un dossier sur la section) copie tous les PDF et EPUB qu’il contient, sous-dossiers compris, et reconstruit la même arborescence dans votre bibliothèque. Cela fonctionne de la même façon avec le nuage, où les dossiers sont créés sur le serveur.</li><li><strong>Connecter un nuage (WebDAV) :</strong> vos livres et votre
+        déposer un ou plusieurs PDF ou EPUB sur la section locale. Avec l’application Android, vous pouvez aussi ouvrir un PDF ou un EPUB depuis le gestionnaire de fichiers (« Ouvrir avec ») ou l’envoyer depuis une autre application (« Partager »).</li><li><strong>Ajouter un dossier entier :</strong> le bouton de dossier avec la flèche (et déposer un dossier sur la section) copie tous les PDF et EPUB qu’il contient, sous-dossiers compris, et reconstruit la même arborescence dans votre bibliothèque. Cela fonctionne de la même façon avec le nuage, où les dossiers sont créés sur le serveur.</li><li><strong>Connecter un nuage (WebDAV) :</strong> vos livres et votre
         position de lecture se synchronisent sur tous vos appareils. Cela demande
         d’abord un peu de configuration, expliquée plus bas.</li></ul></div>
 
@@ -4919,7 +4919,7 @@ const ayudas = {
         ao instante, sen contas nin axustes. O libro gárdase na biblioteca dese
         navegador e lembra por onde o deixaches. O único pero: todo queda unicamente
         nese dispositivo. Tamén podes arrastrar un ou varios PDF ou EPUB á sección
-        local.</li><li><strong>Engadir un cartafol enteiro:</strong> o botón de cartafol coa frecha (e arrastrar un cartafol á sección) copia todos os PDF e EPUB que contén, subcartafoles incluídos, e reconstrúe a mesma estrutura na túa biblioteca. Funciona igual coa nube, onde os cartafoles se crean no servidor.</li><li><strong>Conectar unha nube (WebDAV):</strong> os teus libros e a túa
+        local. Coa app de Android, ademais, podes abrir un PDF ou EPUB desde o xestor de ficheiros («Abrir con») ou mandarllo desde outra aplicación («Compartir»).</li><li><strong>Engadir un cartafol enteiro:</strong> o botón de cartafol coa frecha (e arrastrar un cartafol á sección) copia todos os PDF e EPUB que contén, subcartafoles incluídos, e reconstrúe a mesma estrutura na túa biblioteca. Funciona igual coa nube, onde os cartafoles se crean no servidor.</li><li><strong>Conectar unha nube (WebDAV):</strong> os teus libros e a túa
         posición de lectura sincronízanse en todos os teus dispositivos. Require
         primeiro algo de configuración, explicada máis abaixo.</li></ul></div>
 
@@ -5452,7 +5452,7 @@ const ayudas = {
         funtzionatzen du, konturik eta ezarpenik gabe. Liburua nabigatzaile horren
         liburutegian gordetzen da eta non utzi zenuen gogoratzen du. Aparteko gauza
         bakarra: dena gailu horretan bakarrik gelditzen da. PDF edo EPUB bat edo
-        gehiago atal lokalera ere arrasta ditzakezu.</li><li><strong>Gehitu karpeta oso bat:</strong> gezia duen karpeta-botoiak (eta karpeta bat atalera arrastatzeak) barruan dituen PDF eta EPUB guztiak kopiatzen ditu, azpikarpetak barne, eta egitura bera berreraikitzen du zure liburutegian. Modu berean funtzionatzen du hodeiarekin, non karpetak zerbitzarian sortzen diren.</li><li><strong>Konektatu hodei bat (WebDAV):</strong> zure liburuak eta zure
+        gehiago atal lokalera ere arrasta ditzakezu. Androiderako aplikazioarekin, gainera, PDF edo EPUB bat fitxategi-kudeatzailetik ireki dezakezu («Ireki honekin») edo beste aplikazio batetik bidali («Partekatu»).</li><li><strong>Gehitu karpeta oso bat:</strong> gezia duen karpeta-botoiak (eta karpeta bat atalera arrastatzeak) barruan dituen PDF eta EPUB guztiak kopiatzen ditu, azpikarpetak barne, eta egitura bera berreraikitzen du zure liburutegian. Modu berean funtzionatzen du hodeiarekin, non karpetak zerbitzarian sortzen diren.</li><li><strong>Konektatu hodei bat (WebDAV):</strong> zure liburuak eta zure
         irakurketa-posizioa zure gailu guztien artean sinkronizatzen dira. Lehenik
         konfigurazio pixka bat behar du, aurrerago azalduta.</li></ul></div>
 
@@ -6006,7 +6006,7 @@ const ayudas = {
         sofort, ohne Konten und ohne Einstellungen. Das Buch wird in der Bibliothek
         dieses Browsers gespeichert und merkt sich, wo du aufgehört hast. Der einzige
         Haken: Alles bleibt nur auf diesem Gerät. Du kannst auch ein oder mehrere PDF-
-        oder EPUB-Dateien in den lokalen Bereich ziehen.</li><li><strong>Einen ganzen Ordner hinzufügen:</strong> Die Ordnerschaltfläche mit dem Pfeil (und das Ziehen eines Ordners in den Bereich) kopiert alle darin enthaltenen PDF- und EPUB-Dateien, einschließlich Unterordner, und baut dieselbe Struktur in deiner Bibliothek nach. Bei der Cloud funktioniert es genauso, dort werden die Ordner auf dem Server angelegt.</li><li><strong>Eine Cloud verbinden (WebDAV):</strong> Deine Bücher und deine
+        oder EPUB-Dateien in den lokalen Bereich ziehen. Mit der Android-App kannst du außerdem ein PDF oder EPUB aus dem Dateimanager öffnen („Öffnen mit“) oder es aus einer anderen App senden („Teilen“).</li><li><strong>Einen ganzen Ordner hinzufügen:</strong> Die Ordnerschaltfläche mit dem Pfeil (und das Ziehen eines Ordners in den Bereich) kopiert alle darin enthaltenen PDF- und EPUB-Dateien, einschließlich Unterordner, und baut dieselbe Struktur in deiner Bibliothek nach. Bei der Cloud funktioniert es genauso, dort werden die Ordner auf dem Server angelegt.</li><li><strong>Eine Cloud verbinden (WebDAV):</strong> Deine Bücher und deine
         Leseposition werden zwischen all deinen Geräten synchronisiert. Dafür ist
         zunächst etwas Einrichtung nötig, weiter unten erklärt.</li></ul></div>
 
@@ -6588,7 +6588,7 @@ const ayudas = {
         de imediato, sem contas nem configurações. O livro é guardado na biblioteca
         desse navegador e lembra-se de onde ficou. O único senão: tudo fica apenas
         nesse dispositivo. Também pode arrastar um ou vários PDF ou EPUB para a
-        secção local.</li><li><strong>Adicionar uma pasta inteira:</strong> o botão de pasta com a seta (e arrastar uma pasta para a secção) copia todos os PDF e EPUB que contém, incluindo subpastas, e recria a mesma estrutura na sua biblioteca. Funciona da mesma forma com a nuvem, onde as pastas são criadas no servidor.</li><li><strong>Ligar a uma nuvem (WebDAV):</strong> os seus livros e a sua
+        secção local. Com a aplicação Android, pode também abrir um PDF ou EPUB a partir do gestor de ficheiros («Abrir com») ou enviá-lo a partir de outra aplicação («Partilhar»).</li><li><strong>Adicionar uma pasta inteira:</strong> o botão de pasta com a seta (e arrastar uma pasta para a secção) copia todos os PDF e EPUB que contém, incluindo subpastas, e recria a mesma estrutura na sua biblioteca. Funciona da mesma forma com a nuvem, onde as pastas são criadas no servidor.</li><li><strong>Ligar a uma nuvem (WebDAV):</strong> os seus livros e a sua
         posição de leitura sincronizam-se em todos os seus dispositivos. É
         necessária primeiro alguma configuração, explicada mais abaixo.</li></ul></div>
 

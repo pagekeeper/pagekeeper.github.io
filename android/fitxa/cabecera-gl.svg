@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="500" viewBox="0 0 1024 500">
+  <defs>
+    <linearGradient id="fondo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/><stop offset="1" stop-color="#132a4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="500" fill="url(#fondo)"/>
+  <path d="M612 455 C 700 488, 850 488, 932 445" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-dasharray="2 9" stroke-linecap="round" opacity="0.7"/>
+  <rect x="590" y="118" width="350" height="226" rx="12" fill="#1e293b" stroke="#475569" stroke-width="2"/><rect x="603" y="131" width="324" height="200" fill="#f8fafc"/>
+<rect x="641.88" y="157.0" width="145.8" height="7.000000000000001" rx="1.5" fill="#334155"/>
+<rect x="641.88" y="179.0" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="191.4" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="203.8" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="216.2" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="228.6" width="147.744" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="639.88" y="237.528" width="250.24" height="9.920000000000002" rx="2" fill="#fde68a"/>
+<rect x="641.88" y="241.0" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="253.4" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="265.8" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="278.2" width="246.24" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="641.88" y="290.6" width="147.744" height="2.976" rx="1" fill="#94a3b8"/>
+<path d="M884.232 131 h22.680000000000003 v32.0 l-11.340000000000002 -12.474000000000002 l-11.340000000000002 12.474000000000002 z" fill="#0ea5e9"/>
+<rect x="722.88" y="308.0" width="84.24000000000001" height="15.0" rx="7.5" fill="#0f172a"/>
+<text x="765.0" y="318.8" font-size="9.3" text-anchor="middle" fill="#e2e8f0" font-family="Inter" font-weight="600">128</text><path d="M560 344 H970 L986 362 Q986 368 978 368 H572 Q564 368 564 362 Z" fill="#334155"/><rect x="735" y="344" width="60" height="7" rx="3" fill="#1e293b"/>
+  <rect x="528" y="196" width="168" height="224" rx="16" fill="#0b1220" stroke="#475569" stroke-width="2"/><rect x="540" y="208" width="144" height="200" fill="#f8fafc"/>
+<rect x="557.28" y="234.0" width="64.8" height="7.000000000000001" rx="1.5" fill="#334155"/>
+<rect x="557.28" y="256.0" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="268.4" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="280.8" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="293.2" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="305.6" width="65.664" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="555.28" y="314.528" width="113.44" height="9.920000000000002" rx="2" fill="#fde68a"/>
+<rect x="557.28" y="318.0" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="330.4" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="342.8" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="355.2" width="109.44" height="2.976" rx="1" fill="#94a3b8"/>
+<rect x="557.28" y="367.6" width="65.664" height="2.976" rx="1" fill="#94a3b8"/>
+<path d="M664.992 208 h10.080000000000002 v32.0 l-5.040000000000001 -5.544000000000001 l-5.040000000000001 5.544000000000001 z" fill="#0ea5e9"/>
+<rect x="593.28" y="385.0" width="37.44" height="15.0" rx="7.5" fill="#0f172a"/>
+<text x="612.0" y="395.8" font-size="9.3" text-anchor="middle" fill="#e2e8f0" font-family="Inter" font-weight="600">128</text>
+  <rect x="884" y="232" width="96" height="198" rx="15" fill="#0b1220" stroke="#475569" stroke-width="2"/><rect x="890" y="248" width="84" height="172" fill="#f8fafc"/>
+<rect x="900.08" y="270.36" width="37.800000000000004" height="6.0200000000000005" rx="1.5" fill="#334155"/>
+<rect x="900.08" y="289.28" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="299.94399999999996" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="310.60799999999995" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="321.272" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="331.936" width="38.304" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="898.08" y="339.61407999999994" width="67.84" height="8.5312" rx="2" fill="#fde68a"/>
+<rect x="900.08" y="342.59999999999997" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="353.26399999999995" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="363.928" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="374.592" width="63.84" height="2.55936" rx="1" fill="#94a3b8"/>
+<rect x="900.08" y="385.256" width="38.304" height="2.55936" rx="1" fill="#94a3b8"/>
+<path d="M962.912 248 h7 v27.52 l-3.5 -3.8500000000000005 l-3.5 3.8500000000000005 z" fill="#0ea5e9"/>
+<rect x="917.0" y="400.22" width="30" height="12.9" rx="6.45" fill="#0f172a"/>
+<text x="932.0" y="409.508" font-size="7.998" text-anchor="middle" fill="#e2e8f0" font-family="Inter" font-weight="600">128</text><rect x="918" y="238" width="28" height="5" rx="2.5" fill="#1e293b"/>
+  <g transform="translate(64 112) scale(0.16)"><g fill="none" stroke="#38bdf8" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M256 152 C 216 120, 140 120, 104 144 V 376 C 140 352, 216 352, 256 384 C 296 352, 372 352, 408 376 V 144 C 372 120, 296 120, 256 152 Z"/>
+    <path d="M256 152 V 384"/></g>
+  <g stroke="#7dd3fc" stroke-width="12" stroke-linecap="round">
+    <path d="M140 200 H 220 M140 240 H 220 M140 280 H 220"/>
+    <path d="M292 200 H 372 M292 240 H 372 M292 280 H 372"/></g></g>
+  <text x="64" y="232" font-family="Inter" font-weight="700" font-size="62" fill="#f8fafc">PageKeeper</text>
+  <text x="64" y="292" font-family="Inter" font-weight="500" font-size="29" fill="#7dd3fc">Continúa na mesma páxina</text>
+  <text x="64" y="330" font-family="Inter" font-weight="500" font-size="29" fill="#7dd3fc">en todos os teus dispositivos</text>
+  <text x="64" y="392" font-family="Inter" font-size="19" fill="#94a3b8">PDF · EPUB · Nextcloud · WebDAV</text>
+</svg>

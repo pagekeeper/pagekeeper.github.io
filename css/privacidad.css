@@ -36,6 +36,7 @@
 .pagina-legal h2 { font-size: 1.15rem; margin: 1.75rem 0 0.4rem; }
 .pagina-legal .fecha { color: var(--texto-suave); margin-top: 0; }
 .pagina-legal a { color: var(--acento); }
+.pagina-legal ul { padding-left: 1.25rem; }
 .pagina-legal li + li { margin-top: 0.4rem; }
 .pagina-legal footer {
   margin-top: 2.5rem;

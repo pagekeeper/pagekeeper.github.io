@@ -17,3 +17,4 @@ crear uno nuevo: `nuevo-adr "Título de la decisión"`, a partir de
 | [6](0006-despliegue-con-un-flujo-de-actions.md) | El despliegue lo hace un flujo de GitHub Actions | aceptado |
 | [7](0007-sin-analitica-ni-contadores.md) | PageKeeper no lleva analítica ni contadores de visitas | aceptado |
 | [8](0008-mover-entre-nube-y-dispositivo-es-un-traslado.md) | Llevar un libro entre la nube y el dispositivo es un traslado | aceptado |
+| [9](0009-app-de-android-como-twa.md) | La app de Android es la web publicada dentro de una Trusted Web Activity | aceptado |

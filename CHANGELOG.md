@@ -7,6 +7,21 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.7.0 — 26 de octubre de 2026
+
+### Añadido
+- **App de Android.** PageKeeper se puede instalar como una app más, con su
+  icono y sin barra de dirección. Es la misma web: lo que cambia en la web
+  llega a la app sin actualizarla.
+- **Abrir libros desde otras aplicaciones.** Con la app de Android, un PDF o un
+  EPUB se abre con PageKeeper desde el gestor de archivos («Abrir con») o se le
+  manda desde otra aplicación («Compartir»). Entra en este dispositivo como uno
+  añadido con «+» y se abre al momento, aunque hubiera otro libro abierto; si
+  ya estaba en la biblioteca, se abre el que había. Lo que llega sin
+  extensión, como pasa con algunas aplicaciones, entra igual.
+- **Política de privacidad completa**, en su propia página y en los ocho
+  idiomas, enlazada desde el aviso de privacidad del pie.
+
 ## 1.6.2 — 28 de septiembre de 2026
 
 ### Arreglado

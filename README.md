@@ -21,7 +21,10 @@ libros y sincronizar el progreso de lectura.
   reciente).
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
-  guarda en local y se sube al recuperar la red).
+  guarda en local y se sube al recuperar la red). En Android hay además una
+  app, la misma web dentro de una Trusted Web Activity (`android/`, ADR 9), que
+  abre los PDF y EPUB desde el gestor de archivos («Abrir con») o desde
+  «Compartir».
 - ▶️ **Continuar leyendo**: al abrir la aplicación, el último libro aparece
   destacado; desde Ajustes → Biblioteca se elige cuántas lecturas enseñar y se
   puede ocultar el recuadro entero. Los demás recientes se pueden desplegar y quitar individualmente;

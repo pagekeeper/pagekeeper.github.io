@@ -1,0 +1,25 @@
+PageKeeper PDF eta EPUB irakurgailu bat da: non zauden gogoratzen du, eta orri berean jarraitzeko aukera ematen dizu mugikorrean, tabletan edo ordenagailuan. Konturik gabe, publizitaterik gabe eta daturik bildu gabe: zure liburuak eta aurrerapena gailuan edo zure hodeian gordetzen dira.
+
+ZURE HODEIA, EZ BESTEENA
+• Konektatu zure Nextcloud, ownCloud edo edozein WebDAV zerbitzari, eta irakurri karpeta bateko liburuak.
+• Posizioa, laster-markak, oharrak eta azpimarrak gailu batetik bestera igarotzen dira hodei horren bidez.
+• Hodeirik gabe ere badabil: gehitu gailuko liburuak eta antolatu karpetatan.
+
+IRAKURTZEKO
+• PDF eta EPUB, formula matematikoekin ere bai.
+• Oharrak, azpimarrak, laster-markak, bilaketa eta aurkibidea.
+• Ozen irakurtzea.
+• Gai argia, sepia eta iluna, eta letra, marjina eta zutabeen ezarpenak.
+• Konexiorik gabe dabil: irakurritakoa sarea itzultzean sinkronizatzen da.
+• Ireki PDF eta EPUB fitxategiak fitxategi-kudeatzailetik, edo partekatu beste aplikazio batzuetatik.
+• Zure irakurketa-denboraren estatistikak.
+
+PRIBATUTASUNA
+PageKeeperrek ez du zerbitzari propiorik ezta analitikarik ere: zure hodeiarekin eta esteka baten bidez irekitzen duzun liburuaren webgunearekin baino ez da komunikatzen. Pribatutasun-politika: https://pagekeeper.github.io/privacidad.html
+
+LIBREA ETA ZURE HIZKUNTZAN
+• Euskaraz, gaztelaniaz, katalanez, galegoz, ingelesez, frantsesez, alemanez eta portugesez.
+• Kode irekia, MIT lizentziarekin: https://github.com/pagekeeper/pagekeeper.github.io
+• Juan José de Harok sortua, IAren laguntzaz.
+
+Adibideko liburuak jabari publikoko lanak eta lizentzia libreko dokumentuak dira, besteak beste INTEFen eta Kataluniako Generalitatearen gidak. PageKeeper ez da aplikazio ofiziala, eta ez dago inongo erakunde publikori lotuta.

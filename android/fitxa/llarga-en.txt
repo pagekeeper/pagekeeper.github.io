@@ -1,0 +1,25 @@
+PageKeeper is a PDF and EPUB reader that remembers where you are and lets you carry on from the same page on your phone, tablet or computer. No accounts, no ads and no data collection: your books and your progress stay on your device or in your own cloud.
+
+YOUR CLOUD, NOT SOMEONE ELSE’S
+• Connect your Nextcloud, ownCloud or any WebDAV server and read the books in a folder.
+• Your position, bookmarks, notes and highlights move between devices through that cloud.
+• It also works without a cloud: add books from the device and sort them into folders.
+
+FOR READING
+• PDF and EPUB, including math formulas.
+• Notes, highlights, bookmarks, search and table of contents.
+• Read aloud.
+• Light, sepia and dark themes, plus font, margin and column settings.
+• Works offline: what you read syncs when the connection comes back.
+• Open PDF and EPUB files from your file manager, or share them from other apps.
+• Statistics on your reading time.
+
+PRIVACY
+PageKeeper has no server of its own and no analytics: it only talks to your cloud and to the website of a book you open from a link. Privacy policy: https://pagekeeper.github.io/privacidad.html
+
+FREE AND IN YOUR LANGUAGE
+• In English, Spanish, Catalan, Galician, Basque, French, German and Portuguese.
+• Open source under the MIT license: https://github.com/pagekeeper/pagekeeper.github.io
+• Made by Juan José de Haro with the help of AI.
+
+The sample books are public-domain works and openly licensed documents, including guides from INTEF and the Government of Catalonia. PageKeeper is not an official app and is not affiliated with any public body.
