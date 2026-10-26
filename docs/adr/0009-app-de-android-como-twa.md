@@ -135,4 +135,5 @@ cerrada obligatoria, y no puede haber gastos nuevos.
   devuelve el vínculo.
 - En el móvil de Juanjo (26-10-2026), con el APK servido en la red de casa:
   se instala, abre sin barra de dirección, y «Abrir con» un PDF y un EPUB
-  desde el gestor de archivos los abre, también con otro libro ya abierto.
+  desde el gestor de archivos los abre, también con otro libro ya abierto, y
+  «Compartir» un archivo desde otra aplicación lo abre también.

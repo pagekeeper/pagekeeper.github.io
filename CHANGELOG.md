@@ -7,6 +7,17 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.7.1 — 26 de octubre de 2026
+
+### Arreglado
+- **Las palabras que no caben en la pantalla ya no se cortan.** En un móvil,
+  una palabra más ancha que la columna —un título en letra muy grande, una
+  dirección web larga— se cortaba, y lo que sobraba aparecía en la pantalla
+  siguiente, encima de otro texto. Pasaba con el título del Lazarillo de
+  ejemplo. Ahora una palabra así se parte en dos renglones, y en los títulos
+  la letra se reduce lo justo para que cada palabra quepa entera. El resto del
+  libro no cambia.
+
 ## 1.7.0 — 26 de octubre de 2026
 
 ### Añadido

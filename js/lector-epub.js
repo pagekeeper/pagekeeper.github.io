@@ -21,6 +21,7 @@ import { rangoDeFrase, textoDesdeLaVista } from './seguimiento-voz.js';
 import { posicionTrasReflujo } from './reflujo-epub.js';
 import { detectarIdioma, idiomaUtil } from './idioma-texto.js';
 import { esEnlaceExterno } from './enlaces-externos.js';
+import { SELECTOR_TITULOS, escalaParaQueQuepa, tramosDePalabras } from './titulos-anchos.js';
 import {
   columnasEfectivas, normalizarColumnas, normalizarLetrasPorLinea, LETRAS_INICIALES,
 } from './columnas.js';
@@ -431,6 +432,7 @@ export class LectorEpub {
     if (!continuo) vista.started?.then(() => this.imponerColumnas(vista), () => {});
     vista.hooks.content.register(inyectarMathJax);
     vista.hooks.content.register((contents) => this.inyectarTipografia(contents));
+    vista.hooks.content.register((contents) => this.vigilarTitulosAnchos(contents));
     vista.hooks.content.register((contents) => this.inyectarPapel(contents));
     vista.hooks.content.register((contents) => this.registrarInteraccionesNotas(contents));
     // Los enlaces internos del libro (notas al pie, índice propio) los salta
@@ -1002,6 +1004,7 @@ export class LectorEpub {
   // columnas, que es lo que fija el ancho disponible.
   reajustarFormulas() {
     for (const contents of this.vista?.getContents?.() ?? []) {
+      this.programarTitulosAnchos(contents);
       const ventana = contents.window;
       if (!ventana?.pagekeeperAjustarFormulas) continue;
       ventana.requestAnimationFrame?.(() => ventana.pagekeeperAjustarFormulas?.());
@@ -1009,6 +1012,82 @@ export class LectorEpub {
       // las columnas rehechas, es la que deja el ancho definitivo.
       setTimeout(() => ventana.pagekeeperAjustarFormulas?.(), 300);
     }
+  }
+
+  // ───────────── Títulos más anchos que la columna ─────────────
+
+  // Las medidas solo valen con el capítulo repartido en columnas, que epub.js
+  // termina después de este gancho, y dejan de valer al cambiar la ventana:
+  // se mide en el siguiente fotograma, otra vez cuando el reparto se asienta
+  // y en cada cambio de tamaño, como con las fórmulas.
+  vigilarTitulosAnchos(contents) {
+    this.programarTitulosAnchos(contents);
+    contents?.window?.addEventListener('resize', () => this.programarTitulosAnchos(contents));
+  }
+
+  programarTitulosAnchos(contents) {
+    const ventana = contents?.window;
+    if (!ventana || !contents.document?.querySelector(SELECTOR_TITULOS)) return;
+    ventana.requestAnimationFrame?.(() => this.ajustarTitulosAnchos(contents.document));
+    clearTimeout(contents.temporizadorTitulos);
+    contents.temporizadorTitulos = setTimeout(() => this.ajustarTitulosAnchos(contents.document), 350);
+  }
+
+  // Encoge el título cuya palabra más ancha no cabe en la columna (la cuenta,
+  // en titulos-anchos.js). Cada vez se parte del cuerpo que el título trae
+  // del libro: lo puesto la vez anterior se quita antes de medir.
+  ajustarTitulosAnchos(doc) {
+    const ventana = doc?.defaultView;
+    if (!ventana?.document?.documentElement) return;
+    const titulos = [...doc.querySelectorAll(SELECTOR_TITULOS)];
+    if (!titulos.length) return;
+    for (const titulo of titulos) {
+      if (titulo.dataset.pkEncogido) {
+        titulo.style.removeProperty('font-size');
+        delete titulo.dataset.pkEncogido;
+      }
+    }
+    const raiz = doc.documentElement;
+    raiz.setAttribute('data-pk-midiendo', '');
+    try {
+      for (const titulo of titulos) {
+        // Dos vueltas: si el espaciado entre letras viene en píxeles de un
+        // elemento de fuera, no encoge con la letra y la primera se queda corta.
+        for (let vuelta = 0; vuelta < 2; vuelta += 1) {
+          const estilo = ventana.getComputedStyle(titulo);
+          const hueco = titulo.clientWidth
+            - (parseFloat(estilo.paddingLeft) || 0) - (parseFloat(estilo.paddingRight) || 0);
+          const escala = escalaParaQueQuepa(this.palabraMasAncha(titulo, doc), hueco);
+          if (escala >= 1) break;
+          // Redondeado a décimas: con la misma medida sale siempre el mismo
+          // valor, y como todo pasa en la misma tarea, el capítulo no llega a
+          // cambiar de tamaño ni epub.js a repaginar si no ha cambiado nada.
+          const cuerpo = Math.floor(parseFloat(estilo.fontSize) * escala * 10) / 10;
+          titulo.style.setProperty('font-size', `${cuerpo}px`, 'important');
+          titulo.dataset.pkEncogido = '1';
+        }
+      }
+    } finally {
+      raiz.removeAttribute('data-pk-midiendo');
+    }
+  }
+
+  // Lo que mide, en píxeles, la palabra más ancha del título. Cada palabra se
+  // mide entera con un rango sobre su texto; una partida entre dos etiquetas
+  // (una capitular en su <span>) cuenta como dos, que se queda corto y deja
+  // a la otra regla, la de partir, lo que sobre.
+  palabraMasAncha(titulo, doc) {
+    let mayor = 0;
+    const rango = doc.createRange();
+    const recorrido = doc.createTreeWalker(titulo, NodeFilter.SHOW_TEXT);
+    for (let nodo = recorrido.nextNode(); nodo; nodo = recorrido.nextNode()) {
+      for (const [inicio, fin] of tramosDePalabras(nodo.data)) {
+        rango.setStart(nodo, inicio);
+        rango.setEnd(nodo, fin);
+        mayor = Math.max(mayor, rango.getBoundingClientRect().width);
+      }
+    }
+    return mayor;
   }
 
   // ───────────── Ajustes tipográficos (fuente e interlineado) ─────────────
@@ -1027,7 +1106,21 @@ export class LectorEpub {
       estilo.id = 'pagekeeper-tipografia';
       doc.head.append(estilo);
     }
-    const reglas = [];
+    // Una palabra más ancha que la columna no se corta ni invade la de al
+    // lado, que es lo que pasaba con los títulos de letra enorme y espaciada
+    // (el del Lazarillo, a 360 px) y con las direcciones web largas: se parte
+    // donde haga falta. `break-word` solo actúa cuando la palabra no cabe sola
+    // en el renglón, así que el resto del texto queda igual. Va siempre, sea
+    // cual sea el ajuste, y respeta el código y las fórmulas.
+    //
+    // Mientras se miden los títulos (ver ajustarTitulosAnchos) eso se apaga
+    // en ellos, igual que el guionado: hace falta ver cuánto ocupa cada
+    // palabra entera, no sus trozos.
+    const titulos = `:is(${SELECTOR_TITULOS})`;
+    const reglas = [
+      'body, body :not(pre, pre *, code, code *, math, math *) { overflow-wrap: break-word !important; }',
+      `html[data-pk-midiendo] ${titulos}, html[data-pk-midiendo] ${titulos} * { overflow-wrap: normal !important; hyphens: manual !important; -webkit-hyphens: manual !important; }`,
+    ];
     const fuente = FUENTES[this.fuente];
     if (fuente) {
       // Se respeta la fuente del código (pre, code…) y la de las fórmulas.
@@ -1091,6 +1184,7 @@ export class LectorEpub {
   aplicarTipografia() {
     for (const contents of this.vista?.getContents() ?? []) {
       this.inyectarTipografia(contents);
+      this.programarTitulosAnchos(contents);
     }
     this.programarIconosNotas();
     this.remedirPantallas();
