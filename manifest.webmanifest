@@ -1,8 +1,10 @@
 {
+  "id": "/",
   "name": "PageKeeper: lector de PDF y EPUB",
   "short_name": "PageKeeper",
   "description": "Lector de PDF y EPUB que sincroniza la posición de lectura entre dispositivos mediante tu propia nube (WebDAV/Nextcloud).",
   "start_url": ".",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#0f172a",
@@ -13,6 +15,53 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"
+    },
+    {
+      "src": "iconos/icono-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "iconos/icono-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "iconos/icono-adaptable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
-  ]
+  ],
+  "file_handlers": [
+    {
+      "action": "./",
+      "accept": {
+        "application/pdf": [
+          ".pdf"
+        ],
+        "application/epub+zip": [
+          ".epub"
+        ]
+      }
+    }
+  ],
+  "share_target": {
+    "action": "./?compartir",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "files": [
+        {
+          "name": "libros",
+          "accept": [
+            "application/pdf",
+            "application/epub+zip"
+          ]
+        }
+      ]
+    }
+  }
 }

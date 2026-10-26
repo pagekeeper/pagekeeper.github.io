@@ -33,6 +33,9 @@ import {
 import {
   esLibro, librosElegidos, librosArrastrados, capturarArrastre,
 } from './archivos-entrantes.js';
+import {
+  librosRecibidos, PARAMETRO_COMPARTIDO,
+} from './archivos-recibidos.js';
 import * as estadisticas from './estadisticas.js';
 import * as duplicados from './duplicados.js';
 import { VERSION } from './version.js';
@@ -1190,6 +1193,48 @@ window.addEventListener('hashchange', () => {
   if (!location.hash.startsWith('#libro=')) return;
   abrirLibroDeEnlace().catch(() => avisar(t('bookLinkFailed'), 6000));
 });
+
+// ── Libros que llegan de otra aplicación ──
+// «Abrir con» desde un gestor de archivos y «Compartir» desde cualquier
+// aplicación de Android; en el ordenador, «Abrir con» si PageKeeper está
+// instalado. Entran en este dispositivo como uno que se elige con el botón de
+// añadir y, si es uno solo, se abre: quien lo elige en otra aplicación quiere
+// leerlo, no buscarlo después en la lista. No se pregunta dónde guardarlo,
+// como con un enlace, porque el archivo ya lo tiene la persona y no viene de
+// fuera; desde su menú se lleva a la nube como cualquier otro.
+
+// La caché en la que sw.js deja lo compartido hasta que la página lo recoge.
+const CACHE_COMPARTIDOS = 'pagekeeper-compartidos';
+
+function renombrarRecibido(archivo, nombre) {
+  return new File([archivo], nombre, { type: archivo.type, lastModified: archivo.lastModified });
+}
+
+async function recibirLibros(archivos) {
+  await guardarArchivosLocales(librosRecibidos(archivos, renombrarRecibido), true);
+}
+
+async function recogerCompartidos() {
+  const parametros = new URLSearchParams(location.search);
+  parametros.delete(PARAMETRO_COMPARTIDO);
+  const busqueda = parametros.toString();
+  // Como con un enlace a un libro: recargar no tiene que volver a recibirlo.
+  history.replaceState(estadoBiblioteca(), '',
+    location.pathname + (busqueda ? `?${busqueda}` : '') + location.hash);
+  if (!('caches' in window)) return;
+  const cache = await caches.open(CACHE_COMPARTIDOS);
+  const archivos = [];
+  for (const peticion of await cache.keys()) {
+    const respuesta = await cache.match(peticion);
+    if (respuesta) {
+      archivos.push(new File([await respuesta.blob()],
+        decodeURIComponent(respuesta.headers.get('X-Nombre') ?? ''),
+        { type: respuesta.headers.get('Content-Type') ?? '' }));
+    }
+    await cache.delete(peticion);
+  }
+  await recibirLibros(archivos);
+}
 
 // ── Exportar / importar configuración por archivo ──
 // El archivo contiene la contraseña de aplicación en texto legible. Se crea
@@ -10444,15 +10489,31 @@ const llegaConfigEnLaUrl = location.hash.startsWith('#cfg=');
 // Un enlace a un libro manda sobre la apertura automática: quien lo pulsa
 // quiere ese libro, no el que dejó a medias la última vez.
 const llegaLibroEnLaUrl = location.hash.startsWith('#libro=');
+// Y lo mismo un libro compartido desde otra aplicación.
+const llegaCompartido = new URLSearchParams(location.search).has(PARAMETRO_COMPARTIDO);
 importarConfigDeUrl();
 crearCliente();
 if (!llegaLibroEnLaUrl) history.replaceState(estadoBiblioteca(), '');
 mostrarVista('biblioteca');
-precargarLibrosEjemplo()
+const arranque = precargarLibrosEjemplo()
   .finally(() => cargarBiblioteca())
   .then(() => {
     if (llegaLibroEnLaUrl) return abrirLibroDeEnlace();
+    if (llegaCompartido) return recogerCompartidos();
     return llegaConfigEnLaUrl ? null : abrirUltimaLecturaSiSePidio();
   })
   .catch(() => null);
+
+// Lo que se abre con «Abrir con» llega aquí, y también con la aplicación ya
+// abierta. Se espera al arranque para que la biblioteca ya esté pintada y el
+// libro caiga en ella como cualquier otro.
+if ('launchQueue' in window) {
+  window.launchQueue.setConsumer((parametros) => {
+    if (!parametros.files?.length) return;
+    arranque
+      .then(() => Promise.all(parametros.files.map((manejador) => manejador.getFile())))
+      .then(recibirLibros)
+      .catch((error) => avisar(t('openFailed', { error: error.message }), 6000));
+  });
+}
 

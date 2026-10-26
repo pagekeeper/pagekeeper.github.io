@@ -1,3 +1,13 @@
 # Caché de Python, de las pruebas de navegador.
 __pycache__/
 *.pyc
+
+# La app de Android (ADR 9): lo que compila Bubblewrap y el enlace a la clave,
+# que vive fuera del repositorio.
+android/upload.jks
+android/*.apk
+android/*.aab
+android/*.idsig
+android/build/
+android/app/build/
+android/.gradle/

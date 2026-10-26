@@ -1,7 +1,7 @@
 // Service worker: guarda en caché la aplicación para que funcione sin
 // conexión. Las peticiones al servidor WebDAV nunca se cachean.
 
-const CACHE = 'pagekeeper-v271';
+const CACHE = 'pagekeeper-v272';
 
 const RECURSOS = [
   '.',
@@ -55,6 +55,8 @@ const RECURSOS = [
   'js/descarga-carpeta.js',
   'js/imagenes-pdf.js',
   'js/tema.js',
+  'js/archivos-recibidos.js',
+  'js/privacidad.js',
   'vendor/pdf.min.js',
   'vendor/pdf.worker.min.js',
   'vendor/jszip.min.js',
@@ -65,7 +67,15 @@ const RECURSOS = [
   'ejemplos/alice-in-wonderland-en.epub',
   'manifest.webmanifest',
   'iconos/icono.svg',
+  'privacidad.html',
+  'css/privacidad.css',
 ];
+
+// Lo compartido desde otra aplicación se guarda aquí hasta que la página lo
+// recoge (ver «Libros que llegan de otra aplicación» en app.js). Va aparte de
+// la caché de la aplicación para que una versión nueva no lo borre al
+// instalarse justo entonces.
+const CACHE_COMPARTIDOS = 'pagekeeper-compartidos';
 
 self.addEventListener('install', (evento) => {
   evento.waitUntil(
@@ -76,13 +86,40 @@ self.addEventListener('install', (evento) => {
 self.addEventListener('activate', (evento) => {
   evento.waitUntil(
     caches.keys()
-      .then((claves) => Promise.all(claves.filter((c) => c !== CACHE).map((c) => caches.delete(c))))
+      .then((claves) => Promise.all(claves.filter((c) => c !== CACHE && c !== CACHE_COMPARTIDOS).map((c) => caches.delete(c))))
       .then(() => self.clients.claim())
   );
 });
 
+// «Compartir» desde otra aplicación manda los archivos por POST a
+// `?compartir` (el `share_target` del manifiesto). GitHub Pages no admite
+// POST, así que tienen que quedarse aquí: se guardan y se manda la página a
+// `?compartido`, donde los recoge. El 303 hace que el navegador pida esa
+// página con un GET y que recargar no vuelva a enviar nada.
+async function recibirCompartidos(peticion) {
+  const formulario = await peticion.formData();
+  const archivos = formulario.getAll('libros').filter((valor) => valor instanceof File);
+  const cache = await caches.open(CACHE_COMPARTIDOS);
+  for (const anterior of await cache.keys()) await cache.delete(anterior);
+  await Promise.all(archivos.map((archivo, indice) => cache.put(
+    `compartidos/${indice}`,
+    new Response(archivo, {
+      headers: {
+        'Content-Type': archivo.type || 'application/octet-stream',
+        'X-Nombre': encodeURIComponent(archivo.name),
+      },
+    }),
+  )));
+  return Response.redirect('./?compartido', 303);
+}
+
 self.addEventListener('fetch', (evento) => {
   const url = new URL(evento.request.url);
+  if (evento.request.method === 'POST' && url.origin === location.origin &&
+      url.searchParams.has('compartir')) {
+    evento.respondWith(recibirCompartidos(evento.request));
+    return;
+  }
   // Solo se gestionan peticiones GET a este mismo origen (la propia app).
   if (evento.request.method !== 'GET' || url.origin !== location.origin) return;
 

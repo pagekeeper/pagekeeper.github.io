@@ -1,0 +1,46 @@
+/* La página de la política de privacidad. Toma la paleta y la letra de
+   estilos.css y solo añade lo de un texto para leer: una columna estrecha y
+   el selector de idioma arriba, como en la aplicación. */
+.pagina-legal {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 3rem;
+}
+.pagina-legal header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--borde);
+  padding-bottom: 0.75rem;
+}
+.pagina-legal .marca {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 600;
+  color: var(--texto);
+  text-decoration: none;
+}
+.pagina-legal .marca img { width: 2rem; height: 2rem; }
+.pagina-legal select {
+  font: inherit;
+  color: var(--texto);
+  background: var(--fondo-tarjeta);
+  border: 1px solid var(--borde-fuerte);
+  border-radius: 0.4rem;
+  padding: 0.25rem 0.4rem;
+}
+.pagina-legal h1 { font-size: 1.6rem; line-height: 1.25; margin: 1.5rem 0 0.25rem; }
+.pagina-legal h2 { font-size: 1.15rem; margin: 1.75rem 0 0.4rem; }
+.pagina-legal .fecha { color: var(--texto-suave); margin-top: 0; }
+.pagina-legal a { color: var(--acento); }
+.pagina-legal li + li { margin-top: 0.4rem; }
+.pagina-legal footer {
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--borde);
+  padding-top: 0.75rem;
+  color: var(--texto-suave);
+  font-size: 0.95rem;
+}
