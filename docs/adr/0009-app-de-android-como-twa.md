@@ -27,8 +27,9 @@ cerrada obligatoria, y no puede haber gastos nuevos.
   Android 7 (API 24) como mínimo y Android 16 (API 36) como objetivo. Sin
   notificaciones: PageKeeper no envía ninguna.
 - **La web dice que la app es suya** con `.well-known/assetlinks.json`, que
-  lleva la huella SHA-256 de la clave de subida; al crear la app en Play
-  Console se añade la de la clave de firma de Google. Sin ese archivo, la app
+  lleva dos huellas SHA-256: la de la clave de firma de Google, con la que
+  Play firma lo que instala la gente, y la de la clave de subida, con la que
+  se firma el APK de pruebas que se instala a mano. Sin ese archivo, la app
   enseñaría la barra de dirección.
 - **«Abrir con» y «Compartir» los hace la web**, no la app, y sirven también a
   la PWA instalada:
@@ -137,3 +138,6 @@ cerrada obligatoria, y no puede haber gastos nuevos.
   se instala, abre sin barra de dirección, y «Abrir con» un PDF y un EPUB
   desde el gestor de archivos los abre, también con otro libro ya abierto, y
   «Compartir» un archivo desde otra aplicación lo abre también.
+- Play Console (26-10-2026): la app se creó gratuita; el AAB 1.0.0 se aceptó
+  en la prueba interna y la huella de la clave de firma de Google que da
+  «Firma de aplicaciones» es la que se añadió a `assetlinks.json`.
