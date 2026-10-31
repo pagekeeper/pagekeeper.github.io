@@ -53,7 +53,7 @@ cerrada obligatoria, y no puede haber gastos nuevos.
 - **Clave de subida fuera del repositorio**, que es público:
   `~/.config/pagekeeper/android/` (`upload.jks` y su contraseña en
   `clau.env`), con una copia en la carpeta de credenciales de Juanjo
-  (`certicontras/android-pagekeeper/`). Con la firma de apps de Play, si se
+  (`android-pagekeeper/`). Con la firma de apps de Play, si se
   pierde, Google deja cambiarla. `android/construeix.sh` la enlaza y compila.
 - **La versión de la app va aparte de la de la web**: cambia solo con el
   envoltorio (icono, nombre, versión de Android que exige Play). Cada año,
