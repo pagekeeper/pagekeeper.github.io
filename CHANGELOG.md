@@ -7,6 +7,12 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.7.2 — 2 de noviembre de 2026
+
+### Cambiado
+- **La app de Android ya está en Google Play.** En la ayuda de primeros pasos,
+  «app de Android» lleva ahora a su ficha en Google Play, en todos los idiomas.
+
 ## 1.7.1 — 26 de octubre de 2026
 
 ### Arreglado

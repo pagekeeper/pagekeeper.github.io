@@ -22,7 +22,7 @@ libros y sincronizar el progreso de lectura.
 - 📱 **Multidispositivo**: funciona en móvil, tablet y ordenador. Es una PWA:
   se puede instalar y la aplicación funciona sin conexión (el progreso se
   guarda en local y se sube al recuperar la red). En Android hay además una
-  app, la misma web dentro de una Trusted Web Activity (`android/`, ADR 9), que
+  [app en Google Play](https://play.google.com/store/apps/details?id=io.github.pagekeeper), la misma web dentro de una Trusted Web Activity (`android/`, ADR 9), que
   abre los PDF y EPUB desde el gestor de archivos («Abrir con») o desde
   «Compartir».
 - ▶️ **Continuar leyendo**: al abrir la aplicación, el último libro aparece
