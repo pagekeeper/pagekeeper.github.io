@@ -141,3 +141,11 @@ cerrada obligatoria, y no puede haber gastos nuevos.
 - Play Console (26-10-2026): la app se creó gratuita; el AAB 1.0.0 se aceptó
   en la prueba interna y la huella de la clave de firma de Google que da
   «Firma de aplicaciones» es la que se añadió a `assetlinks.json`.
+- Enviada a revisión el 30-10-2026 y en producción el 02-11-2026
+  (<https://play.google.com/store/apps/details?id=io.github.pagekeeper>),
+  enlazada desde el README y la ayuda (1.7.2). Es gratuita a propósito:
+  cobrarla exigiría darse de alta como actividad económica.
+- Para compilar sin que se pare: `printf 'n\n' | android/construeix.sh`
+  (sin `manifest-checksum.txt`, Bubblewrap pregunta si regenerar). En Play
+  Console, crear la versión de producción lo pulsa Juanjo; el resto lo puede
+  rellenar el agente.
