@@ -7,6 +7,15 @@ su etiqueta en git (`v1.0.0`).
 Antes de la 1.0.0 no había versiones numeradas: el detalle de aquel periodo
 está en el historial de commits.
 
+## 1.7.3 — 19 de noviembre de 2026
+
+### Cambiado
+- **En el móvil, los EPUB empiezan sin margen lateral.** Hasta ahora el
+  margen de partida era del 10 % por lado en cualquier pantalla, y en un
+  móvil eso dejaba renglones de pocas palabras. En tabletas y ordenadores
+  sigue en el 10 %. Quien ya hubiera movido el margen conserva lo que eligió;
+  «Restablecer» lleva ahora al valor de partida de cada dispositivo.
+
 ## 1.7.2 — 2 de noviembre de 2026
 
 ### Cambiado

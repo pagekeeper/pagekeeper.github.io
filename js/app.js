@@ -39,6 +39,7 @@ import {
 import * as estadisticas from './estadisticas.js';
 import * as duplicados from './duplicados.js';
 import { VERSION } from './version.js';
+import { margenInicial, MARGEN_MAXIMO as MARGEN_EPUB_MAXIMO } from './margen-epub.js';
 import * as gestos from './gestos.js';
 import { puntoEnElMarco, clicConPunto } from './zonas-toque.js';
 import { imagenAmpliable, descripcionImagen } from './imagen-ampliada.js';
@@ -189,8 +190,7 @@ const LIBROS_EJEMPLO = {
   ],
 };
 
-const MARGEN_EPUB_INICIAL = 10;
-const MARGEN_EPUB_MAXIMO = 30;
+const MARGEN_EPUB_INICIAL = margenInicial({ ancho: window.screen?.width, alto: window.screen?.height });
 
 function margenEpubActual() {
   const propio = ajusteDelLibro(CLAVE_MARGEN_LIBRO);
@@ -9105,7 +9105,9 @@ for (const mando of mandosDe('margen-epub')) {
 }
 
 function restablecerAjustesTexto() {
-  localStorage.setItem(CLAVE_MARGEN_EPUB, String(MARGEN_EPUB_INICIAL));
+  // Se borra en vez de guardar el valor de fábrica: así, si ese valor cambia
+  // (como pasó al dejar el móvil sin margen), «Restablecer» lleva al nuevo.
+  localStorage.removeItem(CLAVE_MARGEN_EPUB);
   // «Restablecer» devuelve todo a como viene de fábrica, así que el libro
   // abierto también suelta lo que hubiera decidido por su cuenta.
   guardarAjusteDelLibro(CLAVE_MARGEN_LIBRO, null);
