@@ -117,6 +117,12 @@ cerrada obligatoria, y no puede haber gastos nuevos.
   mínima»). Esta funciona sin conexión, guarda libros y anotaciones y
   sincroniza, pero no está garantizado.
 - Solo Android; en iPhone y iPad, la PWA.
+- El 20-11-2026, en el móvil de Juanjo, «Compartir» y «Abrir con» abrían a veces
+  el último libro en lugar del recibido. No se reprodujo en el emulador, y con el
+  registro del móvil conectado ya funcionó. Hipótesis sin comprobar: el sistema
+  del móvil congela la app en segundo plano y el archivo llega a una ventana
+  congelada. Si vuelve, registrar el móvil desde el primer instante de la
+  ventana nueva.
 
 ## Validación
 
